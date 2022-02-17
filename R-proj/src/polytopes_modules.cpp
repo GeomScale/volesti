@@ -3,8 +3,8 @@
 // Copyright (c) 2012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2018-2019 Apostolos Chalkis
 
-#include <Rcpp.h>
 
+#include <Rcpp.h>
 
 class Hpolytope {
 public:
@@ -60,10 +60,8 @@ public:
     int type;
 };
 
-
 RCPP_MODULE(polytopes){
     using namespace Rcpp ;
-
 
     //' An exposed class to represent a H-polytope
     //'
@@ -99,7 +97,6 @@ RCPP_MODULE(polytopes){
     .field( "dimension", &Hpolytope::dimension )
     .field( "type", &Hpolytope::type );
 
-
     //' An exposed C++ class to represent a V-polytope
     //'
     //' @description A V-polytope is a convex polytope defined by the set of its vertices.
@@ -125,7 +122,6 @@ RCPP_MODULE(polytopes){
     .field( "dimension", &Vpolytope::dimension )
     .field( "type", &Vpolytope::type );
 
-
     //' An exposed C++ class to represent a zonotope
     //'
     //' @description A zonotope is a convex polytope defined by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
@@ -150,7 +146,6 @@ RCPP_MODULE(polytopes){
     .field( "volume", &Zonotope::vol )
     .field( "dimension", &Zonotope::dimension )
     .field( "type", &Zonotope::type );
-
 
     //' An exposed C++ class to represent an intersection of two V-polytopes
     //'

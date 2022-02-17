@@ -7,6 +7,7 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -63,7 +64,7 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1,
     typedef boost::mt19937    RNGType;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    typedef Ellipsoid<Point, MT> CopEll;
+    typedef Ellipsoid<Point> CopEll;
     unsigned int num_slices = 100, numpoints = 500000;
 
     if (m.isNotNull()) {

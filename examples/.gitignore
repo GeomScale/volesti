@@ -1,5 +1,6 @@
 _deps
 CMakeFiles
-*cmake
+cmake_install.cmake
 Makefile
 compile_commands.json
+CMakeCache.txt

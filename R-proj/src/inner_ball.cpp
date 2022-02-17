@@ -1,7 +1,5 @@
-
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
-
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -97,5 +95,4 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P,
 
     vec[n] = InnerBall.second;
     return vec;
-
 }

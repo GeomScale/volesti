@@ -14,18 +14,16 @@
 /// Eigen solver for generalized eigenvalue problem
 //#define EIGEN_EIGENVALUES_SOLVER
 /// Spectra standard eigenvalue problem
-//#define SPECTRA_EIGENVALUES_SOLVER
+#define SPECTRA_EIGENVALUES_SOLVER
 /// ARPACK++ standard eigenvalues solver
-#define ARPACK_EIGENVALUES_SOLVER
+//#define ARPACK_EIGENVALUES_SOLVER
 
-#include <../../external/arpack++/include/arssym.h>
 #include <../../external/Spectra/include/Spectra/SymEigsSolver.h>
 #include "DenseProductMatrix.h"
 #include "EigenDenseMatrix.h"
 
 #include "../../external/Spectra/include/Spectra/SymGEigsSolver.h"
 #include "../../external/Spectra/include/Spectra/GenEigsSolver.h"
-#include "../../external/arpack++/include/arsnsym.h"
 
 /// Solve eigenvalues problems
 /// \tparam NT Numeric Type
@@ -284,6 +282,40 @@ public:
 
 #endif
 //        std::cout << lambdaMinPositive << " " << eigenvector.transpose() << "\n";fflush(stdout);
+        return lambdaMinPositive;
+    }
+
+    /// Find the minimum positive and maximum negative eigenvalues of the generalized eigenvalue
+    /// problem A + lB, where A, B symmetric and A negative definite.
+    /// \param[in] A Input matrix
+    /// \param[in] B Input matrix
+    /// \return The pair (minimum positive, maximum negative) of eigenvalues
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const
+    {
+        int matrixDim = A.rows();
+        double lambdaMinPositive;
+
+        Spectra::DenseSymMatProd<NT> op(B);
+        Spectra::DenseCholesky<NT> Bop(-A);
+
+        // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+            geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+
+        // Initialize and compute
+        geigs.init();
+        int nconv = geigs.compute();
+
+        // Retrieve results
+        VT evalues;
+
+        if (geigs.info() == Spectra::SUCCESSFUL) {
+            evalues = geigs.eigenvalues();
+            eigvec = geigs.eigenvectors().col(0);
+        }
+
+        lambdaMinPositive = 1 / evalues(0);
+
         return lambdaMinPositive;
     }
 

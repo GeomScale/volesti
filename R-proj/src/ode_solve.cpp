@@ -8,6 +8,7 @@
 
 //Contributed and/or modified by Marios Papachristou, as part of Google Summer of Code 2018 and 2019 program.
 
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -20,7 +21,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/sampling.hpp"
 #include "ode_solvers/ode_solvers.hpp"
-#include "ode_solvers/oracle_functors_rcpp.hpp"
+#include "oracle_functors_rcpp.h"
 
 template <
   typename Solver,

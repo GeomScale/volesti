@@ -12,10 +12,10 @@
 #define ORDER_POLYTOPE_H
 
 #include <iostream>
-#include "poset.h"
+#include "misc/poset.h"
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "lp_oracles/solve_lp.h"
 #endif
 
@@ -84,25 +84,29 @@ public:
 
     // get ith column of A
     VT get_col (unsigned int i) const {
-        VT res = _A.col(i);
-        if (_normalized) {
-            return res.array() / _row_norms.array();
-        }
+        return _A.col(i);
+    }
 
-        return res;
+
+    Eigen::SparseMatrix<NT> get_mat() const
+    {
+        return _A.sparseView();
+    }
+
+
+    VT get_vec() const
+    {
+        return b;
     }
 
 
     // print polytope in Ax <= b format
-    void print()
+    void print() const
     {
         std::cout << " " << _A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < _A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                if (!_normalized)
-                    std::cout << _A(i, j) << " ";
-                else
-                    std::cout << _A(i, j) / _row_norms(i) << " ";
+                std::cout << _A(i, j) << " ";
             }
             std::cout << "<= " << b(i) << std::endl;
         }
@@ -174,13 +178,11 @@ public:
 
         for (int i = 0; i < _d; i++) {
             // DON'T JUST check violation of point between 0 and 1
-            // as b will change for shifted polytope
+            // as b will change for shifted polytope.
             diff = -pt_coeffs(i) - b(i);
-            if (_normalized)    diff /= _row_norms(i);
             if (diff > NT(tol)) return 0;
 
             diff = pt_coeffs(i) - b(i + _d);
-            if (_normalized)    diff /= _row_norms(i + _d);
             if (diff > NT(tol)) return 0;
         }
 
@@ -204,37 +206,8 @@ public:
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
-       normalize();
-
-        // change entries of A, doing here as won't be required in
-        // optimized volume calculation of order-polytope
-        MT A = _A.rowwise().normalized();
-        std::pair<Point, NT> _innerball;
-
-        #ifndef VOLESTIPY   // as _A is never normalized in closed form
-            _innerball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
-        #else
-
-            if (_innerball.second < 0.0) {
-
-                NT const tol = 0.00000001;
-                std::tuple<VT, NT, bool> innerball = max_inscribedball(A, b, 150, tol);
-
-                // check if the solution is feasible
-                if (is_in(Point(std::get<0>(innerball))) == 0 || std::get<1>(innerball) < NT(0) ||
-                    std::isnan(std::get<1>(innerball)) || std::isinf(std::get<1>(innerball)) ||
-                    !std::get<2>(innerball) || is_inner_point_nan_inf(std::get<0>(innerball)))
-                {
-                    _innerball.second = -1.0;
-                } else
-                {
-                    _innerball.first = Point(std::get<0>(innerball));
-                    _innerball.second = std::get<1>(innerball);
-                }
-            }
-        #endif
-
-        return _innerball;
+        normalize();
+        return ComputeChebychevBall<NT, Point>(_A, b);
     }
 
 
@@ -408,7 +381,7 @@ public:
     }
 
 
-    //-------------------------accelarated billiard--------------------------------//
+    //-------------------------accelerated billiard--------------------------------//
     // compute intersection point of a ray starting from r and pointing to v
     // with the order-polytope
     template <typename update_parameters>
@@ -647,16 +620,45 @@ public:
     }
 
 
+    // get a point inside the order polytope,
+    // NOTE: the current implementation only works for non shifted order polytope
+    VT inner_point()
+    {
+        // get topologically sorted list of indices
+        std::vector<unsigned int> sorted_list = _poset.topologically_sorted_list();
+
+        // vector to hold n linearly spaced values between 0-1
+        std::vector<NT> lin_space_values(_d);
+        NT start = 0.05, end = 0.95;
+        NT h = (end - start)/static_cast<NT>(_d-1);
+        NT val = start;
+        for(auto x=lin_space_values.begin(); x!=lin_space_values.end(); ++x) {
+            *x = val;
+            val += h;
+        }
+
+        // final result vector
+        VT res(_d);
+        for(int i=0; i<_d; ++i) {
+            unsigned int curr_idx = sorted_list[i];
+            res(curr_idx) = lin_space_values[i];
+        }
+
+        return res;
+    }
+
+
     void normalize()
     {
         if (_normalized == true)
             return;
 
         // for b and _A, first 2*_d rows are already normalized, for
-        _normalized = true; // -> will be used to make changes in entries of _A
+        _normalized = true; // -> will be used to make normalization idempotent
         for (unsigned int i = 0; i < _num_hyperplanes; ++i)
         {
-            b(i) = b(i) / _row_norms(i);
+            _A.row(i) /= _row_norms(i);
+            b(i) /= _row_norms(i);
         }
     }
 

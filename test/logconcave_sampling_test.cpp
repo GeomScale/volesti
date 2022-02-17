@@ -37,9 +37,14 @@
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
+#include "generators/convex_bodies_generator.h"
 
 #include "preprocess/svd_rounding.hpp"
 #include "misc/misc.h"
+
+#include "matrix_operations/EigenvaluesProblems.h"
+#include "SDPAFormatManager.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 
 template <typename NT>
 struct SimulationStats {
@@ -506,6 +511,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
     std::cout << std::endl;
     print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
+    std::cout << "min ess " << min_ess << "us" << std::endl;
     std::cout << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
     std::cout << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
     std::cout << "Average number of reflections: " <<
@@ -529,6 +535,123 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
     return std::vector<SimulationStats<NT>>{rdhr_stats, hmc_stats};
 }
+
+
+template <typename NT, typename Polytope>
+std::vector<SimulationStats<NT>> benchmark_spectrahedron_sampling(
+    Polytope &P,
+    NT eta=NT(-1),
+    unsigned int walk_length=3,
+    bool centered=false,
+    unsigned int max_draws=80000,
+    unsigned int num_burns=20000) {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef boost::mt19937 RNGType;
+    typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+    typedef InnerBallFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef InnerBallFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientFunctor> Solver;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+
+    SimulationStats<NT> rdhr_stats;
+    SimulationStats<NT> hmc_stats;
+
+    std::pair<Point, NT> inner_ball;
+    if (centered) {
+        inner_ball.first = Point(P.dimension());
+        inner_ball.second = NT(1); // dummy radius (not correct one)
+    }
+
+    // Random number generator
+    RandomNumberGenerator rng(1);
+
+    // Chebyshev center
+    Point x0 = inner_ball.first;
+    NT R0 = inner_ball.second;
+    unsigned int dim = x0.dimension();
+    std::cout<<"dim = "<<dim<<std::endl;
+
+
+    // Declare oracles
+    InnerBallFunctor::parameters<NT, Point> params(x0, R0);
+
+    NegativeGradientFunctor F(params);
+    NegativeLogprobFunctor f(params);
+
+    GaussianRDHRWalk::Walk<Polytope, RandomNumberGenerator> gaussian_walk(P, x0, params.L, rng);
+
+    int max_actual_draws = max_draws - num_burns;
+    unsigned int min_ess = 0;
+
+    MT samples;
+    samples.resize(dim, max_actual_draws);
+    NT ETA;
+    NT max_psrf;
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+
+    HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+
+    HamiltonianMonteCarloWalk::Walk
+      <Point, Polytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+      hmc(&P, x0, F, f, hmc_params);
+
+    min_ess = 0;
+
+    std::cout << "Hamiltonian Monte Carlo (Gaussian Density)" << std::endl;
+
+    if (eta > 0) hmc.solver->eta = eta;
+
+    std::cout << "Burn-in" << std::endl;
+
+    for (unsigned int i = 0; i < num_burns; i++) {
+      if (i % 1000 == 0) std::cout << ".";
+      hmc.apply(rng, walk_length);
+    }
+
+    hmc.disable_adaptive();
+    std::cout << std::endl;
+    std::cout << "Sampling" << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    for (unsigned int i = 0; i < max_actual_draws; i++) {
+      hmc.apply(rng, walk_length);
+      samples.col(i) = hmc.x.getCoefficients();
+      if (i % 1000 == 0 && i > 0) std::cout << ".";
+    }
+    stop = std::chrono::high_resolution_clock::now();
+
+    ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+    std::cout << std::endl;
+    print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
+    std::cout << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+    std::cout << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
+    std::cout << "Average number of reflections: " <<
+        (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
+    std::cout << "Step size (final): " << hmc.solver->eta << std::endl;
+    std::cout << "Discard Ratio: " << hmc.discard_ratio << std::endl;
+    std::cout << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+    std::cout << std::endl;
+
+    max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+
+    hmc_stats.method = "HMC";
+    hmc_stats.walk_length = walk_length;
+    hmc_stats.min_ess = min_ess;
+    hmc_stats.max_psrf = max_psrf;
+    hmc_stats.time_per_draw = ETA / max_actual_draws;
+    hmc_stats.time_per_independent_sample = ETA / min_ess;
+    hmc_stats.average_number_of_reflections = (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps;
+    hmc_stats.step_size = hmc.solver->eta;
+    hmc_stats.average_acceptance_log_prob  = exp(hmc.average_acceptance_log_prob);
+
+    return std::vector<SimulationStats<NT>>{rdhr_stats, hmc_stats};
+}
+
 
 
 template <typename NT, typename Polytope>
@@ -574,11 +697,13 @@ template <typename NT, typename Polytope, typename Point>
 void benchmark_polytope_linear_program_optimization(
     Point &coeffs,
     Polytope &P,
+    unsigned int max_phases=0,
     NT eta=NT(-1),
     unsigned int walk_length=3,
-    bool rounding=true,
+    bool rounding=false,
+    bool centered=true,
     unsigned int max_draws=80000,
-    unsigned int num_burns=20000) {
+    unsigned int num_burns=10000) {
     typedef Cartesian<NT>    Kernel;
     typedef std::vector<Point> pts;
     typedef boost::mt19937 RNGType;
@@ -594,15 +719,20 @@ void benchmark_polytope_linear_program_optimization(
     typedef typename Polytope::MT MT;
     typedef typename Polytope::VT VT;
 
-    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     // Random number generator
     RandomNumberGenerator rng(1);
+    unsigned int dim = P.dimension();
+    Point x0(dim);
+    NT R0 = NT(1);
+    std::pair<Point, NT> inner_ball = std::make_pair(x0, R0);
 
-    // Chebyshev center
-    Point x0 = inner_ball.first;
-    NT R0 = inner_ball.second;
-    unsigned int dim = x0.dimension();
+    if (!centered) {
+        inner_ball = P.ComputeInnerBall();
+        // Chebyshev center
+        x0 = inner_ball.first;
+        R0 = inner_ball.second;
+    }
 
     if (rounding) {
         std::cout << "SVD Rounding" << std::endl;
@@ -626,6 +756,8 @@ void benchmark_polytope_linear_program_optimization(
     GaussianRDHRWalk::Walk<Polytope, RandomNumberGenerator> gaussian_walk(P, x0, lp_params.L, rng);
     int n_warmstart_samples = 100;
 
+    std::cout << "Warm start" << std::endl;
+
     for (int i = 0; i < n_warmstart_samples; i++) {
         gaussian_walk.apply(P, x0, lp_params.L, walk_length, rng);
     }
@@ -637,7 +769,15 @@ void benchmark_polytope_linear_program_optimization(
       hmc(&P, x0, F, f, hmc_params);
 
     int max_actual_draws = max_draws - num_burns;
-    unsigned int min_ess = 0;
+    unsigned int total_min_ess = 0;
+    unsigned int temp_min_ess = 0;
+    NT total_max_psrf = 0;
+    MT samples;
+    samples.resize(dim, max_actual_draws);
+
+    if (max_phases == 0) {
+        max_phases = (unsigned int) 4 * ceil(sqrt(dim));
+    }
 
     Point minimum = x0;
 
@@ -650,30 +790,46 @@ void benchmark_polytope_linear_program_optimization(
       hmc.apply(rng, walk_length);
     }
 
+    hmc.solver->eta = hmc.solver->eta*NT(10);
+    hmc.disable_adaptive();
+
     std::cout << std::endl;
-    std::cout << "Optimizing" << std::endl;
+    std::cout << "Sampling" << std::endl;
+    unsigned int num_phases = 1;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (unsigned int j = 0; j < (unsigned int) 4 * ceil(sqrt(dim)); j++) {
-        std::cout << "Temperature " << opt_params.T << std::endl;
+    for (unsigned int j = 0; j < 1; j++) {
         for (unsigned int i = 0; i < max_actual_draws; i++) {
             hmc.apply(rng, walk_length);
             if (f_lp(minimum) >= f_lp(hmc.x)) {
                 minimum = hmc.x;
-                std::cout << "Current value: " << f_lp(minimum) << std::endl;
             }
+            samples.col(i) = hmc.x.getCoefficients();
             if (i % 1000 == 0 && i > 0) std::cout << ".";
         }
-        opt_params.update_temperature();
+        total_max_psrf += check_interval_psrf<NT, VT, MT>(samples, NT(1.2));
+        effective_sample_size<NT, VT, MT>(samples, temp_min_ess);
+        total_min_ess += temp_min_ess;
+        opt_params.update_temperature(0.5, 1);
     }
     auto stop = std::chrono::high_resolution_clock::now();
 
     NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 
-    std::cout << "LP Value: " << f_lp(minimum) << std::endl;
-    std::cout << "Point: " << minimum.getCoefficients().transpose() << std::endl;
-}
+    std::cerr << "Min biomass Value: " << f_lp(minimum) << std::endl;
+    std::cerr << "Argmin: " << minimum.getCoefficients().transpose() << std::endl;
+    std::cerr << "ETA: " << ETA / (NT) num_phases << std::endl;
+    std::cerr << "Time per Independent sample: " <<  total_min_ess / ETA << std::endl;
+    std::cerr << "Max PSRF: " << total_max_psrf / (NT) num_phases << std::endl;
+    std::cerr << "Min ESS: " << total_min_ess / (NT) num_phases << std::endl;
+    std::cerr << "Average number of reflections: " <<
+        (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
+    std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
+    std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
+    std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+    std::cerr << std::endl;
 
+}
 
 template <typename Polytope, typename NT>
 Polytope read_polytope(std::string filename) {
@@ -682,6 +838,19 @@ Polytope read_polytope(std::string filename) {
     inp.open(filename,std::ifstream::in);
     read_pointset(inp, Pin);
     Polytope P(Pin);
+    return P;
+}
+
+template <typename NT, typename Point>
+Point read_linear_objective(std::string filename) {
+    std::ifstream inp;
+    std::vector<NT> P_temp;
+    inp.open(filename,std::ifstream::in);
+    read_objective(inp, P_temp);
+    Point P(P_temp.size());
+    for (unsigned int i = 0; i < P_temp.size(); i++) {
+        P.set_coord(i, P_temp[i]);
+    }
     return P;
 }
 
@@ -727,10 +896,10 @@ void call_test_benchmark_polytopes_grid_search() {
        std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
        std::make_tuple(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex", false),
        std::make_tuple(generate_birkhoff<Hpolytope>(10), "10_birkhoff", false),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
     };
 
     Hpolytope P;
@@ -757,17 +926,261 @@ void call_test_benchmark_polytopes_grid_search() {
 
 }
 
+
 template <typename NT>
-void call_test_optimization() {
+void call_test_benchmark_spectrahedra_grid_search() {
+
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Cartesian<NT> Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef Spectrahedron<Point> spectrahedron;
+    typedef boost::mt19937 RNGType;
+
+    std::cout << " --- Grid search on spectrahedra " << std::endl;
+
+    std::vector<SimulationStats<NT>> results;
+    std::vector<std::tuple<spectrahedron, std::string, bool>> spectrahedra;
+
+    Point objFunction;
+
+    SdpaFormatManager<NT> sdpaFormatManager;
+
+    std::ifstream in1;
+    spectrahedron spectrahedron1;
+    in1.open("spectra_data/sdp_prob_200_15.txt", std::ifstream::in);
+    sdpaFormatManager.loadSDPAFormatFile(in1, spectrahedron1, objFunction);
+    spectrahedra.push_back(std::make_tuple(spectrahedron1, "S_200_15", true));
+
+    std::ifstream in2;
+    spectrahedron spectrahedron2;
+    in2.open("spectra_data/sdp_prob_400_20.txt", std::ifstream::in);
+    sdpaFormatManager.loadSDPAFormatFile(in2, spectrahedron2, objFunction);
+    spectrahedra.push_back(std::make_tuple(spectrahedron2, "S_400_20", true));
+
+    std::ifstream in3;
+    spectrahedron spectrahedron3;
+    in3.open("spectra_data/sdp_prob_600_25.txt", std::ifstream::in);
+    sdpaFormatManager.loadSDPAFormatFile(in3, spectrahedron3, objFunction);
+    spectrahedra.push_back(std::make_tuple(spectrahedron3, "S_600_25", true));
+
+    std::ifstream in4;
+    spectrahedron spectrahedron4;
+    in4.open("spectra_data/sdp_prob_800_30.txt", std::ifstream::in);
+    sdpaFormatManager.loadSDPAFormatFile(in4, spectrahedron4, objFunction);
+    spectrahedra.push_back(std::make_tuple(spectrahedron4, "S_800_30", true));
+
+    std::ifstream in5;
+    spectrahedron spectrahedron5;
+    in5.open("spectra_data/sdp_prob_1000_35.txt", std::ifstream::in);
+    sdpaFormatManager.loadSDPAFormatFile(in5, spectrahedron5, objFunction);
+    spectrahedra.push_back(std::make_tuple(spectrahedron5, "S_1000_35", true));
+
+
+    spectrahedron P;
+    std::string name;
+    std::ofstream outfile;
+    NT step_size = 0;
+    std::pair<Point, NT> inner_ball;
+
+    for (std::tuple<spectrahedron, std::string, bool> spectrahedron_tuple : spectrahedra) {
+        P = std::get<0>(spectrahedron_tuple);
+        name = std::get<1>(spectrahedron_tuple);
+        std::cout << name << std::endl;
+        outfile.open("results_" + name + "_new.txt");
+        //P.normalize();
+        //inner_ball = P.ComputeInnerBall();
+        step_size = 0.5;
+        for (unsigned int walk_length = P.dimension()/2; walk_length <= P.dimension(); walk_length += P.dimension() / 2) {
+            results = benchmark_spectrahedron_sampling<NT, spectrahedron>(P, step_size, walk_length, std::get<2>(spectrahedron_tuple));
+            outfile << results[0];
+            outfile << results[1];
+        }
+        outfile.close();
+    }
+
+}
+
+template <typename Point, typename NT>
+Point load_biomass_function(std::string name)
+{
+  std::vector<double> v1;
+  std::string line;
+  NT element;
+
+  std::ifstream myFile(name);
+  while(std::getline(myFile, line))
+  {
+    std::istringstream lineStream(line);
+
+    while(lineStream >> element) {
+      v1.push_back(element);
+    }
+  }
+  Point biomass_function = Point(v1.size(), v1);
+  NT length = biomass_function.length();
+  biomass_function *= (NT(1) / length);
+  return biomass_function;
+}
+
+inline bool exists_check (const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
+template <typename NT>
+void call_test_exp_sampling() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
+    std::string name;
+    std::vector<std::tuple<Hpolytope, Point, std::string, bool>> polytopes;
+    
+    
+    if (exists_check("metabolic_full_dim/e_coli_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_e_coli.ine")){
+      Point biomass_function_e_coli = load_biomass_function<Point, NT>("metabolic_full_dim/e_coli_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), biomass_function_e_coli, "e_coli", true));
+    }
 
-    Hpolytope P = generate_cube<Hpolytope>(100, false);
+    if (exists_check("metabolic_full_dim/iAT_PTL_636_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_iAT_PTL_636.ine")){
+      Point biomass_function_iAT = load_biomass_function<Point, NT>("metabolic_full_dim/iAT_PTL_636_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAT_PTL_636.ine"), biomass_function_iAT, "iAT_PTL_636", true));
+    }
 
-    Point coeffs = Point::all_ones(100);
+    if (exists_check("metabolic_full_dim/recon1_function.txt") && exists_check("metabolic_full_dim/polytope_recon1.ine")){
+      Point biomass_function_recon1 = load_biomass_function<Point, NT>("metabolic_full_dim/recon1_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon1.ine"), biomass_function_recon1, "recon1", true));
+    }
 
-    benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P);
+    Hpolytope P;
+    std::ofstream outfile;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
+
+    for (std::tuple<Hpolytope, Point, std::string, bool> polytope_tuple : polytopes) {
+      P = std::get<0>(polytope_tuple);
+      name = std::get<2>(polytope_tuple);
+
+      std::cerr << "Model: " + name << std::endl;
+      std::cout<< "Dimension of " + name + ": " <<P.dimension()<<std::endl;
+
+      P.normalize();
+      RNGType rng(P.dimension());
+      Point coeffs = std::get<1>(polytope_tuple);
+      for (unsigned int walk_length = P.dimension(); walk_length <= 2*P.dimension(); walk_length += P.dimension()) {
+        benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, 0, NT(-1), walk_length, false);
+      }
+    }
+
+}
+
+template <typename NT>
+void call_test_benchmark_convex_body() {
+  typedef Cartesian<NT>    Kernel;
+  typedef typename Kernel::Point    Point;
+  typedef ConvexBody<Point> Convexbody;
+  typedef boost::mt19937 RNGType;
+  typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+  typedef InnerBallFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+  typedef InnerBallFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+  typedef GeneralizedLeapfrogODESolver<Point, NT, Convexbody, NegativeGradientFunctor> Solver;
+  typedef typename Convexbody::MT MT;
+  typedef typename Convexbody::VT VT;
+
+  unsigned int dim = 1000;
+  // Convexbody P = generate_unit_ball<Convexbody>(dim);
+  Convexbody P = generate_unit_ball_intersect_logsumexp<Convexbody>(dim);
+
+  unsigned int max_draws = 40000;
+  unsigned int num_burns = max_draws / 3;
+
+  Point x0(dim);
+  NT R0 = NT(dim);
+
+  unsigned int walk_length = 1000;
+
+  SimulationStats<NT> hmc_stats;
+
+  // Random number generator
+  RandomNumberGenerator rng(1);
+
+  // Declare oracles
+  InnerBallFunctor::parameters<NT, Point> params(x0, R0);
+
+  NegativeGradientFunctor F(params);
+  NegativeLogprobFunctor f(params);
+
+  int max_actual_draws = max_draws - num_burns;
+  unsigned int min_ess = 0;
+
+  MT samples;
+  samples.resize(dim, max_actual_draws);
+  NT ETA;
+  NT max_psrf;
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+
+  std::cerr << std::endl;
+  std::cerr << "HMC Sampling" << std::endl;
+
+
+  HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+
+  HamiltonianMonteCarloWalk::Walk
+    <Point, Convexbody, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+    hmc(&P, x0, F, f, hmc_params);
+
+  min_ess = 0;
+
+  std::cerr << "Hamiltonian Monte Carlo (Gaussian Density)" << std::endl;
+
+  hmc.solver->eta = 0.001;
+
+  std::cerr << "Burn-in" << std::endl;
+
+  for (unsigned int i = 0; i < num_burns; i++) {
+    if (i % 1000 == 0) std::cerr << ".";
+    hmc.apply(rng, walk_length);
+  }
+
+  hmc.disable_adaptive();
+  std::cerr << std::endl;
+  std::cerr << "Sampling" << std::endl;
+
+  start = std::chrono::high_resolution_clock::now();
+  for (unsigned int i = 0; i < max_actual_draws; i++) {
+    hmc.apply(rng, walk_length);
+    std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+
+    samples.col(i) = hmc.x.getCoefficients();
+    if (i % 1000 == 0 && i > 0) std::cerr << ".";
+  }
+  stop = std::chrono::high_resolution_clock::now();
+
+  ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+  std::cerr << std::endl;
+  print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
+  std::cerr << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+  std::cerr << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
+  std::cerr << "Average number of reflections: " <<
+      (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
+  std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
+  std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
+  std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+  std::cerr << std::endl;
+  std::cerr << "Min ESS" << min_ess << std::endl;
+
+  max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+
+  hmc_stats.method = "HMC";
+  hmc_stats.walk_length = walk_length;
+  hmc_stats.min_ess = min_ess;
+  hmc_stats.max_psrf = max_psrf;
+  hmc_stats.time_per_draw = ETA / max_actual_draws;
+  hmc_stats.time_per_independent_sample = ETA / min_ess;
+  hmc_stats.average_number_of_reflections = (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps;
+  hmc_stats.step_size = hmc.solver->eta;
+  hmc_stats.average_acceptance_log_prob  = exp(hmc.average_acceptance_log_prob);
 
 }
 
@@ -779,8 +1192,8 @@ TEST_CASE("uld") {
     call_test_uld<double>();
 }
 
-TEST_CASE("optimization") {
-    call_test_optimization<double>();
+TEST_CASE("exponential_biomass_sampling") {
+    call_test_exp_sampling<double>();
 }
 
 TEST_CASE("benchmark_hmc") {
@@ -793,4 +1206,12 @@ TEST_CASE("benchmark_hmc_truncated") {
 
 TEST_CASE("benchmark_polytopes_grid_search") {
     call_test_benchmark_polytopes_grid_search<double>();
+}
+
+TEST_CASE("benchmark_convex_body") {
+    call_test_benchmark_convex_body<double>();
+}
+
+TEST_CASE("benchmark_spectrahedra_grid_search") {
+    call_test_benchmark_spectrahedra_grid_search<double>();
 }

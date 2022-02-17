@@ -26,7 +26,7 @@ typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Cartesian <NT> Kernel;
 typedef typename Kernel::Point Point;
-typedef Spectrahedron <NT, MT, VT> SPECTRAHEDRON;
+typedef Spectrahedron <Point> SPECTRAHEDRON;
 
 
 int main(int argc, char* argv[]) {
