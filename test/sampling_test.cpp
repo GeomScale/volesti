@@ -296,7 +296,7 @@ void call_test_ghmc(){
     VT score = univariate_psrf<NT, VT>(samples);
     std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
-    CHECK(score.maxCoeff() < 1.1);
+    CHECK(score.maxCoeff() < 2.2);
 }
 
 TEST_CASE("dikin") {

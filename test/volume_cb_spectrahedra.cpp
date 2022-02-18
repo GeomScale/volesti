@@ -45,26 +45,6 @@ void test_values(NT volume, NT expected, NT exact)
            std::abs((volume - expected)/expected) < 0.00001));
 }
 
-/*
-template <class Polytope>
-void test_volume(Polytope &HP,
-                 double const& expectedBilliard,
-                 double const& exact)
-{
-    typedef typename Polytope::PointType Point;
-    typedef typename Point::FT NT;
-
-    // Setup the parameters
-    int walk_len = 10 + HP.dimension()/10;
-    NT e=0.1, volume;
-
-    // Estimate the volume
-    std::cout << "Number type: " << typeid(NT).name() << std::endl;
-    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(HP, , walk_len, e).second;
-    test_values(volume, expectedBilliard, exact);
-}*/
 
 template <typename NT>
 void call_test_volume(){
@@ -81,21 +61,15 @@ void call_test_volume(){
     sdpaFormatManager.loadSDPAFormatFile(in1, spectra, objFunction);
 
     // Setup the parameters
-    int walk_len = 10 + spectra.dimension()/10;
+    int walk_len = 2;
     NT e = 0.1, volume;
     Point interior_point(spectra.dimension());
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-
-    //NT diam = spectra.estimateDiameter(1000, interior_point);
-    //std::cout<<"diam = "<<diam<<std::endl;
-    
-    //std::pair<Point, NT> inner_ball = spectra.ComputeInnerBall();
-    //std::cout<<"radius = "<<inner_ball.second<<std::endl;
     
     std::cout << "--- Testing spectrahedron 20_20" << std::endl;
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(spectra, interior_point, walk_len, e).second;
+    volume = volume_cooling_balls<AcceleratedBilliardWalk, RNGType>(spectra, interior_point, walk_len, e).second;
     
-    test_values(volume, 16.4119, 16.4119);
+    test_values(volume, 14.2082, 14.2082);
 }
 
 

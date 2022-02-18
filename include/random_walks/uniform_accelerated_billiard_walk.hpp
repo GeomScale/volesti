@@ -104,7 +104,8 @@ struct AcceleratedBilliardWalk
                 Point p0 = _p;
 
                 it = 0;
-                std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av,
+                                                                      _lambda_prev, _update_parameters);
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
@@ -120,7 +121,8 @@ struct AcceleratedBilliardWalk
                 while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
-                            = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
+                            = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev,
+                                                        _AA, _update_parameters);
                     if (T <= pbpair.first) {
                         _p += (T * _v);
                         _lambda_prev = T;

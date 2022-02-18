@@ -255,7 +255,7 @@ public:
                                                PointType const& v,
                                                VT&,
                                                VT& ,
-                                               NT&,
+                                               NT const&,
                                                update_parameters&)
     {
         return line_positive_intersect(r, v);
@@ -266,8 +266,8 @@ public:
                                                PointType const& v,
                                                VT&,
                                                VT&,
-                                               NT&,
-                                               MT&,
+                                               NT const&,
+                                               MT const&,
                                                update_parameters& )
     {
         return line_positive_intersect(r, v);
@@ -289,17 +289,6 @@ public:
                                                PointType const& v,
                                                VT&,
                                                VT&)
-    {
-        return line_positive_intersect(r, v);
-    }
-
-    // compute intersection point of a ray starting from r and pointing to v
-    // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v,
-                                               VT&,
-                                               VT&,
-                                               NT&)
     {
         return line_positive_intersect(r, v);
     }

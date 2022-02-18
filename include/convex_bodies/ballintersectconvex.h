@@ -131,7 +131,7 @@ public:
                                                      PointType const& v,
                                                      VT& Ar,
                                                      VT& Av,
-                                                     update_parameters& params) const
+                                                     update_parameters& params)
     {
         std::pair <NT, int> polypair = P.line_first_positive_intersect(r, v, Ar, Av, params);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
@@ -150,7 +150,7 @@ public:
                                                VT& Av,
                                                NT const& lambda_prev,
                                                MT const& AA,
-                                               update_parameters& params) const
+                                               update_parameters& params)
     {
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev, AA, params);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
@@ -168,7 +168,7 @@ public:
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
-                                               update_parameters& params) const
+                                               update_parameters& params)
     {
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
