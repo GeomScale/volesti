@@ -6,7 +6,6 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#include "doctest.h"
 #include <fstream>
 #include <iostream>
 #include "misc.h"
@@ -16,6 +15,7 @@
 #include "random/uniform_real_distribution.hpp"
 
 #include "random_walks/random_walks.hpp"
+#include "random_walks/multithread_walks.hpp"
 
 #include "volume/volume_sequence_of_balls.hpp"
 #include "known_polytope_generators.h"
@@ -33,7 +33,8 @@ template <typename MT,
 MT get_uniform_samples(Polytope &P,
                          RandomNumberGenerator &rng,
                          const unsigned int &walk_len,
-                         const unsigned int &N)
+                         const unsigned int &N,
+                         const unsigned int &num_threads)
 {
     typedef typename Point::FT NT;
 
@@ -54,7 +55,6 @@ MT get_uniform_samples(Polytope &P,
 
     Point p = P.ComputeInnerBall().first;
     std::list<Point> randPoints;
-    unsigned int num_threads = 2;
 
     typedef RandomPointGeneratorMultiThread <walk> _RandomPointGeneratorMultiThread;
     
@@ -86,7 +86,8 @@ MT get_gaussian_samples(Polytope &P,
                           NT const& a_i,
                           RandomNumberGenerator &rng,
                           const unsigned int &walk_len,
-                          const unsigned int &N)
+                          const unsigned int &N,
+                          const unsigned int &num_threads)
 {
     typedef typename WalkTypePolicy::template thread_parameters
         <
@@ -105,7 +106,6 @@ MT get_gaussian_samples(Polytope &P,
 
     Point p = P.ComputeInnerBall().first;
     std::list<Point> randPoints;
-    unsigned int num_threads = 2;
 
     typedef GaussianPointGeneratorMultiThread <walk> _GaussianPointGeneratorMultiThread;
     
@@ -127,7 +127,7 @@ MT get_gaussian_samples(Polytope &P,
 
 
 template <typename NT, typename WalkType>
-void call_test_parallel_uniform_random_walk(){
+void test_uniform_random_walk(std::string random_walk, unsigned int const& num_threads){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
@@ -137,21 +137,18 @@ void call_test_parallel_uniform_random_walk(){
     Hpolytope P;
     unsigned int d = 10, walk_len = 5, N = 5000;
 
-    std::cout << "--- Testing Boundary RDHR for H-cube10" << std::endl;
+    std::cout << "--- Sampling with " + random_walk + " walk from H-cube10" << std::endl;
     P = generate_cube<Hpolytope>(d, false);
-    //P.ComputeInnerBall();
     RNGType rng(P.dimension());
 
-    MT samples = get_uniform_samples<MT, WalkType, Point>(P, rng, walk_len, N);
+    MT samples = get_uniform_samples<MT, WalkType, Point>(P, rng, walk_len, N, num_threads);
 
     VT score = univariate_psrf<NT, VT>(samples);
-    std::cout << "psrf = " << score.maxCoeff() << std::endl;
-
-    CHECK(score.maxCoeff() < 1.1);
+    std::cout << "psrf = " << score.maxCoeff() << "\n" << std::endl;
 }
 
 template <typename NT, typename WalkType>
-void call_test_parallel_gaussian_random_walk(){
+void test_gaussian_random_walk(std::string random_walk, unsigned int const& num_threads){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
@@ -162,44 +159,27 @@ void call_test_parallel_gaussian_random_walk(){
     unsigned int d = 10, walk_len = 5, N = 5000;
     NT a_i = 1;
 
-    std::cout << "--- Testing Boundary RDHR for H-cube10" << std::endl;
+    std::cout << "--- Sampling with " + random_walk + " walk from H-cube10" << std::endl;
     P = generate_cube<Hpolytope>(d, false);
-    //P.ComputeInnerBall();
     RNGType rng(P.dimension());
 
-    MT samples = get_gaussian_samples<MT, WalkType, Point>(P, a_i, rng, walk_len, N);
+    MT samples = get_gaussian_samples<MT, WalkType, Point>(P, a_i, rng, walk_len, N, num_threads);
 
     VT score = univariate_psrf<NT, VT>(samples);
-    std::cout << "psrf = " << score.maxCoeff() << std::endl;
-
-    CHECK(score.maxCoeff() < 1.1);
+    std::cout << "psrf = " << score.maxCoeff() << "\n" << std::endl;
 }
 
 
-TEST_CASE("multithread_brdhr") {
-    call_test_parallel_uniform_random_walk<double, BRDHRWalk_multithread>();
-}
+int main() {
+    
+    unsigned int num_threads = 2;
+    
+    test_uniform_random_walk<double, BRDHRWalk_multithread>("BRDHR", num_threads);
+    test_uniform_random_walk<double, BCDHRWalk_multithread>("BCDHR", num_threads);
+    test_gaussian_random_walk<double, GaussianCDHRWalk_multithread>("GaussianCDHR", num_threads);
+    test_gaussian_random_walk<double, GaussianRDHRWalk_multithread>("GaussianRDHR", num_threads);
+    test_uniform_random_walk<double, BilliardWalk_multithread>("Billiard", num_threads);
+    test_uniform_random_walk<double, CDHRWalk_multithread>("CDHR", num_threads);
+    test_uniform_random_walk<double, RDHRWalk_multithread>("RDHR", num_threads);
 
-TEST_CASE("multithread_bcdhr") {
-    call_test_parallel_uniform_random_walk<double, BCDHRWalk_multithread>();
-}
-
-TEST_CASE("multithread_gcdhr") {
-    call_test_parallel_gaussian_random_walk<double, GaussianCDHRWalk_multithread>();
-}
-
-TEST_CASE("multithread_grdhr") {
-    call_test_parallel_gaussian_random_walk<double, GaussianRDHRWalk_multithread>();
-}
-
-TEST_CASE("multithread_biw") {
-    call_test_parallel_uniform_random_walk<double, BilliardWalk_multithread>();
-}
-
-TEST_CASE("multithread_cdhr") {
-    call_test_parallel_uniform_random_walk<double, CDHRWalk_multithread>();
-}
-
-TEST_CASE("multithread_rdhr") {
-    call_test_parallel_uniform_random_walk<double, RDHRWalk_multithread>();
 }
