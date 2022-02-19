@@ -77,17 +77,11 @@ struct RandomPointGeneratorMultiThread
         typedef typename Walk::thread_parameters_ _thread_parameters;
 
         omp_set_num_threads(num_threads);
-        unsigned int jj = 0, d= P.dimension(), m = P.num_of_hyperplanes();
-        std::vector<int> num_points_per_thread(num_threads, 0);
-
-        while (jj < rnum) 
-        {
-            for (unsigned int i = 0; i < num_threads; i++)
-            {
-                num_points_per_thread[i]++;
-                jj++;
-            }
-        }
+        unsigned int d = P.dimension(), m = P.num_of_hyperplanes();
+        
+        std::vector<int> num_points_per_thread(rnum%num_threads, rnum/num_threads+1);
+        std::vector<int> a(num_threads - rnum%num_threads, rnum/num_threads);
+        num_points_per_thread.insert(num_points_per_thread.end(), a.begin(), a.end());
 
         _thread_parameters thread_random_walk_parameters_temp(d, m);
         Walk walk(P, thread_random_walk_parameters_temp, rng, parameters);
@@ -130,17 +124,11 @@ struct RandomPointGeneratorMultiThread
         typedef typename Walk::thread_parameters_ _thread_parameters;
 
         omp_set_num_threads(num_threads);
-        unsigned int jj = 0, d= P.dimension(), m = P.num_of_hyperplanes();
-        std::vector<int> num_points_per_thread(num_threads, 0);
+        unsigned int d = P.dimension(), m = P.num_of_hyperplanes();
 
-        while (jj < rnum) 
-        {
-            for (unsigned int i = 0; i < num_threads; i++)
-            {
-                num_points_per_thread[i]++;
-                jj++;
-            }
-        }
+        std::vector<int> num_points_per_thread(rnum%num_threads, rnum/num_threads+1);
+        std::vector<int> a(num_threads - rnum%num_threads, rnum/num_threads);
+        num_points_per_thread.insert(num_points_per_thread.end(), a.begin(), a.end());
 
         _thread_parameters thread_random_walk_parameters_temp(d, m);
         Walk walk(P, thread_random_walk_parameters_temp, rng);
@@ -195,17 +183,11 @@ struct GaussianPointGeneratorMultiThread
         typedef typename Walk::thread_parameters_ _thread_parameters;
 
         omp_set_num_threads(num_threads);
-        unsigned int jj = 0, d= P.dimension(), m = P.num_of_hyperplanes();
-        std::vector<int> num_points_per_thread(num_threads, 0);
-
-        while (jj < rnum) 
-        {
-            for (unsigned int i = 0; i < num_threads; i++)
-            {
-                num_points_per_thread[i]++;
-                jj++;
-            }
-        }
+        unsigned int d = P.dimension(), m = P.num_of_hyperplanes();
+        
+        std::vector<int> num_points_per_thread(rnum%num_threads, rnum/num_threads+1);
+        std::vector<int> a(num_threads - rnum%num_threads, rnum/num_threads);
+        num_points_per_thread.insert(num_points_per_thread.end(), a.begin(), a.end());
 
         _thread_parameters thread_random_walk_parameters_temp(d, m);
         Walk walk(P, thread_random_walk_parameters_temp, a_i, rng, parameters);
@@ -249,17 +231,11 @@ struct GaussianPointGeneratorMultiThread
        typedef typename Walk::thread_parameters_ _thread_parameters;
 
         omp_set_num_threads(num_threads);
-        unsigned int jj = 0, d= P.dimension(), m = P.num_of_hyperplanes();
-        std::vector<int> num_points_per_thread(num_threads, 0);
-
-        while (jj < rnum) 
-        {
-            for (unsigned int i = 0; i < num_threads; i++)
-            {
-                num_points_per_thread[i]++;
-                jj++;
-            }
-        }
+        unsigned int d = P.dimension(), m = P.num_of_hyperplanes();
+        
+        std::vector<int> num_points_per_thread(rnum%num_threads, rnum/num_threads+1);
+        std::vector<int> a(num_threads - rnum%num_threads, rnum/num_threads);
+        num_points_per_thread.insert(num_points_per_thread.end(), a.begin(), a.end());
 
         _thread_parameters thread_random_walk_parameters_temp(d, m);
         Walk walk(P, thread_random_walk_parameters_temp, a_i, rng);
