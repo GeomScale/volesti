@@ -31,24 +31,15 @@ template <typename MT,
           typename RandomNumberGenerator
          >
 MT get_uniform_samples(Polytope &P,
-                         RandomNumberGenerator &rng,
-                         const unsigned int &walk_len,
-                         const unsigned int &N,
-                         const unsigned int &num_threads)
+                       RandomNumberGenerator &rng,
+                       const unsigned int &walk_len,
+                       const unsigned int &N,
+                       const unsigned int &num_threads)
 {
-    typedef typename Point::FT NT;
-
-    typedef typename WalkTypePolicy::template thread_parameters
-        <
-            NT,
-            Point
-        > _thread_parameters;
-    
     typedef typename WalkTypePolicy::template Walk
             <
-                    Polytope,
-                    RandomNumberGenerator,
-                    _thread_parameters
+                Polytope,
+                RandomNumberGenerator
             > walk;
 
     PushBackWalkPolicy push_back_policy;
@@ -83,23 +74,16 @@ template <typename MT,
           typename RandomNumberGenerator
          >
 MT get_gaussian_samples(Polytope &P,
-                          NT const& a_i,
-                          RandomNumberGenerator &rng,
-                          const unsigned int &walk_len,
-                          const unsigned int &N,
-                          const unsigned int &num_threads)
+                        NT const& a_i,
+                        RandomNumberGenerator &rng,
+                        const unsigned int &walk_len,
+                        const unsigned int &N,
+                        const unsigned int &num_threads)
 {
-    typedef typename WalkTypePolicy::template thread_parameters
-        <
-            NT,
-            Point
-        > _thread_parameters;
-    
     typedef typename WalkTypePolicy::template Walk
             <
-                    Polytope,
-                    RandomNumberGenerator,
-                    _thread_parameters
+                Polytope,
+                RandomNumberGenerator
             > walk;
 
     PushBackWalkPolicy push_back_policy;
@@ -173,7 +157,7 @@ void test_gaussian_random_walk(std::string random_walk, unsigned int const& num_
 int main() {
     
     unsigned int num_threads = 2;
-    
+
     test_uniform_random_walk<double, BRDHRWalk_multithread>("BRDHR", num_threads);
     test_uniform_random_walk<double, BCDHRWalk_multithread>("BCDHR", num_threads);
     test_gaussian_random_walk<double, GaussianCDHRWalk_multithread>("GaussianCDHR", num_threads);
