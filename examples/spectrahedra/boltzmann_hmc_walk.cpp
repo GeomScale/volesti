@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     // estimate the diameter of the body
     int pointsNum = 10;
-    NT diameter = spectrahedron.estimateDiameter(pointsNum, initialPoint);
+    NT diameter = spectrahedron.estimateDiameter(pointsNum, initialPoint, randomNumberGenerator);
 
     // declare the settings and
     HmcWalkSettings settings(walkLength, randomNumberGenerator, objFunction, temperature, diameter);

@@ -408,17 +408,10 @@ public:
     /// \tparam Point
     /// \param[in] numPoints The number of points to sample for the estimation
     /// \return An estimation of the diameter of the spectrahedron
-    NT estimateDiameter(int const numPoints, PointType const & interiorPoint) {
-        typedef boost::mt19937 RNGType;
-
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
+    template <typename RNGType>
+    NT estimateDiameter(int const numPoints, PointType const & interiorPoint, RNGType &rng) {
 
         std::list<Point> randPoints;
-
-        // initialize random numbers generators
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-        boost::random::uniform_int_distribution<> uidist(1, d);
 
         precomputedValues.computed_A = false;
         VT p = interiorPoint.getCoefficients();
@@ -427,7 +420,7 @@ public:
         for (int samplingNo=0 ; samplingNo<numPoints ; ++samplingNo) {
             // uniformly select a line parallel to an axis,
             // i.e. an indicator i s.t. x_i = 1
-            int coordinate = uidist(rng);
+            int coordinate = rng.sample_uidist();
 
             // get the distances we can travel from p
             // on the line p + t* e_coordinate
@@ -436,7 +429,7 @@ public:
 
             // uniformly set the new point on the segment
             // defined by the intersection points
-            NT lambda = urdist(rng);
+            NT lambda = rng.sample_urdist();
             NT diff = distances.first + lambda * (distances.second - distances.first);
 
             p(coordinate - 1) = p(coordinate - 1) + diff;

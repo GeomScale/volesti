@@ -71,9 +71,11 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
     _objectiveFunctionNormed.normalize();
     Point objectiveFunctionNormed = Point(_objectiveFunctionNormed);
 
+    RNGType rng(spectrahedron.dimension());
+
     // Estimate the diameter of the spectrahedron
     // needed for the random walk and for the simulated annealing algorithm
-    NT diameter = spectrahedron.estimateDiameter(CONSTANT_1 + std::sqrt(spectrahedron.dimension()), interiorPoint);
+    NT diameter = spectrahedron.estimateDiameter(CONSTANT_1 + std::sqrt(spectrahedron.dimension()), interiorPoint, rng);
 
     /******** initialization *********/
     solution = interiorPoint;
@@ -86,7 +88,6 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
     NT tempDecreaseFactor = 1.0 - static_cast<NT>(1.0 / std::pow(spectrahedron.dimension(), settings.k));
 
     // initialize random walk;
-    RNGType rng(spectrahedron.dimension());
     typename HMC::Settings hmc_settings = typename HMC::Settings(settings.walkLength, rng, objectiveFunction, temperature, diameter);
     HMC hmcRandomWalk = HMC(hmc_settings);
     NT previous_min = objectiveFunction.dot(solution);
