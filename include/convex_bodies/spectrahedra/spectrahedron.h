@@ -420,7 +420,7 @@ public:
         for (int samplingNo=0 ; samplingNo<numPoints ; ++samplingNo) {
             // uniformly select a line parallel to an axis,
             // i.e. an indicator i s.t. x_i = 1
-            int coordinate = rng.sample_uidist();
+            int coordinate = rng.sample_uidist() + 1;
 
             // get the distances we can travel from p
             // on the line p + t* e_coordinate
