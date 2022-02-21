@@ -2,12 +2,10 @@
 
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2022 Alexandros Manochis
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-
-// Edited by HZ on 11.06.2020 - mute doctest.h
-#include "doctest.h"
 #include <fstream>
 #include <iostream>
 #include "misc.h"
@@ -26,28 +24,9 @@
 #include "SDPAFormatManager.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 
-template <typename NT>
-NT factorial(NT n)
-{
-  return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
-}
 
 template <typename NT>
-void test_values(NT volume, NT expected, NT exact)
-{
-    std::cout << "Computed volume " << volume << std::endl;
-    std::cout << "Expected volume = " << expected << std::endl;
-    std::cout << "Relative error (expected) = "
-              << std::abs((volume-expected)/expected) << std::endl;
-    std::cout << "Relative error (exact) = "
-              << std::abs((volume-exact)/exact) << std::endl;
-    CHECK((std::abs((volume - exact)/exact) < 0.35 || 
-           std::abs((volume - expected)/expected) < 0.00001));
-}
-
-
-template <typename NT>
-void call_test_volume(){
+void example_volume(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef Spectrahedron<Point> spectrahedron;
@@ -57,7 +36,7 @@ void call_test_volume(){
     std::ifstream in1;
     spectrahedron spectra;
     Point objFunction;
-    in1.open("spectra_data/sdp_prob_20_20.txt", std::ifstream::in);
+    in1.open("./../../test/spectra_data/sdp_prob_20_20.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in1, spectra, objFunction);
 
     // Setup the parameters
@@ -69,12 +48,15 @@ void call_test_volume(){
     std::cout << "--- Testing spectrahedron 20_20" << std::endl;
     volume = volume_cooling_balls<AcceleratedBilliardWalk, RNGType>(spectra, interior_point, walk_len, e).second;
     
-    test_values(volume, 14.2082, 14.2082);
+    std::cout<<"Computed volume = "<<volume<<std::endl;
 }
 
 
-TEST_CASE("spectra_volume") {
-    call_test_volume<double>();
+int main() {
+
+    example_volume<double>();
+
+    return 0;
 }
 
 

@@ -282,9 +282,6 @@ else ()
   add_executable (volume_cb_vpoly_intersection_vpoly volume_cb_vpoly_intersection_vpoly.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_cb_vpoly_intersection_vpoly_random_vpoly_sphere
            COMMAND volume_cb_vpoly_intersection_vpoly -tc=random_vpoly_sphere)
-           
-  add_executable (volume_cb_spectrahedra volume_cb_spectrahedra.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cb_spectrahedra_spectra_volume COMMAND volume_cb_spectrahedra -tc=spectra_volume)
 
   add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_round_min_ellipsoid
@@ -334,7 +331,6 @@ else ()
   TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cb_spectrahedra coverage_config)
   TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(sampling_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
