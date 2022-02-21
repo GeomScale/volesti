@@ -59,7 +59,7 @@ struct cooling_ball_parameters
 /// Helpers
 
 template <typename Point, typename ConvexBody, typename PointList, typename NT>
-bool check_convergence(ConvexBody const& P,
+bool check_convergence(ConvexBody &P,
                        PointList const& randPoints,
                        bool& too_few,
                        NT& ratio,
@@ -123,7 +123,7 @@ bool check_convergence(ConvexBody const& P,
 
 
 template <typename Polytope, typename Ball, typename NT, typename RNG>
-bool get_first_ball(Polytope const& P,
+bool get_first_ball(Polytope &P,
                     Ball& B0,
                     NT& ratio,
                     NT const& radius_input,
@@ -280,7 +280,7 @@ template
     typename NT,
     typename RNG
 >
-bool get_sequence_of_polytopeballs(Polytope& P,
+bool get_sequence_of_polytopeballs(Polytope &P,
                                    std::vector<ball>& BallSet,
                                    std::vector<NT>& ratios,
                                    int const& Ntot,
@@ -289,7 +289,6 @@ bool get_sequence_of_polytopeballs(Polytope& P,
                                    cooling_ball_parameters<NT> const& parameters,
                                    RNG& rng)
 {
-
     typedef typename Polytope::PointType Point;
     bool fail;
     int n = P.dimension();
@@ -395,7 +394,7 @@ public:
 };
 
 template <typename Pollyball, typename Point, typename NT>
-bool estimate_ratio_generic(Pollyball const& Pb2, Point const& p, NT const& error,
+bool estimate_ratio_generic(Pollyball &Pb2, Point const& p, NT const& error,
        estimate_ratio_parameters<NT> &ratio_parameters)
 {
     if (ratio_parameters.iter++ <= ratio_parameters.max_iterations_estimation)
@@ -451,8 +450,8 @@ template
         typename NT,
         typename RNG
 >
-NT estimate_ratio(PolyBall1 const& Pb1,
-                  PolyBall2 const& Pb2,
+NT estimate_ratio(PolyBall1 &Pb1,
+                  PolyBall2 &Pb2,
                   NT const& ratio,
                   NT const& error,
                   unsigned int const& W,
@@ -481,7 +480,7 @@ template
         typename RNG
 >
 NT estimate_ratio(ball const& B,
-                  PolyBall const& Pb2,
+                  PolyBall &Pb2,
                   NT const& ratio,
                   NT const& error,
                   int const& W,
@@ -537,7 +536,7 @@ public:
 };
 
 template <typename Pollyball, typename Point, typename NT>
-void full_sliding_window(Pollyball const& Pb2,
+void full_sliding_window(Pollyball &Pb2,
                          Point const& p,
                          estimate_ratio_interval_parameters<NT>& ratio_parameters)
 {
@@ -553,7 +552,7 @@ void full_sliding_window(Pollyball const& Pb2,
 }
 
 template <typename Pollyball, typename Point, typename NT>
-bool estimate_ratio_interval_generic(Pollyball const& Pb2,
+bool estimate_ratio_interval_generic(Pollyball &Pb2,
                                      Point const& p,
                                      NT const& error,
                                      NT const& zp,
@@ -614,7 +613,7 @@ template
     typename RNG
 >
 NT estimate_ratio_interval(ball const& B,
-                           PolyBall2 const& Pb2,
+                           PolyBall2 &Pb2,
                            NT const& ratio,
                            NT const& error,
                            int const& W,
@@ -655,8 +654,8 @@ template
         typename NT,
         typename RNG
 >
-NT estimate_ratio_interval(PolyBall1 const& Pb1,
-                           PolyBall2 const& Pb2,
+NT estimate_ratio_interval(PolyBall1 &Pb1,
+                           PolyBall2 &Pb2,
                            NT const& ratio,
                            NT const& error,
                            int const& W,
@@ -692,13 +691,14 @@ template
 <
     typename WalkTypePolicy,
     typename Polytope,
-    typename RandomNumberGenerator
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b,
+                                                                double>
 >
 std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
-                                       RandomNumberGenerator &rng,
-                                       double const& error = 0.1,
-                                       unsigned int const& walk_length = 1,
-                                       unsigned int const& win_len = 300)
+                                               RandomNumberGenerator &rng,
+                                               double const& error = 0.1,
+                                               unsigned int const& walk_length = 1,
+                                               unsigned int const& win_len = 300)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -760,7 +760,6 @@ std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
                                                         P, *(ratios.end() - 1),
                                                         er0, parameters.win_len, 1200,
                                                         prob, rng));
-
     auto balliter = BallSet.begin();
     auto ratioiter = ratios.begin();
 
@@ -825,7 +824,7 @@ template
                                                                 double>,
     typename Polytope
 >
-std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
+std::pair<double, double> volume_cooling_balls(Polytope &Pin,
                                                double const& error = 0.1,
                                                unsigned int const& walk_length = 1)
 {
@@ -833,5 +832,22 @@ std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
     return volume_cooling_balls<WalkTypePolicy>(Pin, rng, error, walk_length);
 }
 
+
+template
+<
+    typename WalkTypePolicy = CDHRWalk,
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b,
+                                                                double>,
+    typename Polytope
+>
+std::pair<double, double> volume_cooling_balls(Polytope &Pin,
+                                               Cartesian<double>::Point const& interior_point,
+                                               unsigned int const& walk_length = 1,
+                                               double const& error = 0.1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    Pin.set_interior_point(interior_point);
+    return volume_cooling_balls<WalkTypePolicy>(Pin, rng, error, walk_length);
+}
 
 #endif // VOLUME_COOLING_BALLS_HPP

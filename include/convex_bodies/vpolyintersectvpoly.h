@@ -164,6 +164,11 @@ public:
         _inner_ball = innerball;
     }
 
+    void set_interior_point(Point const& r)
+    {
+        _inner_ball.first = r;
+    }
+
 /*
         unsigned int num_of_v = 0;
         unsigned int d = dimension();
