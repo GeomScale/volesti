@@ -12,7 +12,8 @@
 
 #include "sampling/sphere.hpp"
 
-// random directions hit-and-run walk with uniform target distribution
+// coordinate directions hit-and-run walk with uniform target distribution
+
 struct CDHRWalk
 {
     struct parameters {};

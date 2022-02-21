@@ -11,7 +11,7 @@
 #include "sampling/sphere.hpp"
 
 // Random directions hit-and-run walk with uniform target distribution
-// from boundary
+// from the boundary
 
 struct BRDHRWalk
 {
