@@ -38,15 +38,9 @@ struct policy_storing<BRDHRWalk_multithread>
 };
 
 template <>
-struct policy_storing<BCDHRWalk_multithread>
-{
-    template <typename WalkPolicy, typename PointList, typename ThreadParameters>
-    static void store(WalkPolicy &policy, PointList &randPoints, ThreadParameters &thread_random_walk_parameters) 
-    {
-        policy.apply(randPoints, thread_random_walk_parameters.p1);
-        policy.apply(randPoints, thread_random_walk_parameters.p2);
-    }
-};
+struct policy_storing<BCDHRWalk_multithread> : policy_storing<BRDHRWalk_multithread> 
+{};
+
 
 template
 <
