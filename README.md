@@ -24,7 +24,6 @@
 
 * [Using the R Interface](doc/r_interface.md)
 * [Using the C++ Interface](doc/cpp_interface.md)
-* [Using the Python Interface](volestipy/README.md)
 * [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volesti/wiki)
 * [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
 * [Tutorial on (truncated) logconcave sampling (R and C++)](https://papachristoumarios.github.io/2020/07/21/Sampling-from-high-dimensional-truncated-log-concave-densities-with-volesti)
