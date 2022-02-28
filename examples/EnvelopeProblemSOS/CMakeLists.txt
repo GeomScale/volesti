@@ -51,9 +51,19 @@ endif ()
 if (USE_OpenMP)
     find_package(OpenMP REQUIRED)
 endif (USE_OpenMP)
-
-find_package(Python2 COMPONENTS Development NumPy)
+find_package(Python3 REQUIRED)
+find_package(Boost REQUIRED)
+find_package(Python3 COMPONENTS Development NumPy)
 add_executable(EnvelopeProblem ${TARGETS})
+
+include("../../external/cmake-files/Eigen.cmake")
+GetEigen()
+
+include("../../external/cmake-files/Boost.cmake")
+GetBoost()
+
+include("../../external/cmake-files/LPSolve.cmake")
+GetLPSolve()
 
 if (NOT BOOST_DIR)
     find_package(Boost 1.67.0 COMPONENTS *boost usr/local/)
@@ -65,7 +75,7 @@ if (NOT BOOST_DIR)
     message(FATAL_ERROR "This program requires the boost library, and will not be compiled. Set with flag -BOOST_DIR.")
 else ()
     target_include_directories(EnvelopeProblem PRIVATE ${BOOST_DIR}
-            ../../include/sos ../../external ${SPDLOG_DIR} ../../include/sos/include ${Python2_INCLUDE_DIRS} ${Python2_NumPy_INCLUDE_DIRS}
+            ../../include/sos ../../external ${SPDLOG_DIR} ../../include/sos/include ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS}
             ../../../Eigen/eigen
             /usr/local/include
             ${LLVM_INCLUDE_DIRS})
@@ -82,5 +92,5 @@ else ()
     if (USE_OpenMP)
         target_link_directories(EnvelopeProblem PRIVATE ${OPENMP_LIBRARIES})
     endif ()
-    target_link_libraries(EnvelopeProblem Python2::Python Python2::NumPy)
+    target_link_libraries(EnvelopeProblem Python3::Python Python3::NumPy)
 endif ()

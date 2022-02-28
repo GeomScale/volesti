@@ -18,12 +18,24 @@ jobs:
             compilers: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10]
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: "actions/setup-python@v2"
       - run: sudo apt-get update || true;
              sudo apt-get install ${{ matrix.compilers }} lp-solve;
+             sudo apt-get install cmake libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev;
+             sudo apt-get install python3;
+             pip install numpy;
+             for dir in $(ls examples); do
+                   cd ${GITHUB_WORKSPACE}/examples/"$dir";
+                   if [ "$dir" != "optimization_spectrahedra" ]; then
+                         cmake . -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so;
+                   fi;
+                   cd ../..;
+             done;
              rm -rf build;
              mkdir build;
              cd build;
              cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D DISABLE_NLP_ORACLES=ON -D USE_MKL=OFF ../test;
              make;
              ctest --verbose;
+             
