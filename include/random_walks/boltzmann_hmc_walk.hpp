@@ -12,7 +12,7 @@
 
 #include "generators/boost_random_number_generator.hpp"
 #include "../sampling/sphere.hpp"
-
+#include <list>
 /// The Hamiltonian Monte Carlo random walk, to sample from the Boltzmann distribution, i.e. e^(-c*x/T).
 struct BoltzmannHMCWalk {
 public:

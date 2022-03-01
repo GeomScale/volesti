@@ -9,7 +9,7 @@
 #define RANDOM_WALKS_BOUNDARY_RDHR_WALK_HPP
 
 #include "sampling/sphere.hpp"
-
+#include <utility>
 // Random directions hit-and-run walk with uniform target distribution
 // from the boundary
 

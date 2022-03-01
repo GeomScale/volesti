@@ -10,7 +10,7 @@
 
 #ifndef SAMPLERS_SPHERE_HPP
 #define SAMPLERS_SPHERE_HPP
-
+#include<cmath>
 
 template <typename Point>
 struct GetDirection
