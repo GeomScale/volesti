@@ -12,7 +12,7 @@
 
 #ifndef ODE_SOLVERS_RANDOMIZED_MIDPOINT_HPP
 #define ODE_SOLVERS_RANDOMIZED_MIDPOINT_HPP
-
+#include "Eigen/Eigen"
 template <
 typename Point,
 typename NT,

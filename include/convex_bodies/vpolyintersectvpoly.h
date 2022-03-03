@@ -16,7 +16,7 @@
 #include <iterator>
 #include <vector>
 #include "sampling/sphere.hpp"
-
+#include <chrono>
 
 template <typename VPolytope, typename RNGType>
 class IntersectionOfVpoly {

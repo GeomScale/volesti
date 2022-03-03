@@ -11,7 +11,7 @@
 #define RANDOM_WALKS_UNIFORM_BALL_WALK_HPP
 
 #include "generators/boost_random_number_generator.hpp"
-
+#include "sampling/sphere.hpp"
 // Ball walk with uniform target distribution
 
 struct BallWalk

@@ -9,9 +9,8 @@
 #define RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
 
 #include "sampling/sphere.hpp"
-
-
-
+#include <vector>
+#include "uniform_billiard_walk.hpp"
 // Exact HMC for sampling from the spherical Gaussian distribution
 
 struct GaussianHamiltonianMonteCarloExactWalk

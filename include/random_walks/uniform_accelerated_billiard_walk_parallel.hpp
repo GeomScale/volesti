@@ -9,8 +9,8 @@
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_PARALLEL_HPP
 
 #include "sampling/sphere.hpp"
-
-
+#include <vector>
+#include "uniform_billiard_walk.hpp"
 // Billiard walk which accelarates each step for uniform distribution and can be used for a parallel use by threads
 
 struct AcceleratedBilliardWalkParallel

@@ -11,8 +11,9 @@
 #define INSIDE_BODY_TOLLERANCE 1e-10
 
 #include "sampling/sphere.hpp"
-
-
+#include <vector>
+#include <utility>
+#include "uniform_billiard_walk.hpp"
 // Exact HMC for sampling from the Exponential distribution restricted to a convex polytope
 struct ExponentialHamiltonianMonteCarloExactWalk
 {

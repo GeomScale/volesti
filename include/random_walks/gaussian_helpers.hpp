@@ -2,7 +2,8 @@
 #define GAUSSIAN_HELPERS_HPP
 
 #define EXP_CHORD_TOLERENCE 0.00000001
-
+#include<algorithm>
+#include<cmath>
 // evaluate the pdf of point p
 template <typename Point, typename NT>
 NT eval_exp(Point const& p, NT const& a)

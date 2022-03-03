@@ -12,7 +12,7 @@
 
 #include "random_walks/gaussian_helpers.hpp"
 #include "generators/boost_random_number_generator.hpp"
-
+#include "sampling/sphere.hpp"
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template

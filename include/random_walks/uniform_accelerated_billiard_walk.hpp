@@ -11,7 +11,8 @@
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
 #include "sampling/sphere.hpp"
-
+#include "uniform_billiard_walk.hpp"
+#include <vector>
 
 // Billiard walk which accelarates each step for uniform distribution
 

@@ -18,7 +18,7 @@
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 #include "ode_solvers/ode_solvers.hpp"
-
+#include "sampling/sphere.hpp"
 struct HamiltonianMonteCarloWalk {
 
   template

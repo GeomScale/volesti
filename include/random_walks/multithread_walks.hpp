@@ -17,7 +17,7 @@
 #include "random_walks/gaussian_helpers.hpp"
 #include "random_walks/gaussian_cdhr_walk.hpp"
 #include "random_walks/gaussian_rdhr_walk.hpp"
-
+#include "uniform_billiard_walk.hpp"
 
 // random directions hit-and-run walk with uniform target distribution
 // from boundary

@@ -10,6 +10,7 @@
 
 #ifndef ODE_SOLVERS_LEAPFROG_HPP
 #define ODE_SOLVERS_LEAPFROG_HPP
+#include "Eigen/Eigen"
 
 template <
 typename Point,

@@ -17,6 +17,7 @@
 
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
+#include "ode_solvers/randomized_midpoint.hpp"
 
 struct UnderdampedLangevinWalk {
 
