@@ -346,7 +346,7 @@ else ()
  
   add_custom_target(chkdeps)
 
-  file(GLOB HDR_ROOT "*.hpp")
+  file(GLOB_RECURSE HDR_ROOT "../include/.h" "../include/.hpp")
   FOREACH (HDR ${HDR_ROOT})
       message(STATUS "${HDR}")
       get_filename_component(HDR_WE ${HDR} NAME_WE)
