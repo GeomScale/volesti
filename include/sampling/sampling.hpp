@@ -23,10 +23,10 @@
 #define SAMPLE_ONLY_H
 
 template <typename WalkTypePolicy,
-        typename PointList,
-        typename Polytope,
-        typename RandomNumberGenerator,
-        typename Point
+          typename PointList,
+          typename Polytope,
+          typename RandomNumberGenerator,
+          typename Point
         >
 void uniform_sampling(PointList &randPoints,
                    Polytope &P,

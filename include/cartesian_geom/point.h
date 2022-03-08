@@ -79,6 +79,7 @@ public:
     void set_dimension(const unsigned int dim)
     {
         d = dim;
+        coeffs.setZero(d);
     }
 
     void set_coord(const unsigned int i, FT coord)
