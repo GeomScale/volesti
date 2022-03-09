@@ -202,6 +202,10 @@ struct LeapfrogODESolver {
     xs[index] = p;
   }
 
+  void set_eta(NT &eta_) {
+    eta = eta_;
+  }
+
 };
 
 

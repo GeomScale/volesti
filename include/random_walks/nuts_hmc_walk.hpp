@@ -85,6 +85,9 @@ struct NutsHamiltonianMonteCarloWalk {
 
     // Helper variables
     NT H, H_tilde, log_prob, u_logprob, Delta_max;
+    // Burnin parameters
+    NT eps_step, mu, log_tilde_eps, H_tilde, gamma, t0, kk, alpha, na;
+    const NT delta = NT(0.65);
 
     // Density exponent
     NegativeLogprobFunctor &f;
@@ -93,6 +96,7 @@ struct NutsHamiltonianMonteCarloWalk {
       Point &p,
       NegativeGradientFunctor &neg_grad_f,
       NegativeLogprobFunctor &neg_logprob_f,
+      bool burn_in = true,
       parameters<NT, NegativeGradientFunctor> &param) :
       params(param),
       F(neg_grad_f),
@@ -113,6 +117,16 @@ struct NutsHamiltonianMonteCarloWalk {
       X_min_j.set_dimension(dim);
       x_pl_min.set_dimension(dim);
 
+      eps_step = params.eta;
+      mu = std::log(10*eps_step);
+      log_tilde_eps = NT(0);
+      H_tilde = NT(0);
+      gamma = NT(0.05);
+      t0 = NT(10);
+      kk = NT(0.75);
+      alpha = NT(0);
+      na = NT(0);
+
       Delta_max = NT(1000)
 
       // Starting point is provided from outside
@@ -123,12 +137,34 @@ struct NutsHamiltonianMonteCarloWalk {
       // Initialize solver
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
 
+      if (burn_in)
+      {
+        unsigned int N = 1000;
+        burnin(rng, N);
+      }
+
     };
 
-    inline void apply(
-      RandomNumberGenerator &rng,
-      int walk_length=1,
-      bool metropolis_filter=true)
+
+    inline void burnin(RandomNumberGenerator &rng,
+                       unsigned int const& N
+                       unsigned int walk_length=1)
+    {
+      reset_num_runs();
+
+      for (int i = 0; i < N; i++)
+      {
+        apply(rng, walk_length, true);
+        solver->set_eta(eps_step);
+      }
+
+      reset_num_runs();
+    }
+
+
+    inline void apply(RandomNumberGenerator &rng,
+                      unsigned int walk_length=1,
+                      burnin = false)
     {
       num_runs++;
 
@@ -145,16 +181,21 @@ struct NutsHamiltonianMonteCarloWalk {
       //grad_x_pl = esti_grad_invW_opt(f_utils, X0, T0i);
       //grad_x_min = grad_x_pl;
       NT h1 = hamiltonian(x,v)
-      //h1 = f(X0, T0i, f_utils) + 0.5 * (v * v);
 
-      NT uu = log(rng.sample_urdist()) - h1;
+      NT uu = std::log(rng.sample_urdist()) - h1;
       int j = -1;
       int s = 1;
 
       while (s == 1)
       {
-        j++;// j + 1;
-        dir = rng.sample_urdist();
+        j++;
+        
+        if (burnin)
+        {
+          na = std::pow(2, NT(j+1) - 1);
+        }
+
+        NT dir = rng.sample_urdist();
         //%v = v*dir;
                 
         if (dir > 0.5)
@@ -162,25 +203,21 @@ struct NutsHamiltonianMonteCarloWalk {
           //grad_x = grad_x_pl;
           v = v_pl;
           X = X_pl;
-          //Ti = Ti_pl;
         }
         else
         {
           //grad_x = grad_x_min;
           v = v_min;
           X = X_min;
-          //Ti = Ti_min;
         }
         X_rnd_j = X;
-        //Ti_rnd_j = Ti;
-        //%v_rnd_j = v;
                 
         int x_counting = 0;
         int num_samples = int(std::pow(2, j));
+
         for (int k = 1; k <= num_samples; k++)// = 1:2^j)
         {
           //v = v - (eta/2) * grad_x;
-          //T = eta;
 
           solver->set_state(0, X);
           solver->set_state(1, v);
@@ -190,116 +227,98 @@ struct NutsHamiltonianMonteCarloWalk {
           X = solver->get_state(0);
           v = solver->get_state(1);
 
-          //hj = f(X, Ti, f_utils) + 0.5 * (v * v);
           NT hj = hamiltonian(X,v);
-          if (uu > Delta_max - hj){
+
+          if (burnin)
+          {
+            alpha += std::min(NT(1), std::exp(-hj + h1));
+          }
+
+          if (uu > Delta_max - hj)
+          {
             s = 0;
             break;
           }
           bool pos_state = false;
-          if (uu < -hj) {
+          if (uu < -hj) 
+          {
             pos_state = true;
             x_counting = x_counting + 1;
             x_counting_total = x_counting_total + 1;
           }
-          //%pos_state
                  
-          if (k==1) {
-            if (dir > 0.5) {
+          if (k == 1) 
+          {
+            if (dir > 0.5) 
+            {
               X_min_j = X;
-              //Ti_min_j = Ti;
               v_min_j = v;
-            } else {
+            } 
+            else 
+            {
               X_pl_j = X;
-              //Ti_pl_j = Ti;
               v_pl_j = v;
             }
           }
-          if (k == num_samples) {
-            if (dir > 0.5) {
-              //x_pl = [X(lower); Ti];
-              //x_min = [X_min_j(lower); Ti_min_j];
+          if (k == num_samples) 
+          {
+            if (dir > 0.5) 
+            {
               x_pl_min = X - X_min_j;
-              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_min_j) < 0)) {
+              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_min_j) < 0)) 
+              {
                 s = 0;
               }
-            } else {
-              //x_pl = [X_pl_j(lower); Ti_pl_j];
-              //x_min = [X(lower); Ti];
+            } 
+            else 
+            {
               x_pl_min = X_pl_j - X;
-              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_pl_j) < 0)) {
+              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_pl_j) < 0)) 
+              {
                 s = 0;
               }
             }
           }
-          if (rng.sample_urdist() < (1/NT(x_counting)) && pos_state) {
+          if (rng.sample_urdist() < (1/NT(x_counting)) && pos_state) 
+          {
             X_rnd_j = X;
-            //Ti_rnd_j = Ti;
-            //%v_rnd_j = v;
           }
         }
 
-        if (dir > 0.5) {
+        if (dir > 0.5) 
+        {
           X_pl = X;
           v_pl = v;
-          //Ti_pl = Ti;
-          //grad_x_pl = grad_x;
-        } else {
+        } 
+        else 
+        {
           X_min = X;
           v_min = v;
-          //Ti_min = Ti;
-          //grad_x_min = grad_x;
         }
                 
-        if (s == 1 && rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total))) {
+        if (s == 1 && rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total))) 
+        {
           x = X_rnd_j;
-          //T0i = Ti_rnd_j;
           accepted = true;
-          //%v_nx = v_rnd_j;
         }
                 
-        if (s==1) {
-          //x_pl = [X_pl(lower); Ti_pl];
-          //x_min = [X_min(lower); Ti_min];
-          //%(x_pl - x_min)*v_min
-          //%(x_pl - x_min)*v_pl
+        if (s == 1) 
+        {
           x_pl_min = X_pl - X_min;
-          if ((x_pl_min.dot(v_min) < 0) || (x_pl_min.dot(v_pl) < 0)) {
+          if ((x_pl_min.dot(v_min) < 0) || (x_pl_min.dot(v_pl) < 0)) 
+          {
               s = 0;
           }
         }
       }
 
-      //x = X0;
-      
-      /*if (metropolis_filter) {
-        // Calculate initial Hamiltonian
-        H = hamiltonian(x, v);
-
-        // Calculate new Hamiltonian
-        H_tilde = hamiltonian(x_tilde, v_tilde);
-
-        // Log-sum-exp trick
-        log_prob = H - H_tilde < 0 ? H - H_tilde : 0;
-
-        // Decide to switch
-        u_logprob = log(rng.sample_urdist());
-        total_acceptance_log_prob += log_prob;
-        if (u_logprob < log_prob) {
-          x = x_tilde;
-          accepted = true;
-        }
-        else {
-          total_discarded_samples++;
-          accepted = false;
-        }
-      } else {
-        x = x_tilde;
-      }*/
-
-      //discard_ratio = (1.0 * total_discarded_samples) / num_runs;
-      //average_acceptance_log_prob = total_acceptance_log_prob / num_runs;
-
+      if (burnin)
+      {
+        H_tilde = (NT(1) - NT(1) / (num_runs + t0)) * H_tilde + (NT(1) / (num_runs + t0)) * (delta - alpha / na);
+        NT log_eps = mu - (std::sqrt(NT(num_runs)) / gamma) * H_tilde;
+        //log_tilde_eps = (mu^(-kk))*log_eps + (1 - mu^(-kk))*log_tilde_eps;
+        eps_step = std::exp(log_eps);
+      }
     }
 
     inline NT hamiltonian(Point &pos, Point &vel) const {
@@ -312,6 +331,10 @@ struct NutsHamiltonianMonteCarloWalk {
 
     void enable_adaptive() {
       solver->enable_adaptive();
+    }
+
+    void reset_num_runs()) {
+      num_runs = 0;
     }
   };
 };
