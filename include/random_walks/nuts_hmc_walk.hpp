@@ -33,7 +33,7 @@ struct NutsHamiltonianMonteCarloWalk {
       NT epsilon_=2)
     {
       epsilon = epsilon_;
-      eta = 1.0 / (dim * sqrt(F.params.L));
+      eta = 10.0 / (dim * sqrt(F.params.L));
       // eta = 1.0 /
       //   (sqrt(20 * F.params.L * pow(dim, 3)));
     }
@@ -64,13 +64,11 @@ struct NutsHamiltonianMonteCarloWalk {
     unsigned int dim;
 
     // Discarded Samples
-    long total_discarded_samples = 0;
     long num_runs = 0;
-    float discard_ratio = 0;
+    long total_acceptance = 0;
 
     // Average acceptance probability
-    float total_acceptance_log_prob = 0;
-    float average_acceptance_log_prob = 0;
+    NT average_acceptance = 0;
 
     // References to xs
     Point x, v;
@@ -84,7 +82,7 @@ struct NutsHamiltonianMonteCarloWalk {
     bool accepted;
 
     // Helper variables
-    NT H, H_tilde, log_prob, u_logprob, Delta_max;
+    NT H, log_prob, u_logprob, Delta_max;
     // Burnin parameters
     NT eps_step, mu, log_tilde_eps, H_tilde, gamma, t0, kk, alpha, na;
     const NT delta = NT(0.65);
@@ -93,14 +91,14 @@ struct NutsHamiltonianMonteCarloWalk {
     NegativeLogprobFunctor &f;
 
     Walk(Polytope *P,
-      Point &p,
-      NegativeGradientFunctor &neg_grad_f,
-      NegativeLogprobFunctor &neg_logprob_f,
-      bool burn_in = true,
-      parameters<NT, NegativeGradientFunctor> &param) :
-      params(param),
-      F(neg_grad_f),
-      f(neg_logprob_f)
+         Point &p,
+         NegativeGradientFunctor &neg_grad_f,
+         NegativeLogprobFunctor &neg_logprob_f,
+         parameters<NT, NegativeGradientFunctor> &param,
+         bool burn_in_ = true) :
+         params(param),
+         F(neg_grad_f),
+         f(neg_logprob_f)
     {
 
       dim = p.dimension();
@@ -123,11 +121,11 @@ struct NutsHamiltonianMonteCarloWalk {
       H_tilde = NT(0);
       gamma = NT(0.05);
       t0 = NT(10);
-      kk = NT(0.75);
+      kk = NT(0.85);
       alpha = NT(0);
       na = NT(0);
 
-      Delta_max = NT(1000)
+      Delta_max = NT(1000);
 
       // Starting point is provided from outside
       x = p;
@@ -136,9 +134,11 @@ struct NutsHamiltonianMonteCarloWalk {
 
       // Initialize solver
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
+      disable_adaptive();
 
-      if (burn_in)
+      if (burn_in_)
       {
+        RandomNumberGenerator rng(dim);
         unsigned int N = 1000;
         burnin(rng, N);
       }
@@ -147,7 +147,7 @@ struct NutsHamiltonianMonteCarloWalk {
 
 
     inline void burnin(RandomNumberGenerator &rng,
-                       unsigned int const& N
+                       unsigned int const& N,
                        unsigned int walk_length=1)
     {
       reset_num_runs();
@@ -164,7 +164,7 @@ struct NutsHamiltonianMonteCarloWalk {
 
     inline void apply(RandomNumberGenerator &rng,
                       unsigned int walk_length=1,
-                      burnin = false)
+                      bool burnin = false)
     {
       num_runs++;
 
@@ -174,17 +174,24 @@ struct NutsHamiltonianMonteCarloWalk {
       v = GetDirection<Point>::apply(dim, rng, false);
       
       v_pl = v;
-      v_min = -v;
+      v_min = NT(-1)*v;
       X_pl = x;
       X_min = x;
       
       //grad_x_pl = esti_grad_invW_opt(f_utils, X0, T0i);
       //grad_x_min = grad_x_pl;
-      NT h1 = hamiltonian(x,v)
+      NT h1 = hamiltonian(x,v);
 
       NT uu = std::log(rng.sample_urdist()) - h1;
       int j = -1;
       int s = 1;
+      bool updated = false;
+      bool pos_state_single = false;
+
+      if (burnin)
+      {
+        alpha = NT(0);
+      }
 
       while (s == 1)
       {
@@ -192,11 +199,11 @@ struct NutsHamiltonianMonteCarloWalk {
         
         if (burnin)
         {
-          na = std::pow(2, NT(j+1) - 1);
+          //na = std::pow(NT(2), NT(j+1)) - 1;
+          na = std::pow(NT(2), NT(j));// - 1;
         }
 
         NT dir = rng.sample_urdist();
-        //%v = v*dir;
                 
         if (dir > 0.5)
         {
@@ -213,7 +220,8 @@ struct NutsHamiltonianMonteCarloWalk {
         X_rnd_j = X;
                 
         int x_counting = 0;
-        int num_samples = int(std::pow(2, j));
+        int num_samples = int(std::pow(NT(2), NT(j)));
+        accepted = false;
 
         for (int k = 1; k <= num_samples; k++)// = 1:2^j)
         {
@@ -224,6 +232,8 @@ struct NutsHamiltonianMonteCarloWalk {
 
           // Get proposals
           solver->steps(walk_length, accepted);
+          accepted = true;
+
           X = solver->get_state(0);
           v = solver->get_state(1);
 
@@ -242,7 +252,9 @@ struct NutsHamiltonianMonteCarloWalk {
           bool pos_state = false;
           if (uu < -hj) 
           {
+            //std::cout<<"hi"<<std::endl;
             pos_state = true;
+            pos_state_single = true;
             x_counting = x_counting + 1;
             x_counting_total = x_counting_total + 1;
           }
@@ -279,7 +291,7 @@ struct NutsHamiltonianMonteCarloWalk {
               }
             }
           }
-          if (rng.sample_urdist() < (1/NT(x_counting)) && pos_state) 
+          if ((rng.sample_urdist() < (1/NT(x_counting))) && pos_state) 
           {
             X_rnd_j = X;
           }
@@ -296,10 +308,14 @@ struct NutsHamiltonianMonteCarloWalk {
           v_min = v;
         }
                 
-        if (s == 1 && rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total))) 
+        if (s == 1 && (rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total)))) 
         {
+          //std::cout<<"hi"<<std::endl;
           x = X_rnd_j;
-          accepted = true;
+          if (pos_state_single)
+          { 
+            updated = true;
+          }
         }
                 
         if (s == 1) 
@@ -311,18 +327,34 @@ struct NutsHamiltonianMonteCarloWalk {
           }
         }
       }
+      //std::cout<< "pos_state_single: "<<pos_state_single<<std::endl;
+      //std::cout<< "updated: "<<pos_state_single<<std::endl;
+      if (updated)
+      {
+        total_acceptance++;
+      }
+      //std::cout<< "total_acceptance: "<<total_acceptance<<std::endl;
+      //std::cout<< "num_runs: "<<num_runs<<std::endl;
+      average_acceptance = NT(total_acceptance) / NT(num_runs);
+      //std::cout<< "average_acceptance: "<<average_acceptance<<std::endl;
 
       if (burnin)
       {
-        H_tilde = (NT(1) - NT(1) / (num_runs + t0)) * H_tilde + (NT(1) / (num_runs + t0)) * (delta - alpha / na);
+        //std::cout<< "alpha / na: "<<alpha / na<<std::endl;
+        H_tilde = (NT(1) - NT(1) / (NT(num_runs) + t0)) * H_tilde + (NT(1) / (NT(num_runs) + t0)) * (delta - alpha / na);
         NT log_eps = mu - (std::sqrt(NT(num_runs)) / gamma) * H_tilde;
-        //log_tilde_eps = (mu^(-kk))*log_eps + (1 - mu^(-kk))*log_tilde_eps;
+        //log_tilde_eps = std::pow(mu,-kk) * log_eps + (NT(1) - std::pow(mu,-kk))*log_tilde_eps;
         eps_step = std::exp(log_eps);
+        //std::cout<<"eps_step = "<<eps_step<<std::endl;
       }
     }
 
     inline NT hamiltonian(Point &pos, Point &vel) const {
       return f(pos) + 0.5 * vel.dot(vel);
+    }
+
+    inline NT get_eta_solver() {
+      return solver->get_eta();
     }
 
     void disable_adaptive() {
@@ -333,8 +365,13 @@ struct NutsHamiltonianMonteCarloWalk {
       solver->enable_adaptive();
     }
 
-    void reset_num_runs()) {
+    void reset_num_runs() {
       num_runs = 0;
+      total_acceptance = 0;
+    }
+
+    NT get_ratio_acceptance() {
+      return average_acceptance;
     }
   };
 };
