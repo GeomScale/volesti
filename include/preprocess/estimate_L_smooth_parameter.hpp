@@ -11,36 +11,65 @@
 #ifndef ESTIMATE_L_SMOOTH_PARAMETER_HPP
 #define ESTIMATE_L_SMOOTH_PARAMETER_HPP
 
+#include "random_walks/random_walks.hpp"
 
 template
 <
-    typename WalkTypePolicy,
+    typename WalkTypePolicy = AcceleratedBilliardWalk,
     typename Polytope,
     typename Point,
-    typename MT,
-    typename VT,
+    typename NegativeGradientFunctor,
     typename RandomNumberGenerator
 >
-double svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT &V, VT &s, VT &Means,
-                   unsigned int const& walk_length, RandomNumberGenerator &rng)
+double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length, NegativeGradientFunctor F, RandomNumberGenerator &rng)
 {
+    typedef typename Point::FT NT;
     typedef typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
-            > walk;
+            > RandomWalk;
 
-    typedef RandomPointGenerator <walk> RandomPointGenerator;
-    PushBackWalkPolicy push_back_policy;
+    P.ComputeInnerBall();
 
-    unsigned int N = num_rounding_steps;
+    //WalkTypePolicy::parameters params(NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second, true);
 
-    std::list<Point> randPoints;
-    MT RetMat(N, P.dimension());
-    RandomPointGenerator::apply(P, p, N, walk_length, randPoints,
-                                push_back_policy, rng);
+    unsigned int d = P.dimension();
+    unsigned int rnum = 20 * d;
+    std::vector<Point> randPoints(1), vecPoint1, vecPoint2;
+    std::vector< std::vector<Point> > listOfPoints;
 
-    
+    RandomWalk walk(P, p, rng);
+    for (unsigned int i=0; i<rnum; ++i)
+    {
+        walk.template apply(P, p, walk_length, rng);
+        randPoints[0] = p;
+        
+        listOfPoints.push_back(randPoints);
+        //std::cout<<(listOfPoints[i])[0].getCoefficients().transpose()<<std::endl;
+    }
+    //std::cout<<"length = "<<listOfPoints.size()<<std::endl;
+    NT L = std::numeric_limits<NT>::lowest(), Ltemp;
+
+    for (int i=0; i<rnum-1; i++)
+    {
+        vecPoint1 = listOfPoints[i];
+        //std::cout<<"vecPoint1 = "<<vecPoint1[0].getCoefficients().transpose()<<std::endl;
+        for (int j=i+1; j<rnum; j++)
+        {
+            vecPoint2 = listOfPoints[j];
+            //std::cout<< "Fi = " <<F(1, vecPoint1, 0).getCoefficients().transpose()<<std::endl;
+            //std::cout<< "Fj = " <<F(1, vecPoint2, 0).getCoefficients().transpose()<<std::endl;
+            //std::cout <<" (vecPoint1[0] - vecPoint2[0]).length() = "<<(vecPoint1[0] - vecPoint2[0]).length()<<std::endl;
+            Ltemp = (F(1, vecPoint1, 0) - F(1, vecPoint2, 0)).length() / (vecPoint1[0] - vecPoint2[0]).length();
+            //std::cout<<"Ltemp = "<<Ltemp<<std::endl;
+            if (Ltemp > L)
+            {
+                L = Ltemp;
+            }
+        }
+    }
+    return L;
 }
 
 

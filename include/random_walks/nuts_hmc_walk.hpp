@@ -15,6 +15,7 @@
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 #include "ode_solvers/ode_solvers.hpp"
+#include "preprocess/estimate_L_smooth_parameter.hpp"
 
 struct NutsHamiltonianMonteCarloWalk {
 
@@ -78,6 +79,7 @@ struct NutsHamiltonianMonteCarloWalk {
 
     // Gradient function
     NegativeGradientFunctor &F;
+    NegativeGradientFunctor F2;
 
     bool accepted;
 
@@ -100,7 +102,7 @@ struct NutsHamiltonianMonteCarloWalk {
          F(neg_grad_f),
          f(neg_logprob_f)
     {
-
+      F2 = neg_grad_f;
       dim = p.dimension();
 
       v_pl.set_dimension(dim);
@@ -135,22 +137,19 @@ struct NutsHamiltonianMonteCarloWalk {
       // Initialize solver
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
       disable_adaptive();
-
-      if (burn_in_)
-      {
-        RandomNumberGenerator rng(dim);
-        unsigned int N = 1000;
-        burnin(rng, N);
-      }
-
     };
 
 
     inline void burnin(RandomNumberGenerator &rng,
-                       unsigned int const& N,
+                       unsigned int N = 1000,
                        unsigned int walk_length=1)
     {
       reset_num_runs();
+      Point p = x;
+      Polytope K = *(solver->get_bounds())[0];
+      NT L = estimate_L_smooth(K, p, walk_length, F2, rng);
+      eps_step = NT(5) / (NT(dim) * std::sqrt(L));
+      solver->set_eta(eps_step);
 
       for (int i = 0; i < N; i++)
       {
@@ -199,8 +198,7 @@ struct NutsHamiltonianMonteCarloWalk {
         
         if (burnin)
         {
-          //na = std::pow(NT(2), NT(j+1)) - 1;
-          na = std::pow(NT(2), NT(j));// - 1;
+          na = std::pow(NT(2), NT(j));
         }
 
         NT dir = rng.sample_urdist();
@@ -223,7 +221,7 @@ struct NutsHamiltonianMonteCarloWalk {
         int num_samples = int(std::pow(NT(2), NT(j)));
         accepted = false;
 
-        for (int k = 1; k <= num_samples; k++)// = 1:2^j)
+        for (int k = 1; k <= num_samples; k++)
         {
           //v = v - (eta/2) * grad_x;
 
@@ -252,7 +250,6 @@ struct NutsHamiltonianMonteCarloWalk {
           bool pos_state = false;
           if (uu < -hj) 
           {
-            //std::cout<<"hi"<<std::endl;
             pos_state = true;
             pos_state_single = true;
             x_counting = x_counting + 1;
@@ -310,7 +307,6 @@ struct NutsHamiltonianMonteCarloWalk {
                 
         if (s == 1 && (rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total)))) 
         {
-          //std::cout<<"hi"<<std::endl;
           x = X_rnd_j;
           if (pos_state_single)
           { 
@@ -327,25 +323,22 @@ struct NutsHamiltonianMonteCarloWalk {
           }
         }
       }
-      //std::cout<< "pos_state_single: "<<pos_state_single<<std::endl;
-      //std::cout<< "updated: "<<pos_state_single<<std::endl;
+
       if (updated)
       {
         total_acceptance++;
       }
-      //std::cout<< "total_acceptance: "<<total_acceptance<<std::endl;
-      //std::cout<< "num_runs: "<<num_runs<<std::endl;
       average_acceptance = NT(total_acceptance) / NT(num_runs);
-      //std::cout<< "average_acceptance: "<<average_acceptance<<std::endl;
 
       if (burnin)
       {
-        //std::cout<< "alpha / na: "<<alpha / na<<std::endl;
         H_tilde = (NT(1) - NT(1) / (NT(num_runs) + t0)) * H_tilde + (NT(1) / (NT(num_runs) + t0)) * (delta - alpha / na);
         NT log_eps = mu - (std::sqrt(NT(num_runs)) / gamma) * H_tilde;
+
+        // TODO: use the following to generalize Nesterov's algorithm
         //log_tilde_eps = std::pow(mu,-kk) * log_eps + (NT(1) - std::pow(mu,-kk))*log_tilde_eps;
+
         eps_step = std::exp(log_eps);
-        //std::cout<<"eps_step = "<<eps_step<<std::endl;
       }
     }
 

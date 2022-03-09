@@ -210,6 +210,10 @@ struct LeapfrogODESolver {
     eta = eta_;
   }
 
+  bounds get_bounds() {
+    return Ks;
+  }
+
 };
 
 
