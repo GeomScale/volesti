@@ -138,7 +138,7 @@ struct NutsHamiltonianMonteCarloWalk {
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
       disable_adaptive();
 
-      if (burn_in_phase)
+      if (burn_in_phase && P != NULL)
       {
         RandomNumberGenerator rng(dim);
         burnin(rng);
@@ -152,8 +152,18 @@ struct NutsHamiltonianMonteCarloWalk {
     {
       reset_num_runs();
       Point p = x;
-      Polytope K = *(solver->get_bounds())[0];
-      NT L = estimate_L_smooth(K, p, walk_length, F, rng);
+      NT L;
+
+      if ((solver->get_bounds())[0] == NULL) 
+      {
+        L = (NT(100) / NT(dim)) * (NT(100) / NT(dim));
+      }
+      else
+      {
+        Polytope K = *(solver->get_bounds())[0];
+        L = estimate_L_smooth(K, p, walk_length, F, rng);
+      }
+
       eps_step = NT(5) / (NT(dim) * std::sqrt(L));
       solver->set_eta(eps_step);
 
