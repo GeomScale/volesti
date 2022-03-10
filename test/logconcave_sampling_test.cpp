@@ -331,6 +331,7 @@ void benchmark_nuts_hmc(bool truncated) {
     unsigned int dim_max = 100;
     int n_samples = 1000;
     long ETA;
+    bool automatic_burnin = false;
     std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
 
     for (unsigned int dim = dim_min; dim <= dim_max; dim+=10) 
@@ -345,7 +346,7 @@ void benchmark_nuts_hmc(bool truncated) {
         std::cout << "eta0: " << hmc_params.eta << std::endl;
 
         NutsHamiltonianMonteCarloWalk::Walk<Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
-        hmc(&P, x0, F, f, hmc_params);
+        hmc(&P, x0, F, f, hmc_params, automatic_burnin);
 
         hmc.burnin(rng);
         std::cout << "eta: " << hmc.get_eta_solver() << std::endl;
@@ -361,7 +362,7 @@ void benchmark_nuts_hmc(bool truncated) {
       else
       {
         NutsHamiltonianMonteCarloWalk::Walk<Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
-        hmc(NULL, x0, F, f, hmc_params);
+        hmc(NULL, x0, F, f, hmc_params, automatic_burnin);
 
         hmc.burnin(rng);
         std::cout << "eta: " << hmc.get_eta_solver() << std::endl;

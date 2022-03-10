@@ -102,7 +102,7 @@ struct LeapfrogODESolver {
 
   void step(int k, bool accepted) {
     num_steps++;
-
+    
     if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
 
     xs_prev = xs;
@@ -209,6 +209,7 @@ struct LeapfrogODESolver {
 
   void set_eta(NT &eta_) {
     eta = eta_;
+    eta0 = eta_;
   }
 
   bounds get_bounds() {

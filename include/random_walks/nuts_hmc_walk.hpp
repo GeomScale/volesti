@@ -34,9 +34,11 @@ struct NutsHamiltonianMonteCarloWalk {
       NT epsilon_=2)
     {
       epsilon = epsilon_;
-      eta = 10.0 / (dim * sqrt(F.params.L));
-      // eta = 1.0 /
-      //   (sqrt(20 * F.params.L * pow(dim, 3)));
+      if (F.params.L > 0){
+        eta = 10.0 / (dim * sqrt(F.params.L));
+      } else {
+        eta = 0.005;
+      }
     }
   };
 
@@ -96,7 +98,7 @@ struct NutsHamiltonianMonteCarloWalk {
          NegativeGradientFunctor &neg_grad_f,
          NegativeLogprobFunctor &neg_logprob_f,
          parameters<NT, NegativeGradientFunctor> &param,
-         bool burn_in_ = true) :
+         bool burn_in_phase = true) :
          params(param),
          F(neg_grad_f),
          f(neg_logprob_f)
@@ -135,6 +137,12 @@ struct NutsHamiltonianMonteCarloWalk {
       // Initialize solver
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
       disable_adaptive();
+
+      if (burn_in_phase)
+      {
+        RandomNumberGenerator rng(dim);
+        burnin(rng);
+      }
     };
 
 
@@ -154,7 +162,6 @@ struct NutsHamiltonianMonteCarloWalk {
         apply(rng, walk_length, true);
         solver->set_eta(eps_step);
       }
-
       reset_num_runs();
     }
 
@@ -179,7 +186,7 @@ struct NutsHamiltonianMonteCarloWalk {
 
       NT uu = std::log(rng.sample_urdist()) - h1;
       int j = -1;
-      int s = 1;
+      bool s = true;
       bool updated = false;
       bool pos_state_single = false;
 
@@ -188,7 +195,7 @@ struct NutsHamiltonianMonteCarloWalk {
         alpha = NT(0);
       }
 
-      while (s == 1)
+      while (s)
       {
         j++;
         
@@ -239,7 +246,7 @@ struct NutsHamiltonianMonteCarloWalk {
 
           if (uu > Delta_max - hj)
           {
-            s = 0;
+            s = false;
             break;
           }
           bool pos_state = false;
@@ -271,7 +278,7 @@ struct NutsHamiltonianMonteCarloWalk {
               x_pl_min = X - X_min_j;
               if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_min_j) < 0)) 
               {
-                s = 0;
+                s = false;
               }
             } 
             else 
@@ -279,7 +286,7 @@ struct NutsHamiltonianMonteCarloWalk {
               x_pl_min = X_pl_j - X;
               if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_pl_j) < 0)) 
               {
-                s = 0;
+                s = false;
               }
             }
           }
@@ -300,7 +307,7 @@ struct NutsHamiltonianMonteCarloWalk {
           v_min = v;
         }
                 
-        if (s == 1 && (rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total)))) 
+        if (s && (rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total)))) 
         {
           x = X_rnd_j;
           if (pos_state_single)
@@ -309,12 +316,12 @@ struct NutsHamiltonianMonteCarloWalk {
           }
         }
                 
-        if (s == 1) 
+        if (s) 
         {
           x_pl_min = X_pl - X_min;
           if ((x_pl_min.dot(v_min) < 0) || (x_pl_min.dot(v_pl) < 0)) 
           {
-              s = 0;
+              s = false;
           }
         }
       }

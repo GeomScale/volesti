@@ -36,6 +36,7 @@ enum random_walks {
   brdhr,
   bcdhr,
   hmc,
+  nuts,
   gaussian_hmc,
   exponential_hmc,
   uld
@@ -211,6 +212,26 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
       }
 
       break;
+    case nuts:
+
+      logconcave_sampling <
+              PointList,
+              Polytope,
+              RNGType,
+              NutsHamiltonianMonteCarloWalk,
+              NT,
+              Point,
+              NegativeGradientFunctor,
+              NegativeLogprobFunctor,
+              LeapfrogODESolver <
+                Point,
+                NT,
+                Polytope,
+                NegativeGradientFunctor
+              >
+            >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
+        
+        break;
     case uld:
 
       logconcave_sampling <
@@ -242,7 +263,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' @param n The number of points that the function is going to sample from the convex polytope.
 //' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 //' \itemize{
-//' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR x) \code{'HMC'} for Hamiltonian Monte Carlo (logconcave densities) xi) \code{'ULD'} for Underdamped Langevin Dynamics using the Randomized Midpoint Method xii) \code{'ExactHMC'} for exact Hamiltonian Monte Carlo with reflections (spherical Gaussian or exponential distribution). The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
+//' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR x) \code{'NUTS'} for NUTS Hamiltonian Monte Carlo sampler (logconcave densities) xi) \code{'HMC'} for Hamiltonian Monte Carlo (logconcave densities) xii) \code{'ULD'} for Underdamped Langevin Dynamics using the Randomized Midpoint Method (logconcave densities) xiii) \code{'ExactHMC'} for exact Hamiltonian Monte Carlo with reflections (spherical Gaussian or exponential distribution). The default walk is \code{'aBiW'} for the uniform distribution, \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes. \code{'NUTS'} is the default sampler for logconcave densities.}
 //' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 //' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 //' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
@@ -408,18 +429,24 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         Rcpp::Function negative_logprob = Rcpp::as<Rcpp::List>(distribution)["negative_logprob"];
         Rcpp::Function negative_logprob_gradient = Rcpp::as<Rcpp::List>(distribution)["negative_logprob_gradient"];
 
-        NT L_, m, eta;
+        NT L_ = 1, m = 1, eta = 1;
 
         if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("L_")) {
             L_ = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["L_"]);
+            if (L_ <= NT(0)) {
+                throw Rcpp::exception("The smoothness constant must be positive");
+            }
         } else {
-            throw Rcpp::exception("The smoothness constant is absent");
+            L_ = -1;
         }
 
         if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("m")) {
             m = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["m"]);
+            if (m <= NT(0)) {
+                throw Rcpp::exception("The strong-convexity constant must be positive");
+            }
         } else {
-            throw Rcpp::exception("The strong-convexity constant is absent");
+            m = -1;
         }
 
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("step_size")) {
@@ -441,7 +468,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
           }
          } else {
-          Rcpp::warning("Solver set to leapfrog.");
           solver = leapfrog;
         }
 
@@ -495,6 +521,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 throw Rcpp::exception("Exponential sampling is supported only for H-polytopes");
             }
             walk = exponential_hmc;
+        } else if (logconcave) {
+            walk = nuts;
         } else if (gaussian) {
             if (type == 1) {
                 walk = cdhr;
@@ -571,7 +599,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("HMC")) == 0) {
         if (!logconcave) throw Rcpp::exception("HMC is not supported for non first-order sampling");
+        if (F->params.L < 0) throw Rcpp::exception("The smoothness constant is absent");
+        if (F->params.m < 0) throw Rcpp::exception("The strong-convexity constant is absent");
         walk = hmc;
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("NUTS")) == 0) {
+        if (!logconcave) throw Rcpp::exception("NUTS is not supported for non first-order sampling");
+        walk = nuts;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ULD")) == 0) {
         if (!logconcave) throw Rcpp::exception("ULD is not supported for non first-order sampling");
         walk = uld;
@@ -703,7 +736,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     if (numpoints % 2 == 1 && (walk == brdhr || walk == bcdhr)) numpoints--;
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
-
+    
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {
             RetMat.col(jj) = (*rpit).getCoefficients() + mode.getCoefficients();

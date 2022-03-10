@@ -232,14 +232,14 @@ template <
         typename Solver
         >
 void logconcave_sampling(PointList &randPoints,
-                       Polytope &P,
-                       RandomNumberGenerator &rng,
-                       const unsigned int &walk_len,
-                       const unsigned int &rnum,
-                       const Point &starting_point,
-                       unsigned int const& nburns,
-                       NegativeGradientFunctor &F,
-                       NegativeLogprobFunctor &f)
+                         Polytope &P,
+                         RandomNumberGenerator &rng,
+                         const unsigned int &walk_len,
+                         const unsigned int &rnum,
+                         const Point &starting_point,
+                         unsigned int const& nburns,
+                         NegativeGradientFunctor &F,
+                         NegativeLogprobFunctor &f)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -272,16 +272,16 @@ void logconcave_sampling(PointList &randPoints,
     walk logconcave_walk(&P, p, F, f, params);
 
     typedef LogconcaveRandomPointGenerator<walk> RandomPointGenerator;
-
-    RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                push_back_policy, rng, F, f, params, logconcave_walk);
-
+    
+    if (nburns > 0) {
+        RandomPointGenerator::apply(nburns, walk_len, randPoints,
+                                push_back_policy, rng, logconcave_walk);
+    }
     logconcave_walk.disable_adaptive();
     randPoints.clear();
 
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
-                                push_back_policy, rng, F, f, params, logconcave_walk);
-
+    RandomPointGenerator::apply(rnum, walk_len, randPoints,
+                                push_back_policy, rng, logconcave_walk);
 }
 
 
