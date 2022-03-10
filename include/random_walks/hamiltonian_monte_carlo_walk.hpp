@@ -125,8 +125,10 @@ struct HamiltonianMonteCarloWalk {
       // Pick a random velocity
       v = GetDirection<Point>::apply(dim, rng, false);
 
-      solver->set_state(0, x);
-      solver->set_state(1, v);
+      if (!accepted) {
+        solver->set_state(0, x);
+        solver->set_state(1, v);
+      }
 
       // Get proposals
       solver->steps(walk_length, accepted);

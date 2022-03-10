@@ -79,7 +79,6 @@ struct NutsHamiltonianMonteCarloWalk {
 
     // Gradient function
     NegativeGradientFunctor &F;
-    NegativeGradientFunctor F2;
 
     bool accepted;
 
@@ -102,7 +101,6 @@ struct NutsHamiltonianMonteCarloWalk {
          F(neg_grad_f),
          f(neg_logprob_f)
     {
-      F2 = neg_grad_f;
       dim = p.dimension();
 
       v_pl.set_dimension(dim);
@@ -147,7 +145,7 @@ struct NutsHamiltonianMonteCarloWalk {
       reset_num_runs();
       Point p = x;
       Polytope K = *(solver->get_bounds())[0];
-      NT L = estimate_L_smooth(K, p, walk_length, F2, rng);
+      NT L = estimate_L_smooth(K, p, walk_length, F, rng);
       eps_step = NT(5) / (NT(dim) * std::sqrt(L));
       solver->set_eta(eps_step);
 
@@ -177,8 +175,6 @@ struct NutsHamiltonianMonteCarloWalk {
       X_pl = x;
       X_min = x;
       
-      //grad_x_pl = esti_grad_invW_opt(f_utils, X0, T0i);
-      //grad_x_min = grad_x_pl;
       NT h1 = hamiltonian(x,v);
 
       NT uu = std::log(rng.sample_urdist()) - h1;
@@ -205,13 +201,11 @@ struct NutsHamiltonianMonteCarloWalk {
                 
         if (dir > 0.5)
         {
-          //grad_x = grad_x_pl;
           v = v_pl;
           X = X_pl;
         }
         else
         {
-          //grad_x = grad_x_min;
           v = v_min;
           X = X_min;
         }
@@ -223,10 +217,11 @@ struct NutsHamiltonianMonteCarloWalk {
 
         for (int k = 1; k <= num_samples; k++)
         {
-          //v = v - (eta/2) * grad_x;
-
-          solver->set_state(0, X);
-          solver->set_state(1, v);
+          if (!accepted)
+          {
+            solver->set_state(0, X);
+            solver->set_state(1, v);
+          }
 
           // Get proposals
           solver->steps(walk_length, accepted);
