@@ -114,21 +114,17 @@ struct HamiltonianMonteCarloWalk {
 
     };
 
-    inline void apply(
-      RandomNumberGenerator &rng,
-      int walk_length=1,
-      bool metropolis_filter=true)
+    inline void apply(RandomNumberGenerator &rng,
+                      int walk_length=1,
+                      bool metropolis_filter=true)
     {
-
       num_runs++;
 
       // Pick a random velocity
       v = GetDirection<Point>::apply(dim, rng, false);
 
-      if (!accepted) {
-        solver->set_state(0, x);
-        solver->set_state(1, v);
-      }
+      solver->set_state(0, x);
+      solver->set_state(1, v);
 
       // Get proposals
       solver->steps(walk_length, accepted);
@@ -158,6 +154,7 @@ struct HamiltonianMonteCarloWalk {
         }
       } else {
         x = x_tilde;
+        accepted = true;
       }
 
       discard_ratio = (1.0 * total_discarded_samples) / num_runs;

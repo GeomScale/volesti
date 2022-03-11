@@ -3,10 +3,13 @@
 // Copyright (c) 2012-2022 Vissarion Fisikopoulos
 // Copyright (c) 2018-2022 Apostolos Chalkis
 // Copyright (c) 2020-2022 Elias Tsigaridas
+// Copyright (c) 2020-2022 Marios Papachristou
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
+// Matthew D. Hoffman, Andrew Gelman. "The No-U-Turn Sampler: 
+// Adaptively Setting Path Lengths in Hamiltonian Monte Carlo", 2011.
 
 #ifndef NUTS_HAMILTONIAN_MONTE_CARLO_WALK_HPP
 #define NUTS_HAMILTONIAN_MONTE_CARLO_WALK_HPP
@@ -76,7 +79,7 @@ struct NutsHamiltonianMonteCarloWalk {
     // References to xs
     Point x, v;
 
-    // Proposal points
+    // Helper points
     Point v_pl, v_min, v_min_j, v_pl_j, X_pl, X_pl_j, X_min, X, X_rnd_j, X_min_j, x_pl_min;
 
     // Gradient function
@@ -84,11 +87,9 @@ struct NutsHamiltonianMonteCarloWalk {
 
     bool accepted;
 
-    // Helper variables
-    NT H, log_prob, u_logprob, Delta_max;
     // Burnin parameters
-    NT eps_step, mu, log_tilde_eps, H_tilde, gamma, t0, kk, alpha, na;
-    const NT delta = NT(0.65);
+    NT eps_step, mu, log_tilde_eps, H_tilde, alpha, na;
+    const NT delta = NT(0.65), Delta_max = NT(1000), gamma = NT(0.05), t0 = NT(10), kk = NT(0.85);
 
     // Density exponent
     NegativeLogprobFunctor &f;
@@ -121,13 +122,8 @@ struct NutsHamiltonianMonteCarloWalk {
       mu = std::log(10*eps_step);
       log_tilde_eps = NT(0);
       H_tilde = NT(0);
-      gamma = NT(0.05);
-      t0 = NT(10);
-      kk = NT(0.85);
       alpha = NT(0);
       na = NT(0);
-
-      Delta_max = NT(1000);
 
       // Starting point is provided from outside
       x = p;
@@ -138,7 +134,7 @@ struct NutsHamiltonianMonteCarloWalk {
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
       disable_adaptive();
 
-      if (burn_in_phase && P != NULL)
+      if (burn_in_phase)
       {
         RandomNumberGenerator rng(dim);
         burnin(rng);
@@ -188,11 +184,11 @@ struct NutsHamiltonianMonteCarloWalk {
       v = GetDirection<Point>::apply(dim, rng, false);
       
       v_pl = v;
-      v_min = NT(-1)*v;
+      v_min = NT(-1) * v;
       X_pl = x;
       X_min = x;
       
-      NT h1 = hamiltonian(x,v);
+      NT h1 = hamiltonian(x, v);
 
       NT uu = std::log(rng.sample_urdist()) - h1;
       int j = -1;
@@ -247,7 +243,7 @@ struct NutsHamiltonianMonteCarloWalk {
           X = solver->get_state(0);
           v = solver->get_state(1);
 
-          NT hj = hamiltonian(X,v);
+          NT hj = hamiltonian(X, v);
 
           if (burnin)
           {
@@ -259,6 +255,7 @@ struct NutsHamiltonianMonteCarloWalk {
             s = false;
             break;
           }
+
           bool pos_state = false;
           if (uu < -hj) 
           {

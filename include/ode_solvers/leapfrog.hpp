@@ -56,7 +56,7 @@ struct LeapfrogODESolver {
   pts xs;
   pts xs_prev;
 
-  Point grad_x;
+  Point grad_x, y;
 
   MT _AA;
 
@@ -72,6 +72,7 @@ struct LeapfrogODESolver {
     dim = xs[0].dimension();
     _update_parameters = update_parameters();
     grad_x.set_dimension(dim);
+    y.set_dimension(dim);
     initialize();
   };
 
@@ -114,13 +115,13 @@ struct LeapfrogODESolver {
       v_index = i;
 
       // v' <- v + eta / 2 F(x)
-      if (!accepted) {
+      if (k == 0 && !accepted) {
         grad_x = F(v_index, xs_prev, t);
       }
       xs[v_index] = xs[v_index] + (eta / 2) * grad_x;
 
       // x <- x + eta v'
-      Point y = xs[v_index];
+      y = xs[v_index];
 
       if (Ks[x_index] == NULL) {
         xs[x_index] = xs_prev[x_index] + eta*y;

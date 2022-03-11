@@ -51,3 +51,4 @@ hist(samples[1,], probability=TRUE, breaks = 100)
 
 psrfs <- psrf_univariate(samples)
 n_ess <- ess(samples)
+
