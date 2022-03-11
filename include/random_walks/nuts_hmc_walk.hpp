@@ -11,6 +11,9 @@
 // Matthew D. Hoffman, Andrew Gelman. "The No-U-Turn Sampler: 
 // Adaptively Setting Path Lengths in Hamiltonian Monte Carlo", 2011.
 
+// Comment: Compared to [Matthew D. Hoffman, Andrew Gelman, 2011]
+// we modify the step of Nesterov's algorithm in the burn in phase.
+
 #ifndef NUTS_HAMILTONIAN_MONTE_CARLO_WALK_HPP
 #define NUTS_HAMILTONIAN_MONTE_CARLO_WALK_HPP
 

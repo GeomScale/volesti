@@ -21,21 +21,20 @@ template
     typename NegativeGradientFunctor,
     typename RandomNumberGenerator
 >
-double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length, NegativeGradientFunctor F, RandomNumberGenerator &rng)
+double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length, 
+                         NegativeGradientFunctor F, RandomNumberGenerator &rng)
 {
     typedef typename Point::FT NT;
     typedef typename WalkTypePolicy::template Walk
             <
-                    Polytope,
-                    RandomNumberGenerator
+                Polytope,
+                RandomNumberGenerator
             > RandomWalk;
 
     P.ComputeInnerBall();
 
-    //WalkTypePolicy::parameters params(NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second, true);
-
     unsigned int d = P.dimension();
-    unsigned int rnum = 20 * d;
+    unsigned int rnum = 5 * d;
     std::vector<Point> randPoints(1), vecPoint1, vecPoint2;
     std::vector< std::vector<Point> > listOfPoints;
 
@@ -44,25 +43,20 @@ double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length,
     {
         walk.template apply(P, p, walk_length, rng);
         randPoints[0] = p;
-        
         listOfPoints.push_back(randPoints);
-        //std::cout<<(listOfPoints[i])[0].getCoefficients().transpose()<<std::endl;
     }
-    //std::cout<<"length = "<<listOfPoints.size()<<std::endl;
+    
     NT L = std::numeric_limits<NT>::lowest(), Ltemp;
 
-    for (int i=0; i<rnum-1; i++)
+    for (auto pit=listOfPoints.begin(); pit!=(listOfPoints.end()-1); ++pit)
     {
-        vecPoint1 = listOfPoints[i];
-        //std::cout<<"vecPoint1 = "<<vecPoint1[0].getCoefficients().transpose()<<std::endl;
-        for (int j=i+1; j<rnum; j++)
+        vecPoint1 = *pit;
+
+        for (auto qit=(pit+1); qit!=listOfPoints.end(); ++qit)
         {
-            vecPoint2 = listOfPoints[j];
-            //std::cout<< "Fi = " <<F(1, vecPoint1, 0).getCoefficients().transpose()<<std::endl;
-            //std::cout<< "Fj = " <<F(1, vecPoint2, 0).getCoefficients().transpose()<<std::endl;
-            //std::cout <<" (vecPoint1[0] - vecPoint2[0]).length() = "<<(vecPoint1[0] - vecPoint2[0]).length()<<std::endl;
+            vecPoint2 = *qit;
             Ltemp = (F(1, vecPoint1, 0) - F(1, vecPoint2, 0)).length() / (vecPoint1[0] - vecPoint2[0]).length();
-            //std::cout<<"Ltemp = "<<Ltemp<<std::endl;
+
             if (Ltemp > L)
             {
                 L = Ltemp;
