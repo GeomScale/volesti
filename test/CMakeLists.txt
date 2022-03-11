@@ -357,7 +357,7 @@ else ()
             COMMAND ${CMAKE_CXX_COMPILER} -I../external/_deps/eigen-src -I../external/_deps/boost-src -I../external/minimum_ellipsoid 
             -I../include/sos -I../external -I../include/sos/include -I../include/sos -I../external/_deps/lpsolve-src -I../include -c ${HDR}
             
-            WORKING_DIRECTORY /home/neel/volesti/include
+            WORKING_DIRECTORY ../../include
             VERBATIM
         )
         add_dependencies(chkdeps ${CHK_TARGET})
