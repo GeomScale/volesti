@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-
+#include <vector>
 // From rosetta code at http://rosettacode.org/wiki/Combinations#C.2B.2B
 // We made some adjustments to vectorize the output
 // Compute all the N combinations from N elements

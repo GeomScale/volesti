@@ -12,7 +12,7 @@
 
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/special_functions/erf.hpp>
-
+#include <volume/sampling_policies.hpp>
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
 #ifndef DISABLE_LPSOLVE
@@ -25,7 +25,7 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
-
+#include "generators/boost_random_number_generator.hpp"
 
 ////////////////////////////////////
 // ball annealing

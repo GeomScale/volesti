@@ -344,19 +344,23 @@ else ()
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
  
+  # This automated custom test is added to check that all the header files compile independently without including any separate header files while running the test examples.
   add_custom_target(chkdeps)
 
-  file(GLOB_RECURSE HDR_ROOT "../include/.h" "../include/.hpp")
+  file(GLOB_RECURSE HDR_ROOT "../include/*.h" "../include/*.hpp")
   FOREACH (HDR ${HDR_ROOT})
       message(STATUS "${HDR}")
-      get_filename_component(HDR_WE ${HDR} NAME_WE)
+      get_filename_component(HDR_WE ${HDR} NAME)
       SET(CHK_TARGET "${HDR_WE}.chk")
-      add_custom_target(
-          ${CHK_TARGET}
-          COMMAND ${CMAKE_CXX_COMPILER} -c ${HDR}
-          VERBATIM
-      )
-      add_dependencies(chkdeps ${CHK_TARGET})
+        add_custom_target(
+            ${CHK_TARGET}
+            COMMAND ${CMAKE_CXX_COMPILER} -I../external/_deps/eigen-src -I../external/_deps/boost-src -I../external/minimum_ellipsoid 
+            -I../include/sos -I../external -I../include/sos/include -I../include/sos -I../external/_deps/lpsolve-src -I../include -c ${HDR}
+            
+            WORKING_DIRECTORY /home/neel/volesti/include
+            VERBATIM
+        )
+        add_dependencies(chkdeps ${CHK_TARGET})
   ENDFOREACH ()
-
+  
 endif()

@@ -10,7 +10,10 @@
 
 #ifndef ODE_SOLVERS_GENERALIZED_LEAPFROG_HPP
 #define ODE_SOLVERS_GENERALIZED_LEAPFROG_HPP
-
+#include<vector>
+#include<Eigen/Eigen>
+#include<utility>
+#include<iostream>
 template <
 typename Point,
 typename NT,
