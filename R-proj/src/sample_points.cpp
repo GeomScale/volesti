@@ -263,7 +263,16 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' @param n The number of points that the function is going to sample from the convex polytope.
 //' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 //' \itemize{
-//' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR x) \code{'NUTS'} for NUTS Hamiltonian Monte Carlo sampler (logconcave densities) xi) \code{'HMC'} for Hamiltonian Monte Carlo (logconcave densities) xii) \code{'ULD'} for Underdamped Langevin Dynamics using the Randomized Midpoint Method (logconcave densities) xiii) \code{'ExactHMC'} for exact Hamiltonian Monte Carlo with reflections (spherical Gaussian or exponential distribution). The default walk is \code{'aBiW'} for the uniform distribution, \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes. \code{'NUTS'} is the default sampler for logconcave densities.}
+//' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, 
+//' ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, 
+//' iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, 
+//' vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or 
+//' ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR x) \code{'NUTS'} for 
+//' NUTS Hamiltonian Monte Carlo sampler (logconcave densities) xi) \code{'HMC'} for Hamiltonian Monte Carlo (logconcave densities) 
+//' xii) \code{'ULD'} for Underdamped Langevin Dynamics using the Randomized Midpoint Method (logconcave densities) 
+//' xiii) \code{'ExactHMC'} for exact Hamiltonian Monte Carlo with reflections (spherical Gaussian or exponential distribution). 
+//' The default walk is \code{'aBiW'} for the uniform distribution, \code{'CDHR'} for the Gaussian distribution and H-polytopes 
+//' and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes. \code{'NUTS'} is the default sampler for logconcave densities.}
 //' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 //' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 //' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
