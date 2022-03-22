@@ -11,7 +11,7 @@ plot(ggplot(data.frame( x=points[1,], y=points[2,] )) +
 geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-15,15),
 ylim = c(-15,15)) + ggtitle(sprintf("Sampling a random pentagon with walk %s", walk)))
 ```
-![Sampling a polygon.](/images/pentagon.png "Sampling a polytope.")
+![Sampling a polygon.](/images/pentagon.jpg "Sampling a polytope.")
 
 ## Compair random walks on the 100-dimensional hypercube.
 After sampling 1000 points for every walk we project on the first two coordinates and essentially comment on their mixing time. 
@@ -29,32 +29,32 @@ dev.off()
 }
 ```
 For walk length 1 we can see that neither one of the random walk sampler has reached the mixing time.
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/1 CDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/1 RDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/1 BaW.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/1CDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/1RDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/1BaW.jpg "Sampling a polytope.")
 
 For walk length 20 we can see that the CDHR random sampler seems to be closer to the mixing time. While the other walks are far from it.
 
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/20 CDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/20 RDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/20 BaW.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/20CDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/20RDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/20BaW.jpg "Sampling a polytope.")
 
 For walk length 50 we can see that the CDHR random sampler seems to have reached the mixing time. While the other walks still have not.
 
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/50 CDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/50 RDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/50 BaW.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/50CDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/50RDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/50BaW.jpg "Sampling a polytope.")
 
 For walk length 100 we can see that the CDHR and RDHR random sampler has definately reached the mixing time. While the BaW has not yet explored the whole space.
 
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/100 CDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/100 RDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/100 BaW.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/100CDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/100RDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/100BaW.jpg "Sampling a polytope.")
 
 For walk length 150 we can see that all of the samplers seem to produce uniformly distributed points.
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/150 CDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/150 RDHR.jpg "Sampling a polytope.")
-![Sampling a polygon.](https://github.com/iakoviid/volesti/images/150 BaW.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/150CDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/150RDHR.jpg "Sampling a polytope.")
+![Sampling a polygon.](https://github.com/iakoviid/volesti/images/150BaW.jpg "Sampling a polytope.")
 
 So the mixing time we can postulate that the mixing time for CDHR is between 20 and 50, mixing time of RDHR is between 50 and 100 and the mixing time of BaW is between 100 and 150.
 
