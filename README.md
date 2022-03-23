@@ -1,6 +1,6 @@
 # A comparative study of uniform high dimensional samplers
 
-## Sampling in a polytope.
+## Test 1: Sampling in a polytope.
 ```
 walk="CDHR"
 b=c(10,10,10,10,10)
@@ -13,15 +13,15 @@ ylim = c(-15,15)) + ggtitle(sprintf("Sampling a random pentagon with walk %s", w
 ```
 ![Sampling a polygon.](/images/pentagon.jpg "Sampling a polytope.")
 
-## Compair random walks on the 100-dimensional hypercube.
+##Test 2: Compair random walks on the 100-dimensional hypercube.
 After sampling 1000 points for every walk we project on the first two coordinates and essentially comment on their mixing time. 
 ```
 for (step in c(1,20,50,100,150)){
   for (walk in c("CDHR", "RDHR", "BaW")){
     P <- gen_cube(100, 'H')
-    points1 <- sample_points(P, 1000, random_walk = list("walk" = walk, "walk_length" = step))
+    points <- sample_points(P, 1000, random_walk = list("walk" = walk, "walk_length" = step))
     jpeg(file=paste(step,walk,'.jpg'));
-    g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
+    g<-plot(ggplot(data.frame( x=points[1,], y=points[2,] )) +
 geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
 ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step)))
 dev.off()
@@ -56,12 +56,11 @@ For walk length 150 we can see that all of the samplers seem to produce uniforml
 ![150RDHR](/images/150RDHR.jpg "150RDHR")
 ![150BaW](/images/150BaW.jpg "150BaW")
 
-So the mixing time we can postulate that the mixing time for CDHR is between 20 and 50, mixing time of RDHR is between 50 and 100 and the mixing time of BaW is between 100 and 150.
+So we can see that the order of Walk Types with respect to the mixing time (decreasing order with respect to speed of convergence) is: CDHR, RDHR and BaW. 
 
 
 
-
-## Statistical test for convergence of a random walk sampler.
+##Test 3: Statistical test for convergence of a random walk sampler.
 We will use the Gelman-Rubin test for MCMC convergence. This test when given multiple MCMC chains compares in chain variability to the between chain variability.  As all of the coordinates need to be independent and converge to the same distribution we can apply it between them.
 
 ```
@@ -69,14 +68,14 @@ library(coda)
 for (step in c(1,20,50,100,150)){
   for (walk in c("CDHR", "RDHR", "BaW")){
     P <- gen_cube(100, 'H')
-    points1 <- sample_points(P, 1000, random_walk = list("walk" = walk, "walk_length" = step))
+    points <- sample_points(P, 1000, random_walk = list("walk" = walk, "walk_length" = step))
     jpeg(file=paste(step,walk,'.jpg'));
-    g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
+    g<-plot(ggplot(data.frame( x=points[1,], y=points[2,] )) +
 geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
 ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step)))
 dev.off()
 print(sprintf("walk_type=%s walk_length=%s",walk,step))
-a=as.mcmc.list(lapply(as.data.frame(t(points1)), mcmc));
+a=as.mcmc.list(lapply(as.data.frame(t(points)), mcmc));
 print(gelman.diag(a,autoburnin = FALSE,multivariate = TRUE))
 jpeg(file=paste(step,walk,'gel','.jpg'));
 gelman.plot(a,autoburnin = FALSE)
@@ -104,4 +103,4 @@ The results for the above walks are:
 | RDHR | 150 |  1.01 |
 | BaW | 150 | 1.02 |
 
-We know that the the walk is close to convergence if the value of the Gelman-Rubin statistic is close to one. From this statistic we can see that we are close to convergence for  walk length greater than equal to 20 for CDHR and RDHR. And BaW is close to convergence for walk length greater than equal to 50.
+We know that the the walk is close to convergence if the value of the Gelman-Rubin statistic is close to one. From this statistic we can see that we are close to convergence for walk lengths greater than equal to 20 for the CDHR and RDHR walks. And BaW is close to convergence for walk lengths greater than equal to 50.
