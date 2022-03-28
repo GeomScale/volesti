@@ -112,8 +112,8 @@ Same as test one of the previous assignment.
 
 ## Test 3: Interior Point Method for Linear Programming.
 
-We implement simple C++ program for the optization of Linear Programs in the folder [Linear_Programming] (/Linear_Programming).
-Our implementation uses a logarithmic barrier along with the Newton method. So for solving the problem ![equation](<img src="http://www.sciweavers.org/tex2img.php?eq=c%5ET%5Ccdot%20x%5Ctext%7B%2C%20%7D%20s.t.%20Ax%5Cle%20b&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=0" align="center" border="0" alt="c^T\cdot x\text{, } s.t. Ax\le b" width="139" height="21" />), we minimize the function:
-![equation](<img src="http://www.sciweavers.org/tex2img.php?eq=t%5Ccdot%20c%5ET%5Ccdot%20x-%5Csum_%7Bi%3D0%7D%5E%7Bm%7Dlog%28b_i-%28Ax%29_i%29&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=0" align="center" border="0" alt="t\cdot c^T\cdot x-\sum_{i=0}^{m}log(b_i-(Ax)_i)" width="225" height="50" />) for multiplicatively increasing values of t using Newton's method. 
+We implement simple C++ program for the optization of Linear Programs in the folder [LinearProgramming](volesti/tree/gsoc2022/LinearProgramming).
+Our implementation uses a logarithmic barrier along with the Newton method. So for solving the problem ![equation](https://bit.ly/3NqePc1), we minimize the function:
+![equation](https://bit.ly/3JOJ1LV) for multiplicatively increasing values of t, using Newton's method. 
 
 
