@@ -4,11 +4,10 @@ Simple Interior Point Optimazation C++ implementation for linear programs, using
 
 ## Running the tests
 
-'''
+```
 cmake .
 make
 LP_IPM < input.txt
-'''
-
+```
 
 
