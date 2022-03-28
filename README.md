@@ -112,7 +112,7 @@ Same as test one of the previous assignment.
 
 ## Test 3: Interior Point Method for Linear Programming.
 
-We implement simple C++ program for the optization of Linear Programs in the folder [LinearProgramming](volesti/tree/gsoc2022/LinearProgramming).
+We implement simple C++ program for the optization of Linear Programs in the folder [LinearProgramming](LinearProgramming).
 Our implementation uses a logarithmic barrier along with the Newton method. So for solving the problem ![equation](images/l1.jpg), we minimize the function:
 ![equation](images/l2.jpg) for multiplicatively increasing values of t, using Newton's method. 
 
