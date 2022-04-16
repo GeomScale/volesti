@@ -24,6 +24,7 @@ Our implementation uses a logarithmic barrier along with the Newton method [2]. 
 ![equation](images/l2.jpg) for multiplicatively increasing values of t, using Newton's method.
 
 [1] A. B. Dieker and S. Vempala, "Stochastic billiards for sampling from the boundary of a convex set", 2014
+
 [2] S. Boyd and L. Vandenberghe, "Convex Optimization". Cambridge University Press, 2004
 
 # A comparative study of uniform high dimensional samplers
