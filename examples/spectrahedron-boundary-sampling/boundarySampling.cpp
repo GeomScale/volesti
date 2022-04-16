@@ -114,7 +114,7 @@ Point getDirection(unsigned int const& dim, RNGType &rng, bool normalize=true){
     return p;
 }
 
-
+/*Pick a uniform direction on the halfplane of the normal vector */
 void unifDirection(spectrahedron P, Point &p, Point &v, RNGType &rng){
     unsigned int d = P.dimension();
 
@@ -123,26 +123,8 @@ void unifDirection(spectrahedron P, Point &p, Point &v, RNGType &rng){
     v=getDirection(d,rng);
 
     if(v.dot(nt)>0){v=-1*v;}
-/*
-    std::cout<<"p=";
-    for(int j=0;j<d;j++){
-      std::cout<<p[j]<<" ";
-    }
-    std::cout<<"\n";
-    std::cout<<"v=";
-    for(int j=0;j<d;j++){
-      std::cout<<v[j]<<" ";
-    }
-    std::cout<<"\n";
-    std::cout<<"nt=";
-    for(int j=0;j<d;j++){
-      std::cout<<nt[j]<<" ";
-    }
-    std::cout<<"\n";
-*/
-//    P.compute_reflection(v, p, flag);
 }
-
+/*Stochastic Billiards algorithm */
 std::vector<Point> StochasticBilliard(spectrahedron &P, Point& q, unsigned int num_points, RNGType &rng){
     unsigned int d = P.dimension();
     double  tau;
@@ -150,29 +132,30 @@ std::vector<Point> StochasticBilliard(spectrahedron &P, Point& q, unsigned int n
     std::vector<Point> randPoints;
         v = getDirection(d, rng);
         int it = 0;
+        //For each sample
         while (it < num_points)
         {
+          //Find the intersection
             tau=P.positiveLinearIntersection(p.getCoefficients(), v.getCoefficients());
             randPoints.push_back(p+tau*v);
             tau = 0.995 * tau;
+            //Move to it
             p += tau * v;
+            //pick a uniform direction
             unifDirection(P, p, v,rng);
             it++;
         }
-
     return randPoints;
 }
-
+//Entry function
 std::vector<Point> boundarySampler(unsigned int d, unsigned int num_points){
     RNGType rng(d);
     Point p(d);
-    // Create the spectrahedron
+    // Create a spectrahedron
     std::vector<MT> lmi_mat = Condition1();
     LMI<double, MT, VT> lmi(lmi_mat);
     spectrahedron spectra(lmi);
     spectra.set_interior_point(p);
-
-
     return StochasticBilliard(spectra, p, num_points, rng);
 
 }

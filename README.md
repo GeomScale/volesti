@@ -1,5 +1,6 @@
 # Randomized solver for Semidefinite Programs
 Here are instructions for the tasks that I have implemented for Geomscale as a part for Google Summer of Code 2022. More details about my application as well as example methods can be found in [ProjectProposal.pdf](ProjectProposal.pdf).
+
 ## Test 1: Sampling in a polytope.
 ```
 walk="CDHR"
@@ -12,6 +13,7 @@ geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-15,15),
 ylim = c(-15,15)) + ggtitle(sprintf("Sampling a random pentagon with walk %s", walk)))
 ```
 ![Sampling a polygon.](/images/pentagon.jpg "Sampling a polytope.")
+
 ## Test2:Sample from the boundary of a Spectrahedron
 We implement the Stochastic Billiards algorithm [1] form boundary sampling over spectrahedra. The example is located in the folder [spectrahedron-boundary-sampling](/examples/spectrahedron-boundary-sampling).
 
