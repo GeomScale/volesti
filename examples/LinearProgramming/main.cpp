@@ -31,8 +31,8 @@ int main() {
     cin >> point(i);
   }
   // Apply Interior point method Barrier + Newton Method
-  // IPM(A, b, c, point);
-  cout << "The optimum is: " << IPM(A, b, c, point) << "\n";
+  //IPMprimaldual(A, b, c, point);
+  cout << "The optimum is: " << IPMprimaldual(A, b, c, point) << "\n";
   cout << "At the point: " << point.t();
   return 0;
 }

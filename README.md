@@ -23,7 +23,10 @@ We implement the Stochastic Billiards algorithm [1] form boundary sampling over 
 
 We implement simple C++ program for the optimization of Linear Programs in the folder [LinearProgramming](/examples/LinearProgramming).
 Our implementation uses a logarithmic barrier along with the Newton method [2]. So for solving the problem ![equation](images/l1.jpg), we minimize the function:
-![equation](images/l2.jpg) for multiplicatively increasing values of t, using Newton's method.
+![equation](images/l2.jpg) for multiplicatively increasing values of t, using Newton's method. Bellow we see the duality gap, a bound on the error of our algorithm.
+
+![Interior Point method](/images/DualityGap.jpg "Duality Gap")
+
 
 [1] A. B. Dieker and S. Vempala, "Stochastic billiards for sampling from the boundary of a convex set", 2014
 

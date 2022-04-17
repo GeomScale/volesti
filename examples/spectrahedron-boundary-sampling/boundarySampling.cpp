@@ -1,6 +1,3 @@
-// A lot of code here is not my original idea. I borrow the structure and
-// a lot of ideas from the source code of volesti
-
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
