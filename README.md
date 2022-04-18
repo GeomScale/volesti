@@ -1,5 +1,5 @@
 # Randomized solver for Semidefinite Programs
-Here are instructions for the tasks that I have implemented for Geomscale as a part for Google Summer of Code 2022. More details about my application as well as example methods can be found in [ProjectProposal.pdf](ProjectProposal.pdf).
+Here are instructions for the tasks that I have implemented for GeomScale as a part for Google Summer of Code 2022. More details about my application as well as example methods can be found in [ProjectProposal.pdf](ProjectProposal.pdf).
 
 ## Test 1: Sampling in a polytope.
 ```
