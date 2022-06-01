@@ -5,7 +5,8 @@
 #include <chrono>
 #include "Eigen/Eigen"
 
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MT;
+typedef double NT;
+typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
 // Assume that A is already symmetric
 
@@ -67,3 +68,61 @@ int main(){
     testRejectSampling(7);
     return 0;
 }
+The only difference in the case of correlation matrices is the per-step complexity of the random walk. 
+Notice that there is no need for LMI evaluations, you could only store the current Markov point as a correlation matrix.
+Similarly, with the direction HnR or Billiard Walk (or momenta in HMC), it would be a hollow matrix. 
+Also with the computation of the gradient. Since matrices A_i are well-structured and super sparse,
+the evaluation of the gradient is cheaper.
+
+Please check this paper for details and try to specialize the per-step computation for the case of correlation matrices.
+No need to change your proposal (it is pretty good for now), you could do this during the bonding period.
+
+
+
+#include "matrix_operations/EigenvaluesProblems.h"
+
+
+template <typename MT>
+struct evaluate_lmi {
+    
+};
+
+template <typename NT>
+struct evaluate_lmi<Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> > {
+public:
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    /// The type for Eigen vector
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    MT vectorMatrix;
+
+    int _m, _d;
+
+    /// Create the vectorMatrix, which has at each column the distinct elements of each A_i, i=1,...,d
+    void setVectorMatrix(int const& m, int const& d, std::vector<MT> &matrices) 
+    {
+        _m = m;
+        _d = d;
+        int newM = m * (m + 1) / 2;
+
+        // allocate memory
+        vectorMatrix.setZero(newM, d);
+        //a.setZero(m);
+
+        // initialze iterator and skip A_0
+        typename std::vector<MT>::iterator iter = matrices.begin();
+        iter++;
+
+        // copy elements
+        int atMatrix = 0;
+
+        for (; iter != matrices.end(); iter++, atMatrix++) {
+            int i = 0;
+
+            for (int at_row = 0; at_row < m; at_row++)
+                for (int at_col = at_row; at_col < m; at_col++) {
+                    vectorMatrix(i++, atMatrix) = (*iter)(at_row, at_col);
+                }
+
+        }
+    }
