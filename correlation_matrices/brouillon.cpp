@@ -1,4 +1,3 @@
-#include "doctest.h"
 #include <fstream>
 #include "misc.h"
 #include "random.hpp"
@@ -202,46 +201,6 @@ MT sample_correlation_matrices(Polytope &P)
 
     return samples;
 }
-
-template <typename NT, typename WalkType = GaussianHamiltonianMonteCarloExactWalk>
-void test(){
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef HPolytope<Point> Hpolytope;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    Hpolytope P;
-
-    unsigned int d = 10;
-
-    std::cout << "--- Testing Gaussian exact HMC for H-cube10" << std::endl;
-    P = generate_cube<Hpolytope>(d, false);
-    P.ComputeInnerBall();
-
-    auto start = std::chrono::steady_clock::now();
-
-    MT samples = get_samples_gaussian<MT, WalkType>(P);
-
-    auto end = std::chrono::steady_clock::now();
-    double time = std::chrono::duration_cast<std::chrono::minutes>(end - start).count();
-
-    VT score = univariate_psrf<NT, VT>(samples);
-    std::cout << "psrf = " << score.maxCoeff() << std::endl;
-
-    CHECK(score.maxCoeff() < 2.2);
-}
-
-TEST_CASE("ghmc") {
-    call_test<double>();
-
-    srand((unsigned) time(NULL));
-    int n = 4;
-    std::vector<Point> points = uniform_correl_matrix_sampling(n, 1, 5, 5);
-    for(std::vector<Point>::iterator it = points.begin(); it != points.end(); ++it){
-        std::cout << (*it).getCoefficients() << std::endl;
-    }
-}
-
 
 std::vector<Point> uniform_correl_matrix_sampling(unsigned int n, unsigned int num_points, unsigned int walk_len=10, unsigned int nreflex = 10){
     int k = n*(n-1)/2; // Dimension: k = n(n-1)/2

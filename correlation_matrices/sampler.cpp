@@ -1,6 +1,3 @@
-// A lot of code here is not my original idea. I borrow the structure and 
-// a lot of ideas from the source code of volesti
-
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
@@ -22,33 +19,6 @@ typedef Spectrahedron<Point> spectrahedron;
 typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
 // typedef BilliardWalk::template Walk<spectrahedron, RNGType> BilliardWalkType;
 // typedef AcceleratedBilliardWalk::template Walk<spectrahedron, RNGType> AcceleratedBilliardWalkType;
-
-// Assume that A is already symmetric
-bool isPosSemidefinite(MT A){
-    // Eigen::LLT<MT> A_llt(A);
-    // if(A_llt.info() != Eigen::NumericalIssue) return true;
-    // return false;
-    Eigen::LDLT<MT> A_ldlt(A);
-    if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
-        return true;
-    return false;
-}
-
-// A small function to build a correlation matrix from a vector of entries
-MT rebuildMatrix(const Point &p, const unsigned int n){
-    VT xvector = p.getCoefficients();
-    MT A = MT::Identity(n,n);
-    double coeff;
-    for(int i = 0; i < n ; ++i){
-        for(int j = i+1; j < n; ++j){
-            int ind = ((((n<<1)-i-2)*(i+1)) >> 1)  + j - n;
-            coeff = xvector[ind];
-            A(i,j) = coeff;
-            A(j,i) = coeff;
-        }
-    }
-    return A;
-}
 
 // Test 1: Reject Sampling
 
@@ -224,20 +194,18 @@ int Test3(unsigned int num_points=1000, unsigned int walk_len=10, unsigned int n
     }
 }
 
-int main(){
-    srand((unsigned) time(NULL));
-    int n = 4;
-    // MT A = AcceptReject(n);
-    // std::cout << A << std::endl;
-    // std::vector<MT> listA = myLMIGenerator(n);
-    // for(int i = 0; i <= n*(n-1)/2; i++){
-    //     std::cout << listA[i] << std::endl << std::endl;
-    // }
-    std::vector<Point> points = uniform_correl_matrix_sampling(n, 1, 5, 5);
-    std::vector<Point>::iterator it = points.begin();
-    for(; it != points.end(); ++it){
-        std::cout << (*it).getCoefficients() << std::endl;
+template <typename NT, typename WalkType>
+MT sample_correlation_matrices(unsigned int n){
+    CorreSpectra<Point> P(n);
+
+    MT samples
+    switch(WalkType){
+        case GaussianHamiltonianMonteCarloExactWalk:
+
+        case:
+
+        case:
+
     }
-    std::cout << rebuildMatrix(points[0], n) << std::endl;
-    return 0;
+    return samples;
 }
