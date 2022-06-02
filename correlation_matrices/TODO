@@ -1,5 +1,7 @@
 A correlation class similar to spectrahedra:
 
+A class to handle points associated to correlation matrices
+
 typedef Point                                             PointType;
 typedef typename Point::FT                                NT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -23,3 +25,8 @@ uniform_sampling : calls to RandomPointGenerator
 
 
 Gaussian, exponential 
+
+
+A function to sample w.r.t. a distribution: uniform_sampling, gaussian_sampling, exponential sampling
+
+UniformRandomPointGenerator, GaussianRandomPointGenerator, ...
