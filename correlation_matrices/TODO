@@ -1,0 +1,32 @@
+A correlation class similar to spectrahedra:
+
+A class to handle points associated to correlation matrices
+
+typedef Point                                             PointType;
+typedef typename Point::FT                                NT;
+typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+
+EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
+
+double maxDouble = std::numeric_limits<double>::max();
+
+membership(Point p){
+}
+
+To call to a sampling algorithm:
+
+- Define convex body
+- Call to get_samples_gaussian (only written for test files)
+
+sampling.h:
+
+uniform_sampling : calls to RandomPointGenerator
+
+
+Gaussian, exponential 
+
+
+A function to sample w.r.t. a distribution: uniform_sampling, gaussian_sampling, exponential sampling
+
+UniformRandomPointGenerator, GaussianRandomPointGenerator, ...
