@@ -208,7 +208,7 @@ else ()
   add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
   add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
   add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
-  
+
   add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
   add_test(NAME test_john COMMAND sampling_test -tc=john)
@@ -218,7 +218,7 @@ else ()
   add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
   add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
   add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-  
+
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
@@ -302,7 +302,7 @@ else ()
           COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc_truncated)
   add_test(NAME logconcave_sampling_test_nuts_hmc
           COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc)
-          
+
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
