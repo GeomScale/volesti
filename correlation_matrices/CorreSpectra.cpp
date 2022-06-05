@@ -1,12 +1,10 @@
 /// This class handles the spectrahedra of correlation matrices
-/// @tparam NT Numeric Type
-
+/// @tparam Point
 template<typename Point>
 class CorreSpectra {
     public:
 
-    /// The numeric/matrix/vector types we use
-    typedef Point                                             PointType;
+    /// The numeric/matrix/vector types
     typedef typename Point::FT                                NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
@@ -20,11 +18,12 @@ class CorreSpectra {
     /// The linear matrix inequality that describes the spectrahedron
     std::vector<MT> lmi;
 
-    std::pair<PointType, NT> _inner_ball;
+    std::pair<Point, NT> _inner_ball;
+
+    /// The gradient vector
+    VT grad;
 
     EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
-
-    VT grad;
 
     CorreSpectra(unsigned int n){
         this->n = n;
@@ -64,6 +63,12 @@ class CorreSpectra {
         return &lmi.at(i);
     }
 
+    std::pair<int,int> getMatrixIndices(int n, int ind){
+        int i = 2*n-1-sqrt((2*n-1)*(2*n-1) - 8*ind)/2;
+        int j = ind - (2*n-1-i)*i/2;
+        return new pair(i,j);
+    }
+
     /// Build a correlation matrix from a vector of entries
     MT buildMatrix(const Point &p, const unsigned int n){
         VT xvector = p.getCoefficients();
@@ -84,11 +89,41 @@ class CorreSpectra {
     /// \param mat a matrix where mat = lmi(current position)
     /// \return true if position is outside the spectrahedron
     
-    bool is_in(PointType const& p, NT tol=NT(0))
+    bool is_in(Point const& p, NT tol=NT(0))
     {   
         EigenvaluesProblems<NT, MT, VT> eigs;
         NT eival = eigs.findSymEigenvalue(matrix);
         return eival > 0;
+    }
+
+    /// Compute the gradient of the determinant of the LMI at p
+    /// \param[in] p Input parameter
+    /// \param[in] Input vector: lmi(p)*e = 0, e != 0
+    /// \param[out] ret The normalized gradient of the determinant of the LMI at p
+    void normalizedDeterminantGradient(VT p, VT const& e, VT &ret) const {
+        NT sum_sqqrt_sq = NT(0);
+        for (int ind = 0; ind < d; ++ind) {
+            std::pair<int,int> indices = getMatrixIndices(n, ind);
+            ret(i) = e[indices.first]*e[indices.second];
+            sum_sqqrt_sq += ret(ind)*ret(ind);
+        }
+        ret /= std::sqrt(sum_sqqrt_sq); //normalize
+    }
+
+    /// Computes the reflected direction at a point on the boundary of the spectrahedron.
+    /// \param[in] r A point on the boundary of the spectrahedron
+    /// \param[in] v The direction of the trajectory as it hits the boundary
+    /// \param[out] reflectedDirection The reflected direction
+    template <typename update_parameters>
+    void compute_reflection(Point &v, Point const& r, update_parameters& ) const 
+    {
+        VT grad(d);
+        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
+
+        // v: original direction s: the surface normal
+        // reflected direction = v - 2 <v,s>*s
+        NT dot = 2 * v.dot(grad);
+        v += -dot * Point(grad);
     }
 
     std::pair<double, int> intersection(spectrahedron &P, const Point &x, const Point &v, const unsigned int k){
@@ -117,32 +152,6 @@ class CorreSpectra {
         }
         std::pair<double, int> res(tau,j);
         return res;
-    }
-
-    void reflection(spectrahedron P, Point &p, Point &v, const int flag){
-        if(flag != -1){
-            v.set_coord(flag, - v.getCoefficients()(flag));
-            return;
-        }
-        P.compute_reflection(v, p, flag);
-    }
-
-    /// Compute the gradient of the determinant of the LMI at p
-    /// \param[in] p Input parameter
-    /// \param[in] Input vector: lmi(p)*e = 0, e != 0
-    /// \param[out] ret The normalized gradient of the determinant of the LMI at p
-    void normalizedDeterminantGradient(VT r, VT const& e, VT &ret) const {
-        NT* ret_data = ret.data();
-        NT sum_sqqrt_sq = NT(0);
-        for (int i = 0; i < d; i++) {
-            // todo, use iterators
-            *ret_data = e.dot(matrices[i+1].template selfadjointView< Eigen::Lower >() * e);
-            sum_sqqrt_sq += (*ret_data) * (*ret_data);
-            ret_data++;
-        }
-
-        //normalize
-        ret /= std::sqrt(sum_sqqrt_sq);
     }
 
     /// Computes the intersection of the line a + tv,
