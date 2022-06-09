@@ -1,7 +1,6 @@
-/// This class handles correlation matrices
-/// @tparam NT Numeric Type
-
-template<typename NT>
+/// This class handles points corresponding to correlation matrices
+/// @tparam Point Type
+template<typename Point>
 class Point_matrix {
     private:
     
@@ -14,6 +13,7 @@ class Point_matrix {
     public:
 
     /// The numeric/matrix/vector types we use
+    typedef typename Point::FT                                NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
@@ -22,14 +22,17 @@ class Point_matrix {
 
     
     /// The coefficients of the matrix
-    VT coeffs;
+    Point coeffs;
+
+    /// The gradient vector
+    VT grad;
 
     /// Constructors
 
     Point_matrix(int n){
         this->n = n;
         d = n*(n-1)/2;
-        coeffs = VT::Zero(d);
+        coeffs = Point(d);
         matrix = MT::Identity(n,n);
     }
 

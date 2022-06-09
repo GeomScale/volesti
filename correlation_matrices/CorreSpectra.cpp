@@ -20,9 +20,6 @@ class CorreSpectra {
 
     std::pair<Point, NT> _inner_ball;
 
-    /// The gradient vector
-    VT grad;
-
     EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
 
     CorreSpectra(unsigned int n){
@@ -85,10 +82,10 @@ class CorreSpectra {
         return A;
     }
 
-    /// Find out is lmi(current position) = mat is in the exterior of the spectrahedron
-    /// \param mat a matrix where mat = lmi(current position)
+    /// Find out if the current point is in the spectrahedron
+    /// \param p is the current point
     /// \return true if position is outside the spectrahedron
-    
+
     bool is_in(Point const& p, NT tol=NT(0))
     {   
         EigenvaluesProblems<NT, MT, VT> eigs;
@@ -100,7 +97,8 @@ class CorreSpectra {
     /// \param[in] p Input parameter
     /// \param[in] Input vector: lmi(p)*e = 0, e != 0
     /// \param[out] ret The normalized gradient of the determinant of the LMI at p
-    void normalizedDeterminantGradient(VT p, VT const& e, VT &ret) const {
+    void normalizedDeterminantGradient(VT p, VT const& e, VT &ret) const
+    {   
         NT sum_sqqrt_sq = NT(0);
         for (int ind = 0; ind < d; ++ind) {
             std::pair<int,int> indices = getMatrixIndices(n, ind);
@@ -116,9 +114,9 @@ class CorreSpectra {
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
     void compute_reflection(Point &v, Point const& r, update_parameters& ) const 
-    {
+    {   
         VT grad(d);
-        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
+        normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
 
         // v: original direction s: the surface normal
         // reflected direction = v - 2 <v,s>*s
