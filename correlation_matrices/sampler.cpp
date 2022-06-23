@@ -1,3 +1,12 @@
+// Using LDLT decomposition: more numerically stable for singular matrices
+bool isPosSemidefinite(MT A){
+    Eigen::LDLT<MT> A_ldlt(A);
+    if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
+        return true;
+    return false;
+}
+
+#include "matrix_operations/EigenvaluesProblems.h"
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
