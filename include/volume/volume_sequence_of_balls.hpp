@@ -16,15 +16,10 @@
 #include <math.h>
 #include <chrono>
 
-//#include "random.hpp"
-//#include "random/uniform_int.hpp"
-//#include "random/normal_distribution.hpp"
-//#include "random/uniform_real_distribution.hpp"
-
 #include "cartesian_geom/cartesian_kernel.h"
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/zonoIntersecthpoly.h"
@@ -237,7 +232,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
-double volume_sequence_of_balls(Polytope const& Pin,
+double volume_sequence_of_balls(Polytope &Pin,
                                 double const& error = 1.0,
                                 unsigned int const& walk_length = 1,
                                 unsigned int const& n_threads = 1)
@@ -247,5 +242,24 @@ double volume_sequence_of_balls(Polytope const& Pin,
                                                     walk_length, n_threads);
 }
 
+
+template
+<
+    typename WalkTypePolicy = CDHRWalk,
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
+    typename Polytope
+>
+double volume_sequence_of_balls(Polytope &Pin,
+                                Cartesian<double>::Point const& interior_point,
+                                unsigned int const& walk_length = 1,
+                                double const& error = 1.0,
+                                unsigned int const& n_threads = 1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    Pin.set_interior_point(interior_point);
+    
+    return volume_sequence_of_balls<WalkTypePolicy>(Pin, rng, error,
+                                                    walk_length, n_threads);
+}
 
 #endif // VOLUME_SEQUENCE_OF_BALLS_HPP

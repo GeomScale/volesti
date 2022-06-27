@@ -244,13 +244,13 @@ public:
     /// \param[in] is opened stream to input file
     /// \param[out] spectrahedron
     /// \param[out] objectiveFunction
-    template <typename Point>
-    void loadSDPAFormatFile(std::ifstream &is, Spectrahedron<NT, MT, VT> &spectrahedron, Point &objectiveFunction) {
+    template <typename Spectrahedron, typename Point>
+    void loadSDPAFormatFile(std::ifstream &is, Spectrahedron &spectrahedron, Point &objectiveFunction) {
         std::vector<MT> matrices;
         VT coeffs;
         loadSDPAFormatFile(is, matrices, coeffs);
         LMI<NT, MT, VT> lmi(matrices);
-        spectrahedron = Spectrahedron<NT, MT, VT>(lmi);
+        spectrahedron = Spectrahedron(lmi);
         objectiveFunction = Point(coeffs);
     }
 
@@ -260,8 +260,8 @@ public:
     /// \param[in] is opened stream to output file
     /// \param[in] spectrahedron
     /// \param[in] objectiveFunction
-    template <typename Point>
-    void writeSDPAFormatFile(std::ostream &os, Spectrahedron<NT, MT, VT> const & spectrahedron, Point const & objectiveFunction) {
+    template <typename Spectrahedron, typename Point>
+    void writeSDPAFormatFile(std::ostream &os, Spectrahedron const & spectrahedron, Point const & objectiveFunction) {
         writeSDPAFormatFile(os, spectrahedron.getLMI().getMatrices(), objectiveFunction.getCoefficients());
     }
 };

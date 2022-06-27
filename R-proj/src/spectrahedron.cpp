@@ -7,6 +7,7 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -51,7 +52,7 @@ void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilVa
     typedef typename Kernel::Point Point;
     typedef boost::mt19937 RNGType;
     typedef LMI<NT, MT, VT> LMI;
-    typedef Spectrahedron<NT, MT, VT> Spectrahedron;
+    typedef Spectrahedron<Point> Spectrahedron;
 
     std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (Rcpp::as<Rcpp::Reference> (spectrahedron).field("matrices"));
     LMI lmi(matrices);
@@ -90,7 +91,7 @@ Rcpp::List loadSdpaFormatFile(Rcpp::Nullable<std::string> inputFile = R_NilValue
     typedef typename Kernel::Point Point;
     typedef boost::mt19937 RNGType;
     typedef LMI<NT, MT, VT> LMI;
-    typedef Spectrahedron<NT, MT, VT> Spectrahedron;
+    typedef Spectrahedron<Point> Spectrahedron;
 
     Spectrahedron _spectrahedron;
     Point c;

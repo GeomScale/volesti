@@ -58,9 +58,9 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
          Point const & interiorPoint, Point& solution, bool verbose = false) {
 
     // fetch the data types we will use
-    typedef  typename _Spectrahedron::NUMERIC_TYPE NT;
-    typedef  typename _Spectrahedron::MATRIX_TYPE MT;
-    typedef  typename _Spectrahedron::VECTOR_TYPE VT;
+    typedef  typename _Spectrahedron::NT NT;
+    typedef  typename _Spectrahedron::MT MT;
+    typedef  typename _Spectrahedron::VT VT;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef BoltzmannHMCWalk::Walk<_Spectrahedron, RNGType > HMC;
 
@@ -71,9 +71,11 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
     _objectiveFunctionNormed.normalize();
     Point objectiveFunctionNormed = Point(_objectiveFunctionNormed);
 
+    RNGType rng(spectrahedron.dimension());
+
     // Estimate the diameter of the spectrahedron
     // needed for the random walk and for the simulated annealing algorithm
-    NT diameter = spectrahedron.estimateDiameter(CONSTANT_1 + std::sqrt(spectrahedron.dimension()), interiorPoint);
+    NT diameter = spectrahedron.estimateDiameter(CONSTANT_1 + std::sqrt(spectrahedron.dimension()), interiorPoint, rng);
 
     /******** initialization *********/
     solution = interiorPoint;
@@ -86,11 +88,8 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
     NT tempDecreaseFactor = 1.0 - static_cast<NT>(1.0 / std::pow(spectrahedron.dimension(), settings.k));
 
     // initialize random walk;
-    RNGType rng(spectrahedron.dimension());
     typename HMC::Settings hmc_settings = typename HMC::Settings(settings.walkLength, rng, objectiveFunction, temperature, diameter);
     HMC hmcRandomWalk = HMC(hmc_settings);
-    // this data structure help us move computations between function calls
-    typename HMC::PrecomputedValues hmcPrecomputedValues;
     NT previous_min = objectiveFunction.dot(solution);
 
     /******** solve *********/
@@ -105,14 +104,14 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
         // get a sample under the Boltzmann distribution
         // using the HMC random walk
         while (1) {
-            hmcRandomWalk.apply(spectrahedron, solution, settings.walkLength, randPoints, hmcPrecomputedValues);
+            hmcRandomWalk.apply(spectrahedron, solution, settings.walkLength, randPoints);
 
             // if the sampled point is not inside the spectrahedron (error in boundary oracle),
             // get a new one
-            if (spectrahedron.isExterior(hmcPrecomputedValues.C)) {
+            if (spectrahedron.isExterior(spectrahedron.get_C())) {
                 if (verbose) std::cout << "Sampled point outside the spectrahedron.\n";
                 randPoints.clear();
-                hmcPrecomputedValues.resetFlags();
+                spectrahedron.resetFlags();
             }
             else {
                 // update values;

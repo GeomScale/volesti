@@ -4,6 +4,51 @@ dir.create("cran_package")
 path = getwd()
 path = substr(path, start=1, stop=nchar(path)-9)
 
+# download lpSolveAPI and crate src/Rproj_externals/lp_solve
+library(downloader)
+download("https://cran.r-project.org/src/contrib/Archive/lpSolveAPI/lpSolveAPI_5.5.2.0-17.6.tar.gz", dest="lpSolve.tar.gz", mode="wb")
+untar("lpSolve.tar.gz", exdir = path)
+unlink("lpSolve.tar.gz")
+dir.create(paste0(path,"/R-proj/src/Rproj_externals"))
+dir_lp = paste0(path,"/lpSolveAPI/src/lp_solve")
+lp_dist = paste0(path,"/R-proj/src/Rproj_externals")
+file.copy(dir_lp, lp_dist, recursive=TRUE)
+
+# fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
+library(xfun)
+gsub_file(
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
+    "struct timeb buf;", "", 
+    fixed=TRUE)
+gsub_file(
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
+    "ftime(&buf);", "", 
+    fixed=TRUE)
+gsub_file(
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
+    "return((double)buf.time+((double) buf.millitm)/1000.0);", 
+    "return((double)0);", 
+    fixed=TRUE)
+
+# add lpsolve header files in external
+library(downloader)
+download("https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz", dest="lpSolve.tar.gz", mode="wb")
+untar("lpSolve.tar.gz", exdir = path)
+unlink("lpSolve.tar.gz")
+dir.create(paste0(path,"/external/LPsolve_src"))
+dir.create(paste0(path,"/external/LPsolve_src/include"))
+dir.create(paste0(path,"/external/LPsolve_src/run_headers"))
+dir_lp = paste0(path,"/lpSolveAPI/inst/include")
+h_files = dir(dir_lp, "*.h", ignore.case = TRUE, all.files = TRUE)
+lp_dist = paste0(path,"/external/LPsolve_src/include")
+file.copy(file.path(dir_lp, h_files), lp_dist, recursive=TRUE, overwrite=TRUE)
+dir_lp = paste0(path,"/lpSolve/src")
+h_files = dir(dir_lp, "*.h", ignore.case = TRUE, all.files = TRUE)
+lp_dist = paste0(path,"/external/LPsolve_src/run_headers")
+file.copy(file.path(dir_lp, h_files), lp_dist, recursive=TRUE)
+unlink(paste0(path,"/lpSolveAPI"), recursive=TRUE)
+unlink(paste0(path,"/lpSolve"), recursive=TRUE)
+
 # copy paste the src folder
 src_dir = paste0(path,'/R-proj/src')
 src_dist = paste0(path,'/cran_gen/cran_package')
@@ -84,22 +129,9 @@ makevarswin_dir = paste0(path,'/cran_gen/Makevars.win')
 makevarswin_dist = paste0(path, '/cran_gen/cran_package/src')
 file.copy(makevarswin_dir, makevarswin_dist, recursive=TRUE)
 
-# replace the volume.h 
-#volume_dir = paste0(path,'/cran_gen/volume.h')
-#volume_dist = paste0(path,'/cran_gen/cran_package/src/include/volume')
-#file.copy(volume_dir, volume_dist, recursive=TRUE)
-
 # copy paste the LICENCE
 dir_lic = paste0(path,'/LICENSE')
 lic_dist = paste0(path,'/cran_package/inst/doc')
-
-# delete boost from external
-dir_boost = paste0(path,'/cran_gen/cran_package/src/external/boost')
-unlink(dir_boost, recursive = TRUE)
-
-# deete eigen from external
-dir_eigen = paste0(path,'/cran_gen/cran_package/src/external/Eigen')
-unlink(dir_eigen, recursive = TRUE)
 
 # delete misc.h from include
 dir_misc = paste0(path,'/cran_gen/cran_package/src/include/misc.h')

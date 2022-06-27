@@ -65,6 +65,69 @@ struct RandomPointGenerator
     }
 };
 
+
+template
+<
+    typename Walk
+>
+struct MultivariateGaussianRandomPointGenerator
+{
+    template
+    <
+        typename Polytope,
+        typename Point,
+        typename Ellipsoid,
+        typename PointList,
+        typename WalkPolicy,
+        typename RandomNumberGenerator,
+        typename Parameters
+    >
+    static void apply(Polytope& P,
+                      Point &p,   // a point to start
+                      Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng,
+                      Parameters const& parameters)
+    {
+        Walk walk(P, p, E, rng, parameters);
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            walk.template apply(P, p, E, walk_length, rng);
+            policy.apply(randPoints, p);
+        }
+    }
+
+    template
+    <
+            typename Polytope,
+            typename Point,
+            typename Ellipsoid,
+            typename PointList,
+            typename WalkPolicy,
+            typename RandomNumberGenerator
+    >
+    static void apply(Polytope& P,
+                      Point &p,   // a point to start
+                      Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng)
+    {
+        Walk walk(P, p, E, rng);
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            walk.template apply(P, p, E, walk_length, rng);
+            policy.apply(randPoints, p);
+        }
+    }
+};
+
+
 template
 <
     typename Walk
@@ -201,6 +264,82 @@ struct LogconcaveRandomPointGenerator
             policy.apply(randPoints, walk.x);
         }
     }
+};
+
+
+template
+<
+    typename Walk
+>
+struct ExponentialRandomPointGenerator
+{
+    template
+    <
+        typename Polytope,
+        typename Point,
+        typename NT,
+        typename PointList,
+        typename WalkPolicy,
+        typename RandomNumberGenerator
+    >
+    static void apply(Polytope const& P,
+                      Point &p,   // a point to start
+                      Point const& c,   // bias function
+                      NT const& T, // temperature/variance
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng)
+    {
+        Walk walk(P, p, c, T, rng);
+        bool success;
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            success = walk.template apply(P, p, walk_length, rng);
+            if (!success) {
+                //return;
+                throw std::range_error("A generated point is outside polytope");
+            }
+            policy.apply(randPoints, p);
+        }
+    }
+
+    template
+    <
+            typename Polytope,
+            typename Point,
+            typename NT,
+            typename PointList,
+            typename WalkPolicy,
+            typename RandomNumberGenerator,
+            typename Parameters
+    >
+    static void apply(Polytope const& P,
+                      Point &p,   // a point to start
+                      Point const& c,   // bias function
+                      NT const& T, // temperature/variance
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng,
+                      Parameters const& parameters)
+    {
+        Walk walk(P, p, c, T, rng, parameters);
+        bool success;
+
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            success = walk.template apply(P, p, walk_length, rng);
+            if (!success) {
+                //return;
+                throw std::range_error("A generated point is outside polytope");
+            }
+            policy.apply(randPoints, p);
+        }
+    }
+
 };
 
 

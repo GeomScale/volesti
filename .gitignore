@@ -1,7 +1,11 @@
-
+test/build
+external/_deps
+examples/build
+.vscode
 test/Testing/Temporary/CTestCostData.txt
 *.log
 .Rproj.user
 *.png
-.vscode/
-test/build
+build/
+.vscode
+.DS_Store

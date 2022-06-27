@@ -23,6 +23,7 @@
 #include "random_walks/gaussian_ball_walk.hpp"
 #include "random_walks/gaussian_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
+#include "volume/math_helpers.hpp"
 
 
 /////////////////// Helpers for random walks
@@ -53,27 +54,6 @@ struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-
-//An implementation of Welford's algorithm for mean and variance.
-template <typename NT>
-std::pair<NT, NT> get_mean_variance(std::vector<NT>& vec)
-{
-    NT mean = 0;
-    NT M2 = 0;
-    NT variance = 0;
-    NT delta;
-
-    unsigned int i=0;
-    for (auto vecit = vec.begin(); vecit!=vec.end(); vecit++, i++)
-    {
-        delta = *vecit - mean;
-        mean += delta / (i + 1);
-        M2 += delta * (*vecit - mean);
-        variance = M2 / (i + 1);
-    }
-    return std::pair<NT, NT> (mean, variance);
-}
-
 
 // Compute the first variance a_0 for the starting gaussian
 template <typename Polytope, typename NT>
@@ -336,7 +316,7 @@ double volume_cooling_gaussians(Polytope const& Pin,
     // Consider Chebychev center as an internal point
     auto InnerBall = P.ComputeInnerBall();
     if (InnerBall.second < 0.0) return -1.0;
-    
+
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
 
@@ -481,7 +461,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
-double volume_cooling_gaussians(Polytope const& Pin,
+double volume_cooling_gaussians(Polytope &Pin,
                                  double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
 {
@@ -489,5 +469,22 @@ double volume_cooling_gaussians(Polytope const& Pin,
     return volume_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
 }
 
+
+template
+<
+    typename WalkTypePolicy = GaussianCDHRWalk,
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
+    typename Polytope
+>
+double volume_cooling_gaussians(Polytope &Pin,
+                                Cartesian<double>::Point const& interior_point,
+                                unsigned int const& walk_length = 1,
+                                double const& error = 0.1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    Pin.set_interior_point(interior_point);
+    
+    return volume_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
+}
 
 #endif // VOLUME_COOLING_GAUSSIANS_HPP
