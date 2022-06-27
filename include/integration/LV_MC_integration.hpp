@@ -59,7 +59,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	unsigned int n = P.dimension();
 	NT B = 2 * n + 2 * log(1 / epsilon) + n * log(1 / beta);
 	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
-	unsigned int k = 10000; // (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B))/1000;
+	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B))/1000;
 
 	typedef OptimizationFunctor::GradientFunctor
 	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
@@ -87,8 +87,6 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
         std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
         return -1;
     }
-
-	// std::cerr << "Volume of the convex body = " << volume << std::endl;
 
 	NT alpha = (NT) 1/B;
 	NT alpha_prev = (NT) 0;
