@@ -13,7 +13,7 @@ class CorreSpectra {
     unsigned int n;
 
     /// The dimension of the vector x
-    unsigned int d;
+    unsigned int dim;
 
     /// The linear matrix inequality that describes the spectrahedron
     std::vector<MT> lmi;
@@ -24,7 +24,7 @@ class CorreSpectra {
 
     CorreSpectra(unsigned int n){
         this->n = n;
-        d = n*(n-1)/2;
+        dim = n*(n-1)/2;
         MT A;
         lmi.push_back(MT::Identity(n, n));
         for(i = 0; i < n; ++i){
@@ -41,7 +41,7 @@ class CorreSpectra {
 
     /// \returns The dimension of vector x
     unsigned int dimension() const {
-        return d;
+        return dim;
     }
 
     /// \returns The size of the matrix
@@ -93,6 +93,15 @@ class CorreSpectra {
         return eival > 0;
     }
 
+    bool isExterior(VT const & pos) {
+        return !lmi.isNegativeSemidefinite(pos);
+    }
+
+    bool isExterior(MT const & mat) {
+        return !lmi.isNegativeSemidefinite(mat);
+    }
+
+    
     /// Compute the gradient of the determinant of the LMI at p
     /// \param[in] p Input parameter
     /// \param[in] Input vector: lmi(p)*e = 0, e != 0
@@ -108,6 +117,13 @@ class CorreSpectra {
         ret /= std::sqrt(sum_sqqrt_sq); //normalize
     }
 
+        // Computes unit normal at point p of the boundary
+    Point unit_normal(Point const& p, int const& constraint) const {
+        Point n = grad_gs[constraint](p);
+        return (1 / n.length()) * n;
+    }
+
+
     /// Computes the reflected direction at a point on the boundary of the spectrahedron.
     /// \param[in] r A point on the boundary of the spectrahedron
     /// \param[in] v The direction of the trajectory as it hits the boundary
@@ -120,30 +136,29 @@ class CorreSpectra {
 
         // v: original direction s: the surface normal
         // reflected direction = v - 2 <v,s>*s
-        NT dot = 2 * v.dot(grad);
-        v += -dot * Point(grad);
+        v -= -2 * v.dot(grad) * Point(grad);
     }
 
-    std::pair<double, int> intersection(spectrahedron &P, const Point &x, const Point &v, const unsigned int k){
-        double tau, tmp;
-        int j = 0;
-        if(v[0] > 0){
-            tau = (1-x[0])/v[0];   
-        }else{
-            tau = -(1 + x[0])/v[0];
-        }
-        for(int i = 1; i < k; ++i){
-            if(v[i] > 0){
-                tmp = (1 - x[i])/v[i];
-            }else{
-                tmp = -(1 + x[i])/v[i];
-            }
-            if(tau > tmp){
-                tau = tmp;
-                j = i;
+    // Compute positive line intersection (in [0, 1]) using Binary search
+    // x: starting point
+    // v: direction (ray)
+    std::pair<NT, int> line_positive_intersect(Point const& x, Point const &v) const {
+        NT t_min = NT(1);
+        int constraint = -1;
+        NT t;
+        for (unsigned int i = 0; i < m; i++) {
+            t = binary_search(x, v, gs[i]);
+            if (t < t_min) {
+                t_min = t;
+                constraint = i;
             }
         }
-        tmp = P.positiveLinearIntersection(x.getCoefficients(), v.getCoefficients());
+
+        return std::make_pair(t_min, constraint);
+    }
+
+    std::pair<NT, int> intersection(spectrahedron &P, const Point &x, const Point &v, const unsigned int k){
+        NT tau = P.positiveLinearIntersection(x.getCoefficients(), v.getCoefficients());
         if(tau > tmp){
             tau = tmp;
             j = -1;
