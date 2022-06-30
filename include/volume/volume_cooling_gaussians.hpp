@@ -22,25 +22,44 @@
 #include "random_walks/gaussian_helpers.hpp"
 #include "random_walks/gaussian_ball_walk.hpp"
 #include "random_walks/gaussian_cdhr_walk.hpp"
+#include "random_walks/gaussian_hamiltonian_monte_carlo_exact_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
 
+typedef long double LNT;
 
 /////////////////// Helpers for random walks
 
 template <typename WalkType>
 struct update_delta
 {
+
     template <typename NT>
     static void apply(WalkType, NT) {}
+    /*	
+    template <typename LNT>
+    static void apply(WalkType walk, LNT delta) {
+	    walk.update_delta(delta);
+    }
+    */
 };
 
 template <typename Polytope, typename RandomNumberGenerator>
-struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
+//struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
+struct update_delta<GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator>>
 {
+    /*
     template <typename NT>
     static void apply(GaussianBallWalk::Walk<Polytope, RandomNumberGenerator> walk,
                       NT delta)
+    {
+        walk.update_delta(delta);
+    }
+    */
+    template <typename LNT>
+    //static void apply(GaussianBallWalk::Walk<Polytope, RandomNumberGenerator> walk,
+    static void apply(GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator> walk,
+                      LNT delta)
     {
         walk.update_delta(delta);
     }
@@ -145,10 +164,20 @@ NT get_next_gaussian(Polytope const& P,
     std::list<Point> randPoints;
     typedef typename std::vector<NT>::iterator viterator;
 
+#ifdef VOLESTI_DEBUG
+    std::cout<<"Get next gaussian\n"<<std::endl;
+    std::cout << "Squared length: " << p.squared_length() << std::endl;
+#endif
+
     //sample N points
     PushBackWalkPolicy push_back_policy;
     RandomPointGenerator::apply(P, p, last_a, N, walk_length, randPoints,
                                 push_back_policy, rng);
+
+#ifdef VOLESTI_DEBUG
+    std::cout << "After calling apply" << std::endl;
+    std::cout << "Squared length: " << p.squared_length() << std::endl;
+#endif
 
     while (!done)
     {
@@ -227,6 +256,13 @@ void compute_annealing_schedule(Polytope const& P,
         NT next_a = get_next_gaussian<RandomPointGenerator>
                       (P, p, a_vals[it], N, ratio, C, walk_length, rng);
 
+#ifdef VOLESTI_DEBUG
+        std::cout << "a_" << it << ": " << a_vals[it] << std::endl;
+        std::cout << "next_a: " << next_a << std::endl;
+	std::cout << "Squared length: " << p.squared_length() << std::endl;
+	std::cout << "Updating delta" << std::endl;
+#endif
+
         NT curr_fn = 0;
         NT curr_its = 0;
         auto steps = totalSteps;
@@ -238,6 +274,9 @@ void compute_annealing_schedule(Polytope const& P,
                 ::apply(walk, 4.0 * chebychev_radius
                         / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
 
+	//update_delta<WalkType>
+        //        ::apply(walk, LNT(1.79769e+318));
+
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
         {
@@ -246,7 +285,14 @@ void compute_annealing_schedule(Polytope const& P,
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
         }
 
-        // Remove the last gaussian.
+#ifdef VOLESTI_DEBUG
+        std::cout << "curr_fn: " << curr_fn << std::endl;
+        std::cout << "curr_its: " << curr_its << std::endl;
+	std::cout << "curr_fn/curr_its: " << curr_fn/curr_its << std::endl;
+	std::cout << "Squared length: " << p.squared_length() << std::endl;
+#endif
+
+	// Remove the last gaussian.
         // Set the last a_i equal to zero
         if (next_a>0 && curr_fn/curr_its>(1.0+tol))
         {
@@ -327,6 +373,13 @@ double volume_cooling_gaussians(Polytope const& Pin,
 #ifdef VOLESTI_DEBUG
     std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "ratio: " << parameters.ratio << std::endl;
+    std::cout << "C: " << parameters.C << std::endl;
+    std::cout << "parameters.frac: " << parameters.frac << std::endl;
+    std::cout << "N: " << parameters.N << std::endl;
+    std::cout << "walk_length: " << walk_length << std::endl;
+    std::cout << "radius: " << radius << std::endl;
+    std::cout << "error: " << error << std::endl;
 #endif
 
     // Initialization for the schedule annealing
@@ -396,6 +449,9 @@ double volume_cooling_gaussians(Polytope const& Pin,
                 ::apply(walk, 4.0 * radius
                          / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
 
+	//update_delta<WalkType>
+        //        ::apply(walk, LNT(1.79769e+318));
+
         while (!done || (*itsIt)<min_steps)
         {
             walk.template apply(P, p, *avalsIt, walk_length, rng);
@@ -457,7 +513,9 @@ double volume_cooling_gaussians(Polytope const& Pin,
 
 template
 <
-    typename WalkTypePolicy = GaussianCDHRWalk,
+    typename WalkTypePolicy,
+    //typename WalkTypePolicy = GaussianCDHRWalk,
+    //typename WalkTypePolicy = GaussianHamiltonianMonteCarloExactWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
@@ -472,7 +530,9 @@ double volume_cooling_gaussians(Polytope &Pin,
 
 template
 <
-    typename WalkTypePolicy = GaussianCDHRWalk,
+    typename WalkTypePolicy,
+    //typename WalkTypePolicy = GaussianCDHRWalk,
+    //typename WalkTypePolicy = GaussianHamiltonianMonteCarloExactWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
