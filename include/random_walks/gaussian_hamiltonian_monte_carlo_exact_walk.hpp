@@ -10,9 +10,15 @@
 
 #include "sampling/sphere.hpp"
 
+#include <iostream>
 
+typedef long double LNT;
+typedef double NT;
 
 // Exact HMC for sampling from the spherical Gaussian distribution
+
+//LNT _Len;
+NT _Len;
 
 struct GaussianHamiltonianMonteCarloExactWalk
 {
@@ -86,19 +92,26 @@ struct Walk
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
+	//std::cout << "Inside apply of gaussian hamiltonian" << std::endl;
+	//std::cout << "_rho: " << _rho << std::endl;
         unsigned int n = P.dimension();
         NT T;
+        //LNT T;
 
         for (auto j=0u; j<walk_length; ++j)
         {
+	    //std::cout << "j: " << j << ", _p: " << _p.squared_length() << std::endl;
             T = rng.sample_urdist() * _Len;
+	    //std::cout << "_Len: " << _Len << ", T: " << T << std::endl;
             _v = GetDirection<Point>::apply(n, rng, false);
             Point p0 = _p;
             int it = 0;
             while (it < _rho)
             {
+	        //std::cout << "it: " << it << ", _p: " << _p.squared_length() << std::endl;
                 auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
                 if (T <= pbpair.first) {
+	            //std::cout << "T: " << T << ", pbpair.first: " << pbpair.first << std::endl;
                     update_position(_p, _v, T, _omega);
                     break;
                 }
@@ -181,9 +194,14 @@ struct Walk
     }
 
     inline void update_delta(NT L)
+    //inline void update_delta(LNT L)
     {
+	//std::cout << "Updating delta\n";
+        //std::cout << "L: " << L << std::endl;
         _Len = L;
+        //std::cout << "_Len: " << _Len << std::endl;
     }
+
 
 private :
 
@@ -261,7 +279,8 @@ private :
 
     int _facet_prev;
     unsigned int _rho;
-    NT _Len;
+    //NT _Len;
+    //LNT _Len;
     Point _p;
     Point _v;
     NT _omega;
