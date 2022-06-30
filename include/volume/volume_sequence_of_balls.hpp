@@ -81,7 +81,8 @@ double volume_sequence_of_balls(Polytope const& Pin,
     P.shift(c.getCoefficients());
     c = Point(n);
 
-    rnum = rnum/n_threads;
+    // Scale by number of threads and prevent edge case rnum=0 from producing overflow later
+    rnum = rnum >= n_threads ? rnum/n_threads : 1u;
     NT vol = NT(0);
 
     // Perform the procedure for a number of threads and then take the average
