@@ -93,8 +93,8 @@ class CorreSpectra {
         return eival > 0;
     }
 
-    bool isExterior(VT const & pos) {
-        return !lmi.isNegativeSemidefinite(pos);
+    bool isExterior(VT const & p) {
+        return !lmi.isNegativeSemidefinite(p);
     }
 
     bool isExterior(MT const & mat) {
@@ -128,6 +128,7 @@ class CorreSpectra {
     /// \param[in] r A point on the boundary of the spectrahedron
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
+    
     template <typename update_parameters>
     void compute_reflection(Point &v, Point const& r, update_parameters& ) const 
     {   
@@ -139,45 +140,95 @@ class CorreSpectra {
         v -= -2 * v.dot(grad) * Point(grad);
     }
 
-    // Compute positive line intersection (in [0, 1]) using Binary search
-    // x: starting point
-    // v: direction (ray)
-    std::pair<NT, int> line_positive_intersect(Point const& x, Point const &v) const {
-        NT t_min = NT(1);
-        int constraint = -1;
-        NT t;
-        for (unsigned int i = 0; i < m; i++) {
-            t = binary_search(x, v, gs[i]);
-            if (t < t_min) {
-                t_min = t;
-                constraint = i;
-            }
-        }
-
-        return std::make_pair(t_min, constraint);
-    }
-
-    std::pair<NT, int> intersection(spectrahedron &P, const Point &x, const Point &v, const unsigned int k){
-        NT tau = P.positiveLinearIntersection(x.getCoefficients(), v.getCoefficients());
-        if(tau > tmp){
-            tau = tmp;
-            j = -1;
-        }
-        std::pair<double, int> res(tau,j);
-        return res;
+    NT positiveLinearIntersection(VT const & p, VT const & v) 
+    {
+        createMatricesForPositiveLinearIntersection(p, v);
+        NT distance = EigenvaluesProblem.minPosLinearEigenvalue(precomputedValues.C, precomputedValues.B,
+                                                                precomputedValues.eigenvector);
+        return distance;
     }
 
     /// Computes the intersection of the line a + tv,
     /// assuming we start at t=0 and that b has zero everywhere and 1 in its i-th coordinate.
     /// Solve the generalized eigenvalue problem A+tB = lmi(a + tv)
     /// So A = lmi(a) and B=lmi(v) - A0
-    /// When 
     /// \param[in] a Input vector
     /// \param[in] coordinate Indicator of the i-th coordinate, 1 <= coordinate <= dimension
     /// \return The pair (positive t, negative t) for which we reach the boundary
-    pairNT coordinateIntersection(int const coordinate) {
-
-/// In this case, it is very special
-        return EigenvaluesProblem.symGeneralizedProblem(matrix, *.getMatrix(coordinate)));
+    pairNT coordinateIntersection(VT const & a, int const coordinate) {
+        // return EigenvaluesProblem.symGeneralizedProblem(matrix, *.getMatrix(coordinate)));
+        return EigenvaluesProblem.symGeneralizedProblem(precomputedValues.A, *(lmi.getMatrix(coordinate)));
     }
+
+    //First coordinate ray intersecting convex polytope
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          unsigned int const& rand_coord,
+                                          VT&)
+    {
+        return coordinateIntersection(r.getCoefficients(), rand_coord);
+    }
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v)
+    {
+        NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
+        return std::pair<NT, int> (pos_inter, -1);
+    }
+    /*
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT& ,
+                                               NT const&,
+                                               update_parameters&)
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT&,
+                                               NT const&,
+                                               MT const&,
+                                               update_parameters& )
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(PointType const& r,
+                                                     PointType const& v,
+                                                     VT&,
+                                                     VT&,
+                                                     update_parameters&)
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT&)
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    //Not the first coordinate ray intersecting convex
+    std::pair<NT,NT> line_intersect_coord(PointType &r,
+                                          PointType&,
+                                          unsigned int const& rand_coord,
+                                          unsigned int&,
+                                          VT&)
+    {
+        return coordinateIntersection(r.getCoefficients(), rand_coord);
+    }
+    */
+
 };
