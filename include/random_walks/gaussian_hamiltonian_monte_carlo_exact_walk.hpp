@@ -17,6 +17,7 @@ typedef double NT;
 
 // Exact HMC for sampling from the spherical Gaussian distribution
 
+
 //LNT _Len;
 NT _Len;
 
