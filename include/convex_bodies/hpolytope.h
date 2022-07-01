@@ -34,6 +34,7 @@ bool is_inner_point_nan_inf(VT const& p)
             return true;
         }
     }
+    return false;
 }
 
 //min and max values for the Hit and Run functions
