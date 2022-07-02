@@ -42,7 +42,7 @@ docker images | grep volesti
 docker run -it -v $PWD:/volesti -w /volesti --name=volesti-dev volesti:dev /bin/bash
 ```
 
-## R Interface [](r_interface_installation)
+## R Interface
 
 ### Install Rcpp package
 ---
