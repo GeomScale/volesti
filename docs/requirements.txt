@@ -1,2 +1,3 @@
 breathe
 sphinx_sitemap
+myst_parser

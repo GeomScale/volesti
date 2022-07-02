@@ -18,12 +18,12 @@
 /// ARPACK++ standard eigenvalues solver
 //#define ARPACK_EIGENVALUES_SOLVER
 
-#include <../../external/Spectra/include/Spectra/SymEigsSolver.h>
+#include <Spectra/include/Spectra/SymEigsSolver.h>
 #include "DenseProductMatrix.h"
 #include "EigenDenseMatrix.h"
 
-#include "../../external/Spectra/include/Spectra/SymGEigsSolver.h"
-#include "../../external/Spectra/include/Spectra/GenEigsSolver.h"
+#include "Spectra/include/Spectra/SymGEigsSolver.h"
+#include "Spectra/include/Spectra/GenEigsSolver.h"
 
 /// Solve eigenvalues problems
 /// \tparam NT Numeric Type
@@ -159,7 +159,7 @@ public:
         return {lambdaMinPositive, lambdaMaxNegative};
     }
 
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) 
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec)
     {
         int matrixDim = A.rows();
         double lambdaMinPositive;
@@ -168,7 +168,7 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
             geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
 
         // Initialize and compute
@@ -326,7 +326,7 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
             geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
 
         // Initialize and compute

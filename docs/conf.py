@@ -21,7 +21,7 @@ read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 
 # Doxygen
 subprocess.call('doxygen Doxyfile.in', shell=True)
-#subprocess.call('breathe-apidoc -o api/ _build/xml', shell=True)
+subprocess.call('breathe-apidoc -o api/ _build/xml', shell=True)
 
 # -- Project information -----------------------------------------------------
 
@@ -45,7 +45,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.inheritance_diagram',
-    'breathe'
+    'breathe',
+    'myst_parser'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -70,7 +71,6 @@ html_theme_options = {
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': False,
-    
     'logo_only': False,
 
     # Toc options
