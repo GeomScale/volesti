@@ -1,10 +1,10 @@
-# Essential volesti tutorial
+# Essential volesti tutorial in R
 
 > This is a merge of a series of volesti tutorials presented in university courses and seminars in 2016-2018.
 
 `volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
 
-We can download the `R` package from https://CRAN.R-project.org/package=volesti
+We can download the `R` package from the [CRAN webpage](https://CRAN.R-project.org/package=volesti).
 
 ```r
 # first load the volesti library
@@ -19,6 +19,16 @@ help("volume")
 help("sample_points")
 ```
 
+Let’s try our first volesti command to estimate the volume of a 3-dimensional cube $\{-1\leq x_i \leq 1,x_i \in \mathbb R\ |\ i=1,2,3\}$
+
+```r
+P <- GenCube(3,'H')
+print(volume(P))
+```
+
+What is the exact volume of P? Did we obtain a good estimation?
+
+
 ## Sampling
 
 
@@ -26,24 +36,36 @@ Sampling in the square.
 
 ```r
 library(ggplot2)
-P = GenCube(2, 'H')
-points1 = sample_points(P, WalkType = "RDHR", walk_step = 1, N=1000)
-g<-ggplot(data.frame( x=points1[1,], y=points1[2,] )) + geom_point( aes(x=x, y=y))
+
+x1<-runif(1000, min = -1, max = 1)
+x2<-runif(1000, min = -1, max = 1)
+
+g<-ggplot(data.frame( x=x1, y=x2 )) + geom_point( aes(x=x, y=y))
+
 g<-g+annotate("path",
    x=cos(seq(0,2*pi,length.out=100)),
    y=sin(seq(0,2*pi,length.out=100)),color="red")+coord_fixed()
+
 plot(g)
 ```
 
-Naive Monte Carlo fails in (not so) high dimensions.
+![](figs/naiveMC.png)
+
+Can we estimate the volume of the red ball via sampling? Solution: rejection sampling. The following computation illustrates that this will fail in (not so) high dimensions.
 
 ```r
+# run in around 1 min
 for (d in 2:20) {
-  P = GenCube(d, 'H')
-
   num_of_points <- 100000
   count_inside <- 0
-  tim1 = system.time({ points1 = sample_points(P, WalkType = "RDHR", walk_step = 1, N=num_of_points) })
+
+  points1 <- matrix(nrow=d, ncol=num_of_points)
+  for (i in 1:d) {
+    x <- runif(num_of_points, min = -1, max = 1)
+    for (j in 1:num_of_points) {
+      points1[i,j] <- x[j]
+    }
+  }
 
   for (i in 1:num_of_points) {
     if (norm(points1[,i], type="2") < 1) {
@@ -53,41 +75,73 @@ for (d in 2:20) {
   vol_estimation <- count_inside*2^d/num_of_points
   vol_exact <- pi^(d/2)/gamma(d/2+1)
 
-  cat(d, vol_estimation, vol_exact, abs(vol_estimation- vol_exact)/ vol_exact, "\n")
+  cat(d, vol_estimation, vol_exact, abs(vol_estimation- vol_exact)/
+vol_exact, "\n")
 }
+```
+
+```
+## 2 3.14336 3.141593 0.0005625638
+## 3 4.20192 4.18879 0.003134508
+## 4 4.91808 4.934802 0.003388626
+## 5 5.28128 5.263789 0.003322889
+## 6 5.13216 5.167713 0.00687979
+## 7 4.82304 4.724766 0.02079977
+## 8 4.0192 4.058712 0.009735139
+## 9 3.46624 3.298509 0.05085058
+## 10 2.28352 2.550164 0.1045596
+## 11 1.86368 1.884104 0.0108401
+## 12 1.55648 1.335263 0.1656732
+## 13 0.57344 0.9106288 0.3702813
+## 14 0.32768 0.5992645 0.4531964
+## 15 0.65536 0.3814433 0.718106
+## 16 0 0.2353306 1
+## 17 0 0.1409811 1
+## 18 0 0.08214589 1
+## 19 0 0.0466216 1
+## 20 0 0.02580689 1
 ```
 
 ## Sampling via random walks
 
 
-`volesti` supports 3 types of random walks
+`volesti` supports the following three types of random walks
 
-1. Ball walk
+1. Ball walk (BW)
+2. Random directions hit-and-run (RDHR)
+3. Coordinate directions hit-and-run (CDHR)
 
-![](figs/ball5.png)
+| BW | RDHR | CDHR |
+|:------:|:-------:|:------:|
+|![](figs/ball5.png) | ![](figs/hnr3.png) | ![](figs/cdhr4.png) |
 
-2. Random directions hit-and-run
-
-![](figs/hnr3.png)
-
-3. Coordinate directions hit-and-run
-
-![](figs/cdhr3.png)
 
 There are two important parameters `cost per step` and `mixing time` that affects the accuracy and performance of the walks. Below we illustrate this by choosing different walk steps for each walk while sampling on the 100-dimensional cube.
 
 
 ```r
+#run in few secs
 library(ggplot2)
 library(volesti)
 for (step in c(1,20,100,150)){
   for (walk in c("CDHR", "RDHR", "BW")){
     P <- GenCube(100, 'H')
     points1 <- sample_points(P, WalkType = walk, walk_step = step, N=1000)
-    g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) + geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1), ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step, walk)))
+    g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
+geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
+ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step, walk)))
   }
 }
 ```
+
+| CDHR | RDHR | BW |
+|:------:|:-------:|:------:|
+![](figs/c1.png) | ![](figs/r1.png) | ![](figs/b1.png) |
+![](figs/c2.png) | ![](figs/r2.png) | ![](figs/b2.png) |
+![](figs/c3.png) | ![](figs/r3.png) | ![](figs/b3.png) |
+![](figs/c4.png) | ![](figs/r4.png) | ![](figs/b4.png) |
+
+
 
 ## Volume estimation
 
@@ -286,3 +340,46 @@ b = c(0,0,0,0,0,0,0,0,0,1,1,1,1,1)
 P = Hpolytope$new(A, b)
 volume(P,error=0.2)*factorial(5)
 ```
+
+
+## Financial modelling
+
+For a specific set of assets in a stock market, portfolios are characterized by their return and their risk which is the variance of the portfolios’ returns (volatility). Copulas are approximations of the bivariate joint distribution of return and volatility.
+
+```r
+#install.packages('plotly')
+library('plotly')
+```
+
+```r
+MatReturns <- read.table("https://stanford.edu/class/ee103/data/returns.txt", sep=",")
+MatReturns = MatReturns[-c(1,2),]
+dates = as.character(MatReturns$V1)
+MatReturns = as.matrix(MatReturns[,-c(1,54)])
+MatReturns = matrix(as.numeric(MatReturns [,]),nrow = dim(MatReturns )[1], ncol = dim(MatReturns )[2], byrow = FALSE)
+
+#starting_date = "2008-12-18" ##crisis period
+#stopping_date = "2009-03-13"
+
+starting_date = "2007-03-07" ##normal period
+stopping_date = "2007-05-31"
+
+row1 = which(dates %in% starting_date)
+row2 = which(dates %in% stopping_date)
+
+nassets = dim(MatReturns)[2]
+W=row1:row2
+
+compRet = rep(1,nassets)
+for (j in 1:nassets) {
+  for (k in W) {
+    compRet[j] = compRet[j] * (1 + MatReturns[k, j])
+  }
+  compRet[j] = compRet[j] - 1
+}
+
+mass = copula2(h = compRet, E = cov(MatReturns[row1:row2,]), numSlices = 100, N=1000000)
+
+plot_ly(z = ~mass) %>% add_surface(showscale=FALSE)
+```
+
