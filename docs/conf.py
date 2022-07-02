@@ -17,6 +17,8 @@
 from sphinx.builders.html import StandaloneHTMLBuilder
 import subprocess, os
 
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
 # Doxygen
 subprocess.call('doxygen Doxyfile.in', shell=True)
 
