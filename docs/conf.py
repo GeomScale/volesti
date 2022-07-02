@@ -21,6 +21,7 @@ read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 
 # Doxygen
 subprocess.call('doxygen Doxyfile.in', shell=True)
+#subprocess.call('breathe-apidoc -o api/ _build/xml', shell=True)
 
 # -- Project information -----------------------------------------------------
 
@@ -79,8 +80,8 @@ html_theme_options = {
     'includehidden': True,
     'titles_only': False
 }
-# html_logo = ''
-# github_url = ''
+html_logo = 'https://github.com/GeomScale/volesti/raw/develop/doc/logo/volesti_logo.jpg'
+github_url = 'https://github.com/GeomScale/volesti'
 # html_baseurl = ''
 
 # Add any paths that contain custom static files (such as style sheets) here,
