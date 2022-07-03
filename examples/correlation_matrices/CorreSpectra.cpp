@@ -124,12 +124,12 @@ class CorreSpectra {
         v -= -2 * v.dot(grad) * Point(grad); // reflected direction = v - 2 <v,s>*s
     }
 
-    /// Construct the generalized eigenvalue problem \[Bt + A \] for positive_intersect.
+    /// Construct the generalized eigenvalue problem \[Bt - A \] for positive_intersect.
     /// \param[in] p Input vector
     /// \param[in] v Input vector
     /// \param[in, out] precomputedValues Holds matrices B = I - A(v), A = A(p)
     void createMatricesForPositiveLinearIntersection(const VT& p, const VT& v) {
-        if (!precomputedValues.computed) {
+        if (!precomputedValues.computed_B) {
             VT pvector = p.getCoefficients(), vvector = v.getCoefficients();
             precomputedValues.A = MT::Identity(n,n);
             precomputedValues.B = MT::Zero(n,n);
@@ -144,7 +144,7 @@ class CorreSpectra {
                     ++ind;
                 }
             }
-            precomputedValues.computed = true;
+            precomputedValues.computed_B = true;
         }
     }
 
