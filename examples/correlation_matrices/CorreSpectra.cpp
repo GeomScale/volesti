@@ -1,5 +1,6 @@
 #include "chrono"
 #include "matrix_operations/EigenvaluesProblems.h"
+#include "matrix_operations/EigenvaluesCorrelation.h"
 
 template <typename NT, typename MT, typename VT>
 struct PrecomputationOfValues {
@@ -34,12 +35,12 @@ struct PrecomputationOfValues {
 
 /// This class handles the spectrahedra of correlation matrices
 /// @tparam Point
-template<typename Point>
+template<typename PointType>
 class CorreSpectra {
     public:
 
     /// The numeric/matrix/vector types
-    typedef typename Point::FT                                NT;
+    typedef typename PointType::FT                                NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
    
@@ -58,7 +59,7 @@ class CorreSpectra {
 
     _PrecomputationOfValues precomputedValues;
 
-    EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
+    EigenvaluesCorrelation<NT, MT, VT> EigenvaluesProblem;
 
     CorreSpectra(unsigned int n){
         this->n = n;
@@ -93,35 +94,23 @@ class CorreSpectra {
     }
 
     /// \param i An indicator to a matrix
-    /// \return Pointer to A_i
-    MT* getLMI(const int i) const {
-        return &lmi.at(i);
+    /// \return A_i
+    MT getLMI(const int i) const {
+        return lmi.at(i);
     }
 
     /// Build a correlation matrix from a vector of entries
     void buildMatrix(const VT &pvector, const unsigned int n, MT & mat){
         NT coeff;
         int i, j, ind = 0;
-        for(int i = 0; i < n ; ++i){
-            for(int j = i+1; j < n; ++j){
+        for(i = 0; i < n ; ++i){
+            for(j = i+1; j < n; ++j){
                 // int ind = ((((n<<1)-i-2)*(i+1)) >> 1)  + j - n;
-                coeff = xvector[ind];
+                coeff = pvector[ind];
                 mat(i,j) = mat(j,i) = coeff;
                 ++ind;
             }
         }
-    }
-
-    std::pair<int,int> getMatrixIndices(int n, int ind){
-        int i = 2*n-1-sqrt((2*n-1)*(2*n-1) - 8*ind)/2;
-        int j = ind - (2*n-1-i)*i/2;
-        return new pair(i,j);
-    }
-
-    bool isExterior(MT const & mat) {
-        EigenvaluesProblems<NT, MT, VT> eigs;
-        NT eival = eigs.findSymEigenvalue(matrix);
-        return eival > 0;
     }
 
     /// Computes the reflected direction at a point on the boundary of the spectrahedron.
@@ -129,12 +118,10 @@ class CorreSpectra {
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
-    void compute_reflection(Point &v, Point const& r, update_parameters& ) const {   
+    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {   
         VT grad(d);
         unit_normal(r.getCoefficients(), precomputedValues.eigenvector, grad);
-
-        // reflected direction = v - 2 <v,s>*s
-        v -= -2 * v.dot(grad) * Point(grad);
+        v -= -2 * v.dot(grad) * Point(grad); // reflected direction = v - 2 <v,s>*s
     }
 
     /// Construct the generalized eigenvalue problem \[Bt + A \] for positive_intersect.
@@ -180,10 +167,9 @@ class CorreSpectra {
     }
 
     //First coordinate ray intersecting convex polytope
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(PointType &r,
                                           unsigned int const& rand_coord,
-                                          VT&)
-    {
+                                          VT&) {
         return coordinateIntersection(r.getCoefficients(), rand_coord);
     }
 
@@ -200,13 +186,15 @@ class CorreSpectra {
     /// \param[in] p Input parameter
     /// \param[in] Input vector: the eigenvector A(p)*e = 0
     /// \param[out] ret The unit normal vector at p
-    void unit_normal(VT p, VT const& e, VT &ret) const
-    {   
+    void unit_normal(VT p, VT const& e, VT &ret) const {
+        int i, j, ind = 0;
         NT sum_sqqrt_sq = NT(0);
-        for (int ind = 0; ind < d; ++ind) {
-            std::pair<int,int> indices = getMatrixIndices(n, ind);
-            ret(i) = e[indices.first]*e[indices.second];
-            sum_sqqrt_sq += ret(ind)*ret(ind);
+        for(i = 0; i < n ; ++i){
+            for(j = i+1; j < n; ++j){
+                ret(ind) = e[i]*e[j];
+                sum_sqqrt_sq += ret(ind)*ret(ind);
+                ++ind;
+            }
         }
         ret /= std::sqrt(sum_sqqrt_sq); //normalize
     }
@@ -214,7 +202,7 @@ class CorreSpectra {
     /// Test if a point p is in the spectrahedron
     /// \param p is the current point
     /// \return true if position is outside the spectrahedron
-    int is_in(Point const& p, NT tol=NT(0)) {  
+    int is_in(PointType const& p, NT tol=NT(0)) {  
         return !isExterior(p.getCoefficients());
     }
 
@@ -225,8 +213,18 @@ class CorreSpectra {
         return isExterior(precomputedValues.A);
     }
 
+    bool isExterior(MT const & mat) {
+        EigenvaluesCorrelation<NT,MT,VT> eigs;
+        return eigs.smallestEigenvalue(mat) < 0;
+    }
 
     /*
+    std::pair<int,int> getMatrixIndices(int n, int ind){
+        int i = 2*n-1-sqrt((2*n-1)*(2*n-1) - 8*ind)/2;
+        int j = ind - (2*n-1-i)*i/2;
+        return new pair(i,j);
+    }
+
     template <typename update_parameters>
     std::pair<NT, int> line_positive_intersect(PointType const& r,
                                                PointType const& v,
