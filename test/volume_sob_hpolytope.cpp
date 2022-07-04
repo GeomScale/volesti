@@ -268,6 +268,18 @@ void call_test_skinny_cube() {
     //test_volume(P, 104857600, 104857600.0);
 }
 
+template <typename NT>
+void call_test_cube_overflow() {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    Hpolytope P;
+
+    std::cout << "--- Testing volume of H-cube1" << std::endl;
+    P = generate_cube<Hpolytope>(1, false);
+    test_volume(P, 2, 2, 2, 2, 2);
+}
+
 
 TEST_CASE("cube") {
     call_test_cube<double>();
@@ -292,4 +304,8 @@ TEST_CASE("simplex") {
 
 TEST_CASE("skinny_cube") {
     call_test_skinny_cube<double>();
+}
+
+TEST_CASE("cube_overflow") {
+    call_test_cube_overflow<double>();
 }

@@ -243,6 +243,8 @@ else ()
   add_test(NAME volume_sob_hpolytope_prod_simplex COMMAND volume_sob_hpolytope -tc=prod_simplex)
   add_test(NAME volume_sob_hpolytope_simplex COMMAND volume_sob_hpolytope -tc=simplex)
   add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=skinny_cube)
+  add_test(NAME volume_sob_hpolytope_cube_overflow COMMAND volume_sob_hpolytope -tc=cube_overflow)
+  set_property(TEST volume_sob_hpolytope_cube_overflow PROPERTY TIMEOUT 1)
 
   add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)

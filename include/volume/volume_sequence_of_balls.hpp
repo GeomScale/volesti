@@ -82,7 +82,7 @@ double volume_sequence_of_balls(Polytope const& Pin,
     c = Point(n);
 
     // Scale by number of threads and prevent edge case rnum=0 from producing overflow later
-    rnum = rnum >= n_threads ? rnum/n_threads : 1u;
+    rnum = rnum >= 2*n_threads ? rnum/n_threads : 2u;
     NT vol = NT(0);
 
     // Perform the procedure for a number of threads and then take the average
