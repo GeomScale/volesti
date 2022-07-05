@@ -24,3 +24,91 @@ Intersection methods: specialize for correlation matrices
 - Avoid constructing matrices
 
 - Higher degree eigenvalues problem: linearization -> matrix with structures
+
+
+template <
+        typename PointList,
+        typename Polytope,
+        typename RandomNumberGenerator,
+        typename WalkTypePolicy,
+        typename NT,
+        typename Point
+        >
+void gaussian_sampling(PointList &randPoints,
+                       Polytope &P,
+                       RandomNumberGenerator &rng,
+                       WalkTypePolicy &WalkType,
+                       const unsigned int &walk_len,
+                       const unsigned int &rnum,
+                       const NT &a,
+                       const Point &starting_point,
+                       unsigned int const& nburns)
+{
+
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Polytope,
+                    RandomNumberGenerator
+            > walk;
+
+    //RandomNumberGenerator rng(P.dimension());
+    PushBackWalkPolicy push_back_policy;
+
+    Point p = starting_point;
+
+    typedef GaussianRandomPointGenerator <walk> RandomPointGenerator;
+    if (nburns > 0) {
+        RandomPointGenerator::apply(P, p, a, nburns, walk_len, randPoints,
+                                    push_back_policy, rng, WalkType.param);
+        randPoints.clear();
+    }
+    RandomPointGenerator::apply(P, p, a, rnum, walk_len, randPoints,
+                                push_back_policy, rng, WalkType.param);
+}
+
+// Auxiliary geometric functions
+Point getDirection(unsigned int const& dim, RNGType &rng, bool normalize=true){
+    double normal = 0.;
+    Point p(dim);
+    double* data = p.pointerToData();
+
+    for (unsigned int i=0; i<dim; ++i){
+        *data = rng.sample_ndist();
+        normal += *data * *data;
+        data++;
+    }
+
+    normal = 1./std::sqrt(normal);
+    if (normalize) p *= normal;
+    return p;
+}
+Point BilliardWalkSpectra(spectrahedron &P, Point& q, unsigned int const& walk_length, unsigned int nreflex, RNGType &rng, double const _Len){
+    unsigned int k = P.dimension();
+    double L, tau;
+    Point p = q, v;
+    std::pair<double, int> pbpair;
+    for (unsigned int j=0; j<walk_length; ++j){
+        L = rng.sample_urdist() * _Len;
+        v = getDirection(k, rng);
+        Point p0 = p;
+        int it = 0;
+        while (it < nreflex)
+        {
+            pbpair = intersection(P, p, v, k);
+            tau = pbpair.first;
+            if (L <= tau) {
+                p += (L * v);
+                break;
+            }
+            tau = 0.995 * tau; // 0.995: to approximate boundary points?
+            p += tau * v; // A point (almost) on the boundary
+            L -= tau;
+            reflection(P, p, v, pbpair.second);
+            it++;
+        }
+        if (it == nreflex){
+            p = p0;
+        }
+    }
+    return p;
+}

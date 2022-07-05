@@ -40,9 +40,9 @@ class CorreSpectra {
     public:
 
     /// The numeric/matrix/vector types
-    typedef typename PointType::FT                                NT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+    typedef typename PointType::FT                              NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
    
     /// The size of the matrix
     int n;
@@ -53,7 +53,7 @@ class CorreSpectra {
     /// The linear matrix inequality that describes the spectrahedron
     std::vector<MT> lmi;
 
-    std::pair<Point, NT> _inner_ball;
+    std::pair<PointType, NT> inner_ball;
 
     typedef PrecomputationOfValues<NT, MT, VT> _PrecomputationOfValues;
 
@@ -74,8 +74,8 @@ class CorreSpectra {
                 list_Mat.push_back(A);
             }
         }
-        _inner_ball.first = Point(d);
-        _inner_ball.second = 1/std::sqrt(d);
+        inner_ball.first = Point(d);
+        inner_ball.second = 1/std::sqrt(d);
     }
 
     /// \returns The dimension of vector x
@@ -91,6 +91,10 @@ class CorreSpectra {
     /// \return The matrices A0, A1, ..., Ad
     std::vector<MT> getLMI() const {
         return lmi;
+    }
+
+    std::pair<PointType, NT> getInnerBall() const {
+        return inner_ball;
     }
 
     /// \param i An indicator to a matrix

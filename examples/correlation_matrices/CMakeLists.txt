@@ -109,7 +109,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  add_executable (sampler sampler.cpp)
-  TARGET_LINK_LIBRARIES(sampler ${LP_SOLVE})
+  add_executable (test test.cpp)
+  TARGET_LINK_LIBRARIES(test ${LP_SOLVE})
 
 endif()

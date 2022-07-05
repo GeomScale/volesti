@@ -25,6 +25,15 @@ public:
         typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> CVT;
     #endif
 
+    // Using LDLT decomposition: more numerically stable for singular matrices
+    bool isPositiveSemidefinite(MT const &A) {
+        Eigen::LDLT<MT> A_ldlt(A);
+        if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
+            return true;
+        return false;
+    }
+
+
     /// Find the smallest eigenvalue of mat
     /// \param mat a symmetric matrix
     /// \return the smallest eigenvalue of mat

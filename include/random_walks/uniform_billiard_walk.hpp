@@ -59,6 +59,17 @@ static NT compute(Spectrahedron<Point> &P)
 }
 };
 
+template <typename Point>
+struct compute_diameter<CorreSpectra<Point>>
+{
+template <typename NT>
+static NT compute(CorreSpectra<Point> &P)
+{
+    std::pair<Point, NT> inner_ball = P.getInnerBall();
+    return NT(6) * NT(P.dimension()) * inner_ball.second;
+}
+};
+
 #ifndef DISABLE_LPSOLVE
 template <typename Point>
 struct compute_diameter<VPolytope<Point>>
