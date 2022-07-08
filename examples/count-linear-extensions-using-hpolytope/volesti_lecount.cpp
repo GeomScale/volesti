@@ -19,9 +19,7 @@
 #include <sstream>
 #include "misc.h"
 #include <math.h>
-using namespace std;
 
-//#define VOLESTI_DEBUG
 
 enum VOL_OPTIONS {
     SOB,
@@ -61,7 +59,7 @@ struct ArgOptions {
                 return volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(P, e, walk_len);
             case CB:
                 return volume_cooling_balls<CDHRWalk, RNGType>(P, e, 2*walk_len).second;;
-            case HG:
+	    case HG:
                 return volume_cooling_gaussians<GaussianHamiltonianMonteCarloExactWalk, RNGType>(P, e, walk_len);
         }
 
@@ -76,13 +74,11 @@ struct ArgOptions {
             case SVD:
                 return svd_rounding<CDHRWalk, MT, VT>(P, InnerBall, walk_len, rng);
             case MIN_ELLIPSOID:
-                //return min_sampling_covering_ellipsoid_rounding<GaussianHamiltonianMonteCarloExactWalk, MT, VT>(P, InnerBall, walk_len, rng);
                 return min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, walk_len, rng);
         }
     }
 };
 
-//NT calculateLinearExtension(ArgOptions& args) {
 LNT calculateLinearExtension(ArgOptions& args) {
     // Setup parameters for calculating volume and rounding
     unsigned int d = (args.HP)->dimension();
@@ -96,30 +92,13 @@ LNT calculateLinearExtension(ArgOptions& args) {
         RNGType rng(d);
         std::pair<Point, NT> InnerBall = (args.HP)->ComputeInnerBall();
         std::tuple<MT, VT, NT> res = args.rounding_method(*(args.HP), InnerBall, 10 + 10*d, rng);
-        //std::tuple<MT, VT, NT> res = args.rounding_method(*(args.HP), InnerBall, 1, rng);
-        //std::tuple<MT, VT, NT> res = args.rounding_method(*(args.HP), InnerBall, .1, rng);
         round_multiply = std::get<2>(res);
     }
-#ifdef VOLESTI_DEBUG
-    cout << "round_multiply: " << round_multiply << endl;
-    //cout << "log2(round_multiply): " << log2(round_multiply) << endl;
-#endif
-    //NT volume = round_multiply * args.volume_method(*(args.HP), e, walk_len);
     LNT volume = round_multiply * args.volume_method(*(args.HP), e, walk_len);
-    //NT volume = log2(round_multiply) + log2(args.volume_method(*(args.HP), e, walk_len));
-#ifdef VOLESTI_DEBUG
-    cout << "volume: " << volume << endl;
-    //cout << "log2(volume): " << volume << endl;
-#endif
 
     // multiplying by d factorial, d = number of elements
     for(NT i=(NT)d; i>1; i-=1) {
         volume = volume * i;
-        volume = volume + log2(i);
-#ifdef VOLESTI_DEBUG
-        cout << "volume: " << volume << endl;
-        //cout << "log2(volume): " << volume << endl;
-#endif
     }
     return volume;
 }
