@@ -5,6 +5,7 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
 [![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)
 ![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
+[![Documentation Status](https://readthedocs.org/projects/volesti/badge/?version=latest)](https://volesti.readthedocs.io/en/latest/?badge=latest)
 [![Chat](https://badges.gitter.im/boostorg/geometry.png)](https://gitter.im/GeomScale/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 ### 🧪 Test results
@@ -33,10 +34,10 @@
 * [Contributors and Package History](doc/credits.md)
 * [List of Publications](doc/publications.md)
 
-### © Copyright and Licensing 
+### © Copyright and Licensing
 
-Copyright (c) 2012-2022 Vissarion Fisikopoulos  
-Copyright (c) 2018-2022 Apostolos Chalkis  
-Copyright (c) 2020-2022 Elias Tsigaridas  
+Copyright (c) 2012-2022 Vissarion Fisikopoulos\
+Copyright (c) 2018-2022 Apostolos Chalkis\
+Copyright (c) 2020-2022 Elias Tsigaridas
 
-You may redistribute or modify the software under the [GNU Lesser General Public License](/LICENSE) as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
+You may redistribute or modify the software under the [GNU Lesser General Public License](/LICENSE) as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
