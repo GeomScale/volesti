@@ -81,7 +81,7 @@ html_theme_options = {
     'includehidden': True,
     'titles_only': False
 }
-html_logo = 'https://github.com/GeomScale/volesti/raw/develop/doc/logo/volesti_logo.jpg'
+html_logo = 'https://github.com/GeomScale/volesti/raw/develop/docs/logo/volesti_logo.jpg'
 github_url = 'https://github.com/GeomScale/volesti'
 # html_baseurl = ''
 

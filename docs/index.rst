@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to VolEsti's documentation! [**DRAFT version**]
-=======================================================
+Welcome to VolEsti's documentation!
+===================================
 
 .. toctree::
    :caption: Getting Started
