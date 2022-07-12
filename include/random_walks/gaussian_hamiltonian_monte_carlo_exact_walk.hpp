@@ -11,7 +11,6 @@
 #include "sampling/sphere.hpp"
 
 
-
 // Exact HMC for sampling from the spherical Gaussian distribution
 
 struct GaussianHamiltonianMonteCarloExactWalk
@@ -42,6 +41,12 @@ struct GaussianHamiltonianMonteCarloExactWalk
 
     parameters param;
 
+template <typename GenericPolytope>
+struct compute_diameter
+{
+    template <typename NT>
+    static NT compute(GenericPolytope) {return NT(0);}
+};
 
 template
 <
@@ -57,8 +62,8 @@ struct Walk
     template <typename GenericPolytope>
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
     {
-        //_Len = compute_diameter<GenericPolytope>
-        //        ::template compute<NT>(P);
+        _Len = compute_diameter<GenericPolytope>
+                ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
         _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
         initialize(P, p, a_i, rng);
@@ -68,9 +73,9 @@ struct Walk
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng,
          parameters const& params)
     {
-        //_Len = params.set_L ? params.m_L
-        //                  : compute_diameter<GenericPolytope>
-        //                    ::template compute<NT>(P);
+        _Len = params.set_L ? params.m_L
+                          : compute_diameter<GenericPolytope>
+                            ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
         _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
         initialize(P, p, a_i, rng);
