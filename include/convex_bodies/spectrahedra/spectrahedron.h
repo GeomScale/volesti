@@ -106,7 +106,6 @@ public:
     }
 
     std::pair<PointType, NT> ComputeInnerBall() {
-
         NT radius = maxDouble;
 
         for (unsigned int i = 0; i < dimension(); ++i) {
@@ -250,6 +249,14 @@ public:
         return std::pair<NT, int> (pos_inter, -1);
     }
 
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT& ,
+                                               NT const&) {
+        return line_positive_intersect(r, v);
+    }
+
     template <typename update_parameters>
     std::pair<NT, int> line_positive_intersect(PointType const& r,
                                                PointType const& v,
@@ -380,7 +387,7 @@ public:
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
     void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const 
-    {
+    {   
         VT grad(d);
         lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
 

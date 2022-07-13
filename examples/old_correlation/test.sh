@@ -6,5 +6,3 @@ cmake . -DLP_SOLVE=$LPSOLVE
 make
 
 ./sampler
-
-# cat uniform_sampling.txt

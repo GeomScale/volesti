@@ -160,10 +160,10 @@ public:
     }
 
     NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) 
-    {
+    {   
         int matrixDim = A.rows();
         double lambdaMinPositive;
-
+        
         Spectra::DenseSymMatProd<NT> op(B);
         Spectra::DenseCholesky<NT> Bop(-A);
 

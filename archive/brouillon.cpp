@@ -479,3 +479,33 @@ void exponential_sampling(PointList &randPoints,
     RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
                                 push_back_policy, rng, WalkType.param);
 }
+
+/*
+    std::pair<int,int> getMatrixIndices(int n, int ind){
+        int i = 2*n-1-sqrt((2*n-1)*(2*n-1) - 8*ind)/2;
+        int j = ind - (2*n-1-i)*i/2;
+        return new pair(i,j);
+    }*/
+
+
+// EigenvaluesProblems<NT,MT,VT> eigs;
+    // n=20;
+    // VT eigvec(n);
+    // MT A = rand_matrix<MT>(n);
+    // MT B = rand_matrix<MT>(n);
+    
+    
+    // start = std::chrono::steady_clock::now();
+    // NT e = eigs.minPosLinearEigenvalue(A, B, eigvec);
+    // end = std::chrono::steady_clock::now();
+    // time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    // std::cout << time << std::endl;
+
+    // std::cout << eigvec << std::endl;
+    // std::cout << e << std::endl;
+
+    // start = std::chrono::steady_clock::now();
+    // e = eigs.minPosLinearEigenvalue(A, B, eigvec);
+    // end = std::chrono::steady_clock::now();
+    // time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    // std::cout << time << std::endl;

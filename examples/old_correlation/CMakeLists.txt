@@ -104,12 +104,10 @@ else ()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
-  add_definitions(${CMAKE_CXX_FLAGS} "-pg")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
-  #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-pg")
 
   add_executable (sampler sampler.cpp)
   TARGET_LINK_LIBRARIES(sampler ${LP_SOLVE})

@@ -16,6 +16,7 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
+#include "convex_bodies/correlation_matrices/corre_spectra.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
@@ -323,7 +324,6 @@ private :
         NT T = rng.sample_urdist() * _Len;
         Point p0 = _p;
         int it = 0;
-
         std::pair<NT, int> pbpair
                 = P.line_positive_intersect(_p, _v, _lambdas, _Av);
         if (T <= pbpair.first) {
@@ -335,7 +335,6 @@ private :
         _p += (_lambda_prev * _v);
         T -= _lambda_prev;
         P.compute_reflection(_v, _p, pbpair.second);
-
         while (it <= 50*n)
         {
             std::pair<NT, int> pbpair
