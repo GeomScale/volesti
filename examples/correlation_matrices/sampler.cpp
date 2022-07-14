@@ -105,7 +105,7 @@ int main(int argc, char const *argv[]) {
     
     // BilliardWalk, AcceleratedBilliardWalk, GaussianAcceleratedBilliardWalk
     // GaussianHamiltonianMonteCarloExactWalk
-    unsigned int n, num_points = 1000, walkL = 10, nreflex = 10;
+    unsigned int n, num_points = 1, walkL = 10, nreflex = 10;
     std::cout << "n = ";
     std::cin >> n;
     // MT M = call_test<NT, BilliardWalk, RNGType>(n, num_points, walkL, nreflex);

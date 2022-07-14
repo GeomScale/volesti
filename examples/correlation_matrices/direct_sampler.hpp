@@ -1,4 +1,5 @@
 // Direct implementation: call to sampling algorithms for spectrahedra in volesti
+#include "sampling/sphere.hpp"
 #include "sampling/sampling.hpp"
 #include "auxiliaries.h"
 
@@ -30,25 +31,6 @@ Spectrahedron<Point> prepare_input(int n){
     Spectrahedron<Point> spectra(lmi);
     spectra.set_interior_point(p);
     return spectra;
-}
-
-template <typename NT, typename RNGType, typename Point, typename PointList>
-void direct_sampling2(unsigned int n, unsigned int num_points, unsigned int walk_len, PointList &randPoints){
-
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>             MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1>                          VT; 
-
-    Spectrahedron<Point> spectra = prepare_input<NT, Point>(n);
-    int d = spectra.dimension();
-    Point p(d);
-    RNGType rng(d);
-    std::pair<Point, NT> inner_ball = spectra.ComputeInnerBall();
-    NT diameter = 6 * d * inner_ball.second;
-    
-    for (unsigned int i = 0; i < num_points; ++i){
-        p = BilliardWalkSpectra(spectra, p, walk_len, rng, diameter);
-        randPoints.push_back(p);
-    }
 }
 
 template <typename NT, typename WalkType, typename RNGType, typename Point, typename PointList>
@@ -116,30 +98,29 @@ void naive_test(int n, int num_points, int walkL, int nreflex){
     typedef typename WalkType::template Walk<Spectrahedron<Point>, RNGType>   RandomWalk;
     typedef RandomPointGenerator<RandomWalk>                            Generator;
 
+    std::chrono::steady_clock::time_point start, end;
+    double time;
+
     PointList randPoints;
-    
     std::cout << "Direct implementation : " << n << std::endl;
     
-    auto start = std::chrono::steady_clock::now();
+    start = std::chrono::steady_clock::now();
 
-    direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
-    
-    auto end = std::chrono::steady_clock::now();
+    // direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
 
-    double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    end = std::chrono::steady_clock::now();
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << time << "(ms)" << std::endl;
     
     PointList randPoints2;
-
-    std::cout << "Direct implementation 2 : ";
+    std::cout << "Direct implementation 2 : " << n << std::endl;
     
     start = std::chrono::steady_clock::now();
-    
-    direct_sampling2<NT, RNGType, Point, PointList>(n, num_points, walkL, randPoints2);
-    
+
+    //direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
+    direct_sampling2<NT, RNGType, Point>(n, num_points, walkL, randPoints2, 0);
 
     end = std::chrono::steady_clock::now();
-
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << time << "(ms)" << std::endl;
 
