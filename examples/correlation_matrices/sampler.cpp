@@ -17,7 +17,6 @@
 #include "generators/boost_random_number_generator.hpp"
 #include "misc.h"
 #include "random_walks/random_walks.hpp"
-#include "sampling/sampling.hpp"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -105,26 +104,19 @@ int main(int argc, char const *argv[]) {
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
     
     // BilliardWalk, AcceleratedBilliardWalk, GaussianAcceleratedBilliardWalk
-    unsigned int n = 9, num_points = 100, walkL = 5, nreflex = 10;
-
+    // GaussianHamiltonianMonteCarloExactWalk
+    unsigned int n, num_points = 1000, walkL = 10, nreflex = 10;
+    std::cout << "n = ";
+    std::cin >> n;
     // MT M = call_test<NT, BilliardWalk, RNGType>(n, num_points, walkL, nreflex);
 
     // Test direct implementation:
 
     naive_test<NT, BilliardWalk, RNGType>(n, num_points, walkL, nreflex);
 
+    // naive_test<NT, GaussianHamiltonianMonteCarloExactWalk, RNGType>(n, num_points, walkL, nreflex);
+
     // std::cout << M << std::endl;
     
     return 0;
 }
-
-// Create a TEST_CASE for each random walk
-
-// TEST_CASE("hmc") {
-//     std::cout << "--- Testing HMC" << std::endl;
-
-//     int n = 4;
-//     std::vector<Point> points = call_test();
-//     for(std::vector<Point>::iterator it = points.begin(); it != points.end(); ++it)
-//         std::cout << (*it).getCoefficients() << std::endl;
-// }

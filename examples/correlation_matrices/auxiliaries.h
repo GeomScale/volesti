@@ -67,3 +67,12 @@ bool membership(const VT &xvector, const unsigned int n){
         return true;
     return false;
 }
+
+template<typename VT, typename MT, typename PointList>
+void check_output(PointList &randPoints, int num_points, int n){
+    for(int i = 0; i < num_points ; ++i){
+        if(!membership<VT,MT>(randPoints[i].getCoefficients(), n)){
+            std::cout << "ALERT\n";
+        }else{ std::cout << "OK\n";}
+    }
+}
