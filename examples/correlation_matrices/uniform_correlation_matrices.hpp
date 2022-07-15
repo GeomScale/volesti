@@ -1,30 +1,25 @@
-template<typename PointType,
+template<typename WalkTypePolicy,
+    typename PointType,
     typename PointList,
-    typename RandomNumberGenerator, 
-    typename WalkTypePolicy>
-MT uniform_correlation_sampling(PointList &randPoints,
-                   CorreSpectra P,
-                   RandomNumberGenerator &rng,
-                   WalkTypePolicy &WalkType,
-                   const unsigned int &walk_len,
-                   const unsigned int &num_points,
-                   unsigned int const& nburns){
-    typedef typename WalkTypePolicy::template Walk <CorreSpectra,
-                                                    RandomNumberGenerator> walk;
-    typedef RandomPointGenerator <walk> RandomPointGenerator;
-
+    typename RNGType
+    >
+void uniform_correlation_sampling(CorreSpectra<PointType> &P,
+                                    PointList &randPoints,
+                                    RNGType &rng,
+                                    const unsigned int &walkL,
+                                    const unsigned int &num_points,
+                                    const PointType &starting_point,
+                                    unsigned int const& nburns){
+    typedef typename WalkTypePolicy::template Walk <CorreSpectra<PointType>, RNGType> walk;
     PushBackWalkPolicy push_back_policy;
-    RandomNumberGenerator rng(P.dimension());
-    Point p(P.dimension());
-    P.set_interior_point(p);
+    typedef RandomPointGenerator<walk> RandomPointGenerator;
     
-    Generator::apply(HP, p, num_points, walk_len,
-                     randPoints, push_back_policy, rng);
+    PointType p = starting_point;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                    push_back_policy, rng, WalkType.param);
+        RandomPointGenerator::apply(P, p, nburns, walkL, randPoints,
+                                    push_back_policy, rng);
         randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, num_points, walk_len, randPoints,
-                                push_back_policy, rng, WalkType.param);
+    RandomPointGenerator::apply(P, p, num_points, walkL, randPoints,
+                                push_back_policy, rng);
 }

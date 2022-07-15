@@ -25,7 +25,9 @@ public:
         typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> CVT;
     #endif
 
-    // Using LDLT decomposition: more numerically stable for singular matrices
+    // Using LDLT decomposition to check membership
+    // Faster than computing the largest eigenvalue with Spectra 
+    // more numerically stable for singular matrices
     bool isPositiveSemidefinite(MT const &A) {
         Eigen::LDLT<MT> A_ldlt(A);
         if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
@@ -33,13 +35,36 @@ public:
         return false;
     }
 
+    /// Find the largest eigenvalue of mat
+    /// \param mat a symmetric matrix
+    /// \return the largest eigenvalue of mat
+    NT largestEigenvalue(MT const & mat) const {
+#if defined(SPECTRA_EIGENVALUES_SOLVER)
+        Spectra::DenseSymMatProd<NT> M(mat);
+        int ncv = M.rows()/10 + 5;
+        if (ncv > M.rows()) ncv = M.rows();
+        Spectra::SymEigsSolver<NT, Spectra::LARGEST_ALGE, Spectra::DenseSymMatProd<NT>> eigs(&M, 1, ncv);
+        // compute
+        eigs.init();
+        eigs.compute(50000);
+        if(eigs.info() == Spectra::SUCCESSFUL){
+            return eigs.eigenvalues()(0);
+        }else{
+            return NT(0);
+        }
+#else
+        Eigen::SelfAdjointEigenSolver<MT> solver;
+        solver.compute(mat, Eigen::EigenvaluesOnly);
+        return solver.eigenvalues().maxCoeff();
+#endif
+    }
 
     /// Find the smallest eigenvalue of mat
     /// \param mat a symmetric matrix
     /// \return the smallest eigenvalue of mat
     NT smallestEigenvalue(MT const & mat) const {
 #if defined(SPECTRA_EIGENVALUES_SOLVER)
-        Spectra::DenseSymMatProd<NT> M(-mat);
+        Spectra::DenseSymMatProd<NT> M(mat);
         int ncv = M.rows()/10 + 5;
         if (ncv > M.rows()) ncv = M.rows();
         Spectra::SymEigsSolver<NT, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<NT>> eigs(&M, 1, ncv);
@@ -47,11 +72,10 @@ public:
         eigs.init();
         eigs.compute(50000);
         if(eigs.info() == Spectra::SUCCESSFUL)
-            return -eigs.eigenvalues()(0);
+            return eigs.eigenvalues()(0);
 #else
-            EigenDenseMatrix<NT> M(&mat);
             Eigen::SelfAdjointEigenSolver<MT> solver;
-            solver.compute(M, Eigen::EigenvaluesOnly);
+            solver.compute(mat, Eigen::EigenvaluesOnly);
             return solver.eigenvalues().minCoeff();
 #endif
     }

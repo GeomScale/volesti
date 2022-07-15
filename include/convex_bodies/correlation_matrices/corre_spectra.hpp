@@ -28,7 +28,7 @@ struct Precompute {
 
     void set_mat_size(int const& n) 
     {
-        A.setZero(n, n);
+        A = -MT::Identity(n,n);
         B.setZero(n, n);
         eigenvector.setZero(n);
     }
@@ -66,25 +66,25 @@ class CorreSpectra {
 // #else
 //     EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
 // #endif
-
+    // EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
     EigenvaluesCorrelation<NT, MT, VT> EigenvaluesProblem;
-    EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem2;
 
     CorreSpectra(unsigned int n){
         int i,j;
         this->n = n;
         d = n*(n-1)/2;
         MT A;
-        lmi.push_back(MT::Identity(n, n));
+        lmi.push_back(-MT::Identity(n, n));
         for(i = 0; i < n; ++i){
             for(j = i+1; j < n; ++j){
                 A = MT::Zero(n, n);
-                A(i,j) = A(j,i) = 1;
+                A(i,j) = A(j,i) = -1;
                 lmi.push_back(A);
             }
         }
         inner_ball.first = PointType(d);
         inner_ball.second = 1/std::sqrt(d);
+        precomputedValues.set_mat_size(n);
     }
 
     /// \returns The dimension of vector x
@@ -114,12 +114,15 @@ class CorreSpectra {
 
     /// Build a correlation matrix from a vector of entries
     void buildMatrix(const VT &pvector, const unsigned int n, MT & mat){
+        
         NT coeff;
         int i, j, ind = 0;
         for(i = 0; i < n ; ++i){
+            mat(i,i) = -1;
+        }
+        for(i = 0; i < n ; ++i){
             for(j = i+1; j < n; ++j){
-                // int ind = ((((n<<1)-i-2)*(i+1)) >> 1)  + j - n;
-                coeff = pvector[ind];
+                coeff = -pvector[ind];
                 mat(i,j) = mat(j,i) = coeff;
                 ++ind;
             }
@@ -159,8 +162,8 @@ class CorreSpectra {
     void createMatricesForPositiveLinearIntersection(const VT& p, const VT& v) {
         if (!precomputedValues.computed_B) {
             VT pvector = p, vvector = v;
-            precomputedValues.A = MT::Identity(n,n);
-            precomputedValues.B = MT::Zero(n,n);
+            // precomputedValues.A = MT::Identity(n,n);
+            // precomputedValues.B = MT::Zero(n,n);
             NT coeff;
             int i, j, ind =0;
             for(i = 0; i < n ; ++i){
@@ -177,7 +180,6 @@ class CorreSpectra {
     }
 
     NT positiveLinearIntersection(VT const & p, VT const & v) {
-        
         createMatricesForPositiveLinearIntersection(p, v);
         return EigenvaluesProblem.minPosLinearEigenvalue(precomputedValues.A, precomputedValues.B,
                                                                 precomputedValues.eigenvector);
@@ -204,8 +206,7 @@ class CorreSpectra {
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v)
-    {   
+                                               PointType const& v) {   
         NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return std::pair<NT, int> (pos_inter, -1);
     }
@@ -250,15 +251,16 @@ class CorreSpectra {
     }
 
     bool isExterior(VT const & p) {
-        if(precomputedValues.computed_A = false){
-            buildMatrix(p.getCoefficients(), n, precomputedValues.A);
+        if(!precomputedValues.computed_A){
+            buildMatrix(p, n, precomputedValues.A);
         }
         return isExterior(precomputedValues.A);
     }
 
     bool isExterior(MT const & mat) {
-        EigenvaluesCorrelation<NT,MT,VT> eigs;
-        return eigs.smallestEigenvalue(mat) < 0;
+        return !EigenvaluesProblem.isPositiveSemidefinite(-mat);
+        
+        // return EigenvaluesProblem.largestEigenvalue(mat) > 0;
     }
 
     std::pair<NT, int> line_positive_intersect(PointType const& r,

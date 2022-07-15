@@ -56,23 +56,18 @@ MT rebuildMatrix(const VT &xvector, const unsigned int n){
     return A;
 }
 
-template<typename VT, typename MT>
-bool membership(const VT &xvector, const unsigned int n){
-    int d = n*(n-1)/2;
-    for(int i = 0; i < d; ++i)
-        if((xvector(i) > 1) || (xvector(i) < -1)) return false;
-    MT A = rebuildMatrix<VT, MT>(xvector, n);
-    Eigen::LDLT<MT> A_ldlt(A);
-    if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
-        return true;
-    return false;
-}
-
 template<typename VT, typename MT, typename PointList>
 void check_output(PointList &randPoints, int num_points, int n){
+    int d = n*(n-1)/2;
+    MT A;
+    Eigen::LDLT<MT> A_ldlt;
     for(int i = 0; i < num_points ; ++i){
-        if(!membership<VT,MT>(randPoints[i].getCoefficients(), n)){
+        A = rebuildMatrix<VT, MT>(randPoints[i].getCoefficients(), n);
+        A_ldlt = Eigen::LDLT<MT>(A);
+        if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive()){
+            std::cout << "OK\n";
+        }else{
             std::cout << "ALERT\n";
-        }else{ std::cout << "OK\n";}
+        }
     }
 }

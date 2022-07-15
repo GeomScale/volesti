@@ -1,5 +1,4 @@
 // Direct implementation: call to sampling algorithms for spectrahedra in volesti
-#include "sampling/sphere.hpp"
 #include "sampling/sampling.hpp"
 #include "auxiliaries.h"
 
@@ -86,44 +85,3 @@ void direct_gaussian_sampling(int n, int num_points, int walkL, PointList &randP
 //                      randPoints, push_back_policy, rng);
 //     write_to_file(filename, randPoints);
 // }
-
-
-template <typename NT, typename WalkType, typename RNGType>
-void naive_test(int n, int num_points, int walkL, int nreflex){
-    typedef Cartesian<NT>                                               Kernel;
-    typedef typename Kernel::Point                                      Point;
-    typedef std::vector<Point>                                          PointList;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>             MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1>                          VT; 
-    typedef typename WalkType::template Walk<Spectrahedron<Point>, RNGType>   RandomWalk;
-    typedef RandomPointGenerator<RandomWalk>                            Generator;
-
-    std::chrono::steady_clock::time_point start, end;
-    double time;
-
-    PointList randPoints;
-    std::cout << "Direct implementation : " << n << std::endl;
-    
-    start = std::chrono::steady_clock::now();
-
-    // direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
-
-    end = std::chrono::steady_clock::now();
-    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << time << "(ms)" << std::endl;
-    
-    PointList randPoints2;
-    std::cout << "Direct implementation 2 : " << n << std::endl;
-    
-    start = std::chrono::steady_clock::now();
-
-    //direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
-    direct_sampling2<NT, RNGType, Point>(n, num_points, walkL, randPoints2, 0);
-
-    end = std::chrono::steady_clock::now();
-    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << time << "(ms)" << std::endl;
-
-    // write_to_file("sampling.txt", randPoints);
-    // check_output<VT,MT,PointList>(randPoints, num_points, n);
-}

@@ -266,8 +266,9 @@ struct Walk
                       Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
-    {
+    {   
         unsigned int n = P.dimension();
+        std::cout << "apply \n" << p.getCoefficients() << std::endl;
         NT T = rng.sample_urdist() * _Len;
         const NT dl = 0.995;
 
@@ -297,6 +298,7 @@ struct Walk
             }
         }
         p = _p;
+        std::cout << p.getCoefficients() << std::endl;
     }
 
     inline void update_delta(NT L)
@@ -313,7 +315,8 @@ private :
     inline void initialize(GenericPolytope &P,
                            Point const& p,
                            RandomNumberGenerator &rng)
-    {
+    {   
+        std::cout << "initialize \n" << p.getCoefficients() << std::endl;
         unsigned int n = P.dimension();
         const NT dl = 0.995;
         _lambdas.setZero(P.num_of_hyperplanes());
@@ -354,6 +357,7 @@ private :
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
         }
+        std::cout << _p.getCoefficients() << std::endl;
     }
 
     NT _Len;
