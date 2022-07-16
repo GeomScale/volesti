@@ -160,7 +160,7 @@ class CorreSpectra {
     /// \param[in] v Input vector
     /// \param[in, out] precomputedValues Holds matrices B = I - A(v), A = A(p)
     void createMatricesForPositiveLinearIntersection(const VT& p, const VT& v) {
-        if (!precomputedValues.computed_B) {
+        if (true) {
             VT pvector = p, vvector = v;
             // precomputedValues.A = MT::Identity(n,n);
             // precomputedValues.B = MT::Zero(n,n);
@@ -168,7 +168,7 @@ class CorreSpectra {
             int i, j, ind =0;
             for(i = 0; i < n ; ++i){
                 for(j = i+1; j < n; ++j){
-                    coeff = pvector[ind];
+                    coeff = -pvector[ind];
                     precomputedValues.A(i,j) = precomputedValues.A(j,i) = coeff;
                     coeff = -vvector[ind];
                     precomputedValues.B(i,j) = precomputedValues.B(j,i) = coeff;
@@ -181,7 +181,7 @@ class CorreSpectra {
 
     NT positiveLinearIntersection(VT const & p, VT const & v) {
         createMatricesForPositiveLinearIntersection(p, v);
-        return EigenvaluesProblem.minPosLinearEigenvalue(precomputedValues.A, precomputedValues.B,
+        return EigenvaluesProblem.minPosLinearEigenvalue(-precomputedValues.A, precomputedValues.B,
                                                                 precomputedValues.eigenvector);
     }
 

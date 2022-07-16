@@ -38,12 +38,13 @@ int main(int argc, char const *argv[]) {
     
     // BilliardWalk, AcceleratedBilliardWalk, GaussianAcceleratedBilliardWalk
     // GaussianHamiltonianMonteCarloExactWalk
-    unsigned int n = 3, num_points = 1, walkL = 10, nreflex = 10;
-    // std::cout << "n = ";
-    // std::cin >> n;
-    new_test<NT, BilliardWalk, RNGType>(n, num_points, walkL, nreflex);
+    unsigned int n, num_points = 100, walkL = 10;
+    std::cout << "n = ";
+    std::cin >> n;
+    
+    new_test<NT, BilliardWalk, RNGType>(n, num_points, walkL);
 
-    // naive_test<NT, BilliardWalk, RNGType>(n, num_points, walkL, nreflex);
+    naive_uniform_test<NT, BilliardWalk, RNGType>(n, num_points, walkL);
 
     // naive_test<NT, GaussianHamiltonianMonteCarloExactWalk, RNGType>(n, num_points, walkL, nreflex);
 

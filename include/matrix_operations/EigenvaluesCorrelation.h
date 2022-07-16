@@ -19,11 +19,11 @@ public:
 
     typedef std::pair<NT, NT> NTpair;
 
-    #if defined(EIGEN_EIGENVALUES_SOLVER) || defined (SPECTRA_EIGENVALUES_SOLVER)
-    typedef typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType CVT;
-    #elif defined(ARPACK_EIGENVALUES_SOLVER)
-        typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> CVT;
-    #endif
+    // #if defined(EIGEN_EIGENVALUES_SOLVER) || defined (SPECTRA_EIGENVALUES_SOLVER)
+    // typedef typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType CVT;
+    // #elif defined(ARPACK_EIGENVALUES_SOLVER)
+    //     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> CVT;
+    // #endif
 
     // Using LDLT decomposition to check membership
     // Faster than computing the largest eigenvalue with Spectra 
@@ -119,51 +119,56 @@ public:
     /// \param[in] B: symmetric matrix
     /// \return The minimum positive eigenvalue and the corresponding eigenvector
     NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) {
-#if defined(EIGEN_EIGENVALUES_SOLVER)
-        Eigen::GeneralizedEigenSolver<MT> ges(A, -B);
+        NT lambdaMinPositive = NT(0);
+// #if defined(SPECTRA_EIGENVALUES_SOLVER)
+//         int matrixDim = A.rows();
+//         int ncv = 15 < matrixDim ? 15 : matrixDim; // convergence speed
 
-        // retrieve minimum positive eigenvalue
-        typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType alphas = ges.alphas();
-        VT betas = ges.betas();
-        int index = 0;
-
-        for (int i = 0; i < alphas.rows(); i++) {
-
-            if (betas(i) == 0 || alphas(i).imag() != 0)
-                continue;
-
-            double lambda = alphas(i).real() / betas(i);
-            if (lambda > 0 && lambda < lambdaMinPositive) {
-                lambdaMinPositive = lambda;
-                index = i;
-            }
-        }
-
-        // retrieve corresponding eigenvector
-        eigenvector = ges.eigenvectors().col(index);
-#endif
-        int matrixDim = A.rows();
-        int ncv = 15 < matrixDim ? 15 : matrixDim; // convergence speed
-
-        Spectra::DenseSymMatProd<NT> op(B);
-        Spectra::DenseCholesky<NT> Bop(A);
+//         Spectra::DenseSymMatProd<NT> op(B);
+//         Spectra::DenseCholesky<NT> Bop(A);
         
-        // Requesting the largest generalized eigenvalues
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
-            geigs(&op, &Bop, 1, ncv);
+//         // Requesting the largest generalized eigenvalues
+//         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+//             geigs(&op, &Bop, 1, ncv);
         
-        // Initialize and compute
-        geigs.init();
-        int nconv = geigs.compute();
+//         // Initialize and compute
+//         geigs.init();
+//         int nconv = geigs.compute();
 
-        VT evalues;
-        if (geigs.info() == Spectra::SUCCESSFUL) {
-            evalues = geigs.eigenvalues();
-            eigvec = geigs.eigenvectors().col(0);
-        }
+//         VT evalues;
+//         if (geigs.info() == Spectra::SUCCESSFUL) {
+//             evalues = geigs.eigenvalues();
+//             eigvec = geigs.eigenvectors().col(0);
+//         }
 
-        double lambdaMinPositive = 1 / evalues(0);
+//         lambdaMinPositive = 1 / evalues(0);
+// #else
+        Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A);
+        lambdaMinPositive = 1/ges.eigenvalues().reverse()[0];
+        eigvec = ges.eigenvectors().reverse().col(0).reverse();
 
+        // Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(-B,A);
+        // lambdaMinPositive = -1/ges.eigenvalues()[0];
+        // eigvec = ges.eigenvectors().col(0);
+
+        // Eigen::GeneralizedEigenSolver<MT> ges(A,B);
+
+        // typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType alphas = ges.alphas();
+        // VT betas = ges.betas();
+        // int index = 0;
+        
+        // for (int i = 0; i < alphas.rows(); i++) {
+        //     if (betas(i) == 0 || alphas(i).imag() != 0)
+        //         continue;
+
+        //     NT lambda = alphas(i).real() / betas(i);
+        //     if (lambda > 0 && lambda < lambdaMinPositive) {
+        //         lambdaMinPositive = lambda;
+        //         index = i;
+        //     }
+        // }
+        // eigvec = ges.eigenvectors().col(index).real();
+// #endif
         return lambdaMinPositive;
     }
 };
