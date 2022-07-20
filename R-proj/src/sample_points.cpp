@@ -55,7 +55,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
                           unsigned int const& walkL, unsigned int const& numpoints,
                           bool const& gaussian, NT const& a, NT const& L, Point const& c,
                           Point const& StartingPoint, unsigned int const& nburns,
-                          bool const& set_L, NT const& eta, random_walks walk, 
+                          bool const& set_L, NT const& eta, random_walks walk,
                           NegativeGradientFunctor *F=NULL, NegativeLogprobFunctor *f=NULL,
                           ode_solvers solver_type = no_solver)
 {
@@ -208,6 +208,8 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
                 NegativeGradientFunctor
               >
             >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
+            break;
+          default:
             break;
       }
 
