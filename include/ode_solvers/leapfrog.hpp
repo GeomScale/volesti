@@ -72,7 +72,6 @@ struct LeapfrogODESolver {
     dim = xs[0].dimension();
     _update_parameters = update_parameters();
     grad_x.set_dimension(dim);
-    y.set_dimension(dim);
     initialize();
   };
 
