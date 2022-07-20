@@ -58,7 +58,7 @@ double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length,
         for (auto qit=(pit+1); qit!=listOfPoints.end(); ++qit)
         {
             vecPoint2 = *qit;
-            Ltemp = (F1 - F(1, *qit, 0)).length() / ((*pit))[0] - (*qit)[0]).length();
+            Ltemp = (F1 - F(1, *qit, 0)).length() / ((*pit)[0] - (*qit)[0]).length();
 
             if (Ltemp > L)
             {
