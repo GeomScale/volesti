@@ -56,7 +56,7 @@ struct LeapfrogODESolver {
   pts xs;
   pts xs_prev;
 
-  Point grad_x, y;
+  Point grad_x;
 
   MT _AA;
 
@@ -109,6 +109,7 @@ struct LeapfrogODESolver {
     xs_prev = xs;
     unsigned int x_index, v_index, it;
     t += eta;
+    Point y;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
       
       x_index = i - 1;
@@ -118,13 +119,13 @@ struct LeapfrogODESolver {
       if (k == 0 && !accepted) {
         grad_x = F(v_index, xs_prev, t);
       }
-      xs[v_index] = xs[v_index] + (eta / 2) * grad_x;
+      xs[v_index] += (eta / 2) * grad_x;
 
       // x <- x + eta v'
       y = xs[v_index];
 
       if (Ks[x_index] == NULL) {
-        xs[x_index] = xs_prev[x_index] + eta*y;
+        xs[x_index] += eta*y;
       }
       else {
         // Find intersection (assuming a line trajectory) between x and y

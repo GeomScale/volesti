@@ -44,7 +44,8 @@ warm_start <- sample_points(P, n = 1, random_walk = list("nburns" = 5000), distr
 # Sample points
 n_samples <- 20000
 
-samples <- sample_points(P, n = n_samples, random_walk = list("walk" = "NUTS", "solver" = "leapfrog", "starting_point" = warm_start[,1]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f))
+samples <- sample_points(P, n = n_samples, random_walk = list("walk" = "NUTS", "solver" = "leapfrog", "starting_point" = warm_start[,1]),
+                         distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f))
 
 # Plot histogram
 hist(samples[1,], probability=TRUE, breaks = 100)

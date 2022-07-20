@@ -35,8 +35,11 @@ double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length,
 
     unsigned int d = P.dimension();
     unsigned int rnum = 5 * d;
-    std::vector<Point> randPoints(1), vecPoint1, vecPoint2;
+    std::vector<Point> randPoints(1);
+    std::vector<Point> vecPoint1;
+    std::vector<Point> vecPoint2;
     std::vector< std::vector<Point> > listOfPoints;
+    Point F1;
 
     RandomWalk walk(P, p, rng);
     for (unsigned int i=0; i<rnum; ++i)
@@ -50,12 +53,12 @@ double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length,
 
     for (auto pit=listOfPoints.begin(); pit!=(listOfPoints.end()-1); ++pit)
     {
-        vecPoint1 = *pit;
+        F1 = F(1, *pit, 0);
 
         for (auto qit=(pit+1); qit!=listOfPoints.end(); ++qit)
         {
             vecPoint2 = *qit;
-            Ltemp = (F(1, vecPoint1, 0) - F(1, vecPoint2, 0)).length() / (vecPoint1[0] - vecPoint2[0]).length();
+            Ltemp = (F1 - F(1, *qit, 0)).length() / ((*pit))[0] - (*qit)[0]).length();
 
             if (Ltemp > L)
             {
