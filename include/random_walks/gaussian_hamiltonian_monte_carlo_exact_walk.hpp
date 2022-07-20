@@ -45,7 +45,7 @@ template <typename GenericPolytope>
 struct compute_diameter
 {
     template <typename NT>
-    static NT compute(GenericPolytope) {return NT(0);}
+    static NT compute(GenericPolytope &P) {return NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;}
 };
 
 template
