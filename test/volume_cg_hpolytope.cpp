@@ -72,7 +72,12 @@ void test_volume(Polytope &HP,
     volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    volume = volume_cooling_gaussians<GaussianHamiltonianMonteCarloExactWalk, RNGType>(HP, e, walk_len);
+    if (!birk) {
+        volume = volume_cooling_gaussians<GaussianHamiltonianMonteCarloExactWalk, RNGType>(HP, e, walk_len);
+    }
+    else{
+        volume = volume_cooling_gaussians<GaussianHamiltonianMonteCarloExactWalk, RNGType>(HP, 2*e, walk_len);
+    }
     test_values(volume, expectedRDHR, exact);
 }
 
