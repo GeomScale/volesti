@@ -60,21 +60,3 @@ void new_test(unsigned int n, unsigned int const num_points, unsigned int walkL)
     // write_to_file("sampling_new.txt", randPoints);
     // check_output<VT,MT,PointList>(randPoints, num_points, n);
 }
-
-// VT p(3), v(3);
-// p[0] = 1./2;
-// p[1] = 1./3;
-// p[2] = 1./8;
-// v[0] = 1./3;
-// v[1] = 1./5;
-// v[2] = 1./16;
- // MT samples(d,num_points);
-// int j = 0;
-// for (typename std::vector<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); ++rpit, ++j)
-//     samples.col(j) = (*rpit).getCoefficients();
-
-// VT score = univariate_psrf<NT, VT, MT>(samples);
-// std::cout << "psrf = " << score.maxCoeff() << std::endl;
-
-// CHECK(score.maxCoeff() < 2.2);
-// return samples;

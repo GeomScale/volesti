@@ -1,8 +1,10 @@
-template<typename WalkTypePolicy,
+template
+<
+    typename WalkTypePolicy,
     typename PointType,
     typename PointList,
     typename RNGType
-    >
+>
 void uniform_correlation_sampling(CorreSpectra<PointType> &P,
                                     PointList &randPoints,
                                     RNGType &rng,

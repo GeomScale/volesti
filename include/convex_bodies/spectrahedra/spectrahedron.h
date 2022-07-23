@@ -387,7 +387,7 @@ public:
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
     void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const 
-    {   
+    {
         VT grad(d);
         lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
 

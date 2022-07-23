@@ -5,12 +5,11 @@
 #define SPECTRA_EIGENVALUES_SOLVER // Spectra 
 //#define ARPACK_EIGENVALUES_SOLVER // ARPACK++ 
 
-#include <../../external/Spectra/include/Spectra/SymEigsSolver.h>
+#include <Spectra/include/Spectra/SymEigsSolver.h>
 #include "DenseProductMatrix.h"
 #include "EigenDenseMatrix.h"
 
-#include "../../external/Spectra/include/Spectra/SymGEigsSolver.h"
-#include "../../external/Spectra/include/Spectra/GenEigsSolver.h"
+#include "Spectra/include/Spectra/SymGEigsSolver.h"
 
 /// \tparam NT, MT, VT
 template<typename NT, typename MT, typename VT>

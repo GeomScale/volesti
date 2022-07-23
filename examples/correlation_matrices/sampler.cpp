@@ -5,30 +5,16 @@
 #include <vector>
 #include <chrono>
 #include <iostream>
-#include <boost/random.hpp>
-#include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
-#include "sampling/random_point_generators.hpp"
 #include "random_walks/random_walks.hpp"
-#include "convex_bodies/correlation_matrices/corre_spectra.hpp"
-#include "diagnostics/univariate_psrf.hpp"
-
-#include "matrix_operations/EigenvaluesProblems.h"
-#include "generators/boost_random_number_generator.hpp"
-#include "misc.h"
-#include "random_walks/random_walks.hpp"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
 
 #include "uniform_correlation_matrices.hpp"
 #include "direct_sampler.hpp"
 #include "test.hpp"
 
 int main(int argc, char const *argv[]) {
-    // srand((unsigned) time(NULL));
-    srand(19031999);
+    srand((unsigned) time(NULL));
+    // srand(19031999);
     typedef double NT;
     typedef Cartesian<NT>           Kernel;
     typedef typename Kernel::Point  Point;

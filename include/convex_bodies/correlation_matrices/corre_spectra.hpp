@@ -114,7 +114,6 @@ class CorreSpectra {
 
     /// Build a correlation matrix from a vector of entries
     void buildMatrix(const VT &pvector, const unsigned int n, MT & mat){
-        
         NT coeff;
         int i, j, ind = 0;
         for(i = 0; i < n ; ++i){

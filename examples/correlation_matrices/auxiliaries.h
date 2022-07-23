@@ -1,4 +1,3 @@
-
 #include <fstream>
 
 template <typename Point>
@@ -10,59 +9,31 @@ void write_to_file(std::string filename, std::vector<Point> const& randPoints) {
     std::cout.rdbuf(coutbuf); //reset to standard output again
 }
 
-template<typename MT>
-MT rand_matrix(int n){
-    int i,j;
-    double val;
-    MT A = MT::Identity(n,n);
-    for(i = 0; i < n; i++){
-        for(j = i+1; j < n; j++){
-            val = 2* ((double) rand()/RAND_MAX) - 1;
-            A(j,i) = val;
-        }
-    }
-    return A;
-}
-
-template<typename Point, typename RNGType>
-Point getDirection(unsigned int const& dim, RNGType &rng, bool normalize=true){
-    double normal = 0.;
-    Point p(dim);
-    double* data = p.pointerToData();
-
-    for (unsigned int i=0; i<dim; ++i){
-        *data = rng.sample_ndist();
-        normal += *data * *data;
-        data++;
-    }
-
-    normal = 1./std::sqrt(normal);
-    if (normalize) p *= normal;
-    return p;
-}
-
-template<typename VT, typename MT>
+template<typename NT, typename MT, typename VT>
 MT rebuildMatrix(const VT &xvector, const unsigned int n){
     MT A = MT::Identity(n,n);
-    double coeff;
-    for(int i = 0; i < n ; ++i){
-        for(int j = i+1; j < n; ++j){
-            int ind = ((((n<<1)-i-2)*(i+1)) >> 1)  + j - n;
+    NT coeff;
+    int i, j, ind = 0;
+    for(i = 0; i < n ; ++i){
+        mat(i,i) = -1;
+    }
+    for(i = 0; i < n ; ++i){
+        for(j = i+1; j < n; ++j){
             coeff = xvector[ind];
-            A(i,j) = coeff;
-            A(j,i) = coeff;
+            mat(i,j) = mat(j,i) = coeff;
+            ++ind;
         }
     }
     return A;
 }
 
-template<typename VT, typename MT, typename PointList>
+template<typename NT, typename VT, typename MT, typename PointList>
 void check_output(PointList &randPoints, int num_points, int n){
     int d = n*(n-1)/2;
     MT A;
     Eigen::LDLT<MT> A_ldlt;
     for(int i = 0; i < num_points ; ++i){
-        A = rebuildMatrix<VT, MT>(randPoints[i].getCoefficients(), n);
+        A = rebuildMatrix<NT, MT>(randPoints[i].getCoefficients(), n);
         A_ldlt = Eigen::LDLT<MT>(A);
         if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive()){
             std::cout << "OK\n";
