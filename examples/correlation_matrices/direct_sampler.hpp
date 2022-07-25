@@ -1,4 +1,5 @@
-// Direct implementation: call to sampling algorithms for spectrahedra in volesti
+/// Direct implementation: call to sampling algorithms for spectrahedra in volesti
+/// Mainly serves for comparison
 
 #include "sampling/sampling.hpp"
 

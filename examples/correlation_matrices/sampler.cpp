@@ -8,8 +8,8 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "random_walks/random_walks.hpp"
 
-#include "uniform_correlation_matrices.hpp"
 #include "direct_sampler.hpp"
+#include "sample_correlation_matrices.hpp"
 #include "test.hpp"
 
 int main(int argc, char const *argv[]) {
@@ -32,9 +32,9 @@ int main(int argc, char const *argv[]) {
 
     naive_uniform_test<NT, BilliardWalk, RNGType>(n, num_points, walkL);
 
-    // naive_test<NT, GaussianHamiltonianMonteCarloExactWalk, RNGType>(n, num_points, walkL, nreflex);
+    gaussian_test<NT, RNGType>(n, num_points, walkL);
 
-    // std::cout << M << std::endl;
+    // naive_test<NT, GaussianHamiltonianMonteCarloExactWalk, RNGType>(n, num_points, walkL, nreflex);
     
     return 0;
 }
