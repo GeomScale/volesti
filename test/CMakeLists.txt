@@ -319,6 +319,9 @@ else ()
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
+  add_executable (sampling_correlation_test sampling_correlation_matrices_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME test_old_uniform COMMAND sampling_correlation_test -tc=old_billiard_uniform)
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
@@ -343,6 +346,6 @@ else ()
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
-
+  TARGET_LINK_LIBRARIES(sampling_correlation_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
 
 endif()
