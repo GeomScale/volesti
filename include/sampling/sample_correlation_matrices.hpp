@@ -1,7 +1,12 @@
+/// Functions to sample correlation matrices w.r.t. a truncated density
+
+#ifndef SAMPLE_CORRELATION_MATRICES_HPP
+#define SAMPLE_CORRELATION_MATRICES_HPP
+
+#include <sampling/sampling.hpp>
+
 /// Direct implementation: call to sampling algorithms for spectrahedra in volesti
 /// Mainly serves for comparison
-
-#include "sampling/sampling.hpp"
 
 template <typename MT>
 std::vector<MT> LMIGen(int n){
@@ -57,3 +62,49 @@ void direct_gaussian_sampling(int n, int num_points, int walkL, PointList &randP
 
     gaussian_sampling<WalkType>(randPoints, spectra, rng, walkL, num_points, a, p, nburns);
 }
+
+// New implementations for sampling correlation matrices
+
+template
+<
+    typename WalkTypePolicy,
+    typename PointType,
+    typename RNGType,
+    typename PointList
+>
+void uniform_correlation_sampling(const unsigned int &n,
+                                    PointList &randPoints,
+                                    const unsigned int &walkL,
+                                    const unsigned int &num_points,
+                                    unsigned int const& nburns){
+    CorreSpectra<PointType> P(n);
+    const unsigned int d = P.dimension();
+    PointType startingPoint(d);
+    RNGType rng(d);
+    
+    uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint,0);
+}
+
+template
+<
+    typename WalkTypePolicy,
+    typename PointType,
+    typename RNGType,
+    typename PointList,
+    typename NT
+>
+void gaussian_correlation_sampling(const unsigned int &n,
+                                    PointList &randPoints,
+                                    const unsigned int &walkL,
+                                    const unsigned int &num_points,
+                                    const NT &a,
+                                    unsigned int const& nburns = 0){
+    CorreSpectra<PointType> P(n);
+    const unsigned int d = P.dimension();
+    PointType startingPoint(d);
+    RNGType rng(d);
+    
+    gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, 0);
+}
+
+#endif

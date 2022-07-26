@@ -28,4 +28,8 @@
 #include "random_walks/hamiltonian_monte_carlo_walk.hpp"
 #include "random_walks/langevin_walk.hpp"
 
+// Walks in spectrahedra of correlation matrices
+
+#include "random_walks/gaussian_ReHMC_correlation.hpp"
+
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP

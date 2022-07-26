@@ -1,36 +1,4 @@
-/// Functions to sample correlation matrices w.r.t. a truncated density
-
-#include <math.h>
-
-template
-<
-    typename WalkTypePolicy,
-    typename PointType,
-    typename PointList,
-    typename RNGType
->
-void uniform_correlation_sampling(CorreSpectra<PointType> &P,
-                                    PointList &randPoints,
-                                    RNGType &rng,
-                                    const unsigned int &walkL,
-                                    const unsigned int &num_points,
-                                    const PointType &starting_point,
-                                    unsigned int const& nburns){
-    typedef typename WalkTypePolicy::template Walk <CorreSpectra<PointType>, RNGType> walk;
-    PushBackWalkPolicy push_back_policy;
-    typedef RandomPointGenerator<walk> RandomPointGenerator;
-    
-    PointType p = starting_point;
-    if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walkL, randPoints,
-                                    push_back_policy, rng);
-        randPoints.clear();
-    }
-    RandomPointGenerator::apply(P, p, num_points, walkL, randPoints,
-                                push_back_policy, rng);
-}
-
-/// Gaussian sampling
+/// ReHMC walk
 
 template<typename NT, typename Point>
 NT Hamiltonian(Point const &p, Point const &v){
@@ -86,7 +54,7 @@ Point ReHMC(ConvexBodyType &P, Point& q, unsigned int const& walkL, RNGType &rng
         h2 = Hamiltonian<NT>(p, v);
         // std::cout << "h2 = " << h2 << std::endl;
         u = ((double)rand()/(double)RAND_MAX);
-        if (u < exp(h1-h2)) p0 = p;
+        if (u < std::exp(h1-h2)) p0 = p;
     }
     return p;
 }
@@ -108,7 +76,6 @@ void gaussian_correlation_sampling(CorreSpectra<PointType> &P,
                                     unsigned int const& nburns = 0){
     PointType p = starting_point;
     int i = 0;
-    std::cout << "nburns = " << nburns << std::endl;
     while(i < nburns) {
         p = ReHMC(P, p, walkL, rng, step);
         ++i;
@@ -118,3 +85,41 @@ void gaussian_correlation_sampling(CorreSpectra<PointType> &P,
         randPoints.push_back(p);
     }   
 }
+
+// template
+// <
+//     typename WalkType
+// >
+// struct ExponentialCorrelationMatrices
+// {
+//     template
+//     <
+//         typename Point,
+//         typename NT,
+//         typename PointList,
+//         typename WalkPolicy,
+//         typename RandomNumberGenerator
+//     >
+//     static void apply(CorreSpectra<Point> const& P,
+//                       Point &p,   // a point to start
+//                       Point const& c,   // bias function
+//                       NT const& T, // temperature/variance
+//                       unsigned int const& rnum,
+//                       unsigned int const& walk_length,
+//                       PointList &randPoints,
+//                       WalkPolicy &policy,
+//                       RandomNumberGenerator &rng)
+//     {
+//         Walk walk(P, p, c, T, rng);
+//         bool success;
+//         for (unsigned int i=0; i<rnum; ++i)
+//         {
+//             success = walk.template apply(P, p, walk_length, rng);
+//             if (!success) {
+//                 //return;
+//                 throw std::range_error("A generated point is outside polytope");
+//             }
+//             policy.apply(randPoints, p);
+//         }
+//     }
+// }

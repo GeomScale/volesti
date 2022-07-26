@@ -53,7 +53,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     PrecomputationOfValues _precomputedValues;
 
     // EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
-    EigenvaluesCorrelation<NT, MT, VT> EigenvaluesProblem;
+    EigenvaluesCorrelation<NT, MT, VT> _EigenvaluesProblem;
 
 
     /// Constructor of correlation matrix spectrahedra
@@ -141,7 +141,7 @@ class CorreSpectra : public Spectrahedron<Point> {
 
     NT positiveLinearIntersection(VT const & p, VT const & v) {
         createMatricesForPositiveLinearIntersection(p, v);
-        return EigenvaluesProblem.minPosLinearEigenvalue(-_precomputedValues.A, _precomputedValues.B,
+        return _EigenvaluesProblem.minPosLinearEigenvalue(-_precomputedValues.A, _precomputedValues.B,
                                                                 _precomputedValues.eigenvector);
     }
 
@@ -167,6 +167,39 @@ class CorreSpectra : public Spectrahedron<Point> {
                                                PointType const& v,
                                                VT&,
                                                VT&){
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT& ,
+                                               NT const&,
+                                               update_parameters&)
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT&,
+                                               NT const&,
+                                               MT const&,
+                                               update_parameters& )
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(PointType const& r,
+                                                     PointType const& v,
+                                                     VT&,
+                                                     VT&,
+                                                     update_parameters&)
+    {
         return line_positive_intersect(r, v);
     }
 
@@ -202,7 +235,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     }
 
     bool isExterior(MT const & mat) {
-        return !EigenvaluesProblem.isPositiveSemidefinite(-mat);
+        return !_EigenvaluesProblem.isPositiveSemidefinite(-mat);
     }
 };
 
