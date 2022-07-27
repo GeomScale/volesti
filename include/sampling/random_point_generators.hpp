@@ -143,7 +143,7 @@ struct GaussianRandomPointGenerator
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope & P,
                       Point &p,   // a point to start
                       NT const& a_i,
                       unsigned int const& rnum,

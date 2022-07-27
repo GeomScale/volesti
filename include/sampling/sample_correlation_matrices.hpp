@@ -97,14 +97,14 @@ void gaussian_correlation_sampling(const unsigned int &n,
                                     PointList &randPoints,
                                     const unsigned int &walkL,
                                     const unsigned int &num_points,
-                                    const NT &a,
+                                    const NT &a_i,
                                     unsigned int const& nburns = 0){
     CorreSpectra<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
     
-    gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, 0);
+    gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a_i, startingPoint, 0);
 }
 
 #endif

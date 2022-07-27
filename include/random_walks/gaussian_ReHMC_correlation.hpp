@@ -1,125 +1,176 @@
+/// ReHMC random WalkType for sampling correlation matrices
+
+#ifndef RANDOM_WALKS_GAUSSIAN_REHMC_CORRELATION_HPP
+#define RANDOM_WALKS_GAUSSIAN_REHMC_CORRELATION_HPP
+
 /// ReHMC walk
 
-template<typename NT, typename Point>
-NT Hamiltonian(Point const &p, Point const &v){
-    return (p.dot(p) + v.dot(v))/2;
-}
+struct GaussianReHMCCorrelationWalk
+{
+    GaussianReHMCCorrelationWalk(double L, unsigned int _rho)
+            :   param(L, true, _rho, true)
+    {}
 
-template<typename Point>
-Point esti_grad(Point const &p){
-    return p;
-}
+    GaussianReHMCCorrelationWalk(double L)
+            :   param(L, true, 0, false)
+    {}
 
-template<typename NT, typename ConvexBodyType, typename Point, typename RNGType>
-Point ReHMC(ConvexBodyType &P, Point& q, unsigned int const& walkL, RNGType &rng, NT const step){
-    int n = P.dimension(), num_leaps = ceil(walkL / step);
-    int i, j, it, nreflex = 50*n;
-    NT T, h1, h2, lambda, u;
-    Point p0 = q, p = q, v;
-    Point grad_p;
-    
-    for(i = 0; i < walkL; ++i){
-        T = step; // leap total distance T = rng.sample_urdist() * _Len;
-        v = GetDirection<Point>::apply(n, rng, false);
-        p = p0;
+    GaussianReHMCCorrelationWalk()
+            :   param(0, false, 0, false)
+    {}
 
-        h1 = Hamiltonian<NT>(p, v);
-        // std::cout << "h1 = " << h1 << std::endl;
-        grad_p = esti_grad<Point>(p);
+    struct parameters
+    {
+        parameters(double L, bool set, unsigned int _rho, bool _set_rho)
+                :   m_L(L), set_L(set), rho(_rho), set_rho(_set_rho)
+        {}
+        double m_L;
+        bool set_L;
+        unsigned int rho;
+        bool set_rho;
+    };
 
-        for(j = 0; j < num_leaps; ++j){            
-            v = v - (step/2) * grad_p;
-
-            // it = 0;
-            while(true){
-            // while(it < nreflex){
-                
-                auto pbpair = P.line_positive_intersect(p, v);
-                if (T <= pbpair.first){
-                    p += T * v;
-                    break;
-                }
-                
-                lambda = 0.995 * pbpair.first;
-                T -= lambda;
-                p += lambda * v;
-                P.compute_reflection(v, p, pbpair.second);
-                // it++;
-            }
-            // if (it == nrelfex) p = p0;
-
-            grad_p = esti_grad(p);
-            v = v - (step/2) * grad_p;
-        }
-        h2 = Hamiltonian<NT>(p, v);
-        // std::cout << "h2 = " << h2 << std::endl;
-        u = ((double)rand()/(double)RAND_MAX);
-        if (u < std::exp(h1-h2)) p0 = p;
-    }
-    return p;
-}
+    parameters param;
 
 template
 <
-    typename NT,
-    typename PointType,
-    typename PointList,
-    typename RNGType
+    typename ConvexBodyType,
+    typename RandomNumberGenerator
 >
-void gaussian_correlation_sampling(CorreSpectra<PointType> &P,
-                                    PointList &randPoints,
-                                    RNGType &rng,
-                                    const unsigned int &walkL,
-                                    const unsigned int &num_points,
-                                    const PointType &starting_point,
-                                    const NT &step,
-                                    unsigned int const& nburns = 0){
-    PointType p = starting_point;
-    int i = 0;
-    while(i < nburns) {
-        p = ReHMC(P, p, walkL, rng, step);
-        ++i;
-    }
-    for(i = 0; i < num_points; ++i){
-        p = ReHMC(P, p, walkL, rng, step);
-        randPoints.push_back(p);
-    }   
-}
+struct Walk
+{   
+    typedef typename ConvexBodyType::PointType    Point;
+    typedef typename Point::FT              NT;
 
-// template
-// <
-//     typename WalkType
-// >
-// struct ExponentialCorrelationMatrices
-// {
-//     template
-//     <
-//         typename Point,
-//         typename NT,
-//         typename PointList,
-//         typename WalkPolicy,
-//         typename RandomNumberGenerator
-//     >
-//     static void apply(CorreSpectra<Point> const& P,
-//                       Point &p,   // a point to start
-//                       Point const& c,   // bias function
-//                       NT const& T, // temperature/variance
-//                       unsigned int const& rnum,
-//                       unsigned int const& walk_length,
-//                       PointList &randPoints,
-//                       WalkPolicy &policy,
-//                       RandomNumberGenerator &rng)
-//     {
-//         Walk walk(P, p, c, T, rng);
-//         bool success;
-//         for (unsigned int i=0; i<rnum; ++i)
-//         {
-//             success = walk.template apply(P, p, walk_length, rng);
-//             if (!success) {
-//                 //return;
-//                 throw std::range_error("A generated point is outside polytope");
-//             }
-//             policy.apply(randPoints, p);
-//         }
-//     }
-// }
+    Walk(ConvexBodyType & P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
+    {   
+        _Len = compute_diameter(P);
+        _rho = 50 * P.dimension();
+        _step = 0.01;
+        initialize(P, p, rng);
+    }
+
+    Walk(ConvexBodyType & P, Point const& p, NT const& a_i, RandomNumberGenerator &rng,
+         parameters const& params)
+    {
+        _Len = params.set_L ? params.m_L
+                : compute_diameter(P);
+        _rho = 50 * P.dimension();
+        _step = 0.01;
+        initialize(P, p, rng);
+    }
+
+    NT compute_diameter(ConvexBodyType const& P){
+        std::pair<Point, NT> inner_ball = P.getInnerBall();
+        return NT(6) * NT(P.dimension()) * inner_ball.second;
+    }
+
+    NT Hamiltonian(Point const &p, Point const &v){
+        return (p.dot(p) + v.dot(v))/2;
+    }
+
+    void esti_grad(Point const& p, Point & grad_p){
+        grad_p = p;
+    }
+
+    inline void apply(  ConvexBodyType & P, 
+                        Point& p, 
+                        NT const& a_i,
+                        unsigned int const& walkL, 
+                        RandomNumberGenerator &rng)
+    {
+        unsigned int n = P.dimension(), num_leaps = ceil(walkL / _step);
+        int i, j, it;
+        NT T, h1, h2, u;
+        Point p0, grad_p;
+        
+        for(i = 0; i < walkL; ++i){
+            T = _step; // leap total distance T = rng.sample_urdist() * _Len;
+            _v = GetDirection<Point>::apply(n, rng, false);
+            p0 = _p;
+
+            h1 = Hamiltonian(_p, _v);
+            // std::cout << "h1 = " << h1 << std::endl;
+
+            // grad_p = esti_grad(_p, grad_p);
+
+            for(j = 0; j < num_leaps; ++j){            
+                _v = _v - (_step/2) * _p;
+
+                // it = 0;
+                while(true){
+                // while(it < _rho){
+                    auto pbpair = P.line_positive_intersect(_p, _v);
+                    if (T <= pbpair.first){
+                        update_position(_p, _v, T);
+                        break;
+                    }
+                    
+                    _lambda_prev = 0.995 * pbpair.first;
+                    update_position(_p, _v, _lambda_prev);
+                    T -= _lambda_prev;
+                    P.compute_reflection(_v, _p, pbpair.second);
+                    // it++;
+                }
+                // if (it == _rho) _p = p0;
+
+                // grad_p = esti_grad(p);
+                _v = _v - (_step/2) * _p;
+            }
+            h2 = Hamiltonian(_p, _v);
+            // std::cout << "h2 = " << h2 << std::endl;
+            u = ((double)rand()/(double)RAND_MAX);
+            if (u < std::exp(h1-h2)) _p = p0;
+        }
+        p = _p;
+    }
+
+    inline void update_position(Point &p, Point &v, NT const& T){
+        p += T * v;    
+    }
+
+private:
+
+    inline void initialize(ConvexBodyType &P,
+                           Point const& p,
+                           RandomNumberGenerator &rng)
+    {   
+        unsigned int n = P.dimension();
+        
+        _p = p;
+        _v = GetDirection<Point>::apply(n, rng, false);
+        
+        NT T = rng.sample_urdist() * _Len;
+        int it = 0;
+
+        while (it <= _rho){
+            auto pbpair = P.line_positive_intersect(_p, _v);
+            if (T <= pbpair.first){
+                _p += T * _v;
+                break;
+            } else if (it == _rho) {
+                _lambda_prev = rng.sample_urdist() * pbpair.first;
+                _p += _lambda_prev * _v;
+                break;
+            }
+            _lambda_prev = 0.995 * pbpair.first;
+            _p += _lambda_prev * _v;
+            T -= _lambda_prev;
+            P.compute_reflection(_v, _p, pbpair.second);
+            it++;
+        }
+    }
+
+    NT _Len;
+    unsigned int _rho;
+    Point _p;
+    Point _v;
+    NT _lambda_prev;
+    NT _step;
+    // typename Point::Coeff _lambdas;
+    // typename Point::Coeff _Av;
+};
+
+};
+
+#endif // RANDOM_WALKS_GAUSSIAN_REHMC_CORRELATION_HPP

@@ -148,7 +148,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v) {   
+                                               PointType const& v) {
         NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return std::pair<NT, int> (pos_inter, -1);
     }
