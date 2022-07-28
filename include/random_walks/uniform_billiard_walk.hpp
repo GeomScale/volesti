@@ -278,7 +278,7 @@ struct Walk
                       Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
-    {   
+    {
         unsigned int n = P.dimension();
         NT T = rng.sample_urdist() * _Len;
         const NT dl = 0.995;
@@ -294,14 +294,17 @@ struct Walk
             {
                 auto pbpair = P.line_positive_intersect(_p, _v, _lambdas,
                                                         _Av, _lambda_prev);
+                
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
                 }
+                
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
+                
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }

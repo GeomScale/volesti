@@ -99,7 +99,7 @@ void uniform_correlation_sampling2(const unsigned int &n,
                                     unsigned int const& nburns){
     CorreSpectra2<PointType> P(n);
     const unsigned int d = P.dimension();
-    PointType startingPoint(d);
+    PointType startingPoint(P.matrixSize());
     RNGType rng(d);
 
     uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint,0);

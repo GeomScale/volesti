@@ -86,9 +86,9 @@ void test_corre_spectra_classes(unsigned int const n){
     CorreSpectra2<PMT> P2(n); 
 
     CHECK(P2.matrixSize() == n);
-    CHECK(P.dimension() == d);
+    CHECK(P2.dimension() == d);
 
-    PMT startingPoint(d);
+    PMT startingPoint(n);
     // compute_diameter<CorreSpectra2<PMT>>::compute<NT>(P2);
     PMT A = GetDirection<PMT>::apply(P2.dimension(), rng);
 }
@@ -264,7 +264,7 @@ TEST_CASE("new_billiard_uniform") {
 }
 
 TEST_CASE("new_billiard_uniform_2") {
-    call_test_new_billiard2<double>(3);
+    call_test_new_billiard2<double>(10);
 }
 
 // TEST_CASE("new_ReHMC_gaussian") {
