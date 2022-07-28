@@ -90,6 +90,26 @@ template
     typename WalkTypePolicy,
     typename PointType,
     typename RNGType,
+    typename PointList
+>
+void uniform_correlation_sampling2(const unsigned int &n,
+                                    PointList &randPoints,
+                                    const unsigned int &walkL,
+                                    const unsigned int &num_points,
+                                    unsigned int const& nburns){
+    CorreSpectra2<PointType> P(n);
+    const unsigned int d = P.dimension();
+    PointType startingPoint(d);
+    RNGType rng(d);
+
+    uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint,0);
+}
+
+template
+<
+    typename WalkTypePolicy,
+    typename PointType,
+    typename RNGType,
     typename PointList,
     typename NT
 >

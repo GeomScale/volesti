@@ -17,6 +17,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "convex_bodies/correlation_matrices/corre_spectra.hpp"
+#include "convex_bodies/correlation_matrices/corre_spectra2.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
@@ -65,6 +66,17 @@ struct compute_diameter<CorreSpectra<Point>>
 {
 template <typename NT>
 static NT compute(CorreSpectra<Point> &P)
+{
+    std::pair<Point, NT> inner_ball = P.getInnerBall();
+    return NT(6) * NT(P.dimension()) * inner_ball.second;
+}
+};
+
+template <typename Point>
+struct compute_diameter<CorreSpectra2<Point>>
+{
+template <typename NT>
+static NT compute(CorreSpectra2<Point> &P)
 {
     std::pair<Point, NT> inner_ball = P.getInnerBall();
     return NT(6) * NT(P.dimension()) * inner_ball.second;
@@ -275,6 +287,7 @@ struct Walk
         {
             T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng);
+
             Point p0 = _p;
             int it = 0;
             while (it < 50*n)
