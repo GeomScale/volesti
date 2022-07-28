@@ -77,7 +77,7 @@ void test_old_uniform_correlation_matrices(unsigned int n, PointList &randPoints
     typedef typename Kernel::Point                                      Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>           RNGType;
 
-    int num_points = 1000, walkL = 10;
+    int num_points = 1000, walkL = 1;
 
     direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
 }
@@ -94,7 +94,7 @@ void test_new_uniform_correlation_matrices(unsigned int n, PointList &randPoints
     typedef typename Kernel::Point                              Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
-    int num_points = 1000, walkL = 10;
+    int num_points = 1000, walkL = 1;
 
     uniform_correlation_sampling<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, 0);
 }
@@ -112,7 +112,7 @@ void test_new_gaussian_correlation_matrices(unsigned int n, PointList &randPoint
     typedef typename Kernel::Point                              Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
     
-    int num_points = 1000, walkL = 10;
+    int num_points = 1000, walkL = 1;
 
     gaussian_correlation_sampling<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, NT(0.5));
 }
@@ -177,7 +177,7 @@ void call_test_new_ReHMC_gaussian(const unsigned int n){
 
     start = std::chrono::steady_clock::now();
 
-    test_new_gaussian_correlation_matrices<double, GaussianReHMCCorrelationWalk>(n, randPoints);
+    // test_new_gaussian_correlation_matrices<double, GaussianReHMCCorrelationWalk>(n, randPoints);
 
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -194,6 +194,6 @@ TEST_CASE("new_billiard_uniform") {
     call_test_new_billiard<double>(10);
 }
 
-TEST_CASE("new_ReHMC_gaussian") {
-    call_test_new_ReHMC_gaussian<double>(3);
-}
+// TEST_CASE("new_ReHMC_gaussian") {
+//     call_test_new_ReHMC_gaussian<double>(3);
+// }
