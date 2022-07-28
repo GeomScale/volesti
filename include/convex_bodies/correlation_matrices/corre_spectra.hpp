@@ -1,8 +1,6 @@
 #ifndef VOLESTI_CORRE_SPECTRAHEDRON_H
 #define VOLESTI_CORRE_SPECTRAHEDRON_H
 
-#include "matrix_operations/EigenvaluesProblems.h"
-
 template <typename NT, typename MT, typename VT>
 struct Precompute {
 
@@ -50,8 +48,6 @@ class CorreSpectra : public Spectrahedron<Point> {
     unsigned int n;
 
     PrecomputationOfValues _precomputedValues;
-
-    EigenvaluesProblems<NT, MT, VT> _EigenvaluesProblem;
 
     /// Constructor of correlation matrix spectrahedra
     /// \param[in] : matrix size
@@ -138,7 +134,7 @@ class CorreSpectra : public Spectrahedron<Point> {
 
     NT positiveLinearIntersection(VT const & p, VT const & v) {
         createMatricesForPositiveLinearIntersection(p, v);
-        return _EigenvaluesProblem.minPosLinearEigenvalue2(-_precomputedValues.A, _precomputedValues.B,
+        return this->EigenvaluesProblem.minPosLinearEigenvalue2(-_precomputedValues.A, _precomputedValues.B,
                                                                 _precomputedValues.eigenvector);
     }
 
@@ -232,7 +228,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     }
 
     bool isExterior(MT const & mat) {
-        return !_EigenvaluesProblem.isPositiveSemidefinite(-mat);
+        return !this->EigenvaluesProblem.isPositiveSemidefinite(-mat);
     }
 };
 
