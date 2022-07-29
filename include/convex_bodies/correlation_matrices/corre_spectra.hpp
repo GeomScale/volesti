@@ -95,9 +95,9 @@ class CorreSpectra : public Spectrahedron<Point> {
     void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {   
         VT grad(this->d);
         VT e = _precomputedValues.eigenvector;
-
         int i, j, ind = 0;
         NT sum_sq = NT(0);
+
         for(i = 0; i < n ; ++i){
             for(j = i+1; j < n; ++j){
                 grad(ind) = e[i]*e[j];

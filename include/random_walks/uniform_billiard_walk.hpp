@@ -294,7 +294,7 @@ struct Walk
             {
                 auto pbpair = P.line_positive_intersect(_p, _v, _lambdas,
                                                         _Av, _lambda_prev);
-                
+
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
@@ -304,8 +304,9 @@ struct Walk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                
+
                 P.compute_reflection(_v, _p, pbpair.second);
+
                 it++;
             }
             if (it == 50*n){

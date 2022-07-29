@@ -45,18 +45,20 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
-    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {   
-        MT grad(this->n, this->n);
+    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {
+        MT grad = MT::Zero(this->n, this->n);
         int i, j;
-        NT sum_sq = NT(0);
+        NT sum_sq = NT(0), dot = NT(0);
+
         for(i = 0; i < n ; ++i){
             for(j = 0; j < i; ++j){
                 grad(i,j) = eigenvector[i]*eigenvector[j];
                 sum_sq += grad(i,j)*grad(i,j);
+                dot += grad(i,j) * v.mat(i,j);
             }
         }
-        NT dot = v.dot(grad);
         dot = 2 * dot / sum_sq;
+        
         // std::cout << "dot = " << dot << std::endl;
         // for(i = 0; i < n ; ++i){
         //     for(j = 0; j < i; ++j){
@@ -66,7 +68,8 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
         //     }
         // }
         
-        v -= PointType(dot * grad);
+        grad = dot*grad;
+        v -= PointType(grad);
     }
 
     NT positiveLinearIntersection(PointType const & r, PointType const & v) {

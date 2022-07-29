@@ -53,17 +53,53 @@ void check_output(PointList &randPoints, int num_points, int n){
     std::cout << "Fails " << count << " / " << num_points << " samples\n";
     CHECK(count == 0);
 
-    MT samples(d, num_points);
-    unsigned int jj = 0;
+    if(num_points >= 100){
+        MT samples(d, num_points);
+        unsigned int jj = 0;
 
-    for (typename PointList::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++){
-        samples.col(jj) = (*rpit).getCoefficients();
+        for (typename PointList::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++){
+            samples.col(jj) = (*rpit).getCoefficients();
+        }
+
+        VT score = univariate_psrf<NT, VT>(samples);
+        std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+        CHECK(score.maxCoeff() < 1.1);
     }
+}
 
-    VT score = univariate_psrf<NT, VT>(samples);
-    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+template<typename NT, typename VT, typename MT, typename PointList>
+void check_output2(PointList &randPoints, int num_points, int n){
+    int d = n*(n-1)/2, count = 0;
+    int i, j, k;
+    MT A;
+    Eigen::LDLT<MT> A_ldlt;
+    for(i = 0; i < num_points ; ++i){
+        A = MT::Identity(n,n);
+        for(j = 0; j < n ; ++j){
+            for(k = j+1 ; k < n ; ++k){
+                A(j,k) = A(k,j) = randPoints[i].mat(k,j);
+            }
+        }
+        A_ldlt = Eigen::LDLT<MT>(A);
+        if (A_ldlt.info() == Eigen::NumericalIssue || !A_ldlt.isPositive()){
+            ++count;
+        }
+    }
+    std::cout << "Fails " << count << " / " << num_points << " samples\n";
+    CHECK(count == 0);
 
-    CHECK(score.maxCoeff() < 1.1);
+    // MT samples(d, num_points);
+    // unsigned int jj = 0;
+
+    // for (typename PointList::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++){
+    //     samples.col(jj) = (*rpit).getCoefficients();
+    // }
+
+    // VT score = univariate_psrf<NT, VT>(samples);
+    // std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+    // CHECK(score.maxCoeff() < 1.1);
 }
 
 template <typename NT>
@@ -99,13 +135,13 @@ template
     typename WalkType,
     typename PointList
 >
-void test_old_uniform_correlation_matrices(unsigned int n, PointList &randPoints)
+void test_old_uniform_correlation_matrices(unsigned int n, const unsigned int num_points, PointList &randPoints)
 {
     typedef Cartesian<NT>                                               Kernel;
     typedef typename Kernel::Point                                      Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>           RNGType;
 
-    int num_points = 1000, walkL = 1;
+    unsigned int walkL = 1;
 
     direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
 }
@@ -116,13 +152,13 @@ template
     typename WalkType,
     typename PointList
 >
-void test_new_uniform_correlation_matrices(unsigned int n, PointList &randPoints)
+void test_new_uniform_correlation_matrices(unsigned int n, const unsigned int num_points, PointList &randPoints)
 {
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
-    int num_points = 1000, walkL = 1;
+    unsigned int walkL = 1;
 
     uniform_correlation_sampling<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, 0);
 }
@@ -133,12 +169,12 @@ template
     typename WalkType,
     typename PointList
 >
-void test_new_uniform_correlation_matrices2(unsigned int n, PointList &randPoints)
+void test_new_uniform_correlation_matrices2(unsigned int n, const unsigned int num_points, PointList &randPoints)
 {
     typedef CorreMatrix<NT>                                     Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
-    int num_points = 1000, walkL = 1;
+    unsigned int walkL = 1;
 
     uniform_correlation_sampling2<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, 0);
 }
@@ -149,19 +185,19 @@ template
     typename WalkType,
     typename PointList
 >
-void test_new_gaussian_correlation_matrices(unsigned int n, PointList &randPoints)
+void test_new_gaussian_correlation_matrices(unsigned int n, const unsigned int num_points, PointList &randPoints)
 {
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
     
-    int num_points = 1000, walkL = 1;
+    unsigned int walkL = 1;
 
     gaussian_correlation_sampling<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, NT(0.5));
 }
 
 template<typename NT>
-void call_test_old_billiard(const unsigned int n){
+void call_test_old_billiard(const unsigned int n, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
@@ -174,17 +210,17 @@ void call_test_old_billiard(const unsigned int n){
 
     start = std::chrono::steady_clock::now();
 
-    test_old_uniform_correlation_matrices<double, BilliardWalk>(n, randPoints);
+    test_old_uniform_correlation_matrices<double, BilliardWalk>(n, num_points, randPoints);
 
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    check_output<NT, VT, MT>(randPoints, 1000, n);
+    check_output<NT, VT, MT>(randPoints, num_points, n);
 }
 
 template<typename NT>
-void call_test_new_billiard(const unsigned int n){
+void call_test_new_billiard(const unsigned int n, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
@@ -197,17 +233,17 @@ void call_test_new_billiard(const unsigned int n){
 
     start = std::chrono::steady_clock::now();
 
-    test_new_uniform_correlation_matrices<double, BilliardWalk>(n, randPoints);
+    test_new_uniform_correlation_matrices<double, BilliardWalk>(n, num_points, randPoints);
 
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    check_output<NT, VT, MT>(randPoints, 1000, n);
+    check_output<NT, VT, MT>(randPoints, num_points, n);
 }
 
 template<typename NT>
-void call_test_new_billiard2(const unsigned int n){
+void call_test_new_billiard2(const unsigned int n, const unsigned int num_points = 1000){
     typedef CorreMatrix<NT>                                     Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
@@ -219,17 +255,17 @@ void call_test_new_billiard2(const unsigned int n){
 
     start = std::chrono::steady_clock::now();
 
-    test_new_uniform_correlation_matrices2<double, BilliardWalk>(n, randPoints);
+    test_new_uniform_correlation_matrices2<double, BilliardWalk>(n, num_points, randPoints);
 
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    // check_output<NT, VT, MT>(randPoints, 1000, n);
+    check_output2<NT, VT, MT>(randPoints, num_points, n);
 }
 
 template<typename NT>
-void call_test_new_ReHMC_gaussian(const unsigned int n){
+void call_test_new_ReHMC_gaussian(const unsigned int n, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
@@ -248,7 +284,7 @@ void call_test_new_ReHMC_gaussian(const unsigned int n){
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    check_output<NT, VT, MT>(randPoints, 1000, n);
+    check_output<NT, VT, MT>(randPoints, num_points, n);
 }
 
 TEST_CASE("corre_spectra") {
@@ -256,15 +292,15 @@ TEST_CASE("corre_spectra") {
 }
 
 TEST_CASE("old_billiard_uniform") {
-    call_test_old_billiard<double>(10);
+    call_test_old_billiard<double>(10,100);
 }
 
 TEST_CASE("new_billiard_uniform") {
-    call_test_new_billiard<double>(10);
+    call_test_new_billiard<double>(10,100);
 }
 
 TEST_CASE("new_billiard_uniform_2") {
-    call_test_new_billiard2<double>(10);
+    call_test_new_billiard2<double>(10,100);
 }
 
 // TEST_CASE("new_ReHMC_gaussian") {
