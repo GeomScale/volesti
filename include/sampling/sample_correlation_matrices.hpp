@@ -36,6 +36,7 @@ Spectrahedron<Point> prepare_input(int n){
     LMI<NT, MT, VT> lmi(lmi_mat);
     Spectrahedron<Point> spectra(lmi);
     spectra.set_interior_point(p);
+    spectra._inner_ball.second = 1/std::sqrt(d);
     return spectra;
 }
 

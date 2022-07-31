@@ -144,6 +144,11 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
     bool isExterior(MT const& mat) {
         return !this->EigenvaluesProblem.isPositiveSemidefinite(-mat);
     }
+
+    MT get_mat() const
+    {
+        return MT::Identity(this->d, this->d);
+    }
 };
 
 #endif //VOLESTI_CORRE_SPECTRAHEDRON_H

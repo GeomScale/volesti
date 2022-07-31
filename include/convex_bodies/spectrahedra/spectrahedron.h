@@ -122,6 +122,11 @@ public:
         return std::pair<PointType, NT>(_inner_ball.first, radius);
     }
 
+    std::pair<Point,NT> InnerBall() const
+    {
+        return _inner_ball;
+    }
+
     /// Construct the quadratic eigenvalue problem \[At^2 + Bt + C \] for positive_intersect.
     /// A = lmi(c) - A0, B = lmi(b) - A0 and C = lmi(c).
     /// \param[in] a Input vector

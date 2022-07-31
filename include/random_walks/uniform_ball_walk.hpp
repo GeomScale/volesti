@@ -68,7 +68,7 @@ struct BallWalk
         }
 
         template<typename BallPolytope>
-        inline void apply(BallPolytope const& P,
+        inline void apply(BallPolytope & P,
                           Point &p,   // a point to start
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
