@@ -25,6 +25,9 @@
 #include "preprocess/crhmc/crhmcProblem.h"
 #include "preprocess/crhmc/crhmc_input.h"
 
+#include "convex_bodies/hpolytope.h"
+#include "misc/misc.h"
+
 template <typename NT> void test_crhmc_polytope_preprocessing() {
   typedef Cartesian<NT> Kernel;
   typedef typename Kernel::Point Point;
@@ -32,6 +35,8 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
   typedef crhmcProblem<Point> CRHMC_PROBLEM;
   typedef crhmc_input<MT, NT> INPUT;
+  typedef HPolytope<Point> HPOLYTOPE;
+
   /*
   unsigned d = 2;
   unsigned m=5;
