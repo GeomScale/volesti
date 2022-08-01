@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2022-2022 Ioannis Iakovidis
+
+// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of Code 2022 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 #ifndef CRHMC_UTILS_H
 #define CRHMC_UTILS_H
 #include "Eigen/Eigen"
