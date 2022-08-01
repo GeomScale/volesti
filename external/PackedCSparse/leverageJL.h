@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2022 Ioannis Iakovidis
+
+// This file is converted from PolytopeSamplerMatlab
+//(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
+
 #pragma once
 #include <random>
 #include "SparseMatrix.h"
@@ -72,7 +81,7 @@ namespace PackedCSparse {
 
 		for (size_t i = 1; i <= k % k_step; i++)
 			projectionJL<1>(o, L, A, At);
-		
+
 		Tx ratio = Tx(1 / double(k));
 		for (Ti i = 0; i < n; i++)
 			x[i] *= ratio;
@@ -85,7 +94,7 @@ namespace PackedCSparse {
 		leverageJL(o, L, A, At, k);
 		return o;
 	}
-	
+
 
 	// compute (A' L^{-T} u_j) .* (A' L^{-T} v_j) for j = 1, 2, ... k
 	template<typename Tx, typename Ti, typename Tx2>
@@ -93,15 +102,15 @@ namespace PackedCSparse {
 	{
 		if (!o.initialized())
 			o.initialize(L, A, At);
-		
+
 		constexpr Ti k = JLPackedSize;
 		constexpr Ti k_ = 2 * k;
-		
-		
+
+
 		Ti m = A.m, n = A.n;
 		Tx T0 = Tx(0.0), T1 = Tx(1.0);
 		Tx* d = o.d.get(), * L_d = o.L_d.get(), * AtL_d = o.AtL_d.get(), * x = o.x.get();
-		
+
 		std::uniform_real_distribution<double> distribution(-sqrt(3.0),sqrt(3.0));
 		for (Ti i = 0; i < m * k_; i++)
 			d[i] = Tx(distribution(o.gen)); // roughly uniform distribution with variance 1
@@ -111,29 +120,29 @@ namespace PackedCSparse {
 
 		ltsolve(L, (BaseImpl<Tx, k_>*)d, (BaseImpl<Tx, k_>*)L_d);
 		gaxpy(At, (BaseImpl<Tx, k_>*)L_d, (BaseImpl<Tx, k_>*)AtL_d);
-		
+
 		Tx result[k];
 		for (Ti j = 0; j < k; j++)
 			result[j] = Tx(0.0);
-		
+
 		for (Ti i = 0; i < m; i++)
 		{
 			Tx* d = o.d.get() + i * (2 * k);
 			for (Ti j = 0; j < k; j++)
 				result[j] -= d[j] * d[j + k];
 		}
-		
+
 		for (Ti i = 0; i < n; i++)
 		{
 			Tx w_i = w[i];
 			for (Ti j = 0; j < k; j++)
 				result[j] += AtL_d[i * k_ + j] * AtL_d[i * k_ + j + k] * w_i;
 		}
-		
+
 		Tx est = Tx(0.0);
 		for (Ti j = 0; j < k; j++)
 			est += result[j] * result[j];
-		
+
 		return clipped_sqrt(est/Tx(double(k)), 0.0);
 	}
 }

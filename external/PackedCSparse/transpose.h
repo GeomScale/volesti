@@ -1,3 +1,11 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2022 Ioannis Iakovidis
+
+// This file is converted from PolytopeSamplerMatlab
+//(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
 #pragma once
 #include "SparseMatrix.h"
 
@@ -25,7 +33,7 @@ namespace PackedCSparse {
 
 			// compute row counts of A
 			Ti* count = new Ti[Bn + 1]();
-			
+
 			for (Ti p = 0; p < nz; p++)
 				count[Ai[p]]++;
 

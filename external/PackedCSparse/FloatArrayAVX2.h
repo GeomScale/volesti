@@ -1,23 +1,32 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2022 Ioannis Iakovidis
+
+// This file is converted from PolytopeSamplerMatlab
+//(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
+
 template<size_t k>
         struct m256dArray
 {
     __m256d x[k];
-    
+
     m256dArray() {};
-    
+
     m256dArray(const double rhs)
     {
         for (size_t i = 0; i < k; i++)
             x[i] = _mm256_set1_pd(rhs);
     }
-    
+
     template<size_t k2>
             m256dArray(const m256dArray<k2>& rhs)
     {
         for (size_t i = 0; i < k; i++)
             x[i] = rhs.x[i % k2];
     }
-    
+
     m256dArray operator+(const m256dArray& rhs) const
     {
         m256dArray out;
@@ -25,7 +34,7 @@ template<size_t k>
             out.x[i] = _mm256_add_pd(x[i], rhs.x[i]);
         return out;
     }
-    
+
     m256dArray operator-(const m256dArray& rhs) const
     {
         m256dArray out;
@@ -33,7 +42,7 @@ template<size_t k>
             out.x[i] = _mm256_sub_pd(x[i], rhs.x[i]);
         return out;
     }
-    
+
     m256dArray operator*(const m256dArray& rhs) const
     {
         m256dArray out;
@@ -41,7 +50,7 @@ template<size_t k>
             out.x[i] = _mm256_mul_pd(x[i], rhs.x[i]);
         return out;
     }
-    
+
     m256dArray operator/(const m256dArray& rhs) const
     {
         m256dArray out;
@@ -49,35 +58,35 @@ template<size_t k>
             out.x[i] = _mm256_div_pd(x[i], rhs.x[i]);
         return out;
     }
-    
+
     m256dArray& operator+=(const m256dArray& rhs)
     {
         for (size_t i = 0; i < k; i++)
             x[i] = _mm256_add_pd(x[i], rhs.x[i]);
         return *this;
     }
-    
+
     m256dArray& operator-=(const m256dArray& rhs)
     {
         for (size_t i = 0; i < k; i++)
             x[i] = _mm256_sub_pd(x[i], rhs.x[i]);
         return *this;
     }
-    
+
     m256dArray& operator*=(const m256dArray& rhs)
     {
         for (size_t i = 0; i < k; i++)
             x[i] = _mm256_mul_pd(x[i], rhs.x[i]);
         return *this;
     }
-    
+
     m256dArray& operator/=(const m256dArray& rhs)
     {
         for (size_t i = 0; i < k; i++)
             x[i] = _mm256_div_pd(x[i], rhs.x[i]);
         return *this;
     }
-    
+
     explicit operator bool() const
     {
         bool ret = false;
@@ -89,14 +98,14 @@ template<size_t k>
         }
         return ret;
     }
-    
+
     static double get(const m256dArray& x, size_t index)
     {
         double y[4];
         _mm256_store_pd(y, x.x[index / 4]);
         return y[index & 3];
     }
-    
+
     static void set(m256dArray& x, size_t index, double value)
     {
         __m256d v = _mm256_broadcast_sd(&value);
@@ -108,62 +117,62 @@ template<size_t k>
             default: x.x[index / 4] = _mm256_blend_pd(x.x[index / 4], v, 8); break;
         }
     }
-    
+
     static m256dArray abs(const m256dArray& x)
     {
         const __m256d mask = _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF));
-        
+
         m256dArray out;
         for (size_t i = 0; i < k; i++)
             out.x[i] = _mm256_and_pd(x.x[i], mask);
         return out;
     }
-    
+
     static m256dArray log(const m256dArray& x)
     {
         // gcc does not support _mm256_log_pd
         // Do it sequentially instead
-        
+
         //m256dArray out;
         //for (size_t i = 0; i < k; i++)
         //	out.x[i] = _mm256_log_pd(x.x[i]);
-        
+
         m256dArray out;
         for (size_t i = 0; i < 4*k; i++)
             set(out, i, std::log(get(x,i)));
         return out;
     }
-    
+
     static void fmadd(m256dArray& a, const m256dArray& b, const double& c)
     {
         auto cx = _mm256_set1_pd(c);
         for (size_t i = 0; i < k; i++)
             a.x[i] = _mm256_fmadd_pd(b.x[i], cx, a.x[i]);
     }
-    
+
     static void fnmadd(m256dArray& a, const m256dArray& b, const double& c)
     {
         auto cx = _mm256_set1_pd(c);
         for (size_t i = 0; i < k; i++)
             a.x[i] = _mm256_fnmadd_pd(b.x[i], cx, a.x[i]);
     }
-    
+
     static void fmadd(m256dArray& a, const m256dArray& b, const m256dArray& c)
     {
         for (size_t i = 0; i < k; i++)
             a.x[i] = _mm256_fmadd_pd(b.x[i], c.x[i], a.x[i]);
     }
-    
+
     static void fnmadd(m256dArray& a, const m256dArray& b, const m256dArray& c)
     {
         for (size_t i = 0; i < k; i++)
             a.x[i] = _mm256_fnmadd_pd(b.x[i], c.x[i], a.x[i]);
     }
-    
+
     static m256dArray clipped_sqrt(const m256dArray& x, const double nonpos_output)
     {
         m256dArray out;
-        
+
         const __m256d large = { nonpos_output, nonpos_output, nonpos_output, nonpos_output };
         const __m256d zero = _mm256_setzero_pd();
         for (size_t i = 0; i < k; i++)
@@ -174,7 +183,7 @@ template<size_t k>
         }
         return out;
     }
-    
+
     static m256dArray sign(std::mt19937_64& gen)
     {
         m256dArray out;
@@ -182,7 +191,7 @@ template<size_t k>
         const __m256d zero = _mm256_setzero_pd();
         const __m256d pos = _mm256_set_pd(1.0, 1.0, 1.0, 1.0);
         const __m256d neg = _mm256_set_pd(-1.0, -1.0, -1.0, -1.0);
-        
+
         unsigned long long seed = gen();
         for (size_t i = 0; i < k; i++)
         {
