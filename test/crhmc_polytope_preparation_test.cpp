@@ -32,11 +32,12 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
   typedef crhmcProblem<Point> CRHMC_PROBLEM;
   typedef crhmc_input<MT, NT> INPUT;
-
+  /*
   unsigned d = 2;
-  MT A = MT::Ones(5, d);
+  unsigned m=5;
+  MT A = MT::Ones(m, d);
   A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  VT b = 10 * VT::Ones(5, 1);
+  VT b = 10 * VT::Ones(m, 1);
   INPUT input = INPUT(d);
   input.Aineq = A;
   input.bineq = b;
@@ -44,6 +45,35 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
 
   CHECK(std::abs(P.y(0) - (-4.8342)) < 0.001);
   CHECK(std::abs(P.center(0) - 3.75986) < 0.001);
+*/
+  std::ifstream inp;
+  std::vector<std::vector<NT>> Pin;
+  std::string fileName("../metabolic_full_dim/polytope_e_coli.ine");
+  inp.open(fileName, std::ifstream::in);
+  read_pointset(inp, Pin);
+
+  HPOLYTOPE HP(Pin);
+  CRHMC_PROBLEM P = CRHMC_PROBLEM(HP);
+
+  int m = 174;
+  int n = 198;
+  std::ifstream testdata;
+  std::string fileName("../../examples/crhmc_prepare/coli_crhmc_polytope.txt");
+  testdata.open(fileName, std::ifstream::in);
+  int size;
+  testdata >> size;
+
+  CHECK(size == m);
+
+  CHECK(size == n);
+
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      NT Matrxidata;
+      testdata >> Matrxidata;
+      CHECK(std::abs(P.A(i, j) - (Matrxidata)) < 0.001);
+    }
+  }
 }
 
 template <typename NT> void call_test_crhmc_preprocesssing() {

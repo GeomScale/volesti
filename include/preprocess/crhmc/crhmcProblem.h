@@ -4,13 +4,15 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 // Copyright (c) 2022-2022 Ioannis Iakovidis
 
-// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of Code 2022 program.
+// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of
+// Code 2022 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with Riemannian Hamiltonian
-//Monte Carlo in a Constrained Space"
+// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
+// Riemannian Hamiltonian
+// Monte Carlo in a Constrained Space"
 #ifndef CRHMCPROBLEM_H
 #define CRHMCPROBLEM_H
 
@@ -462,6 +464,33 @@ public:
     std::cout << "center=\n";
     std::cout << center;
     std::cout << "\n";
+  }
+
+  void print(const char *fileName) {
+    std::ofstream myfile;
+    myfile.open(fileName);
+    myfile << equations() << "  " << dimension() << "\n";
+
+    myfile << MT(Asp);
+    myfile << "\n";
+
+    myfile << b;
+    myfile << "\n";
+
+    myfile << barrier->lb;
+    myfile << "\n";
+
+    myfile << barrier->ub;
+    myfile << "\n";
+
+    myfile << T;
+    myfile << "\n";
+
+    myfile << y;
+    myfile << "\n";
+
+    myfile << center;
+    myfile << "\n";
   }
 
   crhmcProblem(INPUT const &input) {

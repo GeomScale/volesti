@@ -58,6 +58,8 @@ int main(int argc, char *argv[]) {
   // HP2.print();
   //   std::cout << "\n";
   CRHMC_PROBLEM P2 = CRHMC_PROBLEM(HP2);
-  P2.print();
+
+  P2.print("coli_crhmc_polytope.txt");
+
   return 0;
 }
