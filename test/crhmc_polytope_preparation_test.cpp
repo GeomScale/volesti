@@ -63,8 +63,8 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   int m = 174;
   int n = 198;
   std::ifstream testdata;
-  std::string fileName("../../examples/crhmc_prepare/coli_crhmc_polytope.txt");
-  testdata.open(fileName, std::ifstream::in);
+  std::string testDataFileName("../../examples/crhmc_prepare/coli_crhmc_polytope.txt");
+  testdata.open(testDataFileName, std::ifstream::in);
   int size;
   testdata >> size;
 
