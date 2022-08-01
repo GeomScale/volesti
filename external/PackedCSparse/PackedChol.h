@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2022 Ioannis Iakovidis
+
+// This file is converted from PolytopeSamplerMatlab 
+//(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
+
 #pragma once
 #include "Eigen/Eigen"
 #include "SparseMatrix.h"
@@ -8,7 +17,6 @@
 #include "qd/dd_real.h"
 #include <random>
 #include <vector>
-
 using namespace PackedCSparse;
 
 template <typename Tin, typename Tout>
