@@ -208,7 +208,7 @@ else ()
   add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
   add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
   add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
-  
+
   add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
   add_test(NAME test_john COMMAND sampling_test -tc=john)
@@ -218,7 +218,7 @@ else ()
   add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
   add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
   add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-  
+
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
@@ -231,6 +231,22 @@ else ()
   add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
+
+	set(QDSOURCES
+		../../external/qd/bits.cc
+		../../external/qd/c_dd.cc
+		../../external/qd/c_qd.cc
+		../../external/qd/dd_const.cc
+		../../external/qd/dd_real.cc
+		../../external/qd/fpu.cc
+		../../external/qd/qd_const.cc
+		../../external/qd/qd_real.cc
+		../../external/qd/util.cc
+		)
+	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp ${QDSOURCES} $<TARGET_OBJECTS:test_main>)
+	add_test(NAME crhmc_polytope_test_preparation
+	COMMAND crhmc_polytope_preparation_test -tc=simple_example_crhmc)
+
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
@@ -341,6 +357,7 @@ else ()
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
 
