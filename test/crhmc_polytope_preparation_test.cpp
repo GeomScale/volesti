@@ -69,14 +69,15 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   testdata >> size;
 
   CHECK(size == m);
+  testdata >> size;
 
   CHECK(size == n);
-
+  MT A=MT(P.Asp);
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {
       NT Matrxidata;
       testdata >> Matrxidata;
-      CHECK(std::abs(P.A(i, j) - (Matrxidata)) < 0.001);
+      CHECK(std::abs(A(i, j) - (Matrxidata)) < 0.001);
     }
   }
 }
