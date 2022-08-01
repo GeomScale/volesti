@@ -1,12 +1,12 @@
 #ifndef ANALYTIC_CENTER_H
 #define ANALYTIC_CENTER_H
 #include "Eigen/Eigen"
-#include "PackedChol.h"
+#include "PackedCSparse/PackedChol.h"
+#include "preprocess/crhmc/crhmc_utils.h"
+#include "preprocess/crhmc/opts.h"
 #include "sos/barriers/TwoSidedBarrier.h"
 #include <fstream>
 #include <iostream>
-#include "crhmc_utils.h"
-#include "opts.h"
 
 #include <vector>
 #ifndef SIMD_LEN
@@ -25,9 +25,8 @@ typedef TwoSidedBarrier<NT> Barrier;
 typedef Eigen::Triplet<double> Triple;
 typedef opts<NT> Opts;
 
-
-
-std::tuple<VT, SpMat, VT> analytic_center(SpMat A, VT b, Barrier *f,Opts options,
+std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
+                                          Barrier *f, Opts const &options,
                                           VT x = VT::Zero(0, 1)) {
   // initial conditions
   int n = A.cols();
@@ -66,14 +65,13 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat A, VT b, Barrier *f,Opts options
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
         (primalErr > 10 * primalErrMin) || !feasible) {
       VT dist = f->boundary_distance(x);
-      NT th=options.ipmDistanceTol;
-      visit_lambda(dist,
-        [&idx,th](double v, int i, int j) {
-        if(v<th)
-            idx.push_back(i);
-          });
+      NT th = options.ipmDistanceTol;
+      visit_lambda(dist, [&idx, th](double v, int i, int j) {
+        if (v < th)
+          idx.push_back(i);
+      });
 
-      //idx = find(dist < ipmDistanceTol);
+      // idx = find(dist < ipmDistanceTol);
       if (idx.size() > 0) {
         break;
       }
@@ -85,24 +83,23 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat A, VT b, Barrier *f,Opts options
     VT out(m, 1);
     solver.solve(rs.data(), out.data());
     VT dr1 = A.transpose() * out;
-    VT in=A * Hinv.cwiseProduct(rx);
+    VT in = A * Hinv.cwiseProduct(rx);
     solver.solve(in.data(), out.data());
 
     VT dr2 = A.transpose() * out;
     VT dx1 = Hinv.cwiseProduct(dr1);
     VT dx2 = Hinv.cwiseProduct(rx - dr2);
 
-
     // compute the step size
     VT dx = dx1 + dx2;
     NT tGrad = std::min(f->step_size(x, dx), 1.0);
-     dx = dx1 + tGrad * dx2;
+    dx = dx1 + tGrad * dx2;
     NT tConst = std::min(0.99 * f->step_size(x, dx), 1.0);
-     tGrad = tGrad * tConst;
+    tGrad = tGrad * tConst;
 
     // make the step
-     x = x + tConst * dx;
-     lambda = lambda - dr2;
+    x = x + tConst * dx;
+    lambda = lambda - dr2;
 
     if (!f->feasible(x)) {
       break;
@@ -121,27 +118,28 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat A, VT b, Barrier *f,Opts options
   VT d;
   if (idx.size() == 0) {
     VT dist = f->boundary_distance(x);
-    NT th=options.ipmDistanceTol;
-    visit_lambda(dist,
-      [&idx,th](double v, int i, int j) {
-      if(v<th)
-          idx.push_back(i);
-        });
-    //idx = find(dist < ipmDistanceTol);
+    NT th = options.ipmDistanceTol;
+    visit_lambda(dist, [&idx, th](double v, int i, int j) {
+      if (v < th)
+        idx.push_back(i);
+    });
+    // idx = find(dist < ipmDistanceTol);
   }
 
   if (idx.size() > 0) {
     std::pair<VT, VT> pboundary = f->boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
-    A_= A_(idx);
+    A_ = A_(idx);
     std::vector<Triple> sparseIdx;
-    for (int i = 0; i < idx.size(); i++) {sparseIdx.push_back(Triple(i, i, A_(i)));}
-    C.setFromTriplets(sparseIdx.begin(),sparseIdx.end());
+    for (int i = 0; i < idx.size(); i++) {
+      sparseIdx.push_back(Triple(i, i, A_(i)));
+    }
+    C.setFromTriplets(sparseIdx.begin(), sparseIdx.end());
     d = b_(idx);
   } else {
-     C =MT::Zero(0,n).sparseView();
-     d = VT::Zero(0, 1);
+    C = MT::Zero(0, n).sparseView();
+    d = VT::Zero(0, 1);
   }
   return std::make_tuple(x, C, d);
 }

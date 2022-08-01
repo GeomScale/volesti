@@ -5,7 +5,6 @@
 
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
-#include "misc.h"
 #include <vector>
 
 template <typename Point> class TwoSidedBarrier {
@@ -25,9 +24,10 @@ public:
   std::vector<int> lowerIdx;
   std::vector<int> freeIdx;
   VT center;
-  NT inf = std::numeric_limits<NT>::infinity();
+  const NT max_step = 1e16; // largest step size
+  const NT inf = std::numeric_limits<NT>::infinity();
 
-  void set_bound(VT _lb, VT _ub) {
+  void set_bound(VT const &_lb, VT const &_ub) {
 
     lb = _lb;
     ub = _ub;
@@ -56,24 +56,22 @@ public:
 
     center = c;
   }
-  TwoSidedBarrier(VT _lb, VT _ub, int _vdim = 1) {
+  TwoSidedBarrier(VT const &_lb, VT const &_ub, int _vdim = 1) {
     set_bound(_lb, _ub);
     vdim = _vdim;
   }
 
-  VT gradient(VT x) {
+  VT gradient(VT const &x) {
     return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();
   }
 
-  VT hessian(VT x) {
+  VT hessian(VT const &x) {
     VT d = ((ub - x).cwiseProduct((ub - x))).cwiseInverse() +
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d;
   }
-  NT step_size(VT &x, VT v) {
+  NT step_size(VT const &x, VT const &v) {
     // Output the maximum step size from x with direction v.
-
-    NT max_step = 1e16; // largest step size
 
     // check positive direction
     VT temp = (v.array() > 0).select((ub - x).cwiseQuotient(v), max_step);
@@ -85,25 +83,25 @@ public:
 
     return std::min(t1, t2);
   }
-  VT boundary_distance(VT x) {
+  VT boundary_distance(VT const &x) {
     // Output the distance of x with its closest boundary for each
     // coordinate
 
     return ((x - lb).cwiseMin(ub - x)).cwiseAbs();
   }
 
-  bool feasible(VT x) {
+  bool feasible(VT const &x) {
     return (x.array() > lb.array() && x.array() < ub.array()).all();
   }
 
-  std::pair<VT, VT> analytic_center_oracle(VT &x) {
+  std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     //[~, g, h] = o.f_oracle(x);
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
     return std::make_pair(g + gradient(x), h + hessian(x));
   }
 
-  std::pair<VT, VT> lewis_center_oracle(VT &x, VT &w) {
+  std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
     //   [~, g, h] = o.f_oracle(x);
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
@@ -111,23 +109,19 @@ public:
                           h + w.cwiseProduct(hessian(x)));
   }
 
-
-  std::pair<VT, VT>  boundary(VT & x) {
+  std::pair<VT, VT> boundary(VT const &x) {
     // Output the normal at the boundary around x for each barrier.
     // Assume: only 1 vector is given
 
-    VT A = VT::Ones(x.rows(),1);
+    VT A = VT::Ones(x.rows(), 1);
 
     VT b = ub;
 
-    b = ( x.array() < center.array()).select(-lb , b);
+    b = (x.array() < center.array()).select(-lb, b);
 
-    A = ( x.array() < center.array()).select(-A , A);
-
+    A = (x.array() < center.array()).select(-A, A);
 
     return std::make_pair(A, b);
   }
-
-
 };
 #endif

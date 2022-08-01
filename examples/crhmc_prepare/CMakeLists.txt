@@ -77,34 +77,18 @@ else ()
 
   include_directories (BEFORE ../../external)
   include_directories (BEFORE ../../external/minimum_ellipsoid)
-  include_directories (BEFORE ../../include/generators)
-  include_directories (BEFORE ../../include/volume)
   include_directories (BEFORE ../../include/)
-  include_directories (BEFORE ../../include/preprocess)
-  include_directories (BEFORE ../../include/convex_bodies)
-  include_directories (BEFORE ../../include/random_walks)
-  include_directories (BEFORE ../../include/random_walks/crhmc)
-  include_directories (BEFORE ../../include/annealing)
-  include_directories (BEFORE ../../include/ode_solvers)
-  include_directories (BEFORE ../../include/root_finders)
-  include_directories (BEFORE ../../include/samplers)
-  include_directories (BEFORE ../../include/lp_oracles)
-  include_directories (BEFORE ../../include/nlp_oracles)
-  include_directories (BEFORE ../../include/misc)
-  include_directories (BEFORE ../../include/optimization)
-  include_directories (BEFORE ../../include/preprocess/crhmc/PackedCSparse)
-  include_directories (BEFORE ../../preprocess/crhmc/crhmc_prepare/pd)
 
   set(SOURCES
-    ../../include/preprocess/crhmc/qd/bits.cc
-    ../../include/preprocess/crhmc/qd/c_dd.cc
-    ../../include/preprocess/crhmc/qd/c_qd.cc
-    ../../include/preprocess/crhmc/qd/dd_const.cc
-    ../../include/preprocess/crhmc/qd/dd_real.cc
-    ../../include/preprocess/crhmc/qd/fpu.cc
-    ../../include/preprocess/crhmc/qd/qd_const.cc
-    ../../include/preprocess/crhmc/qd/qd_real.cc
-    ../../include/preprocess/crhmc/qd/util.cc
+    ../../external/qd/bits.cc
+    ../../external/qd/c_dd.cc
+    ../../external/qd/c_qd.cc
+    ../../external/qd/dd_const.cc
+    ../../external/qd/dd_real.cc
+    ../../external/qd/fpu.cc
+    ../../external/qd/qd_const.cc
+    ../../external/qd/qd_real.cc
+    ../../external/qd/util.cc
         )
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -115,7 +99,7 @@ else ()
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-  add_definitions(${CMAKE_CXX_FLAGS} "-O3 -g")  # optimization of the compiler
+  add_definitions(${CMAKE_CXX_FLAGS} "-O3 ")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")

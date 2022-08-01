@@ -10,5 +10,5 @@ For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 
 ## Running:
 ```bash
- ./hpolytopeVolume
+ ./crhmc_prepare
 ```
