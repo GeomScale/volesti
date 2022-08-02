@@ -4,13 +4,15 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 // Copyright (c) 2022-2022 Ioannis Iakovidis
 
-// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of Code 2022 program.
+// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of
+// Code 2022 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with Riemannian Hamiltonian
-//Monte Carlo in a Constrained Space"
+// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
+// Riemannian Hamiltonian
+// Monte Carlo in a Constrained Space"
 #ifndef ANALYTIC_CENTER_H
 #define ANALYTIC_CENTER_H
 #include "Eigen/Eigen"
@@ -27,19 +29,18 @@
 #endif
 const size_t chol_k2 = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-typedef double NT;
-typedef Cartesian<NT> Kernel;
-typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-typedef Eigen::SparseMatrix<NT> SpMat;
-using Tx2 = FloatArray<double, chol_k2>;
-typedef PackedChol<chol_k2, int> CholObj;
-typedef TwoSidedBarrier<NT> Barrier;
-typedef Eigen::Triplet<double> Triple;
-typedef opts<NT> Opts;
+using NT=double;
+using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using SpMat= Eigen::SparseMatrix<NT>;
+using CholObj=PackedChol<chol_k2, int>;
+using Triple=Eigen::Triplet<double>;
+using Barrier=TwoSidedBarrier<NT>;
+using Tx = FloatArray<double, chol_k2>;
+using Opts=opts<NT>;
 
 std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
-                                          Barrier  &f, Opts const &options,
+                                          Barrier &f, Opts const &options,
                                           VT x = VT::Zero(0, 1)) {
   // initial conditions
   int n = A.cols();

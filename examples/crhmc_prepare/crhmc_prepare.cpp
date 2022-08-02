@@ -22,28 +22,28 @@
 #include <iostream>
 #include <vector>
 
-typedef double NT;
-typedef Cartesian<NT> Kernel;
-typedef typename Kernel::Point Point;
-typedef HPolytope<Point> HPOLYTOPE;
-typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-typedef crhmcProblem<Point> CRHMC_PROBLEM;
-typedef crhmc_input<MT, NT> INPUT;
+using NT=double;
+using Kernel=Cartesian<NT>;
+using Point=Kernel::Point;
+using PolytopeType=HPolytope<Point>;
+using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using CrhmcProblem=crhmcProblem<Point>;
+using Input=crhmc_input<MT, NT>;
 
 int main(int argc, char *argv[]) {
   unsigned d = 2;
   MT A = MT::Ones(5, d);
   A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
   VT b = 10 * VT::Ones(5, 1);
-  HPOLYTOPE HP1 = HPolytope<Point>(d, A, b);
+  PolytopeType HP1 = HPolytope<Point>(d, A, b);
   std::cout << "Polytope HP1: \n";
   HP1.print();
   std::cout << "\n";
-  INPUT input = INPUT(d);
+  Input input = Input(d);
   input.Aineq = A;
   input.bineq = b;
-  CRHMC_PROBLEM P1 = CRHMC_PROBLEM(input);
+  CrhmcProblem P1 = CrhmcProblem(input);
   P1.print();
 
   std::string fileName("../../test/metabolic_full_dim/polytope_e_coli.ine");
@@ -53,17 +53,17 @@ int main(int argc, char *argv[]) {
   inp.open(fileName, std::ifstream::in);
   read_pointset(inp, Pin);
 
-  HPOLYTOPE HP2(Pin);
+  PolytopeType HP2(Pin);
   // std::cout << "Polytope HP2: \n";
   // HP2.print();
   //   std::cout << "\n";
   d=HP2.dimension();
-  INPUT input2 = INPUT(d);
+  Input input2 = Input(d);
   input2.Aineq=HP2.get_mat();
   input2.bineq=HP2.get_vec();
-  CRHMC_PROBLEM P2 = CRHMC_PROBLEM(input2);
+  CrhmcProblem P2 = CrhmcProblem(input2);
 
-  P2.print("coli_crhmc_polytope.txt");
+  //P2.print("coli_crhmc_polytope.txt");
 
   return 0;
 }

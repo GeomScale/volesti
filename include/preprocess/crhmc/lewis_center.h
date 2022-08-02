@@ -28,16 +28,15 @@
 #endif
 const size_t chol_k3 = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-typedef double NT;
-typedef Cartesian<NT> Kernel;
-typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-typedef Eigen::SparseMatrix<NT> SpMat;
-using Tx2 = FloatArray<double, chol_k3>;
-typedef PackedChol<chol_k3, int> CholObj;
-typedef TwoSidedBarrier<NT> Barrier;
-typedef Eigen::Triplet<double> Triple;
-typedef opts<NT> Opts;
+using NT=double;
+using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using SpMat= Eigen::SparseMatrix<NT>;
+using CholObj=PackedChol<chol_k3, int>;
+using Triple=Eigen::Triplet<double>;
+using Barrier=TwoSidedBarrier<NT>;
+using Tx = FloatArray<double, chol_k3>;
+using Opts=opts<NT>;
 
 std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
                                            Barrier  &f, Opts const &options,
@@ -120,7 +119,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // update weight
     VT w_vector(n, 1);
-    solver.leverageScoreComplement((Tx2 *)w_vector.data());
+    solver.leverageScoreComplement(w_vector.data());
 
     VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) * 1e-8;
     w = (w + wNew) / 2;

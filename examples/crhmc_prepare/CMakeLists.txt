@@ -79,7 +79,7 @@ else ()
   include_directories (BEFORE ../../external/minimum_ellipsoid)
   include_directories (BEFORE ../../include/)
 
-  set(SOURCES
+  set(QD_SOURCES
     ../../external/qd/bits.cc
     ../../external/qd/c_dd.cc
     ../../external/qd/c_qd.cc
@@ -105,7 +105,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  add_executable (crhmc_prepare crhmc_prepare.cpp ${SOURCES})
+  add_executable (crhmc_prepare crhmc_prepare.cpp ${QD_SOURCES})
   TARGET_LINK_LIBRARIES(crhmc_prepare ${LP_SOLVE})
 
 endif()

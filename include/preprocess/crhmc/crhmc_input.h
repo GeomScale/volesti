@@ -17,8 +17,8 @@
 #include "opts.h"
 
 template <typename MatrixType, typename Type> class crhmc_input {
-  typedef Eigen::Matrix<Type, Eigen::Dynamic, 1> VT;
-
+  using VT=Eigen::Matrix<Type, Eigen::Dynamic, 1>;
+  
 public:
   MatrixType Aineq;
   VT bineq;

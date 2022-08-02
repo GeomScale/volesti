@@ -29,13 +29,13 @@
 #include "misc/misc.h"
 
 template <typename NT> void test_crhmc_polytope_preprocessing() {
-  typedef Cartesian<NT> Kernel;
-  typedef typename Kernel::Point Point;
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-  typedef crhmcProblem<Point> CRHMC_PROBLEM;
-  typedef crhmc_input<MT, NT> INPUT;
-  typedef HPolytope<Point> HPOLYTOPE;
+  using Kernel=Cartesian<NT>;
+  using Point=Kernel::Point;
+  using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using CrhmcProblem=crhmcProblem<Point>;
+  using Input=crhmc_input<MT, NT>;
+  using PolytopeType=HPolytope<Point>;
 
   /*
   unsigned d = 2;
@@ -43,10 +43,10 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   MT A = MT::Ones(m, d);
   A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
   VT b = 10 * VT::Ones(m, 1);
-  INPUT input = INPUT(d);
+  Input input = Input(d);
   input.Aineq = A;
   input.bineq = b;
-  CRHMC_PROBLEM P = CRHMC_PROBLEM(input);
+  CrhmcProblem P = CrhmcProblem(input);
 
   CHECK(std::abs(P.y(0) - (-4.8342)) < 0.001);
   CHECK(std::abs(P.center(0) - 3.75986) < 0.001);
@@ -57,13 +57,13 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   inp.open(fileName, std::ifstream::in);
   read_pointset(inp, Pin);
 
-  HPOLYTOPE HP(Pin);
+  PolytopeType HP(Pin);
   int d = HP.dimension();
-  INPUT input = INPUT(d);
+  Input input = Input(d);
   input.Aineq = HP.get_mat();
   input.bineq = HP.get_vec();
-  CRHMC_PROBLEM P = CRHMC_PROBLEM(input);
-  // CRHMC_PROBLEM P = CRHMC_PROBLEM(HP);
+  CrhmcProblem P = CrhmcProblem(input);
+  // CrhmcProblem P = CrhmcProblem(HP);
 
   int m = 342;
   int n = 366;

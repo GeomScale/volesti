@@ -36,23 +36,23 @@
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-template <typename Point> class crhmcProblem {
+template <typename Point>
+class crhmcProblem {
 public:
-  typedef double NT;
-  typedef Cartesian<NT> Kernel;
-  typedef HPolytope<Point> HPOLYTOPE;
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-  typedef Eigen::SparseMatrix<NT> SpMat;
-  typedef Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int> PM;
-  typedef Eigen::Matrix<int, Eigen::Dynamic, 1> IndexVector;
-  typedef PackedChol<chol_k, int> CholObj;
-  typedef Eigen::Triplet<double> Triple;
-  typedef TwoSidedBarrier<NT> SimpleBarrier;
-  using Tx2 = FloatArray<double, chol_k>;
-  typedef opts<NT> Opts;
-  typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
-  typedef crhmc_input<MT, NT> INPUT;
+  using NT=double;
+  using PolytopeType=HPolytope<Point>;
+  using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using SpMat= Eigen::SparseMatrix<NT>;
+  using PM=Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int>;
+  using IndexVector= Eigen::Matrix<int, Eigen::Dynamic, 1>;
+  using CholObj=PackedChol<chol_k, int>;
+  using Triple=Eigen::Triplet<double>;
+  using Barrier=TwoSidedBarrier<NT>;
+  using Tx = FloatArray<double, chol_k>;
+  using Opts=opts<NT>;
+  using Diagonal_MT=Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;
+  using Input=crhmc_input<MT, NT>;
 
   unsigned int _d; // dimension
   MT A;            // matrix A
@@ -65,7 +65,7 @@ public:
   VT y;
   Opts options;
   VT width;
-  SimpleBarrier barrier;
+  Barrier barrier;
   SpMat Asp; // matrix A
   bool isempty_center = true;
   VT center = VT::Zero(0, 1);
@@ -80,7 +80,7 @@ public:
     VT w = VT::Ones(n, 1);
     double ac = solver.decompose(w.data());
     VT out_vector = VT(m, 1);
-    solver.solve((Tx2 *)b.data(), (Tx2 *)out_vector.data());
+    solver.solve(b.data(), out_vector.data());
     VT x = Asp.transpose() * out_vector;
 
     x = ((x.array()).abs() < tol).select(0., x);
@@ -418,7 +418,7 @@ public:
     CholObj solver = CholObj(Asp);
     solver.decompose(hess.data());
     VT w_vector(n, 1);
-    solver.leverageScoreComplement((Tx2 *)w_vector.data());
+    solver.leverageScoreComplement(w_vector.data());
     // VT w_vector = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 1>>(w, n,
     w_vector = (w_vector.cwiseMax(0)).cwiseProduct(hess.cwiseInverse());
     VT tau = w_vector.cwiseSqrt();
@@ -500,7 +500,7 @@ public:
     myfile << center;
   }
 
-  crhmcProblem(INPUT const &input) {
+  crhmcProblem(Input const &input) {
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
     int nEq = input.Aeq.rows();
@@ -583,7 +583,7 @@ public:
       exit(1);
     }
   }
-  crhmcProblem(HPOLYTOPE const &HP) {
+  crhmcProblem(PolytopeType const &HP) {
     /*Tansform the problem to the form Ax=b lb<=x<=ub*/
 
     nP = HP.dimension();
