@@ -61,7 +61,7 @@ public:
   VT ub;
   int nP;
   // CholObj *solver;
-  MT T; // matrix T
+  SpMat T; // matrix T
   VT y;
   Opts options;
   VT width;
@@ -299,22 +299,11 @@ public:
       sparse_stack_v(Asp, Ai, A_);
       Asp = A_;
       Asp.makeCompressed();
-      /*
-      VT _b=b;
-      b.resize(m + numBadCols,1);
-      b << _b, VT::Zero(numBadCols,1);
-      _b.resize(n,1);
-      _b=lb;
-      lb.resize(n + numBadCols,1);
-      lb << _b, _b(badCols);
-      _b=ub;
-      ub.resize(n + numBadCols,1);
-      ub <<_b, _b(badCols);
-      */
     }
-    MT _T = T;
-    T.resize(T.rows(), ub.rows());
-    T << _T, MT::Zero(T.rows(), ub.rows() - _T.cols()), updateT();
+    SpMat _T=MT::Zero(T.rows(), ub.rows() - T.cols()).sparseView();
+    sparse_stack_h_inplace(T,_T);
+    T.makeCompressed();
+    updateT();
     barrier.set_bound(lb, ub);
   }
 
@@ -456,7 +445,7 @@ public:
     std::cout << "\n";
 
     std::cout << "T=\n";
-    std::cout << T;
+    std::cout << MT(T);
     std::cout << "\n";
 
     std::cout << "y=\n";
@@ -489,7 +478,7 @@ public:
     myfile << "\n";
     myfile << "\n";
 
-    myfile << T;
+    myfile << MT(T);
     myfile << "\n";
     myfile << "\n";
 
@@ -538,8 +527,12 @@ public:
     Asp = A.sparseView();
 
     /*Update the transformation Tx + y*/
-    T = MT::Zero(nP, n);
-    T.block(0, 0, nP, nP) = MT::Identity(nP, nP);
+    T=SpMat(nP,n);
+    std::vector<Triple> indices;
+    for(int i=0;i<nP;i++){
+      indices.push_back(Triple(i,i,1));
+    }
+    T.setFromTriplets(indices.begin(),indices.end());
     updateT();
     y = VT::Zero(nP, 1);
     /*Simplify*/
