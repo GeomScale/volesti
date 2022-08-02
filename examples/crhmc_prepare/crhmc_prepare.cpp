@@ -57,7 +57,11 @@ int main(int argc, char *argv[]) {
   // std::cout << "Polytope HP2: \n";
   // HP2.print();
   //   std::cout << "\n";
-  CRHMC_PROBLEM P2 = CRHMC_PROBLEM(HP2);
+  d=HP2.dimension();
+  INPUT input2 = INPUT(d);
+  input2.Aineq=HP2.get_mat();
+  input2.bineq=HP2.get_vec();
+  CRHMC_PROBLEM P2 = CRHMC_PROBLEM(input2);
 
   P2.print("coli_crhmc_polytope.txt");
 

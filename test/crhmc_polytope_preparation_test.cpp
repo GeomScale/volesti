@@ -58,12 +58,17 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   read_pointset(inp, Pin);
 
   HPOLYTOPE HP(Pin);
-  CRHMC_PROBLEM P = CRHMC_PROBLEM(HP);
+  d=HP2.dimension();
+  INPUT input = INPUT(d);
+  input.Aineq=HP2.get_mat();
+  input.bineq=HP2.get_vec();
+  CRHMC_PROBLEM P = CRHMC_PROBLEM(input);
+  //CRHMC_PROBLEM P = CRHMC_PROBLEM(HP);
 
   int m = 174;
   int n = 198;
   std::ifstream testdata;
-  std::string testDataFileName("../../examples/crhmc_prepare/coli_crhmc_polytope.txt");
+  std::string testDataFileName("../../examples/crhmc_prepare/outputMatrix.txt");
   testdata.open(testDataFileName, std::ifstream::in);
   int size;
   testdata >> size;

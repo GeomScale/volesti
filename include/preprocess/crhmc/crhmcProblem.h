@@ -70,8 +70,8 @@ public:
   bool isempty_center = true;
   VT center = VT::Zero(0, 1);
   VT w_center;
-  int equations() const { return A.rows(); }
-  int dimension() const { return A.cols(); }
+  int equations() const { return Asp.rows(); }
+  int dimension() const { return Asp.cols(); }
   int remove_fixed_variables(const NT tol = 1e-12) {
     int m = Asp.rows();
     int n = Asp.cols();
@@ -255,12 +255,16 @@ public:
     if (m <= maxnz) {
       return;
     }
-    if (Asp.nonZeros() > maxnz * Asp.cols()) {
+    if (Asp.nonZeros() > maxnz * n) {
       return;
     }
     int numBadCols = 1;
+    lb = barrier->lb;
+    ub = barrier->ub;
 
     while (numBadCols > 0) {
+      m = Asp.rows();
+      n = Asp.cols();
       std::vector<int> colCounts(n);
       std::vector<int> badCols;
       numBadCols = 0;
@@ -276,19 +280,19 @@ public:
       }
       */
       std::tie(colCounts, badCols) = nnzPerColumn(Asp, maxnz);
+      numBadCols = badCols.size();
       if (numBadCols == 0) {
         break;
       }
-      m = Asp.rows();
-      n = Asp.cols();
+
       SpMat A_;
       SpMat Aj(m, numBadCols);
       SpMat Ai(numBadCols, n + numBadCols);
       std::vector<Triple> newColumns;
       std::vector<Triple> newRows;
-      lb.resize(n + numBadCols);
-      ub.resize(n + numBadCols);
-      b.resize(m + numBadCols);
+      b.conservativeResize(m + numBadCols, 1);
+      lb.conservativeResize(n + numBadCols, 1);
+      ub.conservativeResize(n + numBadCols, 1);
 
       for (int j = 0; j < numBadCols; j++) {
         int i = badCols[j];
@@ -312,7 +316,24 @@ public:
       sparse_stack_v(Asp, Ai, A_);
       Asp = A_;
       Asp.makeCompressed();
+      /*
+      VT _b=b;
+      b.resize(m + numBadCols,1);
+      b << _b, VT::Zero(numBadCols,1);
+      _b.resize(n,1);
+      _b=lb;
+      lb.resize(n + numBadCols,1);
+      lb << _b, _b(badCols);
+      _b=ub;
+      ub.resize(n + numBadCols,1);
+      ub <<_b, _b(badCols);
+      */
     }
+     MT _T=T;
+      T.resize(T.rows(),ub.rows());
+      T <<_T, MT::Zero(T.rows(),ub.rows()-_T.cols()),
+    updateT();
+    barrier->set_bound(lb, ub);
   }
 
   template <typename MatrixType>
@@ -334,6 +355,9 @@ public:
     }
   }
   void reorder() {
+    if (!options.EnableReordering) {
+      return;
+    }
     int m = Asp.rows();
     SpMat H;
     H = Asp * SpMat(Asp.transpose()) + MT::Identity(m, m);
@@ -391,6 +415,7 @@ public:
     rescale();
 
     splitDenseCols(options.maxNZ);
+
     reorder();
 
     int changed = 1;
@@ -469,28 +494,33 @@ public:
   void print(const char *fileName) {
     std::ofstream myfile;
     myfile.open(fileName);
-    myfile << equations() << "  " << dimension() << "\n";
+    myfile << Asp.rows() << "  " << Asp.cols() << "\n";
 
     myfile << MT(Asp);
+    myfile << "\n";
     myfile << "\n";
 
     myfile << b;
     myfile << "\n";
+    myfile << "\n";
 
     myfile << barrier->lb;
+    myfile << "\n";
     myfile << "\n";
 
     myfile << barrier->ub;
     myfile << "\n";
+    myfile << "\n";
 
     myfile << T;
+    myfile << "\n";
     myfile << "\n";
 
     myfile << y;
     myfile << "\n";
+    myfile << "\n";
 
     myfile << center;
-    myfile << "\n";
   }
 
   crhmcProblem(INPUT const &input) {
@@ -506,7 +536,7 @@ public:
     ub.resize(nP + nIneq, 1);
     lb << input.lb, MT::Zero(nIneq, 1);
     ub << input.ub, MT::Ones(nIneq, 1) * std::numeric_limits<NT>::infinity();
-
+    Asp.resize(nEq + nIneq, nP + nIneq);
     PreproccessProblem();
   }
   void PreproccessProblem() {
@@ -535,7 +565,6 @@ public:
     T.block(0, 0, nP, nP) = MT::Identity(nP, nP);
     updateT();
     y = VT::Zero(nP, 1);
-
     /*Simplify*/
     simplify();
 
@@ -589,7 +618,7 @@ public:
     A << HP.get_mat(), MT::Identity(m, m);
     b = HP.get_vec();
     n = dimension();
-    lb = VT::Zero(n, 1);
+    lb = -VT::Ones(n) * std::numeric_limits<NT>::infinity();
     ub = VT::Ones(n) * std::numeric_limits<NT>::infinity();
     PreproccessProblem();
   }
