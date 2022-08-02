@@ -233,15 +233,15 @@ else ()
           COMMAND root_finders_test -tc=root_finders)
 
 	set(QDSOURCES
-		../../external/qd/bits.cc
-		../../external/qd/c_dd.cc
-		../../external/qd/c_qd.cc
-		../../external/qd/dd_const.cc
-		../../external/qd/dd_real.cc
-		../../external/qd/fpu.cc
-		../../external/qd/qd_const.cc
-		../../external/qd/qd_real.cc
-		../../external/qd/util.cc
+		../external/qd/bits.cc
+		../external/qd/c_dd.cc
+		../external/qd/c_qd.cc
+		../external/qd/dd_const.cc
+		../external/qd/dd_real.cc
+		../external/qd/fpu.cc
+		../external/qd/qd_const.cc
+		../external/qd/qd_real.cc
+		../external/qd/util.cc
 		)
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp ${QDSOURCES} $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
