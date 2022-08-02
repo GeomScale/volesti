@@ -39,13 +39,13 @@ typedef Eigen::Triplet<double> Triple;
 typedef opts<NT> Opts;
 
 std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
-                                          Barrier *f, Opts const &options,
+                                          Barrier  &f, Opts const &options,
                                           VT x = VT::Zero(0, 1)) {
   // initial conditions
   int n = A.cols();
   int m = A.rows();
-  if (x.rows() == 0 || !f->feasible(x)) {
-    x = f->center;
+  if (x.rows() == 0 || !f.feasible(x)) {
+    x = f.center;
   }
 
   VT lambda = VT::Zero(n, 1);
@@ -61,7 +61,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
   CholObj solver = CholObj(A);
 
   for (int iter = 0; iter < options.ipmMaxIter; iter++) {
-    std::pair<VT, VT> pair_analytic_oracle = f->analytic_center_oracle(x);
+    std::pair<VT, VT> pair_analytic_oracle = f.analytic_center_oracle(x);
     VT grad = pair_analytic_oracle.first;
     VT hess = pair_analytic_oracle.second;
 
@@ -74,10 +74,10 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
     NT primalErr = rx.norm() / primalFactor;
     NT dualErrLast = dualErr;
     NT dualErr = rs.norm() / dualFactor;
-    bool feasible = f->feasible(x);
+    bool feasible = f.feasible(x);
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
         (primalErr > 10 * primalErrMin) || !feasible) {
-      VT dist = f->boundary_distance(x);
+      VT dist = f.boundary_distance(x);
       NT th = options.ipmDistanceTol;
       visit_lambda(dist, [&idx, th](double v, int i, int j) {
         if (v < th)
@@ -105,16 +105,16 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
 
     // compute the step size
     VT dx = dx1 + dx2;
-    NT tGrad = std::min(f->step_size(x, dx), 1.0);
+    NT tGrad = std::min(f.step_size(x, dx), 1.0);
     dx = dx1 + tGrad * dx2;
-    NT tConst = std::min(0.99 * f->step_size(x, dx), 1.0);
+    NT tConst = std::min(0.99 * f.step_size(x, dx), 1.0);
     tGrad = tGrad * tConst;
 
     // make the step
     x = x + tConst * dx;
     lambda = lambda - dr2;
 
-    if (!f->feasible(x)) {
+    if (!f.feasible(x)) {
       break;
     }
 
@@ -130,7 +130,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
   SpMat C;
   VT d;
   if (idx.size() == 0) {
-    VT dist = f->boundary_distance(x);
+    VT dist = f.boundary_distance(x);
     NT th = options.ipmDistanceTol;
     visit_lambda(dist, [&idx, th](double v, int i, int j) {
       if (v < th)
@@ -140,7 +140,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
   }
 
   if (idx.size() > 0) {
-    std::pair<VT, VT> pboundary = f->boundary(x);
+    std::pair<VT, VT> pboundary = f.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
     A_ = A_(idx);

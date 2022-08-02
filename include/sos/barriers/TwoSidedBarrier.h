@@ -74,6 +74,9 @@ public:
     set_bound(_lb, _ub);
     vdim = _vdim;
   }
+  TwoSidedBarrier(){
+    vdim=1;
+  }
 
   VT gradient(VT const &x) {
     return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();

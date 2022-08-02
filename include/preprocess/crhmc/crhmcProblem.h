@@ -65,7 +65,7 @@ public:
   VT y;
   Opts options;
   VT width;
-  SimpleBarrier *barrier;
+  SimpleBarrier barrier;
   SpMat Asp; // matrix A
   bool isempty_center = true;
   VT center = VT::Zero(0, 1);
@@ -77,16 +77,10 @@ public:
     int n = Asp.cols();
     VT d = estimate_width();
     CholObj solver = CholObj(Asp);
-    double *w = new double[n];
-    for (int i = 0; i < n; i++) {
-      w[i] = 1;
-    }
-    double ac = solver.decompose(w);
-    double *out = new double[m];
-    double *b_pointer = b.data();
-    solver.solve((Tx2 *)b_pointer, (Tx2 *)out);
-    VT out_vector =
-        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 1>>(out, m, 1);
+    VT w = VT::Ones(n, 1);
+    double ac = solver.decompose(w.data());
+    VT out_vector = VT(m, 1);
+    solver.solve((Tx2 *)b.data(), (Tx2 *)out_vector.data());
     VT x = Asp.transpose() * out_vector;
 
     x = ((x.array()).abs() < tol).select(0., x);
@@ -210,7 +204,7 @@ public:
     if (x.rows() == 0) {
       hess = VT::Ones(dimension(), 1);
     } else {
-      std::tie(std::ignore, hess) = barrier->analytic_center_oracle(x);
+      std::tie(std::ignore, hess) = barrier.analytic_center_oracle(x);
       hess = hess + (width.cwiseProduct(width)).cwiseInverse();
     }
     VT scale = (hess.cwiseSqrt()).cwiseInverse();
@@ -221,8 +215,8 @@ public:
     std::tie(cscale, rscale) = gmscale(Ain, 0.9);
     Asp = (rscale.cwiseInverse()).asDiagonal() * Asp;
     b = b.cwiseQuotient(rscale);
-    barrier->set_bound(barrier->lb.cwiseProduct(cscale),
-                       barrier->ub.cwiseProduct(cscale));
+    barrier.set_bound(barrier.lb.cwiseProduct(cscale),
+                      barrier.ub.cwiseProduct(cscale));
     append_map((cscale.cwiseInverse()).asDiagonal(), VT::Zero(dimension(), 1));
     if (!isempty_center) {
       center = center.cwiseProduct(cscale);
@@ -259,8 +253,8 @@ public:
       return;
     }
     int numBadCols = 1;
-    lb = barrier->lb;
-    ub = barrier->ub;
+    lb = barrier.lb;
+    ub = barrier.ub;
 
     while (numBadCols > 0) {
       m = Asp.rows();
@@ -268,17 +262,6 @@ public:
       std::vector<int> colCounts(n);
       std::vector<int> badCols;
       numBadCols = 0;
-      /*
-      for (int i = 0; i < Asp.cols(); i++) {
-        colCounts[i] = Asp.col(i).nonZeros();
-        //std::cout<<i<<" colCounts"<<colCounts[i]<<"\n";
-        if (colCounts[i] > maxnz) {
-          std::cout<<"Bad Column "<<i<<" colCounts "<<colCounts[i]<<"\n";
-          numBadCols++;
-          badCols.push_back(i);
-        }
-      }
-      */
       std::tie(colCounts, badCols) = nnzPerColumn(Asp, maxnz);
       numBadCols = badCols.size();
       if (numBadCols == 0) {
@@ -329,11 +312,10 @@ public:
       ub <<_b, _b(badCols);
       */
     }
-     MT _T=T;
-      T.resize(T.rows(),ub.rows());
-      T <<_T, MT::Zero(T.rows(),ub.rows()-_T.cols()),
-    updateT();
-    barrier->set_bound(lb, ub);
+    MT _T = T;
+    T.resize(T.rows(), ub.rows());
+    T << _T, MT::Zero(T.rows(), ub.rows() - _T.cols()), updateT();
+    barrier.set_bound(lb, ub);
   }
 
   template <typename MatrixType>
@@ -349,7 +331,7 @@ public:
     int size = x.rows();
     SpMat I = (MT::Identity(size, size)).sparseView();
     append_map(I, x);
-    barrier->set_bound(barrier->lb - x, barrier->ub - x);
+    barrier.set_bound(barrier.lb - x, barrier.ub - x);
     if (!isempty_center) {
       center = center - x;
     }
@@ -433,22 +415,17 @@ public:
   VT estimate_width() {
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
-    double *w = new double[n];
-    for (int i = 0; i < n; i++) {
-      w[i] = 1;
-    }
     CholObj solver = CholObj(Asp);
-    solver.decompose(w);
+    solver.decompose(hess.data());
     VT w_vector(n, 1);
     solver.leverageScoreComplement((Tx2 *)w_vector.data());
     // VT w_vector = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 1>>(w, n,
     w_vector = (w_vector.cwiseMax(0)).cwiseProduct(hess.cwiseInverse());
     VT tau = w_vector.cwiseSqrt();
 
-    delete[] w;
     return tau;
   }
-  int dblcmp(const NT a, const NT b) {
+  int doubleVectorEqualityComparison(const NT a, const NT b) {
     const NT tol = std::numeric_limits<NT>::epsilon();
     return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
   }
@@ -471,11 +448,11 @@ public:
     std::cout << "\n";
 
     std::cout << "lb=\n";
-    std::cout << barrier->lb;
+    std::cout << barrier.lb;
     std::cout << "\n";
 
     std::cout << "ub=\n";
-    std::cout << barrier->ub;
+    std::cout << barrier.ub;
     std::cout << "\n";
 
     std::cout << "T=\n";
@@ -504,11 +481,11 @@ public:
     myfile << "\n";
     myfile << "\n";
 
-    myfile << barrier->lb;
+    myfile << barrier.lb;
     myfile << "\n";
     myfile << "\n";
 
-    myfile << barrier->ub;
+    myfile << barrier.ub;
     myfile << "\n";
     myfile << "\n";
 
@@ -544,7 +521,7 @@ public:
 
     /*Move lb=ub to Ax=b*/
     for (int i = 0; i < n; i++) {
-      if (dblcmp(lb(i), ub(i))) {
+      if (doubleVectorEqualityComparison(lb(i), ub(i))) {
         VT temp = VT::Zero(1, n);
         temp(i) = 1;
         A.conservativeResize(A.rows() + 1, A.cols());
@@ -556,7 +533,7 @@ public:
       }
     }
 
-    barrier = new SimpleBarrier(lb.cwiseMax(-1e7), ub.cwiseMin(1e7));
+    barrier.set_bound(lb.cwiseMax(-1e7), ub.cwiseMin(1e7));
 
     Asp = A.sparseView();
 
@@ -590,8 +567,7 @@ public:
 
     std::tie(center, std::ignore, std::ignore, w_center) =
         lewis_center(Asp, b, barrier, options, center);
-    std::tie(std::ignore, hess) =
-        barrier->lewis_center_oracle(center, w_center);
+    std::tie(std::ignore, hess) = barrier.lewis_center_oracle(center, w_center);
     CholObj solver = CholObj(Asp);
     VT Hinv = hess.cwiseInverse();
     solver.decompose(Hinv.data());
@@ -600,8 +576,8 @@ public:
     solver.solve(input.data(), out.data());
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 
-    if ((center.array() > barrier->ub.array()).any() ||
-        (center.array() < barrier->lb.array()).any()) {
+    if ((center.array() > barrier.ub.array()).any() ||
+        (center.array() < barrier.lb.array()).any()) {
       std::cout << "Polytope:Infeasible. The algorithm cannot find a feasible "
                    "point.\n";
       exit(1);

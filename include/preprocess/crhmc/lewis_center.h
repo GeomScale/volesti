@@ -4,13 +4,15 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 // Copyright (c) 2022-2022 Ioannis Iakovidis
 
-// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of Code 2022 program.
+// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of
+// Code 2022 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with Riemannian Hamiltonian
-//Monte Carlo in a Constrained Space"
+// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
+// Riemannian Hamiltonian
+// Monte Carlo in a Constrained Space"
 #ifndef LEWIS_CENTER_H
 #define LEWIS_CENTER_H
 #include "Eigen/Eigen"
@@ -38,14 +40,14 @@ typedef Eigen::Triplet<double> Triple;
 typedef opts<NT> Opts;
 
 std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
-                                           Barrier *f, Opts const &options,
+                                           Barrier  &f, Opts const &options,
                                            VT x = VT::Zero(0, 1)) {
 
   // initial conditions
   int n = A.cols();
   int m = A.rows();
-  if (x.rows() == 0 || !f->feasible(x)) {
-    x = f->center;
+  if (x.rows() == 0 || !f.feasible(x)) {
+    x = f.center;
   }
   VT lambda = VT::Zero(n, 1);
   NT fullStep = 0;
@@ -63,7 +65,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
   for (int iter = 0; iter < options.ipmMaxIter; iter++) {
 
-    std::pair<VT, VT> pair_analytic_oracle = f->lewis_center_oracle(x, wp);
+    std::pair<VT, VT> pair_analytic_oracle = f.lewis_center_oracle(x, wp);
     VT grad = pair_analytic_oracle.first;
     VT hess = pair_analytic_oracle.second;
 
@@ -76,10 +78,10 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     NT primalErr = rx.norm() / primalFactor;
     NT dualErrLast = dualErr;
     NT dualErr = rs.norm() / dualFactor;
-    bool feasible = f->feasible(x);
+    bool feasible = f.feasible(x);
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
         (primalErr > 10 * primalErrMin) || !feasible) {
-      VT dist = f->boundary_distance(x);
+      VT dist = f.boundary_distance(x);
       NT th = options.ipmDistanceTol;
       visit_lambda(dist, [&idx, th](double v, int i, int j) {
         if (v < th)
@@ -107,9 +109,9 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // compute the step size
     VT dx = dx1 + dx2;
-    NT tGrad = std::min(f->step_size(x, dx), 1.0);
+    NT tGrad = std::min(f.step_size(x, dx), 1.0);
     dx = dx1 + tGrad * dx2;
-    NT tConst = std::min(0.99 * f->step_size(x, dx), 1.0);
+    NT tConst = std::min(0.99 * f.step_size(x, dx), 1.0);
     tGrad = tGrad * tConst;
 
     // make the step
@@ -123,7 +125,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) * 1e-8;
     w = (w + wNew) / 2;
     wp = Eigen::pow(w.array(), 0.875).matrix();
-    if (!f->feasible(x)) {
+    if (!f.feasible(x)) {
       break;
     }
 
@@ -140,7 +142,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
   SpMat C;
   VT d;
   if (idx.size() == 0) {
-    VT dist = f->boundary_distance(x);
+    VT dist = f.boundary_distance(x);
     NT th = options.ipmDistanceTol;
     visit_lambda(dist, [&idx, th](double v, int i, int j) {
       if (v < th)
@@ -150,7 +152,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
   }
 
   if (idx.size() > 0) {
-    std::pair<VT, VT> pboundary = f->boundary(x);
+    std::pair<VT, VT> pboundary = f.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
     A_ = A_(idx);
