@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   std::cout << "Preparation completed in time, ";
   std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
   std::cout<<"Number of nonZeros= "<<P2.Asp.nonZeros()<<"\n";
-  //P2.print("coli_crhmc_polytope.txt");
+  P2.print("coli_crhmc_polytope.txt");
 
   return 0;
 }

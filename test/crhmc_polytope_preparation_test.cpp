@@ -57,7 +57,7 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   std::string fileName("../metabolic_full_dim/polytope_e_coli.ine");
   inp.open(fileName, std::ifstream::in);
   read_pointset(inp, Pin);
-
+  inp.close();
   PolytopeType HP(Pin);
   int d = HP.dimension();
   Input input = Input(d);
