@@ -19,7 +19,7 @@
 using NT=double;
 using Kernel=Cartesian<NT>;
 using Point=typename Kernel::Point;
-using HPolytope=HPolytope<Point>;
+using Hpolytope=HPolytope<Point>;
 using CrhmcProblem = crhmcProblem<Point>;
 using Input = crhmc_input<MT, NT>;
 using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
