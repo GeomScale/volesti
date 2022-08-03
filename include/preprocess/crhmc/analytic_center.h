@@ -50,7 +50,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
   }
 
   VT lambda = VT::Zero(n, 1);
-  NT fullStep = 0;
+  int fullStep = 0;
   NT tConst = 0;
   NT primalErr = std::numeric_limits<NT>::infinity();
   NT dualErr = std::numeric_limits<NT>::infinity();

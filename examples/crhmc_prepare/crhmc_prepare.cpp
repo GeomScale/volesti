@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
 using NT=double;
 using Kernel=Cartesian<NT>;
@@ -30,6 +31,7 @@ using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
 using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 using CrhmcProblem=crhmcProblem<Point>;
 using Input=crhmc_input<MT, NT>;
+using Opts=opts<NT>;
 
 int main(int argc, char *argv[]) {
   unsigned d = 2;
@@ -61,8 +63,13 @@ int main(int argc, char *argv[]) {
   Input input2 = Input(d);
   input2.Aineq=HP2.get_mat();
   input2.bineq=HP2.get_vec();
-  CrhmcProblem P2 = CrhmcProblem(input2);
-
+  Opts options;
+  options.EnableReordering=false;
+  double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+  CrhmcProblem P2 = CrhmcProblem(input2,options);
+  std::cout << "Preparation completed in time, ";
+  std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+  std::cout<<"Number of nonZeros= "<<P2.Asp.nonZeros()<<"\n";
   //P2.print("coli_crhmc_polytope.txt");
 
   return 0;

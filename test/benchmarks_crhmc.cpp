@@ -26,21 +26,20 @@ int main()
 
     std::cout << "CRHMC polytope preparation" << std::endl << std::endl;
 
-    Hpolytope HP = generate_cube<Hpolytope>(100, false);
+    Hpolytope HP = generate_cube<Hpolytope>(1000, false);
     int d = HP.dimension();
     Input input = Input(d);
     input.Aineq = HP.get_mat();
     input.bineq = HP.get_vec();
     double tstart;
 
-    std::cout << "CRHMC polytope preparation (cube-100)" << std::endl;
+    std::cout << "CRHMC polytope preparation (cube-1000)" << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     CrhmcProblem P = CrhmcProblem(input);
 
     std::cout << "Preparation completed in time, ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
-
 
     return 0;
 }

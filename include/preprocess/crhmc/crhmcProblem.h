@@ -295,14 +295,13 @@ public:
       }
       Ai.setFromTriplets(newRows.begin(), newRows.end());
       Aj.setFromTriplets(newColumns.begin(), newColumns.end());
+      Asp.prune(0,0);
       sparse_stack_h_inplace(Asp, Aj);
       sparse_stack_v(Asp, Ai, A_);
       Asp = A_;
-      Asp.makeCompressed();
     }
     SpMat _T=MT::Zero(T.rows(), ub.rows() - T.cols()).sparseView();
     sparse_stack_h_inplace(T,_T);
-    T.makeCompressed();
     updateT();
     barrier.set_bound(lb, ub);
   }
@@ -354,8 +353,7 @@ public:
   }
   VT diagL(SpMat const &Asp) {
     int m = Asp.cols();
-    // SpMat I=(MT::Identity(m, m)).sparseView();
-    // SpMat H = SpMat(Asp.transpose()) * Asp + I;
+
     SpMat H = Asp * SpMat(Asp.transpose());
     Eigen::SimplicialLLT<Eigen::SparseMatrix<double>, Eigen::Lower,
                          Eigen::NaturalOrdering<int>>
@@ -408,7 +406,6 @@ public:
     solver.decompose(hess.data());
     VT w_vector(n, 1);
     solver.leverageScoreComplement(w_vector.data());
-    // VT w_vector = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 1>>(w, n,
     w_vector = (w_vector.cwiseMax(0)).cwiseProduct(hess.cwiseInverse());
     VT tau = w_vector.cwiseSqrt();
 
@@ -489,7 +486,8 @@ public:
     myfile << center;
   }
 
-  crhmcProblem(Input const &input) {
+  crhmcProblem(Input const &input,Opts _options=Opts()) {
+    options=_options;
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
     int nEq = input.Aeq.rows();
@@ -554,13 +552,11 @@ public:
                 << '\n';
       exit(1);
     }
-
     //  Recenter again and make sure it is feasible
     VT hess;
-
-    std::tie(center, std::ignore, std::ignore, w_center) =
-        lewis_center(Asp, b, barrier, options, center);
+    std::tie(center, std::ignore, std::ignore, w_center) =lewis_center(Asp, b, barrier, options, center);
     std::tie(std::ignore, hess) = barrier.lewis_center_oracle(center, w_center);
+
     CholObj solver = CholObj(Asp);
     VT Hinv = hess.cwiseInverse();
     solver.decompose(Hinv.data());

@@ -99,7 +99,7 @@ else ()
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-  add_definitions(${CMAKE_CXX_FLAGS} "-O3 ")  # optimization of the compiler
+  add_definitions(${CMAKE_CXX_FLAGS} "-O2 -DNDEBUG -D_GNU_SOURCE -fexceptions -shared -fPIC -fno-omit-frame-pointer -pthread -march=native  -DSIMD_LEN=0  -DMX_COMPAT_64")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")

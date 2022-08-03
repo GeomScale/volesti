@@ -49,7 +49,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     x = f.center;
   }
   VT lambda = VT::Zero(n, 1);
-  NT fullStep = 0;
+  int fullStep = 0;
   NT tConst = 0;
   NT primalErr = std::numeric_limits<NT>::infinity();
   NT dualErr = std::numeric_limits<NT>::infinity();
@@ -63,7 +63,6 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
   VT wp = w;
 
   for (int iter = 0; iter < options.ipmMaxIter; iter++) {
-
     std::pair<VT, VT> pair_analytic_oracle = f.lewis_center_oracle(x, wp);
     VT grad = pair_analytic_oracle.first;
     VT hess = pair_analytic_oracle.second;
@@ -95,13 +94,13 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // compute the step direction
     VT Hinv = hess.cwiseInverse();
-
     solver.decompose(Hinv.data());
     VT out(m, 1);
     solver.solve(rs.data(), out.data());
     VT dr1 = A.transpose() * out;
     VT in = A * Hinv.cwiseProduct(rx);
     solver.solve(in.data(), out.data());
+
     VT dr2 = A.transpose() * out;
     VT dx1 = Hinv.cwiseProduct(dr1);
     VT dx2 = Hinv.cwiseProduct(rx - dr2);
@@ -124,6 +123,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) * 1e-8;
     w = (w + wNew) / 2;
     wp = Eigen::pow(w.array(), 0.875).matrix();
+
     if (!f.feasible(x)) {
       break;
     }
@@ -138,6 +138,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
       fullStep = 0;
     }
   }
+
   SpMat C;
   VT d;
   if (idx.size() == 0) {
@@ -165,6 +166,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     C = MT::Zero(0, n).sparseView();
     d = VT::Zero(0, 1);
   }
+
   return std::make_tuple(x, C, d, wp);
 }
 #endif
