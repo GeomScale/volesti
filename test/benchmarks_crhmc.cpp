@@ -8,59 +8,69 @@
 // VolEsti example
 
 #include "Eigen/Eigen"
-#include "generators/known_polytope_generators.h"
-#include <fstream>
-#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
+#include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
+#include "generators/known_polytope_generators.h"
+#include "misc/misc.h"
 #include "preprocess/crhmc/crhmcProblem.h"
 #include "preprocess/crhmc/crhmc_input.h"
-#include "cartesian_geom/cartesian_kernel.h"
-void benchmark(std::string fileName){
+#include <fstream>
+#include <time.h> /* clock_t, clock, CLOCKS_PER_SEC */
+using NT=double;
+using Kernel=Cartesian<NT>;
+using Point=typename Kernel::Point;
+using HPolytope=HPolytope<Point>;
+using CrhmcProblem = crhmcProblem<Point>;
+using Input = crhmc_input<MT, NT>;
+using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+
+void benchmark(std::string fileName) {
   std::ifstream inp;
+  inp.open(fileName, std::ifstream::in);
   std::vector<std::vector<NT>> Pin;
   read_pointset(inp, Pin);
   inp.close();
-  PolytopeType HP(Pin);
+  Hpolytope HP(Pin);
   int d = HP.dimension();
   Input input = Input(d);
   input.Aineq = HP.get_mat();
   input.bineq = HP.get_vec();
   double tstart;
-  std::cout << "CRHMC polytope preparation for " <<fileName  << std::endl;
-  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+  std::cout << "CRHMC polytope preparation for " << fileName << std::endl;
+  tstart = (double)clock() / (double)CLOCKS_PER_SEC;
   CrhmcProblem P = CrhmcProblem(input);
   std::cout << "Preparation completed in time, ";
-  std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart;
-  std::cout<<" the resulting matrix has "<<P.Asp.nonZeros()<<" nonZeros"<< std::endl;
+  std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart << " secs "
+            << std::endl;
+  std::cout << "The resulting matrix has " << P.Asp.nonZeros() << " nonZeros"
+            << std::endl
+            << std::endl;
 }
-int main()
-{   typedef double NT;
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef HPolytope<Point> Hpolytope;
-    using CrhmcProblem=crhmcProblem<Point>;
-    using Input=crhmc_input<MT, NT>;
+int main() {
 
-/*
-    std::cout << "CRHMC polytope preparation" << std::endl << std::endl;
+  std::cout << "CRHMC polytope preparation" << std::endl << std::endl;
 
-    Hpolytope HP = generate_cube<Hpolytope>(1000, false);
-    int d = HP.dimension();
-    Input input = Input(d);
-    input.Aineq = HP.get_mat();
-    input.bineq = HP.get_vec();
-    double tstart;
+  // Hpolytope HP = generate_cube<Hpolytope>(1000, false);
+  int d = 100000;
+  Input input = Input(d);
+  input.lb = -VT::Ones(d);
+  input.lb = VT::Ones(d);
+  double tstart;
 
-    std::cout << "CRHMC polytope preparation (cube-1000)" << std::endl;
+  std::cout << "CRHMC polytope preparation (cube-100000)" << std::endl;
 
-    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    CrhmcProblem P = CrhmcProblem(input);
+  tstart = (double)clock() / (double)CLOCKS_PER_SEC;
+  CrhmcProblem P = CrhmcProblem(input);
 
-    std::cout << "Preparation completed in time, ";
-    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
-*/
-benchmark("../../test/metabolic_full_dim/polytope_e_coli.ine");
-benchmark("../../test/netlib/afiro.ine");
+  std::cout << "Preparation completed in time, ";
+  std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart << " secs "
+            << std::endl;
+  std::cout << "The resulting matrix has " << P.Asp.nonZeros() << " nonZeros"
+            << std::endl
+            << std::endl;
+  benchmark("../metabolic_full_dim/polytope_e_coli.ine");
+  benchmark("../netlib/afiro.ine");
+  // benchmark("/content/drive/MyDrive/Polytopes/polytope_iAB_RBC_283.ine");
 
-return 0;
+  return 0;
 }
