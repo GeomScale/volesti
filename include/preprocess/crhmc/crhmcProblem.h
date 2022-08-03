@@ -78,9 +78,9 @@ public:
     VT d = estimate_width();
     CholObj solver = CholObj(Asp);
     VT w = VT::Ones(n, 1);
-    double ac = solver.decompose(w.data());
+    solver.decompose((Tx*) w.data());
     VT out_vector = VT(m, 1);
-    solver.solve(b.data(), out_vector.data());
+    solver.solve((Tx*)b.data(),(Tx*) out_vector.data());
     VT x = Asp.transpose() * out_vector;
 
     x = ((x.array()).abs() < tol).select(0., x);
@@ -403,9 +403,9 @@ public:
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
     CholObj solver = CholObj(Asp);
-    solver.decompose(hess.data());
+    solver.decompose((Tx*) hess.data());
     VT w_vector(n, 1);
-    solver.leverageScoreComplement(w_vector.data());
+    solver.leverageScoreComplement((Tx*) w_vector.data());
     w_vector = (w_vector.cwiseMax(0)).cwiseProduct(hess.cwiseInverse());
     VT tau = w_vector.cwiseSqrt();
 
@@ -559,10 +559,10 @@ public:
 
     CholObj solver = CholObj(Asp);
     VT Hinv = hess.cwiseInverse();
-    solver.decompose(Hinv.data());
+    solver.decompose((Tx*) Hinv.data());
     VT out(equations(), 1);
     VT input = (b - Asp * center);
-    solver.solve(input.data(), out.data());
+    solver.solve((Tx*)input.data(), (Tx*)out.data());
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 
     if ((center.array() > barrier.ub.array()).any() ||

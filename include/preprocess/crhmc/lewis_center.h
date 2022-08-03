@@ -94,12 +94,12 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // compute the step direction
     VT Hinv = hess.cwiseInverse();
-    solver.decompose(Hinv.data());
+    solver.decompose((Tx*) Hinv.data());
     VT out(m, 1);
-    solver.solve(rs.data(), out.data());
+    solver.solve((Tx*) rs.data(),(Tx*) out.data());
     VT dr1 = A.transpose() * out;
     VT in = A * Hinv.cwiseProduct(rx);
-    solver.solve(in.data(), out.data());
+    solver.solve((Tx*) in.data(),(Tx*) out.data());
 
     VT dr2 = A.transpose() * out;
     VT dx1 = Hinv.cwiseProduct(dr1);
@@ -118,7 +118,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // update weight
     VT w_vector(n, 1);
-    solver.leverageScoreComplement(w_vector.data());
+    solver.leverageScoreComplement((Tx*) w_vector.data());
 
     VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) * 1e-8;
     w = (w + wNew) / 2;

@@ -36,7 +36,7 @@ using SpMat= Eigen::SparseMatrix<NT>;
 using CholObj=PackedChol<chol_k2, int>;
 using Triple=Eigen::Triplet<double>;
 using Barrier=TwoSidedBarrier<NT>;
-using Tx = FloatArray<double, chol_k2>;
+using Tx2 = FloatArray<double, chol_k2>;
 using Opts=opts<NT>;
 
 std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
@@ -93,12 +93,12 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
 
     // compute the step direction
     VT Hinv = hess.cwiseInverse();
-    solver.decompose(Hinv.data());
+    solver.decompose((Tx2 *) Hinv.data());
     VT out(m, 1);
-    solver.solve(rs.data(), out.data());
+    solver.solve((Tx2*)rs.data(),(Tx2*) out.data());
     VT dr1 = A.transpose() * out;
     VT in = A * Hinv.cwiseProduct(rx);
-    solver.solve(in.data(), out.data());
+    solver.solve((Tx2 *)in.data(),(Tx2 *) out.data());
 
     VT dr2 = A.transpose() * out;
     VT dx1 = Hinv.cwiseProduct(dr1);

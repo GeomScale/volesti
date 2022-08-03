@@ -70,6 +70,8 @@ int main() {
             << std::endl;
   benchmark("../metabolic_full_dim/polytope_e_coli.ine");
   benchmark("../netlib/afiro.ine");
+  benchmark("../metabolic_full_dim/polytope_iAB_RBC_283.ine");
+  benchmark("../metabolic_full_dim/polytope_recon1.ine");
   // benchmark("/content/drive/MyDrive/Polytopes/polytope_iAB_RBC_283.ine");
 
   return 0;
