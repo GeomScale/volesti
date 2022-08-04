@@ -182,7 +182,7 @@ else ()
   endif ()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-  add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
+  #add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
 
@@ -336,7 +336,10 @@ else ()
   add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
+	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
+	set_target_properties(benchmarks_crhmc
+                                PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
@@ -355,7 +358,7 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK}  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)

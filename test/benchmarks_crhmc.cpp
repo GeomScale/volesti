@@ -48,7 +48,7 @@ void benchmark(std::string fileName) {
 }
 int main() {
 
-  std::cout << "CRHMC polytope preparation" << std::endl << std::endl;
+  std::cout << "---------------CRHMC polytope preparation benchmarking---------------" << std::endl << std::endl;
 
   // Hpolytope HP = generate_cube<Hpolytope>(1000, false);
   int d = 100000;
@@ -57,7 +57,7 @@ int main() {
   input.lb = VT::Ones(d);
   double tstart;
 
-  std::cout << "CRHMC polytope preparation (cube-100000)" << std::endl;
+  std::cout << "CRHMC polytope preparation 100000 dimensional Cube " << std::endl;
 
   tstart = (double)clock() / (double)CLOCKS_PER_SEC;
   CrhmcProblem P = CrhmcProblem(input);
@@ -71,7 +71,6 @@ int main() {
   benchmark("../metabolic_full_dim/polytope_e_coli.ine");
   benchmark("../netlib/afiro.ine");
   benchmark("../metabolic_full_dim/polytope_iAB_RBC_283.ine");
-  benchmark("../metabolic_full_dim/polytope_recon1.ine");
   // benchmark("/content/drive/MyDrive/Polytopes/polytope_iAB_RBC_283.ine");
 
   return 0;
