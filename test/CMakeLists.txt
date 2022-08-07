@@ -182,7 +182,7 @@ else ()
   endif ()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-  #add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
+  add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
 
@@ -222,7 +222,18 @@ else ()
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
-  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+		set(QDSOURCES
+			../external/qd/bits.cc
+			../external/qd/c_dd.cc
+			../external/qd/c_qd.cc
+			../external/qd/dd_const.cc
+			../external/qd/dd_real.cc
+			../external/qd/fpu.cc
+			../external/qd/qd_const.cc
+			../external/qd/qd_real.cc
+			../external/qd/util.cc
+			)
+  add_executable (ode_solvers_test ${QDSOURCES} ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
   add_test(NAME ode_solvers_test_second_order
@@ -232,17 +243,6 @@ else ()
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
 
-	set(QDSOURCES
-		../external/qd/bits.cc
-		../external/qd/c_dd.cc
-		../external/qd/c_qd.cc
-		../external/qd/dd_const.cc
-		../external/qd/dd_real.cc
-		../external/qd/fpu.cc
-		../external/qd/qd_const.cc
-		../external/qd/qd_real.cc
-		../external/qd/util.cc
-		)
 	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp  ${QDSOURCES})
 
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp ${QDSOURCES} $<TARGET_OBJECTS:test_main>)

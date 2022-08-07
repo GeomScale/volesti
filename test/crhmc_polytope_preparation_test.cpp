@@ -29,14 +29,14 @@
 #include "misc/misc.h"
 
 template <typename NT> void test_crhmc_polytope_preprocessing() {
-  using Kernel= Cartesian<NT>;
-  using Point=typename Kernel::Point;
-  using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-  using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using CrhmcProblem=crhmcProblem<Point>;
-  using Input=crhmc_input<MT, NT>;
-  using PolytopeType=HPolytope<Point>;
-  using Opts=opts<NT>;
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using CrhmcProblem = crhmcProblem<Point>;
+  using Input = crhmc_input<MT, NT>;
+  using PolytopeType = HPolytope<Point>;
+  using Opts = opts<NT>;
 
   /*
   unsigned d = 2;
@@ -64,8 +64,8 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   input.Aineq = HP.get_mat();
   input.bineq = HP.get_vec();
   Opts options;
-  options.EnableReordering=false;
-  CrhmcProblem P = CrhmcProblem(input,options);
+  options.EnableReordering = false;
+  CrhmcProblem P = CrhmcProblem(input, options);
   // CrhmcProblem P = CrhmcProblem(HP);
 
   int m = 342;

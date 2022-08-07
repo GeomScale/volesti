@@ -17,12 +17,18 @@
 #define OPTS_H
 template <typename Type> class opts {
 public:
+  /*Preprocess options*/
   const int ipmMaxIter = 200;
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
   bool EnableReordering = false;
-  opts(){}
+
+  /*ODE options*/
+  const Type implicitTol = 1e-5;
+  const int maxODEStep = 30;
+
+  opts() {}
   void operator=(const opts &rhs) {
     EnableReordering = rhs.EnableReordering;
     maxNZ = rhs.maxNZ;

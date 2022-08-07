@@ -4,13 +4,15 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 // Copyright (c) 2022-2022 Ioannis Iakovidis
 
-// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of Code 2022 program.
+// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of
+// Code 2022 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with Riemannian Hamiltonian
-//Monte Carlo in a Constrained Space"
+// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
+// Riemannian Hamiltonian
+// Monte Carlo in a Constrained Space"
 
 // The log barrier for the domain {lu <= x <= ub}:
 //	phi(x) = - sum log(x - lb) - sum log(ub - x).
@@ -23,11 +25,11 @@
 
 template <typename Point> class TwoSidedBarrier {
 
-  typedef double NT;
-  typedef Cartesian<NT> Kernel;
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-  typedef Eigen::SparseMatrix<NT> SpMat;
+  using NT = Point::FP;
+  using Kernel = Cartesian<NT>;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using SpMat = Eigen::SparseMatrix<NT>;
 
 public:
   VT lb;
@@ -74,9 +76,7 @@ public:
     set_bound(_lb, _ub);
     vdim = _vdim;
   }
-  TwoSidedBarrier(){
-    vdim=1;
-  }
+  TwoSidedBarrier() { vdim = 1; }
 
   VT gradient(VT const &x) {
     return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();
@@ -86,6 +86,18 @@ public:
     VT d = ((ub - x).cwiseProduct((ub - x))).cwiseInverse() +
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d;
+  }
+  VT tensor(VT const &x) {
+    VT d = 2 * (((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x)))
+                   .cwiseInverse() -
+           2 * (((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)))
+                   .cwiseInverse();
+    return d;
+  }
+  VT quadratic_form_gradient(VT const &x, VT const &u) {
+    // Output the -grad of u' (hess phi(x)) u.
+
+    return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
   }
   NT step_size(VT const &x, VT const &v) {
     // Output the maximum step size from x with direction v.

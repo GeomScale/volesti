@@ -4,13 +4,15 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 // Copyright (c) 2022-2022 Ioannis Iakovidis
 
-// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of Code 2022 program.
+// Contributed and/or modified by Ioannis Iakovidis, as part of Google Summer of
+// Code 2022 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with Riemannian Hamiltonian
-//Monte Carlo in a Constrained Space"
+// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
+// Riemannian Hamiltonian
+// Monte Carlo in a Constrained Space"
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
@@ -20,18 +22,18 @@
 #include "preprocess/crhmc/crhmc_input.h"
 #include <fstream>
 #include <iostream>
+#include <time.h> /* clock_t, clock, CLOCKS_PER_SEC */
 #include <vector>
-#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
-using NT=double;
-using Kernel=Cartesian<NT>;
-using Point=Kernel::Point;
-using PolytopeType=HPolytope<Point>;
-using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using CrhmcProblem=crhmcProblem<Point>;
-using Input=crhmc_input<MT, NT>;
-using Opts=opts<NT>;
+using NT = double;
+using Kernel = Cartesian<NT>;
+using Point = Kernel::Point;
+using PolytopeType = HPolytope<Point>;
+using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using CrhmcProblem = crhmcProblem<Point>;
+using Input = crhmc_input<MT, NT>;
+using Opts = opts<NT>;
 
 int main(int argc, char *argv[]) {
   unsigned d = 2;
@@ -59,18 +61,18 @@ int main(int argc, char *argv[]) {
   // std::cout << "Polytope HP2: \n";
   // HP2.print();
   //   std::cout << "\n";
-  d=HP2.dimension();
+  d = HP2.dimension();
   Input input2 = Input(d);
-  input2.Aineq=HP2.get_mat();
-  input2.bineq=HP2.get_vec();
+  input2.Aineq = HP2.get_mat();
+  input2.bineq = HP2.get_vec();
   Opts options;
-  options.EnableReordering=false;
-  double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  CrhmcProblem P2 = CrhmcProblem(input2,options);
+  options.EnableReordering = false;
+  double tstart = (double)clock() / (double)CLOCKS_PER_SEC;
+  CrhmcProblem P2 = CrhmcProblem(input2, options);
   std::cout << "Preparation completed in time, ";
-  std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
-  std::cout<<"Number of nonZeros= "<<P2.Asp.nonZeros()<<"\n";
-  //P2.print("coli_crhmc_polytope.txt");
+  std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart << std::endl;
+  std::cout << "Number of nonZeros= " << P2.Asp.nonZeros() << "\n";
+  // P2.print("coli_crhmc_polytope.txt");
 
   return 0;
 }

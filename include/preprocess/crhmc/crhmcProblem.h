@@ -70,6 +70,23 @@ public:
   VT w_center;
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
+
+  VT project(VT x){
+    int m = Asp.rows();
+    int n = Asp.cols();
+    CholObj solver = CholObj(Asp);
+    VT hess=barrier.hessian(x);
+    VT Hinv=hess.cwiseInverse();
+    solver.decompose((Tx *)Hinv.data());
+    VT out_vector = VT(m, 1);
+    VT in_vector=b.transpose()-Asp*x;
+    solver.solve((Tx*) in_vector.data(),(Tx*)out_vector.data());
+    out_vector= Asp.transpose()* out_vector;
+    return x+(out_vector).cwiseQuotient(hess);
+
+  }
+
+
   int remove_fixed_variables(const NT tol = 1e-12) {
     int m = Asp.rows();
     int n = Asp.cols();
@@ -91,6 +108,7 @@ public:
         x(i) = 0.0;
       }
     }
+
     if (freeIndices.size() != n) {
       SpMat S = SpMat(n, freeIndices.size());
       S.setFromTriplets(freeIndices.begin(), freeIndices.end());
@@ -100,6 +118,7 @@ public:
     }
     return 0;
   }
+
   int extract_collapsed_variables() {
     SpMat Ac;
     VT bc;
@@ -120,7 +139,9 @@ public:
 
     return 1;
   }
+
   void updateT() {}
+
   std::pair<VT, VT> colwiseMinMax(SpMat const &A) {
     int n = A.cols();
     VT cmax(n);
@@ -137,11 +158,13 @@ public:
     }
     return std::make_pair(cmin, cmax);
   }
+
   void nextpow2(VT &a) {
     a = (a.array() == 0).select(1, a);
     a = (((a.array().log()) / std::log(2)).ceil()).matrix();
     a = pow(2, a.array()).matrix();
   }
+
   std::pair<VT, VT> gmscale(SpMat &Asp, const NT scltol) {
     int m = Asp.rows();
     int n = Asp.cols();
@@ -243,6 +266,7 @@ public:
     }
     return std::make_pair(colCounts, badCols);
   }
+
   void splitDenseCols(const int maxnz) {
     //  Rewrite P so that each cols has no more than maxNZ non-zeros
     int m = Asp.rows();
@@ -327,6 +351,7 @@ public:
       center = center - x;
     }
   }
+
   void reorder() {
     if (!options.EnableReordering) {
       return;
@@ -354,6 +379,7 @@ public:
     Asp = perm * Asp;
     b = perm * b;
   }
+
   VT diagL(SpMat const &Asp) {
     int m = Asp.cols();
 
@@ -366,6 +392,7 @@ public:
     SpMat L = cholesky.matrixL();
     return L.diagonal();
   }
+
   int remove_dependent_rows() {
     int m = Asp.rows();
     VT v = diagL(Asp);
@@ -383,6 +410,7 @@ public:
     b = b(indices);
     return 1;
   }
+
   void simplify() {
 #ifdef TIME_KEEPING
     double tstart_rescale, tstart_sparsify, tstart_reorder, tstart_rm_rows,
@@ -482,6 +510,7 @@ public:
 
     return tau;
   }
+
   int doubleVectorEqualityComparison(const NT a, const NT b) {
     const NT tol = std::numeric_limits<NT>::epsilon();
     return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
@@ -574,6 +603,7 @@ public:
     Asp.resize(nEq + nIneq, nP + nIneq);
     PreproccessProblem();
   }
+
   void PreproccessProblem() {
     int n = dimension();
 
