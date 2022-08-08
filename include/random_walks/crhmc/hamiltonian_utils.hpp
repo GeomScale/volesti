@@ -16,14 +16,13 @@
 #ifndef HAMILTONIAN_UTILS_HPP
 #define HAMILTONIAN_UTILS_HPP
 #include <utility>
-template <typename Polytope, typename func> class Hamiltonian {
+template <typename Polytope, typename Point, typename func> class Hamiltonian {
   using VT = typename Polytope::VT;
   using NT = typename Polytope::NT;
   using MT = typename Polytope::MT;
   using Tx = typename Polytope::Tx;
-
-  typedef typename Polytope::CholObj CholObj;
-  typedef std::vector<VT> pts;
+  using CholObj = typename Polytope::CholObj;
+  using pts = std::vector<Point>;
 
 public:
   bool prepared = false;
@@ -31,10 +30,11 @@ public:
   Polytope *P;
   VT hess;
   bool dUDx_empty = true;
-  VT last_dUdx;
+  Point last_dUdx;
   CholObj solver;
+  pts xs;
   VT x;
-  VT dfx;
+  Point dfx;
 
   func F;
   int n;
@@ -45,9 +45,10 @@ public:
     n = P->dimension();
     m = P->equations();
     x = VT::Zero(n);
+    xs = {Point(n), Point(n)};
   }
-  void prepare(VT const &x) {
-    move(x);
+  void prepare(pts const &xs) {
+    move(xs);
     if (!prepared) {
       VT Hinv = hess.cwiseInverse();
       solver.decompose((Tx *)Hinv.data());
@@ -56,64 +57,69 @@ public:
     prepared = true;
   }
   pts DK(pts const &x_bar) {
-    VT x = x_bar[0];
-    VT v = x_bar[1];
-    move(x);
+    VT x = x_bar[0].getCoefficients();
+    VT v = x_bar[1].getCoefficients();
+    move(x_bar);
     VT invHessV = v.cwiseQuotient(hess);
     VT input_vector = P->Asp * invHessV;
     VT out_vector = VT::Zero(m);
     solver.solve((Tx *)input_vector.data(), (Tx *)out_vector.data());
-    VT dKdv = invHessV - (P->A.transpose() * out_vector).cwiseQuotient(hess);
-    VT dKdx = -P->barrier.quadratic_form_gradient(x, dKdv) / 2;
-    return {dKdv, -dKdx};
+    Point dKdv =
+        Point(invHessV - (P->A.transpose() * out_vector).cwiseQuotient(hess));
+    Point dKdx = Point(
+        P->barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
+    return {dKdv, dKdx};
   }
   std::pair<pts, MT> approxDK(pts const &x_bar, MT const &nu) {
-    VT x = x_bar[0];
-    VT v = x_bar[1];
-    move(x);
+    VT x = x_bar[0].getCoefficients();
+    VT v = x_bar[1].getCoefficients();
+    move(x_bar);
     VT dUdv_b = P->Asp * (v - P->Asp.transpose() * nu).cwiseQuotient(hess);
 
     VT out_solver = VT(nu.rows(), nu.cols());
     solver.solve((Tx *)dUdv_b.data(), (Tx *)out_solver.data());
     nu = nu + out_solver;
 
-    VT dKdv = (v - P->Asp.transpose() * nu).cwiseQuotient(hess);
-    VT dKdx = -P->barrier.quadratic_form_gradient(x, dKdv) / 2;
-    pts result = {dUdv_b, -dKdx};
+    Point dKdv = Point((v - P->Asp.transpose() * nu).cwiseQuotient(hess));
+    Point dKdx = Point(
+        P->barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
+    pts result = {dUdv_b, dKdx};
     return std::make_pair(result, nu);
   }
 
   pts DU(pts const &x_bar) {
-    VT x = x_bar[0];
-    move(x);
+    VT x = x_bar[0].getCoefficients();
+    move(x_bar);
     if (!prepared || dUDx_empty) {
-      prepare(x);
+      prepare(x_bar);
       VT lsc = VT(n, 1);
       solver.leverageScoreComplement((Tx *)lsc.data());
 
-      last_dUdx =
-          (P->barrier.tensor(x).cwiseProduct(lsc)).cwiseQuotient(2 * hess) +
-          dfx;
+      last_dUdx = Point(-(P->barrier.tensor(x).cwiseProduct(lsc))
+                             .cwiseQuotient(2 * hess)) -
+                  dfx;
       dUDx_empty = false;
     }
-    return {VT::Zero(x.rows(), 1), -last_dUdx};
+    return {Point(n), last_dUdx};
   }
 
-  void move(VT const &y) {
-    if (y.isApprox(x) || forceUpdate) {
+  void move(pts const &y) {
+    if (y[0] == xs[0] && !forceUpdate) {
       return;
     }
 
-    x = y;
-    dfx = F(x);
+    xs = y;
+    x = xs[0].getCoefficients();
+    dfx = F(0, xs, 0);
     hess = P->barrier.hessian(x);
     forceUpdate = false;
     prepared = false;
   }
 
-  VT x_norm(VT const &x, VT const &dx) {
-    move(x);
-    VT r = (dx.cwiseProduct(dx)).cwiseProduct(hess);
+  VT x_norm(pts const &xs, pts const &dx) {
+    move(xs);
+    VT dx_x = dx[0].getCoefficients();
+    VT r = (dx_x.cwiseProduct(dx_x)).cwiseProduct(hess);
     return r;
   }
 };

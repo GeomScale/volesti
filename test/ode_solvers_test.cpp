@@ -20,7 +20,6 @@
 
 #include "Eigen/Eigen"
 #include "doctest.h"
-#include "misc/misc.h"
 
 #include "generators/known_polytope_generators.h"
 #include "ode_solvers.hpp"
@@ -126,42 +125,75 @@ template <typename NT> void test_euler() {
 
   check_norm(euler_solver, 2000, NT(0));
 }
+template <typename NT, typename Solver>
+void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
+                         NT tol = 1e-4) {
+
+  for (int t = 0; t < target.size(); t++) {
+#ifndef VOLESTI_DEBUG
+    solver.steps(num_steps, true);
+#else
+    for (int i = 0; i < num_steps; i++) {
+      solver.step(i, true);
+      solver.print_state();
+    }
+#endif
+
+    NT norm = NT(0);
+
+    for (unsigned int i = 0; i < solver.xs.size(); i++) {
+      norm += solver.xs[i].dot(solver.xs[i]);
+    }
+
+    norm = sqrt(norm);
+    NT error = abs(norm - target[t]);
+
+    if (target[t] != NT(0))
+      error /= target[t];
+
+    // std::cout << "Error[" << t << "]= " << error << std::endl;
+    CHECK(error < tol);
+    if (error > tol) {
+      break;
+    }
+  }
+}
 template <typename NT> void test_implicit_midpoint() {
   typedef Cartesian<NT> Kernel;
   typedef typename Kernel::Point Point;
   typedef std::vector<Point> pts;
-  typedef IsotropicQuadraticFunctor::GradientFunctor<Point> func;
-  typedef IsotropicQuadraticFunctor::parameters<NT> func_params;
+  typedef GaussianFunctor::GradientFunctor<Point> func;
+  typedef GaussianFunctor::parameters<NT, Point> func_params;
   typedef crhmc_input<MT, NT> Input;
   typedef opts<NT> Opts;
   typedef crhmcProblem<Point> CrhmcProblem;
   typedef HPolytope<Point> Hpolytope;
-
+  unsigned d = 100;
   Opts opts;
-  func_params params;
-  params.alpha = 1;
-  params.order = 1;
+  double alpha = 0.5;
+  double eta = 1;
+  int order = 1;
+  Point mean = Point(d);
+  func_params params = func_params(mean, 0.5, 1);
+  params.order = order;
   func F(params);
 
-  unsigned d = 100;
   Input input = Input(d);
   input.lb = -VT::Ones(d);
   input.ub = VT::Ones(d);
-  std::cout << "Preparation" << '\n';
   CrhmcProblem P = CrhmcProblem(input);
   d = P.dimension();
-  VT q0 = P.center;
-  std::vector<VT> q;
-  q.push_back(q0);
-  q0 = VT::Ones(d);
-  q.push_back(q0);
-
+  Point x0 = Point(P.center);
+  Point v0 = Point::all_ones(d);
+  pts q{x0, v0};
   ImplicitMidpointODESolver<Point, NT, CrhmcProblem, func>
       implicit_midpoint_solver =
           ImplicitMidpointODESolver<Point, NT, CrhmcProblem, func>(
               0, 0.01, q, F, &P, &opts);
-
-  check_norm(implicit_midpoint_solver, 100, NT(9.9995));
+  std::ifstream is("../test_norm_hypercube.txt");
+  std::istream_iterator<NT> start(is), end;
+  std::vector<NT> target_norms(start, end);
+  check_norm_progress(implicit_midpoint_solver, 200, target_norms);
 }
 template <typename NT> void test_richardson() {
   typedef Cartesian<NT> Kernel;
@@ -341,12 +373,15 @@ template <typename NT> void call_test_first_order() {
 
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
   test_euler<NT>();
-  test_implicit_midpoint<NT>();
   test_rk4<NT>();
   test_richardson<NT>();
 
   std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
   test_rk4_constrained<NT>();
+
+  std::cout << "--- Testing hamiltonian solution to f(x)=-x^2/2 in [-1, 1]"
+            << std::endl;
+  test_implicit_midpoint<NT>();
 }
 
 template <typename NT> void call_test_second_order() {

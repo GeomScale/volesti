@@ -9,13 +9,19 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// References
+// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
+// Riemannian Hamiltonian
+// Monte Carlo in a Constrained Space"
+
 #ifndef IMPLICIT_MIDPOINT_HPP
 #define IMPLICIT_MIDPOINT_HPP
 #include "preprocess/crhmc/opts.h"
 #include "random_walks/crhmc/hamiltonian_utils.hpp"
 
 template <typename T>
-std::vector<T> operator+(const std::vector<T> &v1, const std::vector<T> &v2) {
+inline std::vector<T> operator+(const std::vector<T> &v1,
+                                const std::vector<T> &v2) {
   std::vector<T> result(v1.size());
   for (int i = 0; i < v1.size(); i++) {
     result[i] = v1[i] + v2[i];
@@ -23,7 +29,7 @@ std::vector<T> operator+(const std::vector<T> &v1, const std::vector<T> &v2) {
   return result;
 }
 template <typename T, typename Type>
-std::vector<T> operator*(const std::vector<T> &v, const Type alfa) {
+inline std::vector<T> operator*(const std::vector<T> &v, const Type alfa) {
   std::vector<T> result(v.size());
   for (int i = 0; i < v.size(); i++) {
     result[i] = v[i] * alfa;
@@ -31,17 +37,21 @@ std::vector<T> operator*(const std::vector<T> &v, const Type alfa) {
   return result;
 }
 template <typename T, typename Type>
-std::vector<T> operator/(const std::vector<T> &v, const Type alfa) {
+inline std::vector<T> operator/(const std::vector<T> &v, const Type alfa) {
   return v * (1 / alfa);
 }
+template <typename T>
+inline std::vector<T> operator-(const std::vector<T> &v1,
+                                const std::vector<T> &v2) {
 
+  return v1 + v2 * (-1.0);
+}
 template <typename Point, typename NT, typename Polytope, typename func>
 struct ImplicitMidpointODESolver {
-
-  typedef typename Polytope::VT VT;
-  typedef typename Polytope::VT MT;
-  typedef std::vector<VT> pts;
-  typedef Hamiltonian<Polytope, func> hamiltonian;
+  using VT = typename Polytope::VT;
+  using MT = typename Polytope::MT;
+  using pts = std::vector<Point>;
+  using hamiltonian = Hamiltonian<Polytope, Point, func>;
   using Opts = opts<NT>;
 
   unsigned int dim;
@@ -69,7 +79,7 @@ struct ImplicitMidpointODESolver {
       : eta(step), t(initial_time), xs(initial_state), F(oracle),
         options(user_options), P(boundaries),
         ham(hamiltonian(boundaries, oracle)) {
-    dim = xs[0].rows();
+    dim = xs[0].dimension();
   };
 
   void step(int k, bool accepted) {
@@ -78,7 +88,7 @@ struct ImplicitMidpointODESolver {
     pts partialDerivatives;
     partialDerivatives = ham.DK(xmid);
     xs = xs_prev + partialDerivatives * (eta);
-    VT dist = ham.x_norm(xmid[0], xs[0] - xs_old[0]) / eta;
+    VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
     NT maxdist = dist.maxCoeff();
     if (maxdist < options->implicitTol) {
       done = true;
@@ -98,7 +108,7 @@ struct ImplicitMidpointODESolver {
     }
     partialDerivatives = ham.DU(xs);
     xs = xs + partialDerivatives * (eta / 2);
-    xs[0] = P->project(xs[0]);
+    xs[0] = Point(P->project(xs[0].getCoefficients()));
   }
 
   Point get_state(int index) { return xs[index]; }
@@ -106,9 +116,12 @@ struct ImplicitMidpointODESolver {
   void set_state(int index, Point p) { xs[index] = p; }
   void print_state() {
     for (int j = 0; j < xs.size(); j++) {
-      std::cout << xs[j].transpose() << std::endl;
+      std::cout << "state " << j << ": ";
+      for (unsigned int i = 0; i < xs[j].dimension(); i++) {
+        std::cout << xs[j][i] << " ";
+      }
+      std::cout << '\n';
     }
-    std::cout << std::endl;
   }
 };
 
