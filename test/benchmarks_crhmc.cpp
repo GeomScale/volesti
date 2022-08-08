@@ -73,9 +73,9 @@ int main() {
   std::cout << "The resulting matrix has " << P.Asp.nonZeros() << " nonZeros"
             << std::endl
             << std::endl;
-  benchmark("../metabolic_full_dim/polytope_e_coli.ine");
-  benchmark("../netlib/afiro.ine");
-  benchmark("../metabolic_full_dim/polytope_iAB_RBC_283.ine");
+  benchmark("../test/metabolic_full_dim/polytope_e_coli.ine");
+  benchmark("../test/netlib/afiro.ine");
+  benchmark("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine");
 
   return 0;
 }

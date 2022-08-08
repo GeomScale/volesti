@@ -234,7 +234,8 @@ else ()
 			../external/qd/qd_real.cc
 			../external/qd/util.cc
 			)
-  add_executable (ode_solvers_test ${QDSOURCES} ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+	add_library(QD_LIB ${QDSOURCES})
+  add_executable (ode_solvers_test  ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
   add_test(NAME ode_solvers_test_second_order
@@ -244,9 +245,9 @@ else ()
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
 
-	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp  ${QDSOURCES})
+	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
 
-	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp ${QDSOURCES} $<TARGET_OBJECTS:test_main>)
+	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
 	COMMAND crhmc_polytope_preparation_test -tc=simple_example_crhmc)
 
@@ -359,12 +360,12 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK}  coverage_config)
+	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} QD_LIB  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
 
