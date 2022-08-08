@@ -23,7 +23,7 @@
 
 #include "generators/known_polytope_generators.h"
 #include "ode_solvers.hpp"
-#include "preprocess/crhmc/crhmcProblem.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "random.hpp"
 #include "random/normal_distribution.hpp"
@@ -166,7 +166,7 @@ template <typename NT> void test_implicit_midpoint() {
   typedef GaussianFunctor::parameters<NT, Point> func_params;
   typedef crhmc_input<MT, NT> Input;
   typedef opts<NT> Opts;
-  typedef crhmcProblem<Point> CrhmcProblem;
+  typedef crhmc_problem<Point> CrhmcProblem;
   typedef HPolytope<Point> Hpolytope;
   unsigned d = 100;
   Opts opts;
@@ -189,7 +189,7 @@ template <typename NT> void test_implicit_midpoint() {
   ImplicitMidpointODESolver<Point, NT, CrhmcProblem, func>
       implicit_midpoint_solver =
           ImplicitMidpointODESolver<Point, NT, CrhmcProblem, func>(
-              0, 0.01, q, F, &P, &opts);
+              0, 0.01, q, F, P, opts);
   std::ifstream is("../test_norm_hypercube.txt");
   std::istream_iterator<NT> start(is), end;
   std::vector<NT> target_norms(start, end);

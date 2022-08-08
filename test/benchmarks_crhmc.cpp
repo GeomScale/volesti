@@ -12,7 +12,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "generators/known_polytope_generators.h"
 #include "misc/misc.h"
-#include "preprocess/crhmc/crhmcProblem.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 #include "preprocess/crhmc/crhmc_input.h"
 #include <fstream>
 #include <time.h> /* clock_t, clock, CLOCKS_PER_SEC */
@@ -20,7 +20,7 @@ using NT = double;
 using Kernel = Cartesian<NT>;
 using Point = typename Kernel::Point;
 using Hpolytope = HPolytope<Point>;
-using CrhmcProblem = crhmcProblem<Point>;
+using CrhmcProblem = crhmc_problem<Point>;
 using Input = crhmc_input<MT, NT>;
 using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 

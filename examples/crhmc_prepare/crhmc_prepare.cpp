@@ -18,7 +18,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "generators/known_polytope_generators.h"
 #include "misc/misc.h"
-#include "preprocess/crhmc/crhmcProblem.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 #include "preprocess/crhmc/crhmc_input.h"
 #include <fstream>
 #include <iostream>
@@ -31,7 +31,7 @@ using Point = Kernel::Point;
 using PolytopeType = HPolytope<Point>;
 using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
 using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using CrhmcProblem = crhmcProblem<Point>;
+using CrhmcProblem = crhmc_problem<Point>;
 using Input = crhmc_input<MT, NT>;
 using Opts = opts<NT>;
 

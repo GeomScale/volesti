@@ -22,7 +22,7 @@
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "doctest.h"
-#include "preprocess/crhmc/crhmcProblem.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 #include "preprocess/crhmc/crhmc_input.h"
 
 #include "convex_bodies/hpolytope.h"
@@ -33,25 +33,11 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   using Point = typename Kernel::Point;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using CrhmcProblem = crhmcProblem<Point>;
+  using CrhmcProblem = crhmc_problem<Point>;
   using Input = crhmc_input<MT, NT>;
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
 
-  /*
-  unsigned d = 2;
-  unsigned m=5;
-  MT A = MT::Ones(m, d);
-  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  VT b = 10 * VT::Ones(m, 1);
-  Input input = Input(d);
-  input.Aineq = A;
-  input.bineq = b;
-  CrhmcProblem P = CrhmcProblem(input);
-
-  CHECK(std::abs(P.y(0) - (-4.8342)) < 0.001);
-  CHECK(std::abs(P.center(0) - 3.75986) < 0.001);
-*/
   std::ifstream inp;
   std::vector<std::vector<NT>> Pin;
   std::string fileName("../metabolic_full_dim/polytope_e_coli.ine");
@@ -66,7 +52,6 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   Opts options;
   options.EnableReordering = false;
   CrhmcProblem P = CrhmcProblem(input, options);
-  // CrhmcProblem P = CrhmcProblem(HP);
 
   int m = 342;
   int n = 366;

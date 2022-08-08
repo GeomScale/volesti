@@ -27,7 +27,7 @@ template <typename Polytope, typename Point, typename func> class Hamiltonian {
 public:
   bool prepared = false;
   bool forceUpdate = true;
-  Polytope *P;
+  Polytope &P;
   VT hess;
   bool dUDx_empty = true;
   Point last_dUdx;
@@ -40,10 +40,10 @@ public:
   int n;
   int m;
 
-  Hamiltonian(Polytope *boundaries, func oracle)
-      : P(boundaries), F(oracle), solver(CholObj(boundaries->Asp)) {
-    n = P->dimension();
-    m = P->equations();
+  Hamiltonian(Polytope& boundaries, func oracle)
+      : P(boundaries), F(oracle), solver(CholObj(boundaries.Asp)) {
+    n = P.dimension();
+    m = P.equations();
     x = VT::Zero(n);
     xs = {Point(n), Point(n)};
   }
@@ -61,28 +61,28 @@ public:
     VT v = x_bar[1].getCoefficients();
     move(x_bar);
     VT invHessV = v.cwiseQuotient(hess);
-    VT input_vector = P->Asp * invHessV;
+    VT input_vector = P.Asp * invHessV;
     VT out_vector = VT::Zero(m);
     solver.solve((Tx *)input_vector.data(), (Tx *)out_vector.data());
     Point dKdv =
-        Point(invHessV - (P->A.transpose() * out_vector).cwiseQuotient(hess));
+        Point(invHessV - (P.A.transpose() * out_vector).cwiseQuotient(hess));
     Point dKdx = Point(
-        P->barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
+        P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
     return {dKdv, dKdx};
   }
   std::pair<pts, MT> approxDK(pts const &x_bar, MT const &nu) {
     VT x = x_bar[0].getCoefficients();
     VT v = x_bar[1].getCoefficients();
     move(x_bar);
-    VT dUdv_b = P->Asp * (v - P->Asp.transpose() * nu).cwiseQuotient(hess);
+    VT dUdv_b = P.Asp * (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
 
     VT out_solver = VT(nu.rows(), nu.cols());
     solver.solve((Tx *)dUdv_b.data(), (Tx *)out_solver.data());
     nu = nu + out_solver;
 
-    Point dKdv = Point((v - P->Asp.transpose() * nu).cwiseQuotient(hess));
+    Point dKdv = Point((v - P.Asp.transpose() * nu).cwiseQuotient(hess));
     Point dKdx = Point(
-        P->barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
+        P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
     pts result = {dUdv_b, dKdx};
     return std::make_pair(result, nu);
   }
@@ -95,7 +95,7 @@ public:
       VT lsc = VT(n, 1);
       solver.leverageScoreComplement((Tx *)lsc.data());
 
-      last_dUdx = Point(-(P->barrier.tensor(x).cwiseProduct(lsc))
+      last_dUdx = Point(-(P.barrier.tensor(x).cwiseProduct(lsc))
                              .cwiseQuotient(2 * hess)) -
                   dfx;
       dUDx_empty = false;
@@ -111,7 +111,7 @@ public:
     xs = y;
     x = xs[0].getCoefficients();
     dfx = F(0, xs, 0);
-    hess = P->barrier.hessian(x);
+    hess = P.barrier.hessian(x);
     forceUpdate = false;
     prepared = false;
   }

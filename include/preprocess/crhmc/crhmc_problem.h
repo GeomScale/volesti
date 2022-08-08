@@ -13,8 +13,8 @@
 // Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
 // Riemannian Hamiltonian
 // Monte Carlo in a Constrained Space"
-#ifndef CRHMCPROBLEM_H
-#define CRHMCPROBLEM_H
+#ifndef CRHMC_PROBLEM_H
+#define CRHMC_PROBLEM_H
 #include "Eigen/Eigen"
 #include "PackedCSparse/PackedChol.h"
 #include "cartesian_geom/cartesian_kernel.h"
@@ -35,7 +35,8 @@
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-template <typename Point> class crhmcProblem {
+template <typename Point>
+class crhmc_problem {
 public:
   using NT = double;
   using PolytopeType = HPolytope<Point>;
@@ -71,7 +72,7 @@ public:
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
-  VT project(VT x){
+  VT project(VT const&  x){
     int m = Asp.rows();
     int n = Asp.cols();
     CholObj solver = CholObj(Asp);
@@ -586,7 +587,7 @@ public:
     myfile << center;
   }
 
-  crhmcProblem(Input const &input, Opts _options = Opts()) {
+  crhmc_problem(Input const &input, Opts _options = Opts()) {
     options = _options;
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
@@ -691,7 +692,7 @@ public:
     }
   }
 
-  crhmcProblem(PolytopeType const &HP){
+  crhmc_problem(PolytopeType const &HP){
     /*Tansform the problem to the form Ax=b lb<=x<=ub*/
 
     nP = HP.dimension();

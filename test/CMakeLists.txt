@@ -4,6 +4,7 @@
 # Copyright (c) 2021 Vaibhav Thakkar
 
 # Contributed and/or modified by Vaibhav Thakkar
+# Contributed and/or modified by Ioannis Iakovidis
 # Licensed under GNU LGPL.3, see LICENCE file
 
 project( VolEsti )

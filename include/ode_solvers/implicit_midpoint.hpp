@@ -65,8 +65,8 @@ struct ImplicitMidpointODESolver {
 
   // Function oracle
   func F;
-  Polytope *P;
-  Opts *options;
+  Polytope &P;
+  Opts& options;
   MT nu;
 
   hamiltonian ham;
@@ -74,8 +74,8 @@ struct ImplicitMidpointODESolver {
   bool done;
 
   ImplicitMidpointODESolver(NT initial_time, NT step, pts initial_state,
-                            func oracle, Polytope *boundaries,
-                            Opts *user_options)
+                            func oracle, Polytope &boundaries,
+                            Opts &user_options)
       : eta(step), t(initial_time), xs(initial_state), F(oracle),
         options(user_options), P(boundaries),
         ham(hamiltonian(boundaries, oracle)) {
@@ -90,7 +90,7 @@ struct ImplicitMidpointODESolver {
     xs = xs_prev + partialDerivatives * (eta);
     VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
     NT maxdist = dist.maxCoeff();
-    if (maxdist < options->implicitTol) {
+    if (maxdist < options.implicitTol) {
       done = true;
     }
   }
@@ -108,7 +108,7 @@ struct ImplicitMidpointODESolver {
     }
     partialDerivatives = ham.DU(xs);
     xs = xs + partialDerivatives * (eta / 2);
-    xs[0] = Point(P->project(xs[0].getCoefficients()));
+    xs[0] = Point(P.project(xs[0].getCoefficients()));
   }
 
   Point get_state(int index) { return xs[index]; }
