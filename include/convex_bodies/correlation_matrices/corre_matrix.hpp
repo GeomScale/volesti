@@ -23,11 +23,6 @@ class CorreMatrix{
         mat = MT::Identity(n,n);
     }
     
-    // CorreMatrix(unsigned int d){
-    //     unsigned int n = std::ceil(std::sqrt(d << 1));
-    //     mat = MT::Identity(n,n);
-    // }
-
     CorreMatrix(MT const& mat){
         this->mat = mat;
     }
