@@ -13,8 +13,8 @@
 // Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
 // Riemannian Hamiltonian
 // Monte Carlo in a Constrained Space"
-#ifndef HAMILTONIAN_UTILS_HPP
-#define HAMILTONIAN_UTILS_HPP
+#ifndef HAMILTONIAN_HPP
+#define HAMILTONIAN_HPP
 #include <utility>
 template <typename Polytope, typename Point, typename func> class Hamiltonian {
   using VT = typename Polytope::VT;

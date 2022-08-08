@@ -17,7 +17,7 @@
 #ifndef IMPLICIT_MIDPOINT_HPP
 #define IMPLICIT_MIDPOINT_HPP
 #include "preprocess/crhmc/opts.h"
-#include "random_walks/crhmc/hamiltonian_utils.hpp"
+#include "random_walks/crhmc/hamiltonian.hpp"
 
 template <typename T>
 inline std::vector<T> operator+(const std::vector<T> &v1,
