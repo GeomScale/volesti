@@ -41,6 +41,7 @@ struct GetDirection
     }
 };
 
+/// Return a random direction for sampling correlation matrices with matrix PointType
 template <typename NT>
 struct GetDirection<CorreMatrix<NT>>
 {
@@ -52,7 +53,7 @@ struct GetDirection<CorreMatrix<NT>>
         typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
         typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
 
-        unsigned int n = ceil(std::sqrt(2*dim));
+        unsigned int n = std::ceil(std::sqrt(2*dim));
         MT mat = MT::Zero(n,n);
         NT normal = NT(0), coeff;
 

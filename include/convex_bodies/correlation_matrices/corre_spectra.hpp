@@ -32,6 +32,9 @@ struct Precompute {
 };
 
 /// This class handles the spectrahedra of correlation matrices
+/// The PointType here is stored as vector. 
+/// For the matrix PointType class, refer to CorreSpectra_MT
+
 /// @tparam Point
 template<typename Point>
 class CorreSpectra : public Spectrahedron<Point> {
@@ -134,7 +137,7 @@ class CorreSpectra : public Spectrahedron<Point> {
 
     NT positiveLinearIntersection(VT const & p, VT const & v) {
         createMatricesForPositiveLinearIntersection(p, v);
-        return this->EigenvaluesProblem.minPosLinearEigenvalue2(-_precomputedValues.A, _precomputedValues.B,
+        return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(-_precomputedValues.A, _precomputedValues.B,
                                                                 _precomputedValues.eigenvector);
     }
 

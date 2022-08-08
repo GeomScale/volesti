@@ -17,7 +17,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "convex_bodies/correlation_matrices/corre_spectra.hpp"
-#include "convex_bodies/correlation_matrices/corre_spectra2.hpp"
+#include "convex_bodies/correlation_matrices/corre_spectra_MT.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
@@ -68,18 +68,18 @@ template <typename NT>
 static NT compute(CorreSpectra<Point> &P)
 {
     std::pair<Point, NT> inner_ball = P.getInnerBall();
-    return NT(6) * NT(P.dimension()) * inner_ball.second;
+    return NT(P.dimension()) * inner_ball.second;
 }
 };
 
 template <typename Point>
-struct compute_diameter<CorreSpectra2<Point>>
+struct compute_diameter<CorreSpectra_MT<Point>>
 {
 template <typename NT>
-static NT compute(CorreSpectra2<Point> &P)
+static NT compute(CorreSpectra_MT<Point> &P)
 {
     std::pair<Point, NT> inner_ball = P.getInnerBall();
-    return NT(6) * NT(P.dimension()) * inner_ball.second;
+    return NT(P.dimension()) * inner_ball.second;
 }
 };
 

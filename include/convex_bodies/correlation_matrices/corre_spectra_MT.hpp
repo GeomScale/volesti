@@ -1,12 +1,12 @@
-#ifndef VOLESTI_CORRE_SPECTRAHEDRON2_H
-#define VOLESTI_CORRE_SPECTRAHEDRON2_H
+#ifndef VOLESTI_CORRE_SPECTRAHEDRON_MT_H
+#define VOLESTI_CORRE_SPECTRAHEDRON_MT_H
 
 #include "corre_matrix.hpp"
 //
 /// This class handles the spectrahedra of correlation matrices
 /// @tparam Point
 template<typename CorreMatrix>
-class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
+class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
     public:
 
     /// The numeric/matrix/vector types we use
@@ -22,7 +22,7 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
 
     /// Constructor of correlation matrix spectrahedra
     /// \param[in] : matrix size
-    CorreSpectra2(unsigned int n){
+    CorreSpectra_MT(unsigned int n){
         int i,j;
         this->n = n;
         this->d = n*(n-1)/2;
@@ -57,23 +57,13 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
                 dot += grad(i,j) * v.mat(i,j);
             }
         }
-        dot = 2 * dot / sum_sq;
-        
-        // std::cout << "dot = " << dot << std::endl;
-        // for(i = 0; i < n ; ++i){
-        //     for(j = 0; j < i; ++j){
-        //         NT tmp = dot*grad(i,j);
-        //         // grad(i,j) =  tmp;
-        //         std::cout << grad(i,j)  << std::endl;
-        //     }
-        // }
-        
+        dot = 2 * dot / sum_sq;        
         grad = dot*grad;
         v -= PointType(grad);
     }
 
     NT positiveLinearIntersection(PointType const & r, PointType const & v) {
-        return this->EigenvaluesProblem.minPosLinearEigenvalue2(r.mat, (-v).mat, eigenvector);
+        return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(r.mat, (-v).mat, eigenvector);
     }
 
     // compute intersection point of a ray starting from r and pointing to v
@@ -137,12 +127,15 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
     /// Test if a point p is in the spectrahedron
     /// \param p is the current point
     /// \return true if position is outside the spectrahedron
-    int is_in(PointType const& p, NT tol=NT(0)) {  
-        return !isExterior(p);
+    int is_in(PointType const& p, NT tol=NT(0)) {
+        if(this->EigenvaluesProblem.isPositiveSemidefinite(p.mat)){
+            return -1;
+        }
+        return 0;
     }
 
     bool isExterior(MT const& mat) {
-        return !this->EigenvaluesProblem.isPositiveSemidefinite(-mat);
+        return !this->EigenvaluesProblem.isPositiveSemidefinite(mat);
     }
 
     MT get_mat() const
@@ -151,4 +144,4 @@ class CorreSpectra2 : public Spectrahedron<CorreMatrix> {
     }
 };
 
-#endif //VOLESTI_CORRE_SPECTRAHEDRON_H
+#endif //VOLESTI_CORRE_SPECTRAHEDRON_MT_H

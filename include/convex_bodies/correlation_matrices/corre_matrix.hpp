@@ -1,8 +1,10 @@
 #ifndef VOLESTI_CORRE_MATRIX_H
 #define VOLESTI_CORRE_MATRIX_H
 
-/// This class handles the spectrahedra of correlation matrices
-/// @tparam Point
+/// This class handles the PointType used by CorreSpectra_MT class.
+/// Every point is a correlation matrix and only the lower triangular part is stored.
+
+/// @tparam NT
 template<typename NT>
 class CorreMatrix{
     public:
@@ -20,6 +22,11 @@ class CorreMatrix{
     CorreMatrix(unsigned int n){
         mat = MT::Identity(n,n);
     }
+    
+    // CorreMatrix(unsigned int d){
+    //     unsigned int n = std::ceil(std::sqrt(d << 1));
+    //     mat = MT::Identity(n,n);
+    // }
 
     CorreMatrix(MT const& mat){
         this->mat = mat;
@@ -39,15 +46,6 @@ class CorreMatrix{
     {
         this->mat = p.mat;
     }
-
-    // //TODO: avoid point construction in operators +,-,*
-    // point operator+ (const CorreMatrix& p) const
-    // {
-    //     CorreMatrix temp;
-    //     temp.d = d;
-    //     temp.coeffs = coeffs + p.getCoefficients();
-    //     return temp;
-    // }
 
     CorreMatrix<NT> operator- () const
     {
@@ -88,6 +86,17 @@ class CorreMatrix{
         std::cout<< this->mat << std::endl;
     }
 
+    VT getCoefficients(){
+        int n = this->mat.rows(), ind = 0, i, j;
+        VT coeff(n*(n-1)/2);
+        for(i = 0; i < n ; ++i){
+            for(j = 0; j < i; ++j){
+                coeff(ind) = this->mat(i,j);
+                ++ind;
+            }
+        }
+        return coeff;
+    }
 };
 
 template<typename NT>

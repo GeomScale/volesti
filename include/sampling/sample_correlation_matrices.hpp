@@ -93,12 +93,12 @@ template
     typename RNGType,
     typename PointList
 >
-void uniform_correlation_sampling2(const unsigned int &n,
+void uniform_correlation_sampling_MT(const unsigned int &n,
                                     PointList &randPoints,
                                     const unsigned int &walkL,
                                     const unsigned int &num_points,
                                     unsigned int const& nburns){
-    CorreSpectra2<PointType> P(n);
+    CorreSpectra_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(P.matrixSize());
     RNGType rng(d);
