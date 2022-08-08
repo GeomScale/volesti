@@ -3,17 +3,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # plot data
-filenames = ["uniform_sampling.txt"]
+filenames = ["correlation_matrices.txt"]
 for filename in filenames:
-    fig = plt.figure(figsize=(4, 4))
-
-    ax = fig.add_subplot(111, projection='3d')
-
-    # plot points
+    fig = plt.figure(figsize=(4,4))
+    ax = plt.axes(projection='3d')
     data = np.genfromtxt(filename, delimiter=' ')
-    # ax.scatter(2,3,4) # plot the point (2,3,4) on the figure
-
-    plt.scatter(data[:, 0], data[:, 1], data[:, 2])
+    ax.scatter(data[:, 0], data[:, 1], data[:, 2], s = 1)
 
 # show all plots
 plt.show()

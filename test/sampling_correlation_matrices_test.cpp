@@ -1,5 +1,4 @@
 #include "doctest.h"
-#include <fstream>
 #include <iostream>
 #include "misc.h"
 #include "random.hpp"
@@ -12,15 +11,6 @@
 #include "sampling/sample_correlation_matrices.hpp"
 
 #include "diagnostics/univariate_psrf.hpp"
-
-template <typename Point>
-void write_to_file(std::string filename, std::vector<Point> const& randPoints) {
-    std::ofstream out(filename);
-    auto coutbuf = std::cout.rdbuf(out.rdbuf()); //save and redirect
-    for(int i=0; i<randPoints.size(); ++i)
-        randPoints[i].print();
-    std::cout.rdbuf(coutbuf); //reset to standard output again
-}
 
 template<typename NT, typename MT, typename VT>
 MT rebuildMatrix(const VT &xvector, const unsigned int n){

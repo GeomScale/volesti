@@ -78,7 +78,13 @@ class CorreMatrix{
 
     void print() const
     {
-        std::cout<< this->mat << std::endl;
+        int n = this->mat.rows(), i, j;
+        for(i = 0; i < n ; ++i){
+            for(j = 0; j < i; ++j){
+                std::cout<< this->mat(i,j) <<" ";
+            }
+        }
+        std::cout<<"\n";
     }
 
     VT getCoefficients(){
