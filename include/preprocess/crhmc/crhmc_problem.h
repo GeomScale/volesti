@@ -52,6 +52,7 @@ public:
   using Opts = opts<NT>;
   using Diagonal_MT = Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;
   using Input = crhmc_input<MT, NT>;
+  const NT inf = 1e9;
 
   unsigned int _d; // dimension
   MT A;            // matrix A
@@ -512,8 +513,7 @@ public:
     return tau;
   }
 
-  int doubleVectorEqualityComparison(const NT a, const NT b) {
-    const NT tol = std::numeric_limits<NT>::epsilon();
+  int doubleVectorEqualityComparison(const NT a, const NT b,const NT tol=  std::numeric_limits<NT>::epsilon()) {
     return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
   }
 
@@ -600,7 +600,7 @@ public:
     lb.resize(nP + nIneq, 1);
     ub.resize(nP + nIneq, 1);
     lb << input.lb, MT::Zero(nIneq, 1);
-    ub << input.ub, MT::Ones(nIneq, 1) * std::numeric_limits<NT>::infinity();
+    ub << input.ub, MT::Ones(nIneq, 1) * inf;
     Asp.resize(nEq + nIneq, nP + nIneq);
     PreproccessProblem();
   }
