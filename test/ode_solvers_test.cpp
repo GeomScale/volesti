@@ -190,7 +190,7 @@ template <typename NT> void test_implicit_midpoint() {
       implicit_midpoint_solver =
           ImplicitMidpointODESolver<Point, NT, CrhmcProblem, func>(
               0, 0.01, q, F, P, opts);
-  std::ifstream is("../test_norm_hypercube.txt");
+  std::ifstream is("../test/test_norm_hypercube.txt");
   std::istream_iterator<NT> start(is), end;
   std::vector<NT> target_norms(start, end);
   check_norm_progress(implicit_midpoint_solver, 200, target_norms);
