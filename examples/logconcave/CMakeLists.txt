@@ -8,13 +8,9 @@
 project( VolEsti )
 
 
-option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
-
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
-set(MKLROOT $ENV{HOME}/intel/mkl)
+set(MKLROOT /opt/intel/oneapi/mkl/2022.1.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 if(COMMAND cmake_policy)
@@ -124,6 +120,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+  add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
@@ -145,6 +142,8 @@ else ()
   TARGET_LINK_LIBRARIES(simple_sde ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   TARGET_LINK_LIBRARIES(simple_uld ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   TARGET_LINK_LIBRARIES(simple_hmc ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-
+  TARGET_LINK_LIBRARIES(exponential_exact_hmc ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  TARGET_LINK_LIBRARIES(gaussian_exact_hmc ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  
 
 endif()
