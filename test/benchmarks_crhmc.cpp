@@ -75,7 +75,7 @@ int main() {
             << std::endl;
   benchmark("../test/metabolic_full_dim/polytope_e_coli.ine");
   benchmark("../test/netlib/afiro.ine");
-  benchmark("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine");
+  //benchmark("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine");
 
   return 0;
 }
