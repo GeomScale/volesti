@@ -35,17 +35,46 @@ public:
   pts xs;
   VT x;
   Point dfx;
-
+  NT fx = 0;
   func F;
   int n;
   int m;
 
-  Hamiltonian(Polytope& boundaries, func oracle)
+  Hamiltonian(Polytope &boundaries, func oracle)
       : P(boundaries), F(oracle), solver(CholObj(boundaries.Asp)) {
     n = P.dimension();
     m = P.equations();
     x = VT::Zero(n);
     xs = {Point(n), Point(n)};
+  }
+
+  // Compute H(x,v)
+  NT hamiltonian(Point x, Point v) {
+    prepare({x, v});
+    pts pd = DK({x, v});
+    NT K = 0.5 * v.dot(pd[0]);
+    NT U = 0.5 * (solver.logdet() + ((hess.array()).log()).sum());
+    U = U + fx;
+    NT E = U + K;
+    return E;
+  }
+  template <typename MatrixType> bool isnan(MatrixType x) {
+    for (int i = 0; i < x.rows(); i++) {
+      for (int j = 0; j < x.cols(); j++) {
+        if (std::isnan(x(i, j)))
+          return 1;
+      }
+    }
+    return 0;
+  }
+  // Test if the values of x and v are valid and if x is feasible
+  NT feasible(VT x, VT v) {
+
+    bool r = !isnan(x) && !isnan(v) && P.barrier.feasible(x);
+    if (r) {
+      return 1;
+    }
+    return 0;
   }
   void prepare(pts const &xs) {
     move(xs);
@@ -66,8 +95,8 @@ public:
     solver.solve((Tx *)input_vector.data(), (Tx *)out_vector.data());
     Point dKdv =
         Point(invHessV - (P.A.transpose() * out_vector).cwiseQuotient(hess));
-    Point dKdx = Point(
-        P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
+    Point dKdx =
+        Point(P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
     return {dKdv, dKdx};
   }
   std::pair<pts, MT> approxDK(pts const &x_bar, MT const &nu) {
@@ -81,8 +110,8 @@ public:
     nu = nu + out_solver;
 
     Point dKdv = Point((v - P.Asp.transpose() * nu).cwiseQuotient(hess));
-    Point dKdx = Point(
-        P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
+    Point dKdx =
+        Point(P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
     pts result = {dUdv_b, dKdx};
     return std::make_pair(result, nu);
   }
@@ -111,6 +140,7 @@ public:
     xs = y;
     x = xs[0].getCoefficients();
     dfx = F(0, xs, 0);
+    fx = 0;
     hess = P.barrier.hessian(x);
     forceUpdate = false;
     prepared = false;

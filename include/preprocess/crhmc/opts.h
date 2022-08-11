@@ -27,6 +27,7 @@ public:
   /*ODE options*/
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
+  Type initialStep = 0.2;
 
   opts() {}
   void operator=(const opts &rhs) {
