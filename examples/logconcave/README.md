@@ -6,11 +6,11 @@ For example, it is installed in the directory "/opt/intel/oneapi/mkl/2022.1.0".
 
 Change the environment variable:
 ```bash
-export LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/2022.0.2/lib/intel64
+export LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/latest/lib/intel64
 ```
 Change the variable in CMakeLists.txt
 ```
-set(MKLROOT /opt/intel/oneapi/mkl/2022.1.0)
+set(MKLROOT /opt/intel/oneapi/mkl/latest)
 ```
 
 Build the example by running the following commands in this directory.
