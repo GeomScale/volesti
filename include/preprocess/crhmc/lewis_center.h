@@ -37,7 +37,8 @@ using Triple=Eigen::Triplet<double>;
 using Barrier=TwoSidedBarrier<NT>;
 using Tx = FloatArray<double, chol_k3>;
 using Opts=opts<NT>;
-
+NT epsilon=1e-8;
+int numberOfFullSteps=8;
 std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
                                            Barrier  &f, Opts const &options,
                                            VT x = VT::Zero(0, 1)) {
@@ -72,10 +73,10 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     VT rs = b - A * x;
 
     // check stagnation
-    NT primalErrMin = std::min(primalErr, primalErrMin);
-    NT primalErr = rx.norm() / primalFactor;
+    primalErrMin = std::min(primalErr, primalErrMin);
+    primalErr = rx.norm() / primalFactor;
     NT dualErrLast = dualErr;
-    NT dualErr = rs.norm() / dualFactor;
+    dualErr = rs.norm() / dualFactor;
     bool feasible = f.feasible(x);
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
         (primalErr > 10 * primalErrMin) || !feasible) {
@@ -120,7 +121,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     VT w_vector(n, 1);
     solver.leverageScoreComplement((Tx*) w_vector.data());
 
-    VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) * 1e-8;
+    VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) *epsilon;
     w = (w + wNew) / 2;
     wp = Eigen::pow(w.array(), 0.875).matrix();
 
@@ -131,7 +132,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     // stop if converged
     if (tGrad == 1) {
       fullStep = fullStep + 1;
-      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > 8) {
+      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > numberOfFullSteps) {
         break;
       }
     } else {

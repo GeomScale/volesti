@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import seaborn as sns
+import math
 sns.set_style("white")
 from io import StringIO
 
@@ -51,9 +52,11 @@ if __name__ == '__main__':
     axli = ax2d.flatten()
 
     plt.suptitle('{}: Marginals'.format(args.name))
-
+    #t = np.linspace(-1, 1, 1000)
+    #a=(1/1.31649)*np.exp(-2*t*t-t)
     for i in range(1, 1 + dims):
         sns.histplot(data[:, i-1], bins=50, color="orange", ax=axli[i-1], stat='probability', kde=True)
+        #axli[i-1].plot(t,a,'r')
         axli[i-1].set_xlabel('$x_{}$'.format(i))
         axli[i-1].set_ylabel('$\pi(x_{})$'.format(i))
 
@@ -65,7 +68,6 @@ if __name__ == '__main__':
     axli = ax2d.flatten()
 
     plt.suptitle('{}: Samples'.format(args.name))
-
     for i in range(1, 1 + dims):
         axli[i-1].plot(data[:, i-1])
         axli[i-1].set_xlabel('Number of samples (t)')

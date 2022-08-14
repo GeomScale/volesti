@@ -128,10 +128,10 @@ struct CRHMCWalk {
 
       if (metropolis_filter) {
         // Calculate initial Hamiltonian
-        H = solver->ham.hamiltonian(x, v);
+        H = solver->ham.hamiltonian(x, v) + f(x);
 
         // Calculate new Hamiltonian
-        H_tilde = solver->ham.hamiltonian(x_tilde, v_tilde);
+        H_tilde = solver->ham.hamiltonian(x_tilde, v_tilde) + f(x_tilde);
 
         NT feasible =
             solver->ham.feasible(x.getCoefficients(), v.getCoefficients());

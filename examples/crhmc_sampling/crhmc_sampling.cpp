@@ -115,7 +115,7 @@ template <typename NT> void run_main() {
 
   int n_samples = 50000; // Half will be burned
   for (int i = 0; i < n_samples; i++) {
-    crhmc.apply(rng, 3);
+    crhmc.apply(rng, 10);
     if (i > n_samples / 2)
       std::cout << crhmc.x.getCoefficients().transpose() << std::endl;
     // std::cout << hmc.solver->eta << std::endl;
