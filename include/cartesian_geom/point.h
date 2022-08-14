@@ -116,7 +116,7 @@ public:
 
     void operator+= (const Coeff& coeffs)
     {
-        this->coeffs = coeffs + this->coeffs;
+        this->coeffs += coeffs;
     }
 
     void operator-= (const point& p)
@@ -126,7 +126,7 @@ public:
 
     void operator-= (const Coeff& coeffs)
     {
-        this->coeffs = coeffs - this->coeffs;
+        this->coeffs -= coeffs;
     }
 
     void operator= (const Coeff& coeffs)

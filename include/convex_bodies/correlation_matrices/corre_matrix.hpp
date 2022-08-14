@@ -27,6 +27,11 @@ class CorreMatrix{
         this->mat = mat;
     }
 
+    int dimension() const {
+        int n = this->mat.rows();
+        return n*(n-1)/2;
+    }
+
     void operator+= (const CorreMatrix<NT> & p)
     {
         this->mat += p.mat;
@@ -41,6 +46,14 @@ class CorreMatrix{
     {
         this->mat = p.mat;
     }
+
+    CorreMatrix<NT> operator+ (const CorreMatrix<NT>& p) const
+    {
+        CorreMatrix<NT> temp;
+        temp.mat = this->mat + p.mat;
+        return temp;
+    }
+
 
     CorreMatrix<NT> operator- () const
     {

@@ -45,7 +45,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     typedef typename Point::FT                                NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
-    typedef Precompute<NT, MT, VT> PrecomputationOfValues;
+    typedef Precompute<NT, MT, VT>                            PrecomputationOfValues;
 
     /// The size of the matrix
     unsigned int n;
@@ -197,6 +197,32 @@ class CorreSpectra : public Spectrahedron<Point> {
                                                      update_parameters&)
     {
         return line_positive_intersect(r, v);
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
+    {
+        createMatricesForPositiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
+        return this->EigenvaluesProblem.symGeneralizedProblem(_precomputedValues.A, _precomputedValues.B);
+    }
+
+
+    std::pair<NT,NT> line_intersect(PointType const& r,
+                                    PointType const& v,
+                                    VT&,
+                                    VT&)
+    {
+        return line_intersect(r, v);
+    }
+
+    std::pair<NT,NT> line_intersect(PointType const& r,
+                                    PointType const& v,
+                                    VT&,
+                                    VT&,
+                                    NT&)
+    {
+        return line_intersect(r, v);
     }
 
     /// Compute the gradient of the determinant of the LMI at p

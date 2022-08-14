@@ -21,7 +21,7 @@ template
     typename NT,
     typename WalkType
 >
-void correlation_matrix_uniform_sampling(const unsigned int n, const unsigned int num_points = 1000){
+void correlation_matrix_uniform_sampling(const unsigned int n, const unsigned int num_points, std::string walkname){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
@@ -42,7 +42,7 @@ void correlation_matrix_uniform_sampling(const unsigned int n, const unsigned in
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    write_to_file<Point>("correlation_matrices.txt", randPoints);
+    write_to_file<Point>(walkname + "_matrices.txt", randPoints);
 }
 
 template
@@ -50,7 +50,7 @@ template
     typename NT,
     typename WalkType
 >
-void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned int num_points = 1000){
+void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned int num_points, std::string walkname){
     typedef CorreMatrix<NT>                                     Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
@@ -70,7 +70,7 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    write_to_file<Point>("correlation_matrices_MT.txt", randPoints);
+    write_to_file<Point>(walkname + "_matrices_MT.txt", randPoints);
 }
 
 int main(int argc, char const *argv[]) {
@@ -78,13 +78,21 @@ int main(int argc, char const *argv[]) {
     typedef double NT;
     unsigned int n = 3, num_points = 5000;
     
-    // correlation_matrix_uniform_sampling<NT, BilliardWalk>(n,num_points);
+    correlation_matrix_uniform_sampling<NT, BallWalk>(n, num_points, "BallWalk");
 
-    correlation_matrix_uniform_sampling<NT, AcceleratedBilliardWalk>(n,num_points);
+    correlation_matrix_uniform_sampling<NT, RDHRWalk>(n, num_points, "RDHRWalk");
     
-    // correlation_matrix_uniform_sampling_MT<NT, BilliardWalk>(n,num_points);
+    correlation_matrix_uniform_sampling<NT, BilliardWalk>(n, num_points, "BilliardWalk");
 
-    // correlation_matrix_uniform_sampling_MT<NT, AcceleratedBilliardWalk>(n,num_points);
+    correlation_matrix_uniform_sampling<NT, AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
+
+    correlation_matrix_uniform_sampling_MT<NT, BallWalk>(n, num_points, "BallWalk");
+
+    correlation_matrix_uniform_sampling_MT<NT, RDHRWalk>(n, num_points, "RDHRWalk");
+    
+    correlation_matrix_uniform_sampling_MT<NT, BilliardWalk>(n, num_points, "BilliardWalk");
+
+    correlation_matrix_uniform_sampling_MT<NT, AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
     
     return 0;
 }

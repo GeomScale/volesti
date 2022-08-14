@@ -62,7 +62,14 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
         v -= PointType(grad);
     }
 
+    /// Computes the minimal positive t s.t. r+t*v intersects the boundary of the spectrahedron
+    /// \param[in] r
+    /// \param[in] v
+    /// \param[out] a NT value t
     NT positiveLinearIntersection(PointType const & r, PointType const & v) {
+
+        // minPosLinearEigenvalue_EigenSymSolver(A,B) computes the minimal positive eigenvalue of A-t*B
+
         return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(r.mat, (-v).mat, eigenvector);
     }
 
@@ -123,6 +130,35 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
     {
         return line_positive_intersect(r, v);
     }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
+    {
+        // NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
+        // NT neg_inter = positiveLinearIntersection(r.getCoefficients(), NT(-1)*v.getCoefficients());
+
+        // return std::make_pair(pos_inter, neg_inter);
+        return this->EigenvaluesProblem.symGeneralizedProblem(-r.mat, -v.mat);
+    }
+
+    std::pair<NT,NT> line_intersect(PointType const& r,
+                                    PointType const& v,
+                                    VT&,
+                                    VT&)
+    {
+        return line_intersect(r, v);
+    }
+
+    std::pair<NT,NT> line_intersect(PointType const& r,
+                                    PointType const& v,
+                                    VT&,
+                                    VT&,
+                                    NT&)
+    {
+        return line_intersect(r, v);
+    }
+
 
     /// Test if a point p is in the spectrahedron
     /// \param p is the current point

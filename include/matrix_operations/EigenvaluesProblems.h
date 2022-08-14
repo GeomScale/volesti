@@ -442,34 +442,9 @@ public:
     /// \return The minimum positive eigenvalue and the corresponding eigenvector
     NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) {
         NT lambdaMinPositive = NT(0);
-#if defined(SPECTRA_SYM_EIGENVALUES_SOLVER)
-//         int matrixDim = A.rows();
-//         int ncv = 15 < matrixDim ? 15 : matrixDim; // convergence speed
-
-//         Spectra::DenseSymMatProd<NT> op(B);
-//         Spectra::DenseCholesky<NT> Bop(A);
-        
-//         // Requesting the largest generalized eigenvalues
-//         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
-//             geigs(&op, &Bop, 1, ncv);
-        
-//         // Initialize and compute
-//         geigs.init();
-//         int nconv = geigs.compute();
-
-//         VT evalues;
-//         if (geigs.info() == Spectra::SUCCESSFUL) {
-//             evalues = geigs.eigenvalues();
-//             eigvec = geigs.eigenvectors().col(0);
-//         }
-
-//         lambdaMinPositive = 1 / evalues(0);
-#else
         Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A);
         lambdaMinPositive = 1/ges.eigenvalues().reverse()[0];
         eigvec = ges.eigenvectors().reverse().col(0).reverse();
-
-#endif
         return lambdaMinPositive;
     }
 };

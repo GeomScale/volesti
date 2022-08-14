@@ -207,9 +207,10 @@ void test_new_uniform_MT(const unsigned int n, const unsigned int num_points = 1
     check_output_MT<NT, VT, MT>(randPoints, num_points, n);
 }
 
-int n = 10;
-int num_points_BallWalk = 1000000;
-int num_points_BilliardWalk = 1000;
+int n = 3;
+int num_points_BallWalk = 10000;
+int num_points_RDHRWalk = 10000;
+int num_points_BilliardWalk = 100;
 
 ///////////////////////////////////////////////////////////////////
 //      Test new classes
@@ -247,6 +248,11 @@ TEST_CASE("new_ball_uniform") {
     test_new_uniform<double, BallWalk>(n,num_points_BallWalk);
 }
 
+TEST_CASE("new_rdhr_uniform") {
+    std::cout << "RDHR Walk :: ";
+    test_new_uniform<double, RDHRWalk>(n,num_points_RDHRWalk);
+}
+
 TEST_CASE("new_billiard_uniform") {
     std::cout << "Billiard Walk :: ";
     test_new_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
@@ -262,16 +268,21 @@ TEST_CASE("new_accelerated_billiard_uniform") {
 //
 
 TEST_CASE("new_ball_uniform_MT") {
-    std::cout << "Ball Walk :: ";
+    std::cout << "Ball Walk MT :: ";
     test_new_uniform_MT<double, BallWalk>(n,num_points_BallWalk);
 }
 
+TEST_CASE("new_rdhr_uniform_MT") {
+    std::cout << "RDHR Walk MT :: ";
+    test_new_uniform_MT<double, RDHRWalk>(n,num_points_RDHRWalk);
+}
+
 TEST_CASE("new_billiard_uniform_MT") {
-    std::cout << "Billiard Walk :: ";
+    std::cout << "Billiard Walk MT :: ";
     test_new_uniform_MT<double, BilliardWalk>(n, num_points_BilliardWalk);
 }
 
 TEST_CASE("new_accelerated_billiard_uniform_MT") {
-    std::cout << "Accelerated Billiard Walk :: ";
+    std::cout << "Accelerated Billiard Walk MT :: ";
     test_new_uniform_MT<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
