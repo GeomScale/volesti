@@ -249,9 +249,7 @@ else ()
 
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
-	COMMAND crhmc_polytope_preparation_test -tc=test_real_dataset_crhmc)
-	add_test(NAME crhmc_polytope_test_simplification
-	COMMAND crhmc_polytope_preparation_test -tc=test_simplification_crhmc)
+	COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles

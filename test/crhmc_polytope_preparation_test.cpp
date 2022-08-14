@@ -45,12 +45,6 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   read_pointset(inp, Pin);
   inp.close();
   PolytopeType HP(Pin);
-  int d = HP.dimension();
-  Input input = Input(d);
-  input.Aineq = HP.get_mat();
-  input.bineq = HP.get_vec();
-  Opts options;
-  options.EnableReordering = false;
   CrhmcProblem P = CrhmcProblem(HP);
 
   int m = 342;
@@ -132,17 +126,10 @@ template <typename NT> void test_crhmc_dependent_polytope() {
 template <typename NT> void call_test_crhmc_preprocesssing() {
   std::cout << "--- Testing CRHMC data preprocessing" << std::endl;
   test_crhmc_polytope_preprocessing<NT>();
-}
-
-template <typename NT> void call_test_crhmc_simplification() {
-  std::cout << "--- Testing CRHMC data simplification" << std::endl;
   test_crhmc_fixed_var_polytope<NT>();
   test_crhmc_dependent_polytope<NT>();
 }
 
-TEST_CASE("test_real_dataset_crhmc") {
+TEST_CASE("test_preparation_crhmc") {
   call_test_crhmc_preprocesssing<double>();
-}
-TEST_CASE("test_simplification_crhmc") {
-  call_test_crhmc_simplification<double>();
 }
