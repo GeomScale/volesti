@@ -29,15 +29,15 @@
 #endif
 const size_t chol_k2 = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-using NT=double;
-using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using SpMat= Eigen::SparseMatrix<NT>;
-using CholObj=PackedChol<chol_k2, int>;
-using Triple=Eigen::Triplet<double>;
-using Barrier=TwoSidedBarrier<NT>;
-using Tx2 = FloatArray<double, chol_k2>;
-using Opts=opts<NT>;
+using NT = double;
+using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using SpMat = Eigen::SparseMatrix<NT>;
+using CholObj = PackedChol<chol_k2, int>;
+using Triple = Eigen::Triplet<double>;
+using Barrier = TwoSidedBarrier<NT>;
+using Tx = FloatArray<double, chol_k2>;
+using Opts = opts<NT>;
 
 std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
                                           Barrier &f, Opts const &options,
@@ -93,12 +93,12 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
 
     // compute the step direction
     VT Hinv = hess.cwiseInverse();
-    solver.decompose((Tx2 *) Hinv.data());
+    solver.decompose((Tx *)Hinv.data());
     VT out(m, 1);
-    solver.solve((Tx2*)rs.data(),(Tx2*) out.data());
+    solver.solve((Tx *)rs.data(), (Tx *)out.data());
     VT dr1 = A.transpose() * out;
     VT in = A * Hinv.cwiseProduct(rx);
-    solver.solve((Tx2 *)in.data(),(Tx2 *) out.data());
+    solver.solve((Tx *)in.data(), (Tx *)out.data());
 
     VT dr2 = A.transpose() * out;
     VT dx1 = Hinv.cwiseProduct(dr1);

@@ -73,21 +73,19 @@ public:
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
-  VT project(VT const&  x){
+  VT project(VT const &x) {
     int m = Asp.rows();
     int n = Asp.cols();
     CholObj solver = CholObj(Asp);
-    VT hess=barrier.hessian(x);
-    VT Hinv=hess.cwiseInverse();
+    VT hess = barrier.hessian(x);
+    VT Hinv = hess.cwiseInverse();
     solver.decompose((Tx *)Hinv.data());
     VT out_vector = VT(m, 1);
-    VT in_vector=b.transpose()-Asp*x;
-    solver.solve((Tx*) in_vector.data(),(Tx*)out_vector.data());
-    out_vector= Asp.transpose()* out_vector;
-    return x+(out_vector).cwiseQuotient(hess);
-
+    VT in_vector = b.transpose() - Asp * x;
+    solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
+    out_vector = Asp.transpose() * out_vector;
+    return x + (out_vector).cwiseQuotient(hess);
   }
-
 
   int remove_fixed_variables(const NT tol = 1e-12) {
     int m = Asp.rows();
@@ -102,11 +100,14 @@ public:
 
     x = ((x.array()).abs() < tol).select(0., x);
     std::vector<Triple> freeIndices;
+    std::vector<unsigned> indices;
+    int nFreeVars = 0;
     for (int i = 0; i < n; i++) {
       if (d(i) < tol * (1 + abs(x(i)))) {
-
       } else {
-        freeIndices.push_back(Triple(i, i, 1));
+        freeIndices.push_back(Triple(i, nFreeVars, 1));
+        nFreeVars++;
+        indices.push_back(i);
         x(i) = 0.0;
       }
     }
@@ -114,8 +115,8 @@ public:
     if (freeIndices.size() != n) {
       SpMat S = SpMat(n, freeIndices.size());
       S.setFromTriplets(freeIndices.begin(), freeIndices.end());
-
       append_map(S, x);
+      barrier.set_bound(barrier.lb(indices), barrier.ub(indices));
       return 1;
     }
     return 0;
@@ -141,8 +142,6 @@ public:
 
     return 1;
   }
-
-  void updateT() {}
 
   std::pair<VT, VT> colwiseMinMax(SpMat const &A) {
     int n = A.cols();
@@ -227,8 +226,7 @@ public:
     VT hess;
     if (x.rows() == 0) {
       hess = VT::Ones(dimension(), 1);
-    }
-    else {
+    } else {
       std::tie(std::ignore, hess) = barrier.analytic_center_oracle(x);
       hess = hess + (width.cwiseProduct(width)).cwiseInverse();
     }
@@ -246,7 +244,6 @@ public:
     if (!isempty_center) {
       center = center.cwiseProduct(cscale);
     }
-
   }
 
   std::pair<std::vector<int>, std::vector<int>>
@@ -329,7 +326,6 @@ public:
     }
     SpMat _T = MT::Zero(T.rows(), ub.rows() - T.cols()).sparseView();
     sparse_stack_h_inplace(T, _T);
-    updateT();
     barrier.set_bound(lb, ub);
   }
 
@@ -339,13 +335,12 @@ public:
     Asp = Asp * S;
     y = y + T * z;
     T = T * S;
-    updateT();
   }
 
   void shift_barrier(VT const &x) {
     int size = x.rows();
-    b=b-Asp*x;
-    y=y+T*x;
+    b = b - Asp * x;
+    y = y + T * x;
     barrier.set_bound(barrier.lb - x, barrier.ub - x);
     if (!isempty_center) {
       center = center - x;
@@ -380,28 +375,18 @@ public:
     b = perm * b;
   }
 
-  VT diagL(SpMat const &Asp) {
-    int m = Asp.cols();
-
-    SpMat H = Asp * SpMat(Asp.transpose());
-    Eigen::SimplicialLLT
-        <
-            Eigen::SparseMatrix<double>,
-            Eigen::Lower,
-            Eigen::NaturalOrdering<int>
-        > cholesky;
-    cholesky.analyzePattern(H);
-    cholesky.factorize(H);
-    SpMat L = cholesky.matrixL();
-    return L.diagonal();
-  }
-
-  int remove_dependent_rows() {
+  int remove_dependent_rows(NT tolerance=1e-12, NT infinity=1e+64) {
+    remove_zero_rows<SpMat, NT>(Asp);
     int m = Asp.rows();
-    VT v = diagL(Asp);
+    int n = Asp.cols();
+    VT v = VT(m);
+    VT w = VT::Ones(n, 1);
+    CholObj solver = CholObj(Asp);
+    solver.decompose((Tx *)w.data());
+    solver.diagL((Tx *)v.data());
     std::vector<int> indices;
     for (int i = 0; i < m; i++) {
-      if ((v(i) > 1e-12) && (v(i) < 1e+64)) {
+      if ((v(i) > tolerance) && (v(i) < infinity)) {
         indices.push_back(i);
       }
     }
@@ -514,7 +499,9 @@ public:
     return tau;
   }
 
-  int doubleVectorEqualityComparison(const NT a, const NT b,const NT tol=  std::numeric_limits<NT>::epsilon()) {
+  int doubleVectorEqualityComparison(
+      const NT a, const NT b,
+      const NT tol = std::numeric_limits<NT>::epsilon()) {
     return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
   }
 
@@ -618,15 +605,16 @@ public:
         A.row(A.rows() - 1) = temp;
         b.conservativeResize(b.rows() + 1);
         b(b.rows() - 1) = (lb(i) + ub(i)) / 2;
-        lb(i) = -std::numeric_limits<NT>::infinity();
-        ub(i) = std::numeric_limits<NT>::infinity();
+        lb(i) = -inf;
+        ub(i) = inf;
       }
     }
 
     barrier.set_bound(lb.cwiseMax(-1e7), ub.cwiseMin(1e7));
 
     Asp = A.sparseView();
-
+    NT tol = std::numeric_limits<NT>::epsilon();
+    Asp.prune(tol, tol);
     /*Update the transformation Tx + y*/
     T = SpMat(nP, n);
     std::vector<Triple> indices;
@@ -634,25 +622,24 @@ public:
       indices.push_back(Triple(i, i, 1));
     }
     T.setFromTriplets(indices.begin(), indices.end());
-    updateT();
     y = VT::Zero(nP, 1);
     /*Simplify*/
     simplify();
-    #ifdef TIME_KEEPING
-        double tstart_rest = (double)clock() / (double)CLOCKS_PER_SEC;
+#ifdef TIME_KEEPING
+    double tstart_rest = (double)clock() / (double)CLOCKS_PER_SEC;
 
-    #endif
+#endif
     if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
           analytic_center(Asp, b, barrier, options);
       isempty_center = false;
     }
     shift_barrier(center);
-    #ifdef TIME_KEEPING
+#ifdef TIME_KEEPING
     std::cout << "Shift_barrier completed in time, ";
     std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rest
-    << " secs " << std::endl;
-    #endif
+              << " secs " << std::endl;
+#endif
     reorder();
 
     width = estimate_width();
@@ -692,9 +679,8 @@ public:
     }
   }
 
-  crhmc_problem(PolytopeType const &HP){
-    /*Tansform the problem to the form Ax=b lb<=x<=ub*/
-
+  /*Tansform the problem to the form Ax=b lb<=x<=ub*/
+  crhmc_problem(PolytopeType const &HP) : options(Opts()) {
     nP = HP.dimension();
     int m = HP.num_of_hyperplanes();
     int n = HP.dimension();
@@ -702,9 +688,13 @@ public:
     A.resize(m, n + m);
     A << HP.get_mat(), MT::Identity(m, m);
     b = HP.get_vec();
-    n = dimension();
-    lb = -VT::Ones(n) * inf;
+    lb.resize(n + m, 1);
+    ub.resize(n + m, 1);
+    lb = VT(n + m);
+    lb << -VT::Ones(n) * inf, VT::Zero(m);
+    n = n + m;
     ub = VT::Ones(n) * inf;
+    Asp.resize(m, n);
     PreproccessProblem();
   }
 };
