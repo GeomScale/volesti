@@ -34,7 +34,7 @@ public:
   CholObj solver;
   pts xs;
   VT x;
-  Point dfx;
+  VT dfx;
   NT fx = 0;
   func F;
   int n;
@@ -56,6 +56,8 @@ public:
     NT U = 0.5 * (solver.logdet() + ((hess.array()).log()).sum());
     U = U + fx;
     NT E = U + K;
+    std::cerr << "x= (" << x.getCoefficients().transpose() << ") v= ("
+              << -v.getCoefficients().transpose() << ")\n";
     return E;
   }
   template <typename MatrixType> bool isnan(MatrixType x) {
@@ -124,9 +126,9 @@ public:
       VT lsc = VT(n, 1);
       solver.leverageScoreComplement((Tx *)lsc.data());
 
-      last_dUdx = Point(-(P.barrier.tensor(x).cwiseProduct(lsc))
-                             .cwiseQuotient(2 * hess)) -
-                  dfx;
+      last_dUdx = Point(
+          -(P.barrier.tensor(x).cwiseProduct(lsc)).cwiseQuotient(2 * hess) -
+          dfx);
       dUDx_empty = false;
     }
     return {Point(n), last_dUdx};
@@ -136,11 +138,9 @@ public:
     if (y[0] == xs[0] && !forceUpdate) {
       return;
     }
-
     xs = y;
     x = xs[0].getCoefficients();
-    dfx = F(0, xs, 0);
-    fx = 0;
+    std::tie(fx, dfx, std::ignore) = P.f_oracle(x);
     hess = P.barrier.hessian(x);
     forceUpdate = false;
     prepared = false;

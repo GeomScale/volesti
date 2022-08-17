@@ -105,7 +105,7 @@ template <typename NT> void run_main() {
                                   NegativeLogprobFunctor, Solver>
       hmc(&P, x0, F, f, hmc_params);
 
-  int n_samples = 50000; // Half will be burned
+  int n_samples = 500; // Half will be burned
 
   for (int i = 0; i < n_samples; i++) {
     hmc.apply(rng, 3);

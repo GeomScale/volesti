@@ -41,7 +41,7 @@ struct CustomFunctor {
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
 
-    parameters() : order(2), L(4), m(4), kappa(1){};
+    parameters() : order(1), L(4), m(4), kappa(1){};
   };
 
   template <typename Point> struct GradientFunctor {
@@ -57,11 +57,25 @@ struct CustomFunctor {
       if (i == params.order - 1) {
         Point y = (-1.0) * Point::all_ones(xs[0].dimension());
         y = y + (-4.0) * xs[0];
+        // y=Point(xs[0].dimension())-xs[0];
         return y;
       } else {
         return xs[i + 1]; // returns derivative
       }
     }
+    Point operator()(Point const &x) const {
+      Point y = (-1.0) * Point::all_ones(x.dimension());
+      y = y + (-4.0) * x;
+      return y;
+    }
+  };
+  template <typename Point> struct HessianFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT> &params;
+    HessianFunctor(parameters<NT> &params_) : params(params_){};
+    Point operator()(Point const &x) const { return 2 * Point(x.dimension()); }
   };
 
   template <typename Point> struct FunctionFunctor {
@@ -70,23 +84,26 @@ struct CustomFunctor {
     parameters<NT> &params;
 
     FunctionFunctor(parameters<NT> &params_) : params(params_){};
-
     // The index i represents the state vector index
     NT operator()(Point const &x) const { return 2 * x.dot(x) + x.sum(); }
+    //  NT operator()(Point const &x) const { return (0.5) * x.dot(x); }
   };
 };
 
-template <typename NT> void run_main() {
+template <typename NT> void run_main(int n_samples = 500) {
   typedef Cartesian<NT> Kernel;
   typedef typename Kernel::Point Point;
   typedef std::vector<Point> pts;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using CrhmcProblem = crhmc_problem<Point>;
-  using Input = crhmc_input<MT, NT>;
   typedef BoostRandomNumberGenerator<boost::mt19937, NT> RandomNumberGenerator;
   typedef CustomFunctor::GradientFunctor<Point> NegativeGradientFunctor;
   typedef CustomFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+  typedef CustomFunctor::HessianFunctor<Point> HessianFunctor;
+  using Input =
+      crhmc_input<MT, Point, NegativeLogprobFunctor, NegativeGradientFunctor>;
+
+  using CrhmcProblem = crhmc_problem<Point, Input>;
   typedef ImplicitMidpointODESolver<Point, NT, CrhmcProblem,
                                     NegativeGradientFunctor>
       Solver;
@@ -96,29 +113,33 @@ template <typename NT> void run_main() {
 
   NegativeGradientFunctor F(params);
   NegativeLogprobFunctor f(params);
-
+  HessianFunctor h(params);
   RandomNumberGenerator rng(1);
   unsigned int dim = 2;
   Opts options;
   CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,
                                                                   options);
 
-  Input input = Input(dim);
-  input.lb = -VT::Ones(dim);
-  input.ub = VT::Ones(dim);
+  MT A = MT::Ones(5, dim);
+  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
+  VT b = 10 * VT::Ones(5, 1);
+  Input input = Input(dim, f, F);
+  input.Aineq = A;
+  input.bineq = b;
   CrhmcProblem P = CrhmcProblem(input);
+  P.print();
   Point x0 = Point(P.center);
-
+  crhmc_params.eta = 0.2;
+  crhmc_params.momentum = 0.8;
   CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator,
                   NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
       crhmc(P, x0, F, f, crhmc_params);
 
-  int n_samples = 50000; // Half will be burned
   for (int i = 0; i < n_samples; i++) {
-    crhmc.apply(rng, 10);
+    crhmc.apply(rng, 30, true);
     if (i > n_samples / 2)
-      std::cout << crhmc.x.getCoefficients().transpose() << std::endl;
-    // std::cout << hmc.solver->eta << std::endl;
+      std::cout << (P.T * crhmc.x.getCoefficients() + P.y).transpose()
+                << std::endl;
   }
 
   std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
@@ -127,7 +148,11 @@ template <typename NT> void run_main() {
             << exp(crhmc.average_acceptance_log_prob) << std::endl;
 }
 
-int main() {
-  run_main<double>();
+int main(int argc, char *argv[]) {
+  if (argc == 1)
+    run_main<double>();
+  else
+    run_main<double>(atoi(argv[1]));
+
   return 0;
 }

@@ -18,8 +18,8 @@
 #include "convex_bodies/hpolytope.h"
 #include "generators/known_polytope_generators.h"
 #include "misc/misc.h"
-#include "preprocess/crhmc/crhmc_problem.h"
 #include "preprocess/crhmc/crhmc_input.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 #include <fstream>
 #include <iostream>
 #include <time.h> /* clock_t, clock, CLOCKS_PER_SEC */
@@ -31,8 +31,8 @@ using Point = Kernel::Point;
 using PolytopeType = HPolytope<Point>;
 using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
 using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using CrhmcProblem = crhmc_problem<Point>;
-using Input = crhmc_input<MT, NT>;
+using Input = crhmc_input<MT, Point>;
+using CrhmcProblem = crhmc_problem<Point, Input>;
 using Opts = opts<NT>;
 
 int main(int argc, char *argv[]) {

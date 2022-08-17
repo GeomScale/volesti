@@ -18,11 +18,29 @@
 #include "Eigen/Eigen"
 #include "opts.h"
 
-template <typename MatrixType, typename Type> class crhmc_input {
+template <typename Point> struct ZeroFunctor {
+  Point operator()(Point const &x) const { return Point(x.dimension()); }
+};
+template <typename Point> struct ZeroScalarFunctor {
+  using Type = typename Point::FT;
+  Type operator()(Point const &x) const { return 0; }
+};
+
+template <typename MatrixType, typename Point,
+          typename func = ZeroScalarFunctor<Point>,
+          typename grad = ZeroFunctor<Point>,
+          typename hess = ZeroFunctor<Point>>
+class crhmc_input {
+  using Type = typename Point::FT;
   using VT = Eigen::Matrix<Type, Eigen::Dynamic, 1>;
   const Type inf = 1e9;
+  ZeroFunctor<Point> zerof;
+  ZeroScalarFunctor<Point> zerosf;
 
 public:
+  using Func = func;
+  using Grad = grad;
+  using Hess = hess;
   MatrixType Aineq;
   VT bineq;
   MatrixType Aeq;
@@ -30,7 +48,46 @@ public:
   opts<Type> options;
   VT lb;
   VT ub;
-  crhmc_input(int dimension) {
+  func &f;
+  grad &df;
+  hess &ddf;
+  bool fZero;     // whether f is completely zero
+  bool fHandle;   // whether f is handle or not
+  bool dfHandle;  // whether df is handle or not
+  bool ddfHandle; // whether ddf is handle or not
+  crhmc_input(int dimension, func &function, grad &g, hess &h)
+      : f(function), df(g), ddf(h) {
+    fZero = false;
+    fHandle = true;
+    dfHandle = true;
+    ddfHandle = true;
+    init(dimension);
+  }
+  crhmc_input(int dimension, func &function)
+      : f(function), df(zerof), ddf(zerof) {
+    fZero = false;
+    fHandle = true;
+    dfHandle = false;
+    ddfHandle = false;
+    init(dimension);
+  }
+  crhmc_input(int dimension, func &function, grad &g)
+      : f(function), df(g), ddf(zerof) {
+    fZero = false;
+    fHandle = true;
+    dfHandle = true;
+    ddfHandle = false;
+    init(dimension);
+  }
+  crhmc_input(int dimension) : f(zerosf), df(zerof), ddf(zerof) {
+    fZero = true;
+    fHandle = false;
+    dfHandle = false;
+    ddfHandle = false;
+    init(dimension);
+  }
+
+  void init(int dimension) {
     Aineq.resize(0, dimension);
     Aeq.resize(0, dimension);
     bineq.resize(0, 1);

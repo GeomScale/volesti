@@ -99,11 +99,13 @@ struct CRHMCWalk {
       solver = new Solver(0, params.eta, pts{x, x}, F, P, params.options);
       v = solver->get_state(1);
     };
-    inline static Point GetDirectionWithMomentum(unsigned int const &dim,
-                                                 RandomNumberGenerator &rng,
-                                                 Point v, NT momentum = 0,
-                                                 bool normalize = true) {
+    Point GetDirectionWithMomentum(unsigned int const &dim,
+                                   RandomNumberGenerator &rng, Point x, Point v,
+                                   NT momentum = 0, bool normalize = true) {
       Point z = GetDirection<Point>::apply(dim, rng, normalize);
+      VT sqrthess =
+          (solver->P.barrier.hessian(x.getCoefficients())).cwiseSqrt();
+      z = Point(sqrthess.cwiseProduct(z.getCoefficients()));
       return v * std::sqrt(momentum) + z * std::sqrt(1 - momentum);
     }
     inline void blendv(Point &x, Point &x_new, std::vector<bool> accepted) {
@@ -117,7 +119,8 @@ struct CRHMCWalk {
 
       num_runs++;
       //  Pick a random velocity with momentum
-      v = GetDirectionWithMomentum(dim, rng, v, params.momentum, false);
+      v = GetDirectionWithMomentum(dim, rng, x, v, params.momentum, false);
+      // v = GetDirection<Point>::apply(dim, rng, false);
 
       solver->set_state(0, x);
       solver->set_state(1, v);
@@ -128,10 +131,13 @@ struct CRHMCWalk {
 
       if (metropolis_filter) {
         // Calculate initial Hamiltonian
-        H = solver->ham.hamiltonian(x, v) + f(x);
+        H = solver->ham.hamiltonian(x, v);
+        std::cerr << "H= " << H << '\n';
+        std::cerr << "\n";
 
         // Calculate new Hamiltonian
-        H_tilde = solver->ham.hamiltonian(x_tilde, v_tilde) + f(x_tilde);
+        H_tilde = solver->ham.hamiltonian(x_tilde, Point(dim) - v_tilde);
+        std::cerr << "H= " << H_tilde << '\n';
 
         NT feasible =
             solver->ham.feasible(x.getCoefficients(), v.getCoefficients());
@@ -141,16 +147,21 @@ struct CRHMCWalk {
         log_prob = log(prob);
 
         // Decide to switch
-        u_logprob = log(rng.sample_urdist());
+        // u_logprob = log(rng.sample_urdist());
         total_acceptance_log_prob += log_prob;
-        if (u_logprob < log_prob) {
+        if (rng.sample_urdist() < prob) {
           x = x_tilde;
           v = v_tilde;
           accepted = true;
         } else {
           total_discarded_samples++;
           accepted = false;
+          v = Point(dim) - v;
         }
+        std::cerr << "x_tilde= (" << x.getCoefficients().transpose()
+                  << ") v_tilde= (" << v.getCoefficients().transpose() << ")\n";
+        std::cerr << "-----------------------------------> prob= " << prob
+                  << "\n";
 
         NT accept = 0;
         if (accepted) {

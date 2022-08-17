@@ -22,7 +22,7 @@ public:
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
-  bool EnableReordering = false;
+  bool EnableReordering = true;
 
   /*ODE options*/
   const Type implicitTol = 1e-5;

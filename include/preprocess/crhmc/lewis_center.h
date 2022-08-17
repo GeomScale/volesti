@@ -28,26 +28,26 @@
 #endif
 const size_t chol_k3 = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-using NT=double;
-using MT=Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-using VT=Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using SpMat= Eigen::SparseMatrix<NT>;
-using CholObj=PackedChol<chol_k3, int>;
-using Triple=Eigen::Triplet<double>;
-using Barrier=TwoSidedBarrier<NT>;
+using NT = double;
+using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using SpMat = Eigen::SparseMatrix<NT>;
+using CholObj = PackedChol<chol_k3, int>;
+using Triple = Eigen::Triplet<double>;
 using Tx = FloatArray<double, chol_k3>;
-using Opts=opts<NT>;
-NT epsilon=1e-8;
-int numberOfFullSteps=8;
+using Opts = opts<NT>;
+NT epsilon = 1e-8;
+int numberOfFullSteps = 8;
+template <typename Polytope>
 std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
-                                           Barrier  &f, Opts const &options,
+                                           Polytope &f, Opts const &options,
                                            VT x = VT::Zero(0, 1)) {
 
   // initial conditions
   int n = A.cols();
   int m = A.rows();
-  if (x.rows() == 0 || !f.feasible(x)) {
-    x = f.center;
+  if (x.rows() == 0 || !f.barrier.feasible(x)) {
+    x = f.barrier.center;
   }
   VT lambda = VT::Zero(n, 1);
   int fullStep = 0;
@@ -77,10 +77,10 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     primalErr = rx.norm() / primalFactor;
     NT dualErrLast = dualErr;
     dualErr = rs.norm() / dualFactor;
-    bool feasible = f.feasible(x);
+    bool feasible = f.barrier.feasible(x);
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
         (primalErr > 10 * primalErrMin) || !feasible) {
-      VT dist = f.boundary_distance(x);
+      VT dist = f.barrier.boundary_distance(x);
       NT th = options.ipmDistanceTol;
       visit_lambda(dist, [&idx, th](double v, int i, int j) {
         if (v < th)
@@ -95,12 +95,12 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // compute the step direction
     VT Hinv = hess.cwiseInverse();
-    solver.decompose((Tx*) Hinv.data());
+    solver.decompose((Tx *)Hinv.data());
     VT out(m, 1);
-    solver.solve((Tx*) rs.data(),(Tx*) out.data());
+    solver.solve((Tx *)rs.data(), (Tx *)out.data());
     VT dr1 = A.transpose() * out;
     VT in = A * Hinv.cwiseProduct(rx);
-    solver.solve((Tx*) in.data(),(Tx*) out.data());
+    solver.solve((Tx *)in.data(), (Tx *)out.data());
 
     VT dr2 = A.transpose() * out;
     VT dx1 = Hinv.cwiseProduct(dr1);
@@ -108,9 +108,9 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // compute the step size
     VT dx = dx1 + dx2;
-    NT tGrad = std::min(f.step_size(x, dx), 1.0);
+    NT tGrad = std::min(f.barrier.step_size(x, dx), 1.0);
     dx = dx1 + tGrad * dx2;
-    NT tConst = std::min(0.99 * f.step_size(x, dx), 1.0);
+    NT tConst = std::min(0.99 * f.barrier.step_size(x, dx), 1.0);
     tGrad = tGrad * tConst;
 
     // make the step
@@ -119,20 +119,21 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
 
     // update weight
     VT w_vector(n, 1);
-    solver.leverageScoreComplement((Tx*) w_vector.data());
+    solver.leverageScoreComplement((Tx *)w_vector.data());
 
-    VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) *epsilon;
+    VT wNew = w_vector.cwiseMax(0) + VT::Ones(n, 1) * epsilon;
     w = (w + wNew) / 2;
     wp = Eigen::pow(w.array(), 0.875).matrix();
 
-    if (!f.feasible(x)) {
+    if (!f.barrier.feasible(x)) {
       break;
     }
 
     // stop if converged
     if (tGrad == 1) {
       fullStep = fullStep + 1;
-      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > numberOfFullSteps) {
+      if (fullStep > log(dualErr / options.ipmDualTol) &&
+          fullStep > numberOfFullSteps) {
         break;
       }
     } else {
@@ -143,7 +144,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
   SpMat C;
   VT d;
   if (idx.size() == 0) {
-    VT dist = f.boundary_distance(x);
+    VT dist = f.barrier.boundary_distance(x);
     NT th = options.ipmDistanceTol;
     visit_lambda(dist, [&idx, th](double v, int i, int j) {
       if (v < th)
@@ -153,7 +154,7 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
   }
 
   if (idx.size() > 0) {
-    std::pair<VT, VT> pboundary = f.boundary(x);
+    std::pair<VT, VT> pboundary = f.barrier.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
     A_ = A_(idx);

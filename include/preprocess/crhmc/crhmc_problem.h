@@ -35,13 +35,13 @@
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-template <typename Point>
-class crhmc_problem {
+template <typename Point, typename Input> class crhmc_problem {
 public:
   using NT = double;
   using PolytopeType = HPolytope<Point>;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using IVT = Eigen::Matrix<int, Eigen::Dynamic, 1>;
   using SpMat = Eigen::SparseMatrix<NT>;
   using PM = Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int>;
   using IndexVector = Eigen::Matrix<int, Eigen::Dynamic, 1>;
@@ -51,7 +51,11 @@ public:
   using Tx = FloatArray<double, chol_k>;
   using Opts = opts<NT>;
   using Diagonal_MT = Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;
-  using Input = crhmc_input<MT, NT>;
+  using ArrayXi = Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic>;
+  using Func = typename Input::Func;
+  using Grad = typename Input::Grad;
+  using Hess = typename Input::Hess;
+
   const NT inf = 1e9;
 
   unsigned int _d; // dimension
@@ -70,6 +74,18 @@ public:
   bool isempty_center = true;
   VT center = VT::Zero(0, 1);
   VT w_center;
+  Hess &ddf;
+  Grad &df;
+  Func &func;
+  bool fZero;     // whether f is completely zero
+  bool fHandle;   // whether f is handle or not
+  bool dfHandle;  // whether df is handle or not
+  bool ddfHandle; // whether ddf is handle or not
+  // Assumed each row of T contains at most 1 non-zero
+  std::vector<int> Tidx; // T x = x(Tidx) .* Ta
+  VT Ta;                 // T x = x(Tidx) .* Ta
+  VT Tdf;                // T' * df
+  MT Tddf;               // (T.^2)' * ddf
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
@@ -126,11 +142,11 @@ public:
     SpMat Ac;
     VT bc;
     if (isempty_center) {
-      std::tie(center, Ac, bc) = analytic_center(Asp, b, barrier, options);
+      std::tie(center, Ac, bc) = analytic_center(Asp, b, *this, options);
       isempty_center = false;
     } else {
       std::tie(center, Ac, bc) =
-          analytic_center(Asp, b, barrier, options, center);
+          analytic_center(Asp, b, *this, options, center);
     }
     if (Ac.rows() == 0) {
       return 0;
@@ -227,7 +243,7 @@ public:
     if (x.rows() == 0) {
       hess = VT::Ones(dimension(), 1);
     } else {
-      std::tie(std::ignore, hess) = barrier.analytic_center_oracle(x);
+      std::tie(std::ignore, hess) = analytic_center_oracle(x);
       hess = hess + (width.cwiseProduct(width)).cwiseInverse();
     }
     VT scale = (hess.cwiseSqrt()).cwiseInverse();
@@ -326,6 +342,7 @@ public:
     }
     SpMat _T = MT::Zero(T.rows(), ub.rows() - T.cols()).sparseView();
     sparse_stack_h_inplace(T, _T);
+    updateT();
     barrier.set_bound(lb, ub);
   }
 
@@ -335,6 +352,7 @@ public:
     Asp = Asp * S;
     y = y + T * z;
     T = T * S;
+    updateT();
   }
 
   void shift_barrier(VT const &x) {
@@ -358,6 +376,7 @@ public:
     Eigen::AMDOrdering<int> ordering;
     PM perm;
     ordering(H, perm);
+    // std::cout<<MT(perm)<<"\n\n";
     H = perm * H * perm.transpose();
     IndexVector m_etree;
     IndexVector firstRowElt;
@@ -370,12 +389,14 @@ public:
     for (int i = 0; i < m; i++)
       post_perm.indices()(i) = post(i);
     perm = perm * post_perm;
-
+    // std::cout<<"post_perm= \n"<<MT(perm)<<"\n\n";
+    // std::cout<<"m= "<<equations()<<" n= "<<dimension()<<"\n";
     Asp = perm * Asp;
     b = perm * b;
+    // std::cout<<"mode \n";
   }
 
-  int remove_dependent_rows(NT tolerance=1e-12, NT infinity=1e+64) {
+  int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
     remove_zero_rows<SpMat, NT>(Asp);
     int m = Asp.rows();
     int n = Asp.cols();
@@ -506,41 +527,41 @@ public:
   }
 
   void print() {
-    std::cout << "----------------Printing Sparse problem--------------"
+    std::cerr << "----------------Printing Sparse problem--------------"
               << '\n';
-    std::cout << "(m,n) = " << equations() << " , " << dimension() << "\n";
+    std::cerr << "(m,n) = " << equations() << " , " << dimension() << "\n";
     if (equations() * dimension() > 50) {
-      std::cout << "too big for complete visulization\n";
+      std::cerr << "too big for complete visulization\n";
       return;
     }
-    std::cout << "A=\n";
+    std::cerr << "A=\n";
 
-    std::cout << MT(Asp);
-    std::cout << "\n";
+    std::cerr << MT(Asp);
+    std::cerr << "\n";
 
-    std::cout << "b=\n";
-    std::cout << b;
-    std::cout << "\n";
+    std::cerr << "b=\n";
+    std::cerr << b;
+    std::cerr << "\n";
 
-    std::cout << "lb=\n";
-    std::cout << barrier.lb;
-    std::cout << "\n";
+    std::cerr << "lb=\n";
+    std::cerr << barrier.lb;
+    std::cerr << "\n";
 
-    std::cout << "ub=\n";
-    std::cout << barrier.ub;
-    std::cout << "\n";
+    std::cerr << "ub=\n";
+    std::cerr << barrier.ub;
+    std::cerr << "\n";
 
-    std::cout << "T=\n";
-    std::cout << MT(T);
-    std::cout << "\n";
+    std::cerr << "T=\n";
+    std::cerr << MT(T);
+    std::cerr << "\n";
 
-    std::cout << "y=\n";
-    std::cout << y;
-    std::cout << "\n";
+    std::cerr << "y=\n";
+    std::cerr << y;
+    std::cerr << "\n";
 
-    std::cout << "center=\n";
-    std::cout << center;
-    std::cout << "\n";
+    std::cerr << "center=\n";
+    std::cerr << center;
+    std::cerr << "\n";
   }
 
   void print(const char *fileName) {
@@ -575,7 +596,10 @@ public:
     myfile << center;
   }
 
-  crhmc_problem(Input const &input, Opts _options = Opts()) {
+  crhmc_problem(Input const &input, Opts _options = Opts())
+      : func(input.f), df(input.df), ddf(input.ddf), fHandle(input.fHandle),
+        dfHandle(input.dfHandle), ddfHandle(input.ddfHandle),
+        fZero(input.fZero) {
     options = _options;
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
@@ -622,8 +646,15 @@ public:
       indices.push_back(Triple(i, i, 1));
     }
     T.setFromTriplets(indices.begin(), indices.end());
+    Tidx = std::vector<int>(T.rows());
+    updateT();
     y = VT::Zero(nP, 1);
     /*Simplify*/
+    if (!fZero) {
+      fZero = true;
+      simplify();
+      fZero = false;
+    }
     simplify();
 #ifdef TIME_KEEPING
     double tstart_rest = (double)clock() / (double)CLOCKS_PER_SEC;
@@ -631,7 +662,7 @@ public:
 #endif
     if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
-          analytic_center(Asp, b, barrier, options);
+          analytic_center(Asp, b, *this, options);
       isempty_center = false;
     }
     shift_barrier(center);
@@ -656,8 +687,8 @@ public:
 
 #endif
     std::tie(center, std::ignore, std::ignore, w_center) =
-        lewis_center(Asp, b, barrier, options, center);
-    std::tie(std::ignore, hess) = barrier.lewis_center_oracle(center, w_center);
+        lewis_center(Asp, b, *this, options, center);
+    std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
 
     CholObj solver = CholObj(Asp);
     VT Hinv = hess.cwiseInverse();
@@ -680,7 +711,8 @@ public:
   }
 
   /*Tansform the problem to the form Ax=b lb<=x<=ub*/
-  crhmc_problem(PolytopeType const &HP) : options(Opts()) {
+  crhmc_problem(PolytopeType const &HP, Opts _options = Opts()) {
+    options = _options;
     nP = HP.dimension();
     int m = HP.num_of_hyperplanes();
     int n = HP.dimension();
@@ -696,6 +728,87 @@ public:
     ub = VT::Ones(n) * inf;
     Asp.resize(m, n);
     PreproccessProblem();
+  }
+  std::pair<VT, VT> analytic_center_oracle(VT const &x) {
+    //[~, g, h] = o.f_oracle(x);
+    VT g, h;
+    std::tie(std::ignore, g, h) = f_oracle(x);
+    return std::make_pair(g + barrier.gradient(x), h + barrier.hessian(x));
+  }
+
+  std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
+    //   [~, g, h] = o.f_oracle(x);
+    VT g, h;
+    std::tie(std::ignore, g, h) = f_oracle(x);
+    return std::make_pair(g + w.cwiseProduct(barrier.gradient(x)),
+                          h + w.cwiseProduct(barrier.hessian(x)));
+  }
+
+  std::tuple<NT, VT, VT> f_oracle(VT x) {
+    NT f;
+    VT g, h;
+    int n = x.rows();
+    if (fZero) {
+      f = 0;
+      g = VT::Zero(n);
+      h = VT::Zero(n);
+      return std::make_tuple(f, g, h);
+    }
+
+    VT z = VT::Zero(n);
+    if (fHandle || dfHandle || ddfHandle) {
+      z(Tidx, Eigen::all) = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
+    }
+    int k = x.cols();
+
+    if (fHandle) {
+      f = func(Point(z));
+    } else {
+      if (!dfHandle) {
+        f = Tdf.transpose() * x;
+      } else {
+        f = 0;
+      }
+    }
+
+    if (dfHandle) {
+      g = VT::Zero(n, 1);
+      g(Tidx, Eigen::all) = Ta.cwiseProduct(df(Point(z)).getCoefficients());
+    } else {
+      g = Tdf;
+    }
+    if (ddfHandle) {
+      h = VT::Zero(n, 1);
+      h(Tidx, Eigen::all) =
+          (Ta.cwiseProduct(Ta)).cwiseProduct(ddf(Point(z)).getCoefficients());
+    } else {
+      h = Tddf;
+    }
+    return std::make_tuple(f, g, h);
+  }
+
+  // By construction each row of T has ar most one nonZero
+  void updateT() {
+    int n = T.cols();
+    int m = T.rows();
+    Ta = VT(m);
+
+    for (int k = 0; k < T.outerSize(); ++k) {
+      for (SpMat::InnerIterator it(T, k); it; ++it) {
+        int pos = (int)it.row();
+        int nz = it.col();
+        Tidx[pos] = nz;
+      }
+    }
+
+    Ta = T * VT::Ones(n, 1);
+    if (!dfHandle) {
+      Tdf = VT::Zero(n);
+    }
+    if (!ddfHandle) {
+      Tddf.resize(n, n);
+      Tddf = MT::Zero(n, n);
+    }
   }
 };
 #endif

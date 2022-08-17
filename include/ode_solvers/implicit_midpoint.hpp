@@ -66,7 +66,7 @@ struct ImplicitMidpointODESolver {
   // Function oracle
   func F;
   Polytope &P;
-  Opts& options;
+  Opts &options;
   MT nu;
 
   hamiltonian ham;
@@ -116,12 +116,12 @@ struct ImplicitMidpointODESolver {
   void set_state(int index, Point p) { xs[index] = p; }
   void print_state() {
     for (int j = 0; j < xs.size(); j++) {
-      std::cout << "state " << j << ": ";
+      std::cerr << "state " << j << ": ";
       for (unsigned int i = 0; i < xs[j].dimension(); i++) {
-        std::cout << xs[j][i] << " ";
+        std::cerr << xs[j][i] << " ";
       }
-      std::cout << '\n';
     }
+    std::cerr << '\n';
   }
 };
 
