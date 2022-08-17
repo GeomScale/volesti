@@ -20,8 +20,8 @@ using NT = double;
 using Kernel = Cartesian<NT>;
 using Point = typename Kernel::Point;
 using Hpolytope = HPolytope<Point>;
-using CrhmcProblem = crhmc_problem<Point>;
-using Input = crhmc_input<MT, NT>;
+using Input = crhmc_input<MT,Point>;
+using CrhmcProblem = crhmc_problem<Point,Input>;
 using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 
 void benchmark(std::string fileName) {
