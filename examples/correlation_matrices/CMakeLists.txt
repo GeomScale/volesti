@@ -13,7 +13,7 @@ project( VolEsti )
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(MKLROOT /opt/intel/oneapi/mkl/latest)
-message( "MKLROOT = " ${MKLROOT})
+message("MKLROOT = " ${MKLROOT})
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 if(COMMAND cmake_policy)
@@ -86,7 +86,9 @@ if (USE_MKL)
   include_directories (BEFORE ${MKLROOT}/include)
   set(PROJECT_LIBS ${BLAS_LIBRARIES})
   add_definitions(-DEIGEN_USE_MKL_ALL)
-  set(MKL_LINK "-L${MKLROOT}/lib/intel64 -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lgomp -llapack -lblas")
+
+  # Set linking for MKL : may affect performance
+  set(MKL_LINK "-L${MKLROOT}/lib/intel64 -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lgomp  -lpthread -llapack -lblas")
 endif(USE_MKL)
 
 # Find lpsolve library

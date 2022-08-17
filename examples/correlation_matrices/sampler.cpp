@@ -28,7 +28,7 @@ void correlation_matrix_uniform_sampling(const unsigned int n, const unsigned in
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
-    std::cout << "Sample uniformly "<< num_points << " correlation matrices of size " << n << std::endl;
+    std::cout << walkname << " samples uniformly "<< num_points << " correlation matrices of size " << n << std::endl;
     std::chrono::steady_clock::time_point start, end;
     double time;
     std::vector<Point> randPoints;
@@ -56,7 +56,7 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
-    std::cout << "Sample uniformly "<< num_points << " correlation matrices of size " << n << " with matrix PointType" << std::endl;
+    std::cout << walkname << " samples uniformly "<< num_points << " correlation matrices of size " << n << " with matrix PointType" << std::endl;
     std::chrono::steady_clock::time_point start, end;
     double time;
     std::vector<Point> randPoints;
@@ -74,6 +74,22 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
 }
 
 int main(int argc, char const *argv[]) {
+
+// To enable Intel MKL, change option USE_MKL to ON in CMakeLists.txt 
+
+#ifdef EIGEN_USE_MKL_ALL
+
+    MKLVersion Version;
+ 
+    mkl_get_version(&Version);
+ 
+    printf("Using Intel MKL %d.%d.%d\n",Version.MajorVersion,Version.MinorVersion,Version.UpdateVersion);
+    printf("Platform:                %s\n",Version.Platform);
+    printf("Processor optimization:  %s\n",Version.Processor);
+    printf("================================================================\n");
+    printf("\n");
+#endif
+
     srand((unsigned) time(NULL));
     typedef double NT;
     unsigned int n = 3, num_points = 5000;
