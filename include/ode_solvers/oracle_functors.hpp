@@ -142,7 +142,10 @@ struct IsotropicQuadraticFunctor {
                 return xs[i + 1]; // returns derivative
         }
     }
-
+        Point operator()(Point const&x){
+            Point y = (-params.alpha)*x;
+            return y;
+          }
   };
 
 

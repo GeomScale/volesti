@@ -44,7 +44,7 @@ struct CRHMCWalk {
 
     typedef std::vector<Point> pts;
     typedef typename Point::FT NT;
-    typedef Eigen::ArrayXXd array;
+    using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
     // Hyperparameters of the sampler
     parameters<NT, NegativeGradientFunctor> &params;
 
@@ -96,15 +96,15 @@ struct CRHMCWalk {
 
       accepted = false;
       // Initialize solver
-      solver = new Solver(0, params.eta, pts{x, x}, F, P, params.options);
+      solver = new Solver(0.0, params.eta, pts{x, x}, F, P, params.options);
       v = solver->get_state(1);
     };
     Point GetDirectionWithMomentum(unsigned int const &dim,
                                    RandomNumberGenerator &rng, Point x, Point v,
                                    NT momentum = 0, bool normalize = true) {
       Point z = GetDirection<Point>::apply(dim, rng, normalize);
-      VT sqrthess =
-          (solver->P.barrier.hessian(x.getCoefficients())).cwiseSqrt();
+      solver->ham.move({x, v});
+      VT sqrthess = (solver->ham.hess).cwiseSqrt();
       z = Point(sqrthess.cwiseProduct(z.getCoefficients()));
       return v * std::sqrt(momentum) + z * std::sqrt(1 - momentum);
     }
@@ -132,22 +132,17 @@ struct CRHMCWalk {
       if (metropolis_filter) {
         // Calculate initial Hamiltonian
         H = solver->ham.hamiltonian(x, v);
-        std::cerr << "H= " << H << '\n';
-        std::cerr << "\n";
 
         // Calculate new Hamiltonian
         H_tilde = solver->ham.hamiltonian(x_tilde, Point(dim) - v_tilde);
-        std::cerr << "H= " << H_tilde << '\n';
-
-        NT feasible =
-            solver->ham.feasible(x.getCoefficients(), v.getCoefficients());
+        NT feasible = solver->ham.feasible(x_tilde.getCoefficients(),
+                                           v_tilde.getCoefficients());
         NT prob = std::min(1.0, exp(H - H_tilde)) * feasible;
 
         // Log-sum-exp trick
         log_prob = log(prob);
 
         // Decide to switch
-        // u_logprob = log(rng.sample_urdist());
         total_acceptance_log_prob += log_prob;
         if (rng.sample_urdist() < prob) {
           x = x_tilde;
@@ -158,10 +153,6 @@ struct CRHMCWalk {
           accepted = false;
           v = Point(dim) - v;
         }
-        std::cerr << "x_tilde= (" << x.getCoefficients().transpose()
-                  << ") v_tilde= (" << v.getCoefficients().transpose() << ")\n";
-        std::cerr << "-----------------------------------> prob= " << prob
-                  << "\n";
 
         NT accept = 0;
         if (accepted) {

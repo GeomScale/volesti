@@ -52,11 +52,8 @@ if __name__ == '__main__':
     axli = ax2d.flatten()
 
     plt.suptitle('{}: Marginals'.format(args.name))
-    #t = np.linspace(-1, 1, 1000)
-    #a=(1/1.31649)*np.exp(-2*t*t-t)
     for i in range(1, 1 + dims):
         sns.histplot(data[:, i-1], bins=50, color="orange", ax=axli[i-1], stat='probability', kde=True)
-        #axli[i-1].plot(t,a,'r')
         axli[i-1].set_xlabel('$x_{}$'.format(i))
         axli[i-1].set_ylabel('$\pi(x_{})$'.format(i))
 
@@ -75,7 +72,14 @@ if __name__ == '__main__':
 
     if args.save:
         plt.savefig('{}_samples.png'.format(args.name))
-
+    if dims==2:
+        print('Printing 2 dimensional histogram')
+        fig2 = plt.figure()
+        plt.hist2d(data[:, 0], data[:, 1],100)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        cbar = plt.colorbar()
+        cbar.ax.set_ylabel('Counts')
     if dims in [2, 3]:
         print('Plotting scatterplot')
         fig = plt.figure()

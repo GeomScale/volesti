@@ -179,7 +179,113 @@ void remove_rows(SparseMatrixType &A, std::vector<int> indices) {
   // form new matrix and return
   SparseMatrixType ret(new_idx, Ndata);
   ret.setFromTriplets(newTripletList.begin(), newTripletList.end());
-  A = SpMat(ret);
+  A = SparseMatrixType(ret);
 }
 
+template <typename SparseMatrixType, typename VectorType, typename Type>
+std::pair<VectorType, VectorType> colwiseMinMax(SparseMatrixType const &A) {
+  int n = A.cols();
+  VectorType cmax(n);
+  VectorType cmin(n);
+  for (int k = 0; k < A.outerSize(); ++k) {
+    Type minv = +std::numeric_limits<Type>::infinity();
+    Type maxv = -std::numeric_limits<Type>::infinity();
+    for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it) {
+      minv = std::min(minv, it.value());
+      maxv = std::max(maxv, it.value());
+    }
+    cmin(k) = minv;
+    cmax(k) = maxv;
+  }
+  return std::make_pair(cmin, cmax);
+}
+template <typename VectorType> void nextpow2(VectorType &a) {
+  a = (a.array() == 0).select(1, a);
+  a = (((a.array().log()) / std::log(2)).ceil()).matrix();
+  a = pow(2, a.array()).matrix();
+}
+template <typename SparseMatrixType, typename VectorType, typename Type>
+std::pair<VectorType, VectorType> gmscale(SparseMatrixType &Asp,
+                                          const Type scltol) {
+  using Diagonal_MT = Eigen::DiagonalMatrix<Type, Eigen::Dynamic>;
+  int m = Asp.rows();
+  int n = Asp.cols();
+  SparseMatrixType A = Asp.cwiseAbs();
+  A.makeCompressed();
+  int maxpass = 10;
+  Type aratio = 1e+50;
+  Type sratio;
+  Type damp = 1e-4;
+  Type small = 1e-8;
+  VectorType rscale = VectorType ::Ones(m, 1);
+  VectorType cscale = VectorType ::Ones(n, 1);
+  VectorType cmax;
+  VectorType cmin;
+  VectorType rmax;
+  VectorType rmin;
+  VectorType eps = VectorType ::Ones(n, 1) * 1e-12;
+  SparseMatrixType SA;
+  for (int npass = 0; npass < maxpass; npass++) {
+
+    rscale = (rscale.array() == 0).select(1, rscale);
+    Diagonal_MT Rinv = (rscale.cwiseInverse()).asDiagonal();
+    SA = Rinv * A;
+    std::tie(cmin, cmax) =
+        colwiseMinMax<SparseMatrixType, VectorType, Type>(SA);
+
+    // cmin = (cmin + eps).cwiseInverse();
+    sratio = (cmax.cwiseQuotient(cmin)).maxCoeff();
+
+    if (npass > 0) {
+      cscale = ((cmin.cwiseMax(damp * cmax)).cwiseProduct(cmax)).cwiseSqrt();
+    }
+
+    if (npass >= 2 && sratio >= aratio * scltol) {
+      break;
+    }
+    aratio = sratio;
+    nextpow2(cscale);
+    Diagonal_MT Cinv = (cscale.cwiseInverse()).asDiagonal();
+    SA = A * Cinv;
+    std::tie(rmin, rmax) =
+        colwiseMinMax<SparseMatrixType, VectorType, Type>(SA.transpose());
+    // rmin = (rmin + eps).cwiseInverse();
+    rscale = ((rmin.cwiseMax(damp * rmax)).cwiseProduct(rmax)).cwiseSqrt();
+    nextpow2(rscale);
+  }
+  rscale = (rscale.array() == 0).select(1, rscale);
+  Diagonal_MT Rinv = (rscale.cwiseInverse()).asDiagonal();
+  SA = Rinv * A;
+  std::tie(std::ignore, cscale) =
+      colwiseMinMax<SparseMatrixType, VectorType, Type>(SA);
+  nextpow2(cscale);
+  return std::make_pair(cscale, rscale);
+}
+template <typename Type>
+int doubleVectorEqualityComparison(
+    const Type a, const Type b,
+    const Type tol = std::numeric_limits<Type>::epsilon()) {
+  return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
+}
+
+template <typename SparseMatrixType>
+std::pair<std::vector<int>, std::vector<int>>
+nnzPerColumn(SparseMatrixType const &A, const int threashold) {
+  int n = A.cols();
+  std::vector<int> colCounts(n);
+  std::vector<int> badCols;
+  for (int k = 0; k < A.outerSize(); ++k) {
+    int nnz = 0;
+    for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it) {
+      if (it.value() != 0) {
+        nnz++;
+      }
+    }
+    colCounts[k] = nnz;
+    if (nnz > threashold) {
+      badCols.push_back(k);
+    }
+  }
+  return std::make_pair(colCounts, badCols);
+}
 #endif

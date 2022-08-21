@@ -17,7 +17,8 @@
 #define CRHMC_INPUT_H
 #include "Eigen/Eigen"
 #include "opts.h"
-
+/*0 funciton handles are given as a reference in case the user gives no
+function. Then the uniform function is implied*/
 template <typename Point> struct ZeroFunctor {
   Point operator()(Point const &x) const { return Point(x.dimension()); }
 };
@@ -25,7 +26,7 @@ template <typename Point> struct ZeroScalarFunctor {
   using Type = typename Point::FT;
   Type operator()(Point const &x) const { return 0; }
 };
-
+/*Input structure: With this the user can define a polytope sampling problem*/
 template <typename MatrixType, typename Point,
           typename func = ZeroScalarFunctor<Point>,
           typename grad = ZeroFunctor<Point>,
@@ -41,20 +42,21 @@ public:
   using Func = func;
   using Grad = grad;
   using Hess = hess;
-  MatrixType Aineq;
-  VT bineq;
-  MatrixType Aeq;
-  VT beq;
-  opts<Type> options;
-  VT lb;
-  VT ub;
-  func &f;
-  grad &df;
-  hess &ddf;
-  bool fZero;     // whether f is completely zero
-  bool fHandle;   // whether f is handle or not
-  bool dfHandle;  // whether df is handle or not
-  bool ddfHandle; // whether ddf is handle or not
+  MatrixType Aineq;   // Matrix of coefficients for the inequality constraints
+  VT bineq;           // Right hand side of the inequality constraints
+  MatrixType Aeq;     // Matrix of coefficients for the equality constraints
+  VT beq;             // Right hand side of the equality constraints
+  opts<Type> options; // structure of the parameters of the problem
+  VT lb;              // lb on the output coordinates preset to -1e7
+  VT ub;              // ub on the output coordinates preset to +1e7
+  func &f;            // Negative log density function handle
+  grad &df;           // Negative log density gradient function handle
+  hess &ddf;          // Negative log density hessian function handle
+  bool fZero;         // whether f is completely zero
+  bool fHandle;       // whether f is handle or not
+  bool dfHandle;      // whether df is handle or not
+  bool ddfHandle;     // whether ddf is handle or not
+  /*Constructors for different input instances*/
   crhmc_input(int dimension, func &function, grad &g, hess &h)
       : f(function), df(g), ddf(h) {
     fZero = false;

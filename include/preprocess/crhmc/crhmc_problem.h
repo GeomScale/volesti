@@ -34,7 +34,6 @@
 #define SIMD_LEN 0
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
-
 template <typename Point, typename Input> class crhmc_problem {
 public:
   using NT = double;
@@ -46,12 +45,11 @@ public:
   using PM = Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int>;
   using IndexVector = Eigen::Matrix<int, Eigen::Dynamic, 1>;
   using CholObj = PackedChol<chol_k, int>;
-  using Triple = Eigen::Triplet<double>;
+  using Triple = Eigen::Triplet<NT>;
   using Barrier = TwoSidedBarrier<NT>;
   using Tx = FloatArray<double, chol_k>;
   using Opts = opts<NT>;
   using Diagonal_MT = Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;
-  using ArrayXi = Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic>;
   using Func = typename Input::Func;
   using Grad = typename Input::Grad;
   using Hess = typename Input::Hess;
@@ -59,50 +57,42 @@ public:
   const NT inf = 1e9;
 
   unsigned int _d; // dimension
+  // Problem variables Ax=b st lb<=x<=ub
   MT A;            // matrix A
+  SpMat Asp;       // matrix A in Sparse form
   VT b;            // vector b, s.t.: Ax=b
-  VT lb;
-  VT ub;
-  int nP;
-  // CholObj *solver;
-  SpMat T; // matrix T
+  VT lb;           // Lower bound for output coordinates
+  VT ub;           // Upper bound for output coordinates
+  Barrier barrier; // Class that holds functions that handle the log barrier for
+                   // lb and ub
+  Opts options;    // problem parameters
+  // Transformation (T,y) such that the new variables x
+  // can be tranform to the original z (z= Tx+y)
+  SpMat T;
   VT y;
-  Opts options;
-  VT width;
-  Barrier barrier;
-  SpMat Asp; // matrix A
-  bool isempty_center = true;
-  VT center = VT::Zero(0, 1);
-  VT w_center;
-  Hess &ddf;
-  Grad &df;
-  Func &func;
-  bool fZero;     // whether f is completely zero
-  bool fHandle;   // whether f is handle or not
-  bool dfHandle;  // whether df is handle or not
-  bool ddfHandle; // whether ddf is handle or not
-  // Assumed each row of T contains at most 1 non-zero
+  // Non zero indices and values for fast tranform
   std::vector<int> Tidx; // T x = x(Tidx) .* Ta
   VT Ta;                 // T x = x(Tidx) .* Ta
   VT Tdf;                // T' * df
   MT Tddf;               // (T.^2)' * ddf
+  bool isempty_center = true;
+  VT center = VT::Zero(0, 1); // Resulting polytope Lewis or Analytic center
+  VT w_center;
+
+  VT width;
+  int nP;
+
+  Func &func;     // function handle
+  Grad &df;       // gradient handle
+  Hess &ddf;      // hessian handle
+  bool fZero;     // whether f is completely zero
+  bool fHandle;   // whether f is handle or not
+  bool dfHandle;  // whether df is handle or not
+  bool ddfHandle; // whether ddf is handle or not
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
-  VT project(VT const &x) {
-    int m = Asp.rows();
-    int n = Asp.cols();
-    CholObj solver = CholObj(Asp);
-    VT hess = barrier.hessian(x);
-    VT Hinv = hess.cwiseInverse();
-    solver.decompose((Tx *)Hinv.data());
-    VT out_vector = VT(m, 1);
-    VT in_vector = b.transpose() - Asp * x;
-    solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
-    out_vector = Asp.transpose() * out_vector;
-    return x + (out_vector).cwiseQuotient(hess);
-  }
-
+  // Remove varibles that have width under some tolerance
   int remove_fixed_variables(const NT tol = 1e-12) {
     int m = Asp.rows();
     int n = Asp.cols();
@@ -155,87 +145,10 @@ public:
     sparse_stack_v(Ac, _A, Asp);
     b.resize(b.rows() + bc.rows(), 1);
     b << bc, b;
-
     return 1;
   }
-
-  std::pair<VT, VT> colwiseMinMax(SpMat const &A) {
-    int n = A.cols();
-    VT cmax(n);
-    VT cmin(n);
-    for (int k = 0; k < A.outerSize(); ++k) {
-      NT minv = +std::numeric_limits<NT>::infinity();
-      NT maxv = -std::numeric_limits<NT>::infinity();
-      for (SpMat::InnerIterator it(A, k); it; ++it) {
-        minv = std::min(minv, it.value());
-        maxv = std::max(maxv, it.value());
-      }
-      cmin(k) = minv;
-      cmax(k) = maxv;
-    }
-    return std::make_pair(cmin, cmax);
-  }
-
-  void nextpow2(VT &a) {
-    a = (a.array() == 0).select(1, a);
-    a = (((a.array().log()) / std::log(2)).ceil()).matrix();
-    a = pow(2, a.array()).matrix();
-  }
-
-  std::pair<VT, VT> gmscale(SpMat &Asp, const NT scltol) {
-    int m = Asp.rows();
-    int n = Asp.cols();
-    SpMat A = Asp.cwiseAbs();
-    A.makeCompressed();
-    int maxpass = 10;
-    NT aratio = 1e+50;
-    NT sratio;
-    NT damp = 1e-4;
-    NT small = 1e-8;
-    VT rscale = VT::Ones(m, 1);
-    VT cscale = VT::Ones(n, 1);
-    VT cmax;
-    VT cmin;
-    VT rmax;
-    VT rmin;
-    VT eps = VT::Ones(n, 1) * 1e-12;
-    SpMat SA;
-    for (int npass = 0; npass < maxpass; npass++) {
-
-      rscale = (rscale.array() == 0).select(1, rscale);
-      Diagonal_MT Rinv = (rscale.cwiseInverse()).asDiagonal();
-      SA = Rinv * A;
-      std::tie(cmin, cmax) = colwiseMinMax(SA);
-
-      // cmin = (cmin + eps).cwiseInverse();
-      sratio = (cmax.cwiseQuotient(cmin)).maxCoeff();
-
-      if (npass > 0) {
-        cscale = ((cmin.cwiseMax(damp * cmax)).cwiseProduct(cmax)).cwiseSqrt();
-      }
-
-      if (npass >= 2 && sratio >= aratio * scltol) {
-        break;
-      }
-      aratio = sratio;
-      nextpow2(cscale);
-      Diagonal_MT Cinv = (cscale.cwiseInverse()).asDiagonal();
-      SA = A * Cinv;
-      std::tie(rmin, rmax) = colwiseMinMax(SA.transpose());
-      // rmin = (rmin + eps).cwiseInverse();
-      rscale = ((rmin.cwiseMax(damp * rmax)).cwiseProduct(rmax)).cwiseSqrt();
-      nextpow2(rscale);
-    }
-    rscale = (rscale.array() == 0).select(1, rscale);
-    Diagonal_MT Rinv = (rscale.cwiseInverse()).asDiagonal();
-    SA = Rinv * A;
-    std::tie(std::ignore, cscale) = colwiseMinMax(SA);
-    nextpow2(cscale);
-    return std::make_pair(cscale, rscale);
-  }
-
+  // Rescale the polytope for numerical stability
   void rescale(const VT x = VT::Zero(0, 1)) {
-
     if (std::min(equations(), dimension()) <= 1) {
       return;
     }
@@ -251,7 +164,7 @@ public:
     VT cscale;
     VT rscale;
 
-    std::tie(cscale, rscale) = gmscale(Ain, 0.9);
+    std::tie(cscale, rscale) = gmscale<SpMat, VT, NT>(Ain, 0.9);
     Asp = (rscale.cwiseInverse()).asDiagonal() * Asp;
     b = b.cwiseQuotient(rscale);
     barrier.set_bound(barrier.lb.cwiseProduct(cscale),
@@ -262,28 +175,8 @@ public:
     }
   }
 
-  std::pair<std::vector<int>, std::vector<int>>
-  nnzPerColumn(SpMat const &A, const int threashold) {
-    int n = A.cols();
-    std::vector<int> colCounts(n);
-    std::vector<int> badCols;
-    for (int k = 0; k < A.outerSize(); ++k) {
-      int nnz = 0;
-      for (SpMat::InnerIterator it(A, k); it; ++it) {
-        if (it.value() != 0) {
-          nnz++;
-        }
-      }
-      colCounts[k] = nnz;
-      if (nnz > threashold) {
-        badCols.push_back(k);
-      }
-    }
-    return std::make_pair(colCounts, badCols);
-  }
-
+  //  Rewrite P so that each cols has no more than maxNZ non-zeros
   void splitDenseCols(const int maxnz) {
-    //  Rewrite P so that each cols has no more than maxNZ non-zeros
     int m = Asp.rows();
     int n = Asp.cols();
     if (m <= maxnz) {
@@ -345,7 +238,7 @@ public:
     updateT();
     barrier.set_bound(lb, ub);
   }
-
+  // Change A and the correpsonding Transformation
   template <typename MatrixType>
   void append_map(MatrixType const &S, VT const &z) {
     b = b - Asp * z;
@@ -354,7 +247,7 @@ public:
     T = T * S;
     updateT();
   }
-
+  // Shift the problem with respect to x
   void shift_barrier(VT const &x) {
     int size = x.rows();
     b = b - Asp * x;
@@ -364,7 +257,8 @@ public:
       center = center - x;
     }
   }
-
+  // Reorder the polytope accordint to the AMD Reordering for better sparsity
+  // pattern in the Cholesky decomposition
   void reorder() {
     if (!options.EnableReordering) {
       return;
@@ -520,12 +414,6 @@ public:
     return tau;
   }
 
-  int doubleVectorEqualityComparison(
-      const NT a, const NT b,
-      const NT tol = std::numeric_limits<NT>::epsilon()) {
-    return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
-  }
-
   void print() {
     std::cerr << "----------------Printing Sparse problem--------------"
               << '\n';
@@ -616,10 +504,9 @@ public:
     Asp.resize(nEq + nIneq, nP + nIneq);
     PreproccessProblem();
   }
-
+  // Initialization funciton
   void PreproccessProblem() {
     int n = dimension();
-
     /*Move lb=ub to Ax=b*/
     for (int i = 0; i < n; i++) {
       if (doubleVectorEqualityComparison(lb(i), ub(i))) {
@@ -689,7 +576,6 @@ public:
     std::tie(center, std::ignore, std::ignore, w_center) =
         lewis_center(Asp, b, *this, options, center);
     std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
-
     CholObj solver = CholObj(Asp);
     VT Hinv = hess.cwiseInverse();
     solver.decompose((Tx *)Hinv.data());
@@ -730,7 +616,6 @@ public:
     PreproccessProblem();
   }
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
-    //[~, g, h] = o.f_oracle(x);
     VT g, h;
     std::tie(std::ignore, g, h) = f_oracle(x);
     return std::make_pair(g + barrier.gradient(x), h + barrier.hessian(x));
@@ -743,7 +628,8 @@ public:
     return std::make_pair(g + w.cwiseProduct(barrier.gradient(x)),
                           h + w.cwiseProduct(barrier.hessian(x)));
   }
-
+  // Function that uses the transformation (T,y) to apply the function to the
+  // original variables
   std::tuple<NT, VT, VT> f_oracle(VT x) {
     NT f;
     VT g, h;
@@ -754,13 +640,13 @@ public:
       h = VT::Zero(n);
       return std::make_tuple(f, g, h);
     }
-
+    // Take the correpsonding point in the original space
     VT z = VT::Zero(n);
     if (fHandle || dfHandle || ddfHandle) {
       z(Tidx, Eigen::all) = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
     }
-    int k = x.cols();
 
+    // If the function is given evaluate it at the original point
     if (fHandle) {
       f = func(Point(z));
     } else {
@@ -770,13 +656,14 @@ public:
         f = 0;
       }
     }
-
+    // If the gradient is given evaluate it at the original point
     if (dfHandle) {
       g = VT::Zero(n, 1);
       g(Tidx, Eigen::all) = Ta.cwiseProduct(df(Point(z)).getCoefficients());
     } else {
       g = Tdf;
     }
+    // If the hessian is given evaluate it at the original point
     if (ddfHandle) {
       h = VT::Zero(n, 1);
       h(Tidx, Eigen::all) =
@@ -784,15 +671,15 @@ public:
     } else {
       h = Tddf;
     }
-    return std::make_tuple(f, g, h);
+    return std::make_tuple(f, -g, h);
   }
 
-  // By construction each row of T has ar most one nonZero
+  // Update the indices and values vectors of the matrix T
   void updateT() {
     int n = T.cols();
     int m = T.rows();
     Ta = VT(m);
-
+    // By construction each row of T has ar most one nonZero
     for (int k = 0; k < T.outerSize(); ++k) {
       for (SpMat::InnerIterator it(T, k); it; ++it) {
         int pos = (int)it.row();

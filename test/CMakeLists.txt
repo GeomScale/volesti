@@ -318,6 +318,14 @@ else ()
   add_test(NAME logconcave_sampling_test_exponential_biomass_sampling
           COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
 
+
+	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+	add_test(NAME crhmc_sampling_test_crhmc
+					COMMAND crhmc_sampling_test -tc=crhmc)
+	add_test(NAME crhmc_sampling_test_benchmark_cube
+					COMMAND crhmc_sampling_test -tc=benchmark_crhmc_cube)
+	add_test(NAME crhmc_sampling_test_benchmark_polytopes
+					COMMAND crhmc_sampling_test -tc=benchmark_polytopes_sampling_crhmc)
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)
@@ -366,7 +374,8 @@ else ()
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
+	TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
 
 
 endif()

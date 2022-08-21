@@ -36,6 +36,13 @@ using CrhmcProblem = crhmc_problem<Point, Input>;
 using Opts = opts<NT>;
 
 int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    std::cout << "Usage: ./crhmc_prepare file_name_string";
+    std::cout << "Example file name= "
+                 "../../test/metabolic_full_dim/polytope_e_coli.ine";
+    exit(1);
+  }
+
   unsigned d = 2;
   MT A = MT::Ones(5, d);
   A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
@@ -50,7 +57,7 @@ int main(int argc, char *argv[]) {
   CrhmcProblem P1 = CrhmcProblem(input);
   P1.print();
 
-  std::string fileName("../../test/metabolic_full_dim/polytope_e_coli.ine");
+  std::string fileName(argv[1]);
   std::cout << "Reading input from file..." << std::endl;
   std::ifstream inp;
   std::vector<std::vector<NT>> Pin;
@@ -58,9 +65,6 @@ int main(int argc, char *argv[]) {
   read_pointset(inp, Pin);
 
   PolytopeType HP2(Pin);
-  // std::cout << "Polytope HP2: \n";
-  // HP2.print();
-  //   std::cout << "\n";
   d = HP2.dimension();
   Input input2 = Input(d);
   input2.Aineq = HP2.get_mat();
@@ -72,7 +76,5 @@ int main(int argc, char *argv[]) {
   std::cout << "Preparation completed in time, ";
   std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart << std::endl;
   std::cout << "Number of nonZeros= " << P2.Asp.nonZeros() << "\n";
-  // P2.print("coli_crhmc_polytope.txt");
-
   return 0;
 }

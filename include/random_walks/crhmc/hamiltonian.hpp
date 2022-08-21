@@ -56,22 +56,20 @@ public:
     NT U = 0.5 * (solver.logdet() + ((hess.array()).log()).sum());
     U = U + fx;
     NT E = U + K;
-    std::cerr << "x= (" << x.getCoefficients().transpose() << ") v= ("
-              << -v.getCoefficients().transpose() << ")\n";
     return E;
   }
   template <typename MatrixType> bool isnan(MatrixType x) {
     for (int i = 0; i < x.rows(); i++) {
       for (int j = 0; j < x.cols(); j++) {
-        if (std::isnan(x(i, j)))
-          return 1;
+        if (std::isnan(x(i, j))) {
+          return true;
+        }
       }
     }
-    return 0;
+    return false;
   }
   // Test if the values of x and v are valid and if x is feasible
   NT feasible(VT x, VT v) {
-
     bool r = !isnan(x) && !isnan(v) && P.barrier.feasible(x);
     if (r) {
       return 1;
@@ -96,26 +94,23 @@ public:
     VT out_vector = VT::Zero(m);
     solver.solve((Tx *)input_vector.data(), (Tx *)out_vector.data());
     Point dKdv =
-        Point(invHessV - (P.A.transpose() * out_vector).cwiseQuotient(hess));
+        Point(invHessV - (P.Asp.transpose() * out_vector).cwiseQuotient(hess));
     Point dKdx =
         Point(P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
     return {dKdv, dKdx};
   }
-  std::pair<pts, MT> approxDK(pts const &x_bar, MT const &nu) {
+  pts approxDK(pts const &x_bar, VT &nu) {
     VT x = x_bar[0].getCoefficients();
     VT v = x_bar[1].getCoefficients();
     move(x_bar);
     VT dUdv_b = P.Asp * (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
-
     VT out_solver = VT(nu.rows(), nu.cols());
     solver.solve((Tx *)dUdv_b.data(), (Tx *)out_solver.data());
     nu = nu + out_solver;
-
     Point dKdv = Point((v - P.Asp.transpose() * nu).cwiseQuotient(hess));
     Point dKdx =
         Point(P.barrier.quadratic_form_gradient(x, dKdv.getCoefficients()) / 2);
-    pts result = {dUdv_b, dKdx};
-    return std::make_pair(result, nu);
+    return {dKdv, dKdx};
   }
 
   pts DU(pts const &x_bar) {
@@ -140,17 +135,29 @@ public:
     }
     xs = y;
     x = xs[0].getCoefficients();
-    std::tie(fx, dfx, std::ignore) = P.f_oracle(x);
-    hess = P.barrier.hessian(x);
+    VT h;
+    std::tie(fx, dfx, h) = P.f_oracle(x);
+    hess = P.barrier.hessian(x) + h;
     forceUpdate = false;
     prepared = false;
   }
+  // Project x to the polytope
+  void project(pts &xs) {
+    move(xs);
+    VT x = xs[0].getCoefficients();
+    int m = P.Asp.rows();
+    VT out_vector = VT(m);
+    VT in_vector = P.b - P.Asp * x;
+    solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
+    out_vector = P.Asp.transpose() * out_vector;
+    xs[0] = xs[0] + Point((out_vector).cwiseQuotient(hess));
+  }
 
-  VT x_norm(pts const &xs, pts const &dx) {
+  NT x_norm(pts const &xs, pts const &dx) {
     move(xs);
     VT dx_x = dx[0].getCoefficients();
     VT r = (dx_x.cwiseProduct(dx_x)).cwiseProduct(hess);
-    return r;
+    return r.sum();
   }
 };
 #endif

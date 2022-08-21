@@ -67,7 +67,7 @@ struct ImplicitMidpointODESolver {
   func F;
   Polytope &P;
   Opts &options;
-  MT nu;
+  VT nu;
 
   hamiltonian ham;
 
@@ -86,11 +86,15 @@ struct ImplicitMidpointODESolver {
     pts xs_old = xs;
     pts xmid = (xs_prev + xs) / 2.0;
     pts partialDerivatives;
-    partialDerivatives = ham.DK(xmid);
+    // partialDerivatives = ham.DK(xmid);
+    partialDerivatives = ham.approxDK(xmid, nu);
     xs = xs_prev + partialDerivatives * (eta);
-    VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
-    NT maxdist = dist.maxCoeff();
+    NT dist = ham.x_norm(xmid, xs - xs_old) / eta;
+    NT maxdist = dist;
     if (maxdist < options.implicitTol) {
+      done = true;
+    } else if (maxdist > 1e16) {
+      xs = xs * std::nan("1");
       done = true;
     }
   }
@@ -100,6 +104,7 @@ struct ImplicitMidpointODESolver {
     xs = xs + partialDerivatives * (eta / 2);
     xs_prev = xs;
     done = false;
+    nu = VT::Zero(P.equations());
     for (int i = 0; i < num_steps; i++) {
       if (done) {
         break;
@@ -108,7 +113,7 @@ struct ImplicitMidpointODESolver {
     }
     partialDerivatives = ham.DU(xs);
     xs = xs + partialDerivatives * (eta / 2);
-    xs[0] = Point(P.project(xs[0].getCoefficients()));
+    ham.project(xs);
   }
 
   Point get_state(int index) { return xs[index]; }
