@@ -100,9 +100,11 @@ template <typename NT> void run_main(int n_samples = 500, int n_burns = -1) {
   unsigned int dim = 2;
   Opts options;
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
-  MT A = MT::Ones(5, dim);
-  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  VT b = 10 * VT::Ones(5, 1);
+  //MT A = MT::Ones(5, dim);
+  //A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
+  //VT b = 10 * VT::Ones(5, 1);
+  Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
+
   Input input = Input(dim, f, g);
   input.Aineq = A;
   input.bineq = b;
