@@ -54,6 +54,9 @@ struct CRHMCWalk {
     // Dimension
     unsigned int dim;
 
+    // Polytope
+    Polytope &P;
+
     // Discarded Samples
     long total_discarded_samples = 0;
     long num_runs = 0;
@@ -63,9 +66,6 @@ struct CRHMCWalk {
     float total_acceptance_log_prob = 0;
     float average_acceptance_log_prob = 0;
     NT prob;
-    NT accumulatedMomentum = 0;
-    NT nEffectiveStep = 0;
-    NT acceptedStep = 0;
 
     // References to xs
     Point x, v;
@@ -84,10 +84,10 @@ struct CRHMCWalk {
     // Density exponent
     NegativeLogprobFunctor &f;
 
-    Walk(Polytope &P, Point &p, NegativeGradientFunctor &neg_grad_f,
+    Walk(Polytope &Problem, Point &p, NegativeGradientFunctor &neg_grad_f,
          NegativeLogprobFunctor &neg_logprob_f,
          parameters<NT, NegativeGradientFunctor> &param)
-        : params(param), F(neg_grad_f), f(neg_logprob_f) {
+        : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem) {
 
       dim = p.dimension();
 
@@ -96,7 +96,8 @@ struct CRHMCWalk {
 
       accepted = false;
       // Initialize solver
-      solver = new Solver(0.0, params.eta, pts{x, x}, F, P, params.options);
+      solver =
+          new Solver(0.0, params.eta, pts{x, x}, F, Problem, params.options);
       v = solver->get_state(1);
     };
     Point GetDirectionWithMomentum(unsigned int const &dim,
@@ -108,6 +109,8 @@ struct CRHMCWalk {
       z = Point(sqrthess.cwiseProduct(z.getCoefficients()));
       return v * std::sqrt(momentum) + z * std::sqrt(1 - momentum);
     }
+    // Returns the current point in the tranformed in the original space
+    inline Point getPoint() { return Point(P.T * x.getCoefficients() + P.y); }
     inline void blendv(Point &x, Point &x_new, std::vector<bool> accepted) {
       for (int i = 0; i < dim; i++) {
         if (accepted[i])
@@ -138,7 +141,6 @@ struct CRHMCWalk {
                                            v_tilde.getCoefficients());
         NT prob = std::min(1.0, exp(H - H_tilde)) * feasible;
 
-
         log_prob = log(prob);
         total_acceptance_log_prob += log_prob;
 
@@ -159,11 +161,6 @@ struct CRHMCWalk {
         }
         discard_ratio = (1.0 * total_discarded_samples) / num_runs;
         average_acceptance_log_prob = total_acceptance_log_prob / num_runs;
-        acceptedStep = acceptedStep + prob;
-        accumulatedMomentum =
-            prob * params.momentum * accumulatedMomentum + params.eta;
-        nEffectiveStep =
-            nEffectiveStep + params.eta * accumulatedMomentum * accept;
 
       } else {
         x = x_tilde;

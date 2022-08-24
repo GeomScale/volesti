@@ -15,7 +15,7 @@
 // Monte Carlo in a Constrained Space"
 #ifndef DYNAMIC_WEIGHT_HPP
 #define DYNAMIC_WEIGHT_HPP
-template <typename Sampler> class opts {
+template <typename Sampler> class dynamic_weight {
 public:
   int consecutiveBadStep = 0;
   DynamicWeight(Sampler &s) {}

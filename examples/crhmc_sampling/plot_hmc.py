@@ -46,6 +46,7 @@ if __name__ == '__main__':
         dims = data.shape[-1]
 
     print('Number of dimensions: {}'.format(dims))
+    print('Number of samples: {}'.format(len(data[:,1])))
     if dims>4:
         dims=2
         print('Due to the large number of dimensions  you will get plots for only {} dimensions'.format(dims))

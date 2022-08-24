@@ -149,10 +149,11 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
     if (i % 1000 == 0) {
       std::cerr << i << " out of " << n_samples << "\n";
     }
-    for (int k = 0; k < burn_steps; k++)
+    for (int k = 0; k < burn_steps; k++) {
       crhmc.apply(rng, walk_length, true);
+    }
     if (i > n_burns) {
-      VT sample = P.T * crhmc.x.getCoefficients() + P.y;
+      VT sample = crhmc.getPoint().getCoefficients();
       samples.col(j) = VT(sample);
       j++;
       std::cout << sample.transpose() << std::endl;
