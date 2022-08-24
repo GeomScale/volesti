@@ -34,7 +34,6 @@ template <typename MatrixType, typename Point,
 class crhmc_input {
   using Type = typename Point::FT;
   using VT = Eigen::Matrix<Type, Eigen::Dynamic, 1>;
-  const Type inf = 1e9;
   ZeroFunctor<Point> zerof;
   ZeroScalarFunctor<Point> zerosf;
 
@@ -56,6 +55,7 @@ public:
   bool fHandle;       // whether f is handle or not
   bool dfHandle;      // whether df is handle or not
   bool ddfHandle;     // whether ddf is handle or not
+  const Type inf = options.max_coord + 1; // helper for barrier handling
   /*Constructors for different input instances*/
   crhmc_input(int dimension, func &function, grad &g, hess &h)
       : f(function), df(g), ddf(h) {

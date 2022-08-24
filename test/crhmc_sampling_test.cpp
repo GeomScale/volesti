@@ -108,6 +108,16 @@ struct InnerBallFunctor {
       return 1.0 / (2 * pow(params.sigma, 2)) * y.dot(y);
     }
   };
+  template <typename Point> struct HessianFunctor{
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+    HessianFunctor(parameters<NT, Point> &params_) : params(params_){};
+
+    Point operator()(Point const &x) const {
+      return (1.0 / pow(params.sigma, 2))*Point::all_ones(x.dimension());
+    }
+  };
 };
 struct CustomFunctor {
 
@@ -158,6 +168,12 @@ struct CustomFunctor {
     // The index i represents the state vector index
     NT operator()(Point const &x) const { return x.dot(x) + x.sum(); }
   };
+  template <typename Point> struct HessianFunctor{
+    typedef typename Point::FT NT;
+    Point operator()(Point const &x) const {
+      return 2*Point::all_ones(x.dimension());
+    }
+  };
 };
 template <typename NT, typename VT, typename MT>
 NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
@@ -184,7 +200,9 @@ void check_ergodic_mean_norm(Sampler &sampler, RandomNumberGenerator &rng,
   for (int i = 0; i < n_samples; i++) {
     sampler.apply(rng, 30);
     if (i >= skip_samples) {
-      mean = mean + sampler.x;
+      Point x=Point(crhmc_problem.T * crhmc.x.getCoefficients() + crhmc_problem.y);
+      mean = mean + x;
+
     }
 
 #ifdef VOLESTI_DEBUG
@@ -234,10 +252,12 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
   using NegativeGradientFunctor=InnerBallFunctor::GradientFunctor<Point>;
   using NegativeLogprobFunctor=InnerBallFunctor::FunctionFunctor<Point>;
+  using HessianFunctor=InnerBallFunctor::HessianFunctor<Point>;
+
   using MT=typename Polytope::MT;
   using VT= typename Polytope::VT;
   using Input =
-      crhmc_input<MT, Point, NegativeLogprobFunctor, NegativeGradientFunctor>;
+      crhmc_input<MT, Point, NegativeLogprobFunctor, NegativeGradientFunctor,HessianFunctor>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Opts = opts<NT>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem,
@@ -275,7 +295,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   NegativeGradientFunctor F(params);
   NegativeLogprobFunctor f(params);
-
+  HessianFunctor H(params);
   int max_actual_draws = max_draws - num_burns;
   unsigned int min_ess = 0;
 
@@ -288,7 +308,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   Opts options;
   CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,
                                                                   options);
-  Input input = Input(P.dimension(), f, F);
+  Input input = Input(P.dimension(), f, F,H);
   input.Aineq = P.get_mat();
   input.bineq = P.get_vec();
 
@@ -320,8 +340,8 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   start = std::chrono::high_resolution_clock::now();
   for (unsigned int i = 0; i < max_actual_draws; i++) {
-    crhmc.apply(rng, walk_length);
-    samples.col(i) = crhmc.x.getCoefficients();
+    for(int k=0;k<walk_length;k++)crhmc.apply(rng, 30);
+    samples.col(i) = crhmc_problem.T * crhmc.x.getCoefficients() + crhmc_problem.y;
     if (i % 1000 == 0 && i > 0)
       std::cout << ".";
   }
@@ -381,10 +401,10 @@ void benchmark_polytope(HPolytope &P, std::string &name, bool centered) {
   outfile.close();
 }
 template <typename NT> void call_test_benchmark_polytopes() {
-  typedef Cartesian<NT> Kernel;
-  typedef typename Kernel::Point Point;
-  typedef HPolytope<Point> Hpolytope;
-  typedef boost::mt19937 RNGType;
+  using Kernel=Cartesian<NT>;
+  using Point= typename Kernel::Point;
+  using Hpolytope=HPolytope<Point>;
+  using RNGType=boost::mt19937;
   std::cout << " ---Sampling polytopes " << std::endl;
 /*
   {
@@ -392,19 +412,21 @@ template <typename NT> void call_test_benchmark_polytopes() {
     std::string name = "100_skinny_cube";
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, false);
-  }*/
+  }
   {
     Hpolytope P = generate_cross<Hpolytope>(10, false);
     std::string name = "10_cross";
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-  }/*
+  }
+*/
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
+/*
   {
     Hpolytope P = generate_cube<Hpolytope>(100, false);
     std::string name = "100_cube";

@@ -51,7 +51,7 @@ struct ImplicitMidpointODESolver {
   using VT = typename Polytope::VT;
   using MT = typename Polytope::MT;
   using pts = std::vector<Point>;
-  using hamiltonian = Hamiltonian<Polytope, Point, func>;
+  using hamiltonian = Hamiltonian<Polytope, Point>;
   using Opts = opts<NT>;
 
   unsigned int dim;
@@ -77,43 +77,43 @@ struct ImplicitMidpointODESolver {
                             func oracle, Polytope &boundaries,
                             Opts &user_options)
       : eta(step), t(initial_time), xs(initial_state), F(oracle),
-        options(user_options), P(boundaries),
-        ham(hamiltonian(boundaries, oracle)) {
+        options(user_options), P(boundaries), ham(hamiltonian(boundaries)) {
     dim = xs[0].dimension();
   };
 
   void step(int k, bool accepted) {
-    pts xs_old = xs;
-    pts xmid = (xs_prev + xs) / 2.0;
     pts partialDerivatives;
-    // partialDerivatives = ham.DK(xmid);
-    partialDerivatives = ham.approxDK(xmid, nu);
-    xs = xs_prev + partialDerivatives * (eta);
-    NT dist = ham.x_norm(xmid, xs - xs_old) / eta;
-    NT maxdist = dist;
-    if (maxdist < options.implicitTol) {
-      done = true;
-    } else if (maxdist > 1e16) {
-      xs = xs * std::nan("1");
-      done = true;
-    }
-  }
-
-  void steps(int num_steps, bool accepted) {
-    pts partialDerivatives = ham.DU(xs);
+    partialDerivatives = ham.DU(xs);
     xs = xs + partialDerivatives * (eta / 2);
     xs_prev = xs;
     done = false;
     nu = VT::Zero(P.equations());
-    for (int i = 0; i < num_steps; i++) {
-      if (done) {
+    for (int i = 0; i < options.maxODEStep; i++) {
+      pts xs_old = xs;
+      pts xmid = (xs_prev + xs) / 2.0;
+      // partialDerivatives = ham.DK(xmid);
+      partialDerivatives = ham.approxDK(xmid, nu);
+      xs = xs_prev + partialDerivatives * (eta);
+      NT dist = ham.x_norm(xmid, xs - xs_old) / eta;
+      NT maxdist = dist;
+      if (maxdist < options.implicitTol) {
+        done = true;
+        break;
+      } else if (maxdist > 1e16) {
+        xs = xs * std::nan("1");
+        done = true;
         break;
       }
-      step(i, accepted);
     }
     partialDerivatives = ham.DU(xs);
     xs = xs + partialDerivatives * (eta / 2);
     ham.project(xs);
+  }
+
+  void steps(int num_steps, bool accepted) {
+    for (int i = 0; i < num_steps; i++) {
+      step(i, accepted);
+    }
   }
 
   Point get_state(int index) { return xs[index]; }

@@ -25,11 +25,9 @@
 
 template <typename Point> class TwoSidedBarrier {
 
-  using NT = double;
-  using Kernel = Cartesian<NT>;
+  using NT=typename Point::FT;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using SpMat = Eigen::SparseMatrix<NT>;
 
 public:
   VT lb;

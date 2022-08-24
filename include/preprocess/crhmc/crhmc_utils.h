@@ -288,4 +288,26 @@ nnzPerColumn(SparseMatrixType const &A, const int threashold) {
   }
   return std::make_pair(colCounts, badCols);
 }
+using PM = Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int>;
+template <typename SparseMatrixType>
+PM permuteMatAMD(SparseMatrixType const &A) {
+  Eigen::AMDOrdering<int> ordering;
+  PM perm;
+  ordering(A, perm);
+  return perm;
+}
+template <typename SparseMatrixType>
+PM postOrderPerm(SparseMatrixType const &A) {
+  using IndexVector = Eigen::Matrix<int, Eigen::Dynamic, 1>;
+  int n = A.rows();
+  IndexVector m_etree;
+  IndexVector firstRowElt;
+  Eigen::internal::coletree(A, m_etree, firstRowElt);
+  IndexVector post;
+  Eigen::internal::treePostorder(int(A.cols()), m_etree, post);
+  PM post_perm(n);
+  for (int i = 0; i < n; i++)
+    post_perm.indices()(i) = post(i);
+  return post_perm;
+}
 #endif

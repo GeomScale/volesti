@@ -22,12 +22,16 @@ public:
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
-  bool EnableReordering = true;
+  Type max_coord=1e7;
+  bool EnableReordering = false;
 
   /*ODE options*/
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
+
+  /*Sampler options*/
+  bool DynamicWeight = false;
 
   opts() {}
   void operator=(const opts &rhs) {

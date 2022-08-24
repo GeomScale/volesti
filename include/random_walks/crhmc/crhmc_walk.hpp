@@ -62,7 +62,7 @@ struct CRHMCWalk {
     // Average acceptance probability
     float total_acceptance_log_prob = 0;
     float average_acceptance_log_prob = 0;
-
+    NT prob;
     NT accumulatedMomentum = 0;
     NT nEffectiveStep = 0;
     NT acceptedStep = 0;
@@ -120,7 +120,6 @@ struct CRHMCWalk {
       num_runs++;
       //  Pick a random velocity with momentum
       v = GetDirectionWithMomentum(dim, rng, x, v, params.momentum, false);
-      // v = GetDirection<Point>::apply(dim, rng, false);
 
       solver->set_state(0, x);
       solver->set_state(1, v);
@@ -130,20 +129,20 @@ struct CRHMCWalk {
       v_tilde = solver->get_state(1);
 
       if (metropolis_filter) {
+
         // Calculate initial Hamiltonian
         H = solver->ham.hamiltonian(x, v);
-
         // Calculate new Hamiltonian
         H_tilde = solver->ham.hamiltonian(x_tilde, Point(dim) - v_tilde);
         NT feasible = solver->ham.feasible(x_tilde.getCoefficients(),
                                            v_tilde.getCoefficients());
         NT prob = std::min(1.0, exp(H - H_tilde)) * feasible;
 
-        // Log-sum-exp trick
+
         log_prob = log(prob);
+        total_acceptance_log_prob += log_prob;
 
         // Decide to switch
-        total_acceptance_log_prob += log_prob;
         if (rng.sample_urdist() < prob) {
           x = x_tilde;
           v = v_tilde;

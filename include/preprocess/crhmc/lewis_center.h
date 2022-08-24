@@ -87,7 +87,6 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
           idx.push_back(i);
       });
 
-      // idx = find(dist < ipmDistanceTol);
       if (idx.size() > 0) {
         break;
       }
@@ -150,10 +149,10 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
       if (v < th)
         idx.push_back(i);
     });
-    // idx = find(dist < ipmDistanceTol);
   }
 
   if (idx.size() > 0) {
+    C.resize(idx.size(), n);
     std::pair<VT, VT> pboundary = f.barrier.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;

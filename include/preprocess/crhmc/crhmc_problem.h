@@ -46,15 +46,13 @@ public:
   using IndexVector = Eigen::Matrix<int, Eigen::Dynamic, 1>;
   using CholObj = PackedChol<chol_k, int>;
   using Triple = Eigen::Triplet<NT>;
-  using Barrier = TwoSidedBarrier<NT>;
+  using Barrier = TwoSidedBarrier<Point>;
   using Tx = FloatArray<double, chol_k>;
   using Opts = opts<NT>;
   using Diagonal_MT = Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;
   using Func = typename Input::Func;
   using Grad = typename Input::Grad;
   using Hess = typename Input::Hess;
-
-  const NT inf = 1e9;
 
   unsigned int _d; // dimension
   // Problem variables Ax=b st lb<=x<=ub
@@ -73,13 +71,11 @@ public:
   // Non zero indices and values for fast tranform
   std::vector<int> Tidx; // T x = x(Tidx) .* Ta
   VT Ta;                 // T x = x(Tidx) .* Ta
-  VT Tdf;                // T' * df
-  MT Tddf;               // (T.^2)' * ddf
   bool isempty_center = true;
   VT center = VT::Zero(0, 1); // Resulting polytope Lewis or Analytic center
   VT w_center;
 
-  VT width;
+  VT width; // width of the varibles
   int nP;
 
   Func &func;     // function handle
@@ -89,6 +85,8 @@ public:
   bool fHandle;   // whether f is handle or not
   bool dfHandle;  // whether df is handle or not
   bool ddfHandle; // whether ddf is handle or not
+
+  const NT inf = options.max_coord + 1; // helper for barrier handling
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
@@ -263,31 +261,18 @@ public:
     if (!options.EnableReordering) {
       return;
     }
+    Asp.prune(0.0);
+    Asp.makeCompressed();
     int m = Asp.rows();
     SpMat H;
     H = Asp * SpMat(Asp.transpose()) + MT::Identity(m, m);
     H.makeCompressed();
-    Eigen::AMDOrdering<int> ordering;
-    PM perm;
-    ordering(H, perm);
-    // std::cout<<MT(perm)<<"\n\n";
-    H = perm * H * perm.transpose();
-    IndexVector m_etree;
-    IndexVector firstRowElt;
-    Eigen::internal::coletree(H, m_etree, firstRowElt);
-
-    IndexVector post;
-    Eigen::internal::treePostorder(int(H.cols()), m_etree, post);
-
-    PM post_perm(m);
-    for (int i = 0; i < m; i++)
-      post_perm.indices()(i) = post(i);
-    perm = perm * post_perm;
-    // std::cout<<"post_perm= \n"<<MT(perm)<<"\n\n";
-    // std::cout<<"m= "<<equations()<<" n= "<<dimension()<<"\n";
+    PM permed = permuteMatAMD(H);
+    H = permed * H * permed.transpose();
+    PM post_perm = postOrderPerm(H);
+    PM perm = permed * post_perm;
     Asp = perm * Asp;
     b = perm * b;
-    // std::cout<<"mode \n";
   }
 
   int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
@@ -324,8 +309,8 @@ public:
     rescale();
 
 #ifdef TIME_KEEPING
-    std::cout << "Rescale completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
+    std::cerr << "Rescale completed in time, ";
+    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
               << " secs " << std::endl;
 #endif
 #ifdef TIME_KEEPING
@@ -334,8 +319,8 @@ public:
 #endif
     splitDenseCols(options.maxNZ);
 #ifdef TIME_KEEPING
-    std::cout << "Split dense columns completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
+    std::cerr << "Split dense columns completed in time, ";
+    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
               << " secs " << std::endl;
 #endif
 #ifdef TIME_KEEPING
@@ -344,8 +329,8 @@ public:
 #endif
     reorder();
 #ifdef TIME_KEEPING
-    std::cout << "Reordering completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
+    std::cerr << "Reordering completed in time, ";
+    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
               << " secs " << std::endl;
 #endif
     int changed = 1;
@@ -359,8 +344,8 @@ public:
 #endif
         changed += remove_dependent_rows();
 #ifdef TIME_KEEPING
-        std::cout << "Removing dependent rows completed in time, ";
-        std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rm_rows
+        std::cerr << "Removing dependent rows completed in time, ";
+        std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rm_rows
                   << " secs " << std::endl;
 #endif
 
@@ -370,8 +355,8 @@ public:
 #endif
         changed += remove_fixed_variables();
 #ifdef TIME_KEEPING
-        std::cout << "Removing fixed variables completed in time, ";
-        std::cout << (double)clock() / (double)CLOCKS_PER_SEC -
+        std::cerr << "Removing fixed variables completed in time, ";
+        std::cerr << (double)clock() / (double)CLOCKS_PER_SEC -
                          tstart_rm_fixed_vars
                   << " secs " << std::endl;
 #endif
@@ -381,8 +366,8 @@ public:
 #endif
         reorder();
 #ifdef TIME_KEEPING
-        std::cout << "Reordering completed in time, ";
-        std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
+        std::cerr << "Reordering completed in time, ";
+        std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
                   << " secs " << std::endl;
 #endif
       }
@@ -393,8 +378,8 @@ public:
 
       changed += extract_collapsed_variables();
 #ifdef TIME_KEEPING
-      std::cout << "Extracting collapsed variables completed in time, ";
-      std::cout << (double)clock() / (double)CLOCKS_PER_SEC -
+      std::cerr << "Extracting collapsed variables completed in time, ";
+      std::cerr << (double)clock() / (double)CLOCKS_PER_SEC -
                        tstart_ex_colapsed_vars
                 << " secs " << std::endl;
 #endif
@@ -414,11 +399,11 @@ public:
     return tau;
   }
 
-  void print() {
-    std::cerr << "----------------Printing Sparse problem--------------"
-              << '\n';
-    std::cerr << "(m,n) = " << equations() << " , " << dimension() << "\n";
-    if (equations() * dimension() > 50) {
+  void print(std::string const message = "Printing Sparse problem") {
+    std::cerr << "----------------" << message << "--------------" << '\n';
+    std::cerr << "(m,n) = " << equations() << " , " << dimension()
+              << " nnz= " << Asp.nonZeros() << "\n";
+    if (equations() > 20 || dimension() > 20) {
       std::cerr << "too big for complete visulization\n";
       return;
     }
@@ -554,15 +539,15 @@ public:
     }
     shift_barrier(center);
 #ifdef TIME_KEEPING
-    std::cout << "Shift_barrier completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rest
+    std::cerr << "Shift_barrier completed in time, ";
+    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rest
               << " secs " << std::endl;
 #endif
     reorder();
 
     width = estimate_width();
     if (width.maxCoeff() > 1e9) {
-      std::cout << "Domain seems to be unbounded. Either add a Gaussian term "
+      std::cerr << "Domain seems to be unbounded. Either add a Gaussian term "
                    "via f, df, ddf or add bounds to variable via lb and ub."
                 << '\n';
       exit(1);
@@ -584,13 +569,13 @@ public:
     solver.solve((Tx *)input.data(), (Tx *)out.data());
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 #ifdef TIME_KEEPING
-    std::cout << "Finding Center completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_find_center
+    std::cerr << "Finding Center completed in time, ";
+    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_find_center
               << " secs " << std::endl;
 #endif
     if ((center.array() > barrier.ub.array()).any() ||
         (center.array() < barrier.lb.array()).any()) {
-      std::cout << "Polytope:Infeasible. The algorithm cannot find a feasible "
+      std::cerr << "Polytope:Infeasible. The algorithm cannot find a feasible "
                    "point.\n";
       exit(1);
     }
@@ -615,14 +600,14 @@ public:
     Asp.resize(m, n);
     PreproccessProblem();
   }
+  // Gradient and hessian of for the analytic center
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     VT g, h;
     std::tie(std::ignore, g, h) = f_oracle(x);
     return std::make_pair(g + barrier.gradient(x), h + barrier.hessian(x));
   }
-
+  // Gradient and hessian of for the lewis center
   std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
-    //   [~, g, h] = o.f_oracle(x);
     VT g, h;
     std::tie(std::ignore, g, h) = f_oracle(x);
     return std::make_pair(g + w.cwiseProduct(barrier.gradient(x)),
@@ -650,18 +635,14 @@ public:
     if (fHandle) {
       f = func(Point(z));
     } else {
-      if (!dfHandle) {
-        f = Tdf.transpose() * x;
-      } else {
-        f = 0;
-      }
+      f = 0;
     }
     // If the gradient is given evaluate it at the original point
     if (dfHandle) {
       g = VT::Zero(n, 1);
       g(Tidx, Eigen::all) = Ta.cwiseProduct(df(Point(z)).getCoefficients());
     } else {
-      g = Tdf;
+      g = VT::Zero(n, 1);
     }
     // If the hessian is given evaluate it at the original point
     if (ddfHandle) {
@@ -669,7 +650,7 @@ public:
       h(Tidx, Eigen::all) =
           (Ta.cwiseProduct(Ta)).cwiseProduct(ddf(Point(z)).getCoefficients());
     } else {
-      h = Tddf;
+      h = VT::Zero(n, 1);
     }
     return std::make_tuple(f, -g, h);
   }
@@ -689,13 +670,6 @@ public:
     }
 
     Ta = T * VT::Ones(n, 1);
-    if (!dfHandle) {
-      Tdf = VT::Zero(n);
-    }
-    if (!ddfHandle) {
-      Tddf.resize(n, n);
-      Tddf = MT::Zero(n, n);
-    }
   }
 };
 #endif

@@ -13,6 +13,7 @@
 // Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
 // Riemannian Hamiltonian
 // Monte Carlo in a Constrained Space"
+#include "misc/misc.h"
 #include <cmath>
 #include <functional>
 #include <iostream>
@@ -41,6 +42,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
+    NT var = 1;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -50,7 +52,7 @@ struct CustomFunctor {
     parameters<NT> &params;
     Grad(parameters<NT> &params_) : params(params_){};
     Point operator()(Point const &x) const {
-      Point y = -(1.0) * x;
+      Point y = -(1.0 / params.var) * x;
       return y;
     }
   };
@@ -61,7 +63,7 @@ struct CustomFunctor {
     parameters<NT> &params;
     Hess(parameters<NT> &params_) : params(params_){};
     Point operator()(Point const &x) const {
-      return Point::all_ones(x.dimension());
+      return (1.0 / params.var) * Point::all_ones(x.dimension());
     }
   };
 
@@ -69,11 +71,15 @@ struct CustomFunctor {
     typedef typename Point::FT NT;
     parameters<NT> &params;
     Func(parameters<NT> &params_) : params(params_){};
-    NT operator()(Point const &x) const { return 0.5 * x.dot(x); }
+    NT operator()(Point const &x) const {
+      return (1.0 / params.var) * 0.5 * x.dot(x);
+    }
   };
 };
 
-template <typename NT> void run_main(int n_samples = 500, int n_burns = -1) {
+template <typename NT>
+void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
+              int burn_steps = 1) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -83,10 +89,13 @@ template <typename NT> void run_main(int n_samples = 500, int n_burns = -1) {
   using Func = CustomFunctor::Func<Point>;
   using Grad = CustomFunctor::Grad<Point>;
   using Hess = CustomFunctor::Hess<Point>;
-  using Input = crhmc_input<MT, Point, Func, Grad>;
+  // using Input = crhmc_input<MT, Point>;
+  using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
+
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
   using Opts = opts<NT>;
+  using Hpolytope = HPolytope<Point>;
 
   CustomFunctor::parameters<NT> params;
 
@@ -97,17 +106,35 @@ template <typename NT> void run_main(int n_samples = 500, int n_burns = -1) {
     n_burns = n_samples / 2;
   }
   RandomNumberGenerator rng(1);
-  unsigned int dim = 2;
+  unsigned int dim = 1000;
+  /*
+    std::cerr << "Reading input from file..." << std::endl;
+    std::ifstream inp;
+    std::vector<std::vector<NT>> Pin;
+    inp.open("../../test/metabolic_full_dim/polytope_e_coli.ine",
+             std::ifstream::in);
+    read_pointset(inp, Pin);
+    Hpolytope Polytope(Pin);
+    dim = Polytope.dimension();
+  */
   Opts options;
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
-  //MT A = MT::Ones(5, dim);
-  //A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  //VT b = 10 * VT::Ones(5, 1);
-  Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
+  // MT A = MT::Ones(5, dim);
+  // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
+  // VT b = 10 * VT::Ones(5, 1);
+  Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
+  MT A = Polytope.get_mat();
+  VT b = Polytope.get_vec();
+  // std::cerr<<"A.rows============== " << A.rows()<<"\n";
+  // std::cerr<<"A=\n"<<A<<"\n";
+  // std::cerr<<"b=\n"<<b.transpose()<<"\n";
 
-  Input input = Input(dim, f, g);
+  Input input = Input(dim, f, g, h);
   input.Aineq = A;
   input.bineq = b;
+  // input.lb = -VT::Ones(dim);
+  // input.ub = VT::Ones(dim);
+
   CrhmcProblem P = CrhmcProblem(input);
   P.print();
   Point x0 = Point(P.center);
@@ -119,7 +146,11 @@ template <typename NT> void run_main(int n_samples = 500, int n_burns = -1) {
   MT samples = MT(dim, n_samples - n_burns);
   int j = 0;
   for (int i = 0; i < n_samples; i++) {
-    crhmc.apply(rng, 30, true);
+    if (i % 1000 == 0) {
+      std::cerr << i << " out of " << n_samples << "\n";
+    }
+    for (int k = 0; k < burn_steps; k++)
+      crhmc.apply(rng, walk_length, true);
     if (i > n_burns) {
       VT sample = P.T * crhmc.x.getCoefficients() + P.y;
       samples.col(j) = VT(sample);
@@ -127,6 +158,7 @@ template <typename NT> void run_main(int n_samples = 500, int n_burns = -1) {
       std::cout << sample.transpose() << std::endl;
     }
   }
+  std::cerr << "\n";
 
   std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cerr << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
@@ -142,6 +174,10 @@ int main(int argc, char *argv[]) {
     run_main<double>(atoi(argv[1]));
   else if (argc == 3)
     run_main<double>(atoi(argv[1]), atoi(argv[2]));
-
+  else if (argc == 4)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+  else if (argc == 5)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
+                     atoi(argv[4]));
   return 0;
 }
