@@ -42,7 +42,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 1;
+    NT var = 0.3;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -119,7 +119,6 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   */
   Opts options;
   if (dynamic_weight == 1) {
-
     options.DynamicWeight = true;
   } else {
     options.DynamicWeight = false;
@@ -164,6 +163,12 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
   start = std::chrono::system_clock::now();
 #endif
+#ifdef TIME_KEEPING
+  std::chrono::time_point<std::chrono::high_resolution_clock> start_file,
+      end_file;
+  std::chrono::duration<double> total_time_file =
+      std::chrono::duration<double>::zero();
+#endif
   int j = 0;
   for (int i = 0; i < n_samples; i++) {
     if (i % 1000 == 0) {
@@ -172,25 +177,42 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
     for (int k = 0; k < burn_steps; k++) {
       crhmc.apply(rng, walk_length, true);
     }
+#ifdef TIME_KEEPING
+    start_file = std::chrono::system_clock::now();
+#endif
     if (i >= n_burns) {
       VT sample = crhmc.getPoint().getCoefficients();
       samples.col(j) = VT(sample);
       j++;
-      std::cout << sample.transpose() << std::endl;
     }
+#ifdef TIME_KEEPING
+    end_file = std::chrono::system_clock::now();
+    total_time_file += end_file - start_file;
+#endif
   }
+  std::cerr << "\n";
 #ifdef TIME_KEEPING
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> total_time = end - start;
-#endif
-  std::cerr << "\n";
   std::cerr << "Real total time: " << total_time.count() << "\n";
-  crhmc.print_timing_information();
+#endif
+
   std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cerr << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cerr << "Average Acceptance Probability: "
             << exp(crhmc.average_acceptance_log_prob) << std::endl;
   std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
+#ifdef TIME_KEEPING
+  start_file = std::chrono::system_clock::now();
+#endif
+  std::cerr << "Writing samples in a file \n";
+  std::cout << samples.transpose() << std::endl;
+#ifdef TIME_KEEPING
+  end_file = std::chrono::system_clock::now();
+  total_time_file += end_file - start_file;
+  std::cerr << "Time for writing the file: " << total_time_file.count() << "\n";
+  crhmc.print_timing_information();
+#endif
 }
 
 int main(int argc, char *argv[]) {
