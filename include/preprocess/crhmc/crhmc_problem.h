@@ -472,8 +472,7 @@ public:
   crhmc_problem(Input const &input, Opts _options = Opts())
       : func(input.f), df(input.df), ddf(input.ddf), fHandle(input.fHandle),
         dfHandle(input.dfHandle), ddfHandle(input.ddfHandle),
-        fZero(input.fZero) {
-    options = _options;
+        fZero(input.fZero), options(_options) {
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
     int nEq = input.Aeq.rows();

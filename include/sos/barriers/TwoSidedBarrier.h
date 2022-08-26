@@ -25,7 +25,7 @@
 
 template <typename Point> class TwoSidedBarrier {
 
-  using NT=typename Point::FT;
+  using NT = typename Point::FT;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 
@@ -39,7 +39,8 @@ public:
   std::vector<int> freeIdx;
   VT center;
   const NT max_step = 1e16; // largest step size
-  const NT epsilon = 1e-20;
+  VT extraHessian;
+
   const NT inf = std::numeric_limits<NT>::infinity();
 
   void set_bound(VT const &_lb, VT const &_ub) {
@@ -47,6 +48,7 @@ public:
     lb = _lb;
     ub = _ub;
     n = lb.rows();
+    extraHessian = (1e-20) * VT::Ones(n);
     int x1 = 0, x2 = 0, x3 = 0;
     for (int i = 0; i < n; i++) {
       if (lb(i) == -inf) {
@@ -74,6 +76,7 @@ public:
   TwoSidedBarrier(VT const &_lb, VT const &_ub, int _vdim = 1) {
     set_bound(_lb, _ub);
     vdim = _vdim;
+    extraHessian = (1e-20) * VT::Ones(n);
   }
   TwoSidedBarrier() { vdim = 1; }
 
@@ -84,7 +87,7 @@ public:
   VT hessian(VT const &x) {
     VT d = ((ub - x).cwiseProduct((ub - x))).cwiseInverse() +
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
-    return d + (1e-20) * VT::Ones(d.rows());
+    return d + extraHessian;
   }
   VT tensor(VT const &x) {
     VT d = 2 * (((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x)))

@@ -21,7 +21,6 @@
 #include "preprocess/crhmc/opts.h"
 #include <fstream>
 #include <iostream>
-
 #include <vector>
 #ifndef SIMD_LEN
 #define SIMD_LEN 0

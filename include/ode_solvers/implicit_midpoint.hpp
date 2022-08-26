@@ -57,6 +57,7 @@ struct ImplicitMidpointODESolver {
   unsigned int dim;
 
   NT eta;
+  int num_steps = 0;
   NT t;
 
   // Contains the sub-states
@@ -98,10 +99,12 @@ struct ImplicitMidpointODESolver {
       NT maxdist = dist;
       if (maxdist < options.implicitTol) {
         done = true;
+        num_steps = i;
         break;
       } else if (maxdist > 1e16) {
         xs = xs * std::nan("1");
         done = true;
+        num_steps = i;
         break;
       }
     }

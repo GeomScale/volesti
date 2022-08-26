@@ -22,7 +22,7 @@ public:
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
-  Type max_coord=1e7;
+  Type max_coord = 1e7;
   bool EnableReordering = false;
 
   /*ODE options*/
@@ -31,7 +31,12 @@ public:
   Type initialStep = 0.2;
 
   /*Sampler options*/
-  bool DynamicWeight = false;
+  bool DynamicWeight = true;
+  bool DynamicStepSize = false;
+  bool DynamicRegularizer = false;
+
+  /*Dynamic step choices*/
+  int warmUpStep = 10;
 
   opts() {}
   void operator=(const opts &rhs) {

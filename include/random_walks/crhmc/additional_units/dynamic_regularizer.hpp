@@ -15,39 +15,82 @@
 // Monte Carlo in a Constrained Space"
 #ifndef DYNAMIC_REGULARIZER_HPP
 #define DYNAMIC_REGULARIZER_HPP
+#include "Eigen/Eigen"
 // Module for updating the extra term we add to the barrier
 // This is nessecary for any polytope with free variables
-template <typename Sampler> void DynamicRegularizerUpdate(Sampler s) {
-  VT x = s.x.getCoefficients();
-  int n = x.rows();
-  x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
-  bound = bound.cwiseMax(x);
-  if (!s.freezed) {
-    bool changed = false;
+template <typename Sampler, typename RandomNumberGenerator>
+class dynamic_regularizer {
+public:
+  using NT = typename Sampler::NT;
+  using Point = typename Sampler::point;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  int n;
+  VT bound;
+  Opts &options;
+  dynamic_regularizer(Sampler &s) : options(s.params.options) {
+    std::cerr << "Using dynamic regularizer------------------------------------"
+              << '\n';
+    n = s.dim;
+    bound = VT::Ones(n);
+    if (options.DynamicWeight) {
+      s.solver->ham.weighted_barrier->extraHessian = VT::Ones(n);
+    } else {
+      s.solver->ham.barrier->extraHessian = VT::Ones(n);
+    }
+  }
+
+  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
+    VT x = s.x.getCoefficients();
+    x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
+    bound = bound.cwiseMax(x);
+    bool Condition = false;
+    if (options.DynamicWeight) {
+      Condition = (2 / (bound.array() * bound.array()) <
+                   n * s.solver->ham.weighted_barrier->extraHessian.array())
+                      .any();
+    } else {
+      Condition = (2 / (bound.array() * bound.array()) <
+                   n * s.solver->ham.barrier->extraHessian.array())
+                      .any();
+    }
+
+    if (Condition) {
+      if (options.DynamicWeight) {
+        s.solver->ham.weighted_barrier->extraHessian =
+            (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
+      } else {
+        s.solver->ham.barrier->extraHessian =
+            (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
+      }
+      s.solver->ham.move({s.x, s.v});
+      s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
+    }
+    /*
     for (int i = 0; i < n; i++) {
       bool change = false;
       if (options.DynamicWeight) {
         change = (2 / (bound(i) * bound(i))) <
-                 n * s->solver.ham->weighted_barrier.extraHessian(i);
+                 n * s.solver->ham.weighted_barrier->extraHessian(i);
         if (change) {
-          s->solver.ham->weighted_barrier.extraHessian =
-              0.5 / n * (bound.cwiseProduct(bound)).cwiseInverse();
-          s->solver.ham.move(s->solver.xs, true);
+          s.solver->ham.weighted_barrier->extraHessian =
+              (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
+          s.solver->ham.move({s.x, s.v});
+          s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
+          break;
         }
-
       } else {
         change = (2 / (bound(i) * bound(i))) <
-                 n * s->solver.ham->barrier.extraHessian(i);
+                 n * s.solver->ham.barrier->extraHessian(i);
         if (change) {
-          s->solver.ham->barrier.extraHessian =
-              0.5 / n * (bound.cwiseProduct(bound)).cwiseInverse();
-          s->solver.ham.move(s->solver.xs, true);
+          s.solver->ham.barrier->extraHessian =
+              (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
+          s.solver->ham.move({s.x, s.v});
+          s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
+          break;
         }
       }
-      if (change) {
-        break;
-      }
     }
+    */
   }
-}
+};
 #endif

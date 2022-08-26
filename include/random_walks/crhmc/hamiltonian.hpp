@@ -42,6 +42,7 @@ public:
   pts xs;
   VT x;
   VT dfx;
+  VT lsc;
   NT fx = 0;
   int n;
   int m;
@@ -55,6 +56,7 @@ public:
     m = P.equations();
     x = VT::Zero(n);
     xs = {Point(n), Point(n)};
+    lsc = VT::Zero(n);
 
     if (options.DynamicWeight) {
       weighted_barrier =
@@ -160,7 +162,6 @@ public:
     move(x_bar);
     if (!prepared || dUDx_empty) {
       prepare(x_bar);
-      VT lsc = VT(n, 1);
       solver.leverageScoreComplement((Tx *)lsc.data());
 
       if (options.DynamicWeight) {

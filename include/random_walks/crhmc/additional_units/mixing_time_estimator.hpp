@@ -15,8 +15,7 @@
 // Monte Carlo in a Constrained Space"
 #ifndef MIXINING_TIME_ESTIMATOR_HPP
 #define MIXINING_TIME_ESTIMATOR_HPP
-template <typename NT> class mixing_time_estimator {
-  using Opts = opts<NT>;
+template <typename Sampler> class mixing_time_estimator {
   bool removedInitial = false;
   NT sampleRate = 0;
   NT sampleRateOutside = 0;
@@ -27,6 +26,29 @@ template <typename NT> class mixing_time_estimator {
   MixingTimeEstimator(Opts &user_options) : options(user_options) {
     nextEstimateStep = opts.initialStep;
   }
-  void step() {}
+  void step(Sampler &s) {
+
+    if (s.nEffectiveStep > nextEstimateStep) {
+      ess = effective_sample_size(s.chains);
+      ess = min(ess( :));
+
+      if (removedInitial == false && ess > 2 * options.nRemoveInitialSamples) {
+        int k = ceil(s.opts.nRemoveInitialSamples * (size(s.chains, 3) / ess));
+        s.i = ceil(s.i * (1 - k / size(s.chains, 3)));
+        s.acceptedStep = s.acceptedStep * (1 - k / size(s.chains, 3));
+        s.chains = s.chains( :, :, k : end);
+        o.removedInitial = true;
+        ess = effective_sample_size(s.chains);
+        ess = min(ess( :));
+      }
+
+      s.mixingTime = s.iterPerRecord * size(s.chains, 3) / ess;
+      o.sampleRate = size(s.chains, 1) / s.mixingTime;
+      o.estNumSamples = s.i * o.sampleRate;
+      s.share('sampleRate', o.sampleRate);
+      s.share('estNumSamples', o.estNumSamples);
+      o.update(s);
+    }
+  }
 };
 #endif

@@ -18,8 +18,8 @@
 
 #include "generators/boost_random_number_generator.hpp"
 #include "ode_solvers/ode_solvers.hpp"
+#include "random_walks/crhmc/additional_units/auto_tuner.hpp"
 #include "random_walks/gaussian_helpers.hpp"
-
 struct CRHMCWalk {
   template <typename NT, typename OracleFunctor> struct parameters {
     using Opts = opts<NT>;
@@ -41,10 +41,16 @@ struct CRHMCWalk {
             typename NegativeGradientFunctor, typename NegativeLogprobFunctor,
             typename Solver>
   struct Walk {
-
-    typedef std::vector<Point> pts;
-    typedef typename Point::FT NT;
+    using point = Point;
+    using pts = std::vector<Point>;
+    using NT = typename Point::FT;
     using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+    using Sampler = CRHMCWalk::Walk<Point, Polytope, RandomNumberGenerator,
+                                    NegativeGradientFunctor,
+                                    NegativeLogprobFunctor, Solver>;
+
+    using Opts = typename Polytope::Opts;
+
     // Hyperparameters of the sampler
     parameters<NT, NegativeGradientFunctor> &params;
 
@@ -65,7 +71,10 @@ struct CRHMCWalk {
     // Average acceptance probability
     float total_acceptance_log_prob = 0;
     float average_acceptance_log_prob = 0;
+
+    // Acceptance probability
     NT prob;
+    bool accepted;
 
     // References to xs
     Point x, v;
@@ -76,7 +85,8 @@ struct CRHMCWalk {
     // Gradient function
     NegativeGradientFunctor &F;
 
-    bool accepted;
+    // Auto tuner
+    auto_tuner<Sampler, RandomNumberGenerator> *module_update;
 
     // Helper variables
     NT H, H_tilde, log_prob, u_logprob;
@@ -93,12 +103,12 @@ struct CRHMCWalk {
 
       // Starting point is provided from outside
       x = p;
-
       accepted = false;
       // Initialize solver
       solver =
           new Solver(0.0, params.eta, pts{x, x}, F, Problem, params.options);
       v = solver->get_state(1);
+      module_update = new auto_tuner<Sampler, RandomNumberGenerator>(*this);
     };
     Point GetDirectionWithMomentum(unsigned int const &dim,
                                    RandomNumberGenerator &rng, Point x, Point v,
@@ -155,16 +165,15 @@ struct CRHMCWalk {
           v = Point(dim) - v;
         }
 
-        NT accept = 0;
-        if (accepted) {
-          accept = 1;
-        }
         discard_ratio = (1.0 * total_discarded_samples) / num_runs;
         average_acceptance_log_prob = total_acceptance_log_prob / num_runs;
 
       } else {
         x = x_tilde;
         v = v_tilde;
+      }
+      if (params.options.DynamicWeight || params.options.DynamicRegularizer) {
+        module_update->updateModules(*this, rng);
       }
     }
   };

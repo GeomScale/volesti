@@ -6,10 +6,16 @@
 
 project( VolEsti )
 
-
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+
+# Locate Intel MKL root (in case it is enabled)
+if (APPLE)
+	set(MKLROOT /opt/intel/oneapi/mkl/latest)
+elseif(UNIX)
+	set(MKLROOT $ENV{HOME}/intel/mkl)
+endif()
 
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
@@ -18,6 +24,7 @@ endif(COMMAND cmake_policy)
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../../external" OFF)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 
 if(DISABLE_NLP_ORACLES)
@@ -71,15 +78,29 @@ find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 if (NOT LP_SOLVE)
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
 else ()
-  message(STATUS "Library lp_solve found: ${LP_SOLVE}")
 
+  message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
+  if (USE_MKL)
+    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
+    find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
+    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
+    find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
+
+    include_directories (BEFORE ${MKLROOT}/include)
+    set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
+    set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
+    add_definitions(-DEIGEN_USE_MKL_ALL)
+  else()
+    set(MKL_LINK "")
+  endif(USE_MKL)
 
   include_directories (BEFORE ../../external)
   include_directories (BEFORE ../../external/minimum_ellipsoid)
   include_directories (BEFORE ../../include/)
 
-  set(QD_SOURCES
+  set(QDSOURCES
     ../../external/qd/bits.cc
     ../../external/qd/c_dd.cc
     ../../external/qd/c_qd.cc
@@ -89,7 +110,8 @@ else ()
     ../../external/qd/qd_const.cc
     ../../external/qd/qd_real.cc
     ../../external/qd/util.cc
-        )
+    )
+add_library(QD_LIB ${QDSOURCES})
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
     add_compile_options(-D "EIGEN_NO_DEBUG")
@@ -117,6 +139,6 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
   add_executable (crhmc_prepare crhmc_prepare.cpp ${QD_SOURCES})
-  TARGET_LINK_LIBRARIES(crhmc_prepare ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${LP_SOLVE})
 
 endif()

@@ -39,7 +39,8 @@ public:
   std::vector<int> freeIdx;
   VT center;
   const NT max_step = 1e16; // largest step size
-  const NT epsilon = 1e-20;
+  VT extraHessian;
+
   const NT inf = std::numeric_limits<NT>::infinity();
 
   VT w;
@@ -49,6 +50,7 @@ public:
     set_bound(_lb, _ub);
     w = _w;
     vdim = _vdim;
+    extraHessian = (1e-20) * VT::Ones(n);
   }
   WeightedTwoSidedBarrier() { vdim = 1; }
 
@@ -59,7 +61,7 @@ public:
   VT hessian(VT const &x) {
     VT d = w.cwiseQuotient((ub - x).cwiseProduct((ub - x))) +
            w.cwiseQuotient((x - lb).cwiseProduct((x - lb)));
-    return d;
+    return d + extraHessian;
   }
   VT tensor(VT const &x) {
     VT d = 2 * w.cwiseQuotient(
@@ -102,6 +104,7 @@ public:
     lb = _lb;
     ub = _ub;
     n = lb.rows();
+    extraHessian = (1e-20) * VT::Ones(n);
     int x1 = 0, x2 = 0, x3 = 0;
     for (int i = 0; i < n; i++) {
       if (lb(i) == -inf) {

@@ -42,7 +42,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 1;
+    NT var = 8;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -78,8 +78,9 @@ struct CustomFunctor {
 };
 
 template <typename NT>
-void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
-              int burn_steps = 1) {
+void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
+              int walk_length = 1, int burn_steps = 1, int dynamic_weight = 0,
+              int dynamic_regularization = 0) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -91,7 +92,6 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
   using Hess = CustomFunctor::Hess<Point>;
   // using Input = crhmc_input<MT, Point>;
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
-
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
   using Opts = opts<NT>;
@@ -106,7 +106,7 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
     n_burns = n_samples / 2;
   }
   RandomNumberGenerator rng(1);
-  unsigned int dim = 1000;
+  unsigned int dim = dimension;
   /*
     std::cerr << "Reading input from file..." << std::endl;
     std::ifstream inp;
@@ -118,6 +118,18 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
     dim = Polytope.dimension();
   */
   Opts options;
+  if (dynamic_weight == 1) {
+
+    options.DynamicWeight = true;
+  } else {
+    options.DynamicWeight = false;
+  }
+  if (dynamic_regularization == 1) {
+
+    options.DynamicRegularizer = true;
+  } else {
+    options.DynamicRegularizer = false;
+  }
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
   // MT A = MT::Ones(5, dim);
   // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
@@ -134,8 +146,7 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
   input.bineq = b;
   // input.lb = -VT::Ones(dim);
   // input.ub = VT::Ones(dim);
-
-  CrhmcProblem P = CrhmcProblem(input);
+  CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   Point x0 = Point(P.center);
   crhmc_params.eta = 0.2;
@@ -152,7 +163,7 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
     for (int k = 0; k < burn_steps; k++) {
       crhmc.apply(rng, walk_length, true);
     }
-    if (i > n_burns) {
+    if (i >= n_burns) {
       VT sample = crhmc.getPoint().getCoefficients();
       samples.col(j) = VT(sample);
       j++;
@@ -169,6 +180,10 @@ void run_main(int n_samples = 500, int n_burns = -1, int walk_length = 1,
 }
 
 int main(int argc, char *argv[]) {
+  std::cerr << "Example Usage: ./crhmc_sampling n_sample initial_burns "
+               "dimension ode_steps steps_bettween_samples\n";
+  std::cerr << "Example Usage: ./crhmc_sampling 10000 5000 "
+               "2 1 1\n";
   if (argc == 1)
     run_main<double>();
   else if (argc == 2)
@@ -180,5 +195,14 @@ int main(int argc, char *argv[]) {
   else if (argc == 5)
     run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
                      atoi(argv[4]));
+  else if (argc == 6)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                     atoi(argv[5]));
+  else if (argc == 7)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                     atoi(argv[5]), atoi(argv[6]));
+  else if (argc == 8)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                     atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
   return 0;
 }
