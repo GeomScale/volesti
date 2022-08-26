@@ -35,8 +35,10 @@ using Input = crhmc_input<MT, Point>;
 using CrhmcProblem = crhmc_problem<Point, Input>;
 using Opts = opts<NT>;
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
+int main(int argc, char *argv[])
+{
+  if (argc != 2)
+  {
     std::cout << "Usage: ./crhmc_prepare [file_name_string]\n";
     std::cout << "Example file name= "
                  "../../test/metabolic_full_dim/polytope_e_coli.ine\n";

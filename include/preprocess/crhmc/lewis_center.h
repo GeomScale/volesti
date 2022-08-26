@@ -41,12 +41,14 @@ int numberOfFullSteps = 8;
 template <typename Polytope>
 std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
                                            Polytope &f, Opts const &options,
-                                           VT x = VT::Zero(0, 1)) {
+                                           VT x = VT::Zero(0, 1))
+{
 
   // initial conditions
   int n = A.cols();
   int m = A.rows();
-  if (x.rows() == 0 || !f.barrier.feasible(x)) {
+  if (x.rows() == 0 || !f.barrier.feasible(x))
+  {
     x = f.barrier.center;
   }
   VT lambda = VT::Zero(n, 1);
@@ -63,7 +65,8 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
   VT w = VT::Ones(n, 1);
   VT wp = w;
 
-  for (int iter = 0; iter < options.ipmMaxIter; iter++) {
+  for (int iter = 0; iter < options.ipmMaxIter; iter++)
+  {
     std::pair<VT, VT> pair_analytic_oracle = f.lewis_center_oracle(x, wp);
     VT grad = pair_analytic_oracle.first;
     VT hess = pair_analytic_oracle.second;
@@ -79,15 +82,17 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     dualErr = rs.norm() / dualFactor;
     bool feasible = f.barrier.feasible(x);
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
-        (primalErr > 10 * primalErrMin) || !feasible) {
+        (primalErr > 10 * primalErrMin) || !feasible)
+    {
       VT dist = f.barrier.boundary_distance(x);
       NT th = options.ipmDistanceTol;
-      visit_lambda(dist, [&idx, th](double v, int i, int j) {
+      visit_lambda(dist, [&idx, th](double v, int i, int j)
+                   {
         if (v < th)
-          idx.push_back(i);
-      });
+          idx.push_back(i); });
 
-      if (idx.size() > 0) {
+      if (idx.size() > 0)
+      {
         break;
       }
     }
@@ -124,46 +129,56 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
     w = (w + wNew) / 2;
     wp = Eigen::pow(w.array(), 0.875).matrix();
 
-    if (!f.barrier.feasible(x)) {
+    if (!f.barrier.feasible(x))
+    {
       break;
     }
 
     // stop if converged
-    if (tGrad == 1) {
+    if (tGrad == 1)
+    {
       fullStep = fullStep + 1;
       if (fullStep > log(dualErr / options.ipmDualTol) &&
-          fullStep > numberOfFullSteps) {
+          fullStep > numberOfFullSteps)
+      {
         break;
       }
-    } else {
+    }
+    else
+    {
       fullStep = 0;
     }
   }
 
   SpMat C;
   VT d;
-  if (idx.size() == 0) {
+  if (idx.size() == 0)
+  {
     VT dist = f.barrier.boundary_distance(x);
     NT th = options.ipmDistanceTol;
-    visit_lambda(dist, [&idx, th](double v, int i, int j) {
+    visit_lambda(dist, [&idx, th](double v, int i, int j)
+                 {
       if (v < th)
-        idx.push_back(i);
-    });
+        idx.push_back(i); });
   }
 
-  if (idx.size() > 0) {
+  if (idx.size() > 0)
+  {
     C.resize(idx.size(), n);
     std::pair<VT, VT> pboundary = f.barrier.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
     A_ = A_(idx);
     std::vector<Triple> sparseIdx;
-    for (int i = 0; i < idx.size(); i++) {
+    for (int i = 0; i < idx.size(); i++)
+    {
       sparseIdx.push_back(Triple(i, i, A_(i)));
     }
     C.setFromTriplets(sparseIdx.begin(), sparseIdx.end());
     d = b_(idx);
-  } else {
+  }
+  else
+  {
     C = MT::Zero(0, n).sparseView();
     d = VT::Zero(0, 1);
   }

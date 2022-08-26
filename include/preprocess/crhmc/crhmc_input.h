@@ -19,10 +19,14 @@
 #include "opts.h"
 /*0 funciton handles are given as a reference in case the user gives no
 function. Then the uniform function is implied*/
-template <typename Point> struct ZeroFunctor {
+template <typename Point>
+struct ZeroFunctor
+{
   Point operator()(Point const &x) const { return Point(x.dimension()); }
 };
-template <typename Point> struct ZeroScalarFunctor {
+template <typename Point>
+struct ZeroScalarFunctor
+{
   using Type = typename Point::FT;
   Type operator()(Point const &x) const { return 0; }
 };
@@ -31,7 +35,8 @@ template <typename MatrixType, typename Point,
           typename func = ZeroScalarFunctor<Point>,
           typename grad = ZeroFunctor<Point>,
           typename hess = ZeroFunctor<Point>>
-class crhmc_input {
+class crhmc_input
+{
   using Type = typename Point::FT;
   using VT = Eigen::Matrix<Type, Eigen::Dynamic, 1>;
   ZeroFunctor<Point> zerof;
@@ -41,24 +46,25 @@ public:
   using Func = func;
   using Grad = grad;
   using Hess = hess;
-  MatrixType Aineq;   // Matrix of coefficients for the inequality constraints
-  VT bineq;           // Right hand side of the inequality constraints
-  MatrixType Aeq;     // Matrix of coefficients for the equality constraints
-  VT beq;             // Right hand side of the equality constraints
-  opts<Type> options; // structure of the parameters of the problem
-  VT lb;              // lb on the output coordinates preset to -1e7
-  VT ub;              // ub on the output coordinates preset to +1e7
-  func &f;            // Negative log density function handle
-  grad &df;           // Negative log density gradient function handle
-  hess &ddf;          // Negative log density hessian function handle
-  bool fZero;         // whether f is completely zero
-  bool fHandle;       // whether f is handle or not
-  bool dfHandle;      // whether df is handle or not
-  bool ddfHandle;     // whether ddf is handle or not
+  MatrixType Aineq;                       // Matrix of coefficients for the inequality constraints
+  VT bineq;                               // Right hand side of the inequality constraints
+  MatrixType Aeq;                         // Matrix of coefficients for the equality constraints
+  VT beq;                                 // Right hand side of the equality constraints
+  opts<Type> options;                     // structure of the parameters of the problem
+  VT lb;                                  // lb on the output coordinates preset to -1e7
+  VT ub;                                  // ub on the output coordinates preset to +1e7
+  func &f;                                // Negative log density function handle
+  grad &df;                               // Negative log density gradient function handle
+  hess &ddf;                              // Negative log density hessian function handle
+  bool fZero;                             // whether f is completely zero
+  bool fHandle;                           // whether f is handle or not
+  bool dfHandle;                          // whether df is handle or not
+  bool ddfHandle;                         // whether ddf is handle or not
   const Type inf = options.max_coord + 1; // helper for barrier handling
   /*Constructors for different input instances*/
   crhmc_input(int dimension, func &function, grad &g, hess &h)
-      : f(function), df(g), ddf(h) {
+      : f(function), df(g), ddf(h)
+  {
     fZero = false;
     fHandle = true;
     dfHandle = true;
@@ -66,7 +72,8 @@ public:
     init(dimension);
   }
   crhmc_input(int dimension, func &function)
-      : f(function), df(zerof), ddf(zerof) {
+      : f(function), df(zerof), ddf(zerof)
+  {
     fZero = false;
     fHandle = true;
     dfHandle = false;
@@ -74,14 +81,16 @@ public:
     init(dimension);
   }
   crhmc_input(int dimension, func &function, grad &g)
-      : f(function), df(g), ddf(zerof) {
+      : f(function), df(g), ddf(zerof)
+  {
     fZero = false;
     fHandle = true;
     dfHandle = true;
     ddfHandle = false;
     init(dimension);
   }
-  crhmc_input(int dimension) : f(zerosf), df(zerof), ddf(zerof) {
+  crhmc_input(int dimension) : f(zerosf), df(zerof), ddf(zerof)
+  {
     fZero = true;
     fHandle = false;
     dfHandle = false;
@@ -89,7 +98,8 @@ public:
     init(dimension);
   }
 
-  void init(int dimension) {
+  void init(int dimension)
+  {
     Aineq.resize(0, dimension);
     Aeq.resize(0, dimension);
     bineq.resize(0, 1);
