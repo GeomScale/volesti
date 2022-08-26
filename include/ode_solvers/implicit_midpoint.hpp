@@ -18,6 +18,7 @@
 #define IMPLICIT_MIDPOINT_HPP
 #include "preprocess/crhmc/opts.h"
 #include "random_walks/crhmc/hamiltonian.hpp"
+#include <chrono>
 
 template <typename T>
 inline std::vector<T> operator+(const std::vector<T> &v1,
@@ -73,7 +74,13 @@ struct ImplicitMidpointODESolver {
   hamiltonian ham;
 
   bool done;
-
+#ifdef TIME_KEEPING
+  std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+  std::chrono::duration<double> DU_duration =
+      std::chrono::duration<double>::zero();
+  std::chrono::duration<double> approxDK_duration =
+      std::chrono::duration<double>::zero();
+#endif
   ImplicitMidpointODESolver(NT initial_time, NT step, pts initial_state,
                             func oracle, Polytope &boundaries,
                             Opts &user_options)
@@ -84,7 +91,14 @@ struct ImplicitMidpointODESolver {
 
   void step(int k, bool accepted) {
     pts partialDerivatives;
+#ifdef TIME_KEEPING
+    start = std::chrono::system_clock::now();
+#endif
     partialDerivatives = ham.DU(xs);
+#ifdef TIME_KEEPING
+    end = std::chrono::system_clock::now();
+    DU_duration += end - start;
+#endif
     xs = xs + partialDerivatives * (eta / 2);
     xs_prev = xs;
     done = false;
@@ -92,8 +106,15 @@ struct ImplicitMidpointODESolver {
     for (int i = 0; i < options.maxODEStep; i++) {
       pts xs_old = xs;
       pts xmid = (xs_prev + xs) / 2.0;
+#ifdef TIME_KEEPING
+      start = std::chrono::system_clock::now();
+#endif
       // partialDerivatives = ham.DK(xmid);
       partialDerivatives = ham.approxDK(xmid, nu);
+#ifdef TIME_KEEPING
+      end = std::chrono::system_clock::now();
+      approxDK_duration += end - start;
+#endif
       xs = xs_prev + partialDerivatives * (eta);
       NT dist = ham.x_norm(xmid, xs - xs_old) / eta;
       NT maxdist = dist;
@@ -108,7 +129,14 @@ struct ImplicitMidpointODESolver {
         break;
       }
     }
+#ifdef TIME_KEEPING
+    start = std::chrono::system_clock::now();
+#endif
     partialDerivatives = ham.DU(xs);
+#ifdef TIME_KEEPING
+    end = std::chrono::system_clock::now();
+    DU_duration += end - start;
+#endif
     xs = xs + partialDerivatives * (eta / 2);
     ham.project(xs);
   }

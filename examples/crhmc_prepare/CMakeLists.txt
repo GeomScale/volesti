@@ -121,17 +121,7 @@ add_library(QD_LIB ${QDSOURCES})
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-  set(ADDITIONAL_FLAGS
-  -DNDEBUG -D_GNU_SOURCE
-  -fexceptions
-  -shared
-  -fPIC
-  -fno-omit-frame-pointer
-  -pthread
-  -march=native
-  -DSIMD_LEN=0
-  -DMX_COMPAT_64
-  )
+	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
   add_definitions(${CMAKE_CXX_FLAGS} "-O3 "  ${ADDITIONAL_FLAGS})  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")

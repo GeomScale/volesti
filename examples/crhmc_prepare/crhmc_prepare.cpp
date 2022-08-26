@@ -37,26 +37,11 @@ using Opts = opts<NT>;
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::cout << "Usage: ./crhmc_prepare file_name_string\n";
+    std::cout << "Usage: ./crhmc_prepare [file_name_string]\n";
     std::cout << "Example file name= "
                  "../../test/metabolic_full_dim/polytope_e_coli.ine\n";
     exit(1);
   }
-
-  unsigned d = 2;
-  MT A = MT::Ones(5, d);
-  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  VT b = 10 * VT::Ones(5, 1);
-  PolytopeType HP1 = HPolytope<Point>(d, A, b);
-  std::cout << "Polytope HP1: \n";
-  HP1.print();
-  std::cout << "\n";
-  Input input = Input(d);
-  input.Aineq = A;
-  input.bineq = b;
-  CrhmcProblem P1 = CrhmcProblem(input);
-  P1.print();
-
   std::string fileName(argv[1]);
   std::cout << "Reading input from file..." << std::endl;
   std::ifstream inp;
@@ -64,17 +49,17 @@ int main(int argc, char *argv[]) {
   inp.open(fileName, std::ifstream::in);
   read_pointset(inp, Pin);
 
-  PolytopeType HP2(Pin);
-  d = HP2.dimension();
-  Input input2 = Input(d);
-  input2.Aineq = HP2.get_mat();
-  input2.bineq = HP2.get_vec();
+  PolytopeType HP(Pin);
+  int d = HP.dimension();
+  Input input = Input(d);
+  input.Aineq = HP.get_mat();
+  input.bineq = HP.get_vec();
   Opts options;
   options.EnableReordering = false;
   double tstart = (double)clock() / (double)CLOCKS_PER_SEC;
-  CrhmcProblem P2 = CrhmcProblem(input2, options);
+  CrhmcProblem P = CrhmcProblem(input, options);
   std::cout << "Preparation completed in time, ";
   std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart << std::endl;
-  std::cout << "Number of nonZeros= " << P2.Asp.nonZeros() << "\n";
+  std::cout << "Number of nonZeros= " << P.Asp.nonZeros() << "\n";
   return 0;
 }

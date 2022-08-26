@@ -160,6 +160,10 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
                   Solver>
       crhmc(P, x0, g, f, crhmc_params);
   MT samples = MT(dim, n_samples - n_burns);
+#ifdef TIME_KEEPING
+  std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+  start = std::chrono::system_clock::now();
+#endif
   int j = 0;
   for (int i = 0; i < n_samples; i++) {
     if (i % 1000 == 0) {
@@ -175,8 +179,13 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
       std::cout << sample.transpose() << std::endl;
     }
   }
+#ifdef TIME_KEEPING
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> total_time = end - start;
+#endif
   std::cerr << "\n";
-
+  std::cerr << "Real total time: " << total_time.count() << "\n";
+  crhmc.print_timing_information();
   std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cerr << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cerr << "Average Acceptance Probability: "

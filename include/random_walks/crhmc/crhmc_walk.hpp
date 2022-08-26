@@ -15,11 +15,11 @@
 // Monte Carlo in a Constrained Space"
 #ifndef CRHMC_WALK_HPP
 #define CRHMC_WALK_HPP
-
 #include "generators/boost_random_number_generator.hpp"
 #include "ode_solvers/ode_solvers.hpp"
 #include "random_walks/crhmc/additional_units/auto_tuner.hpp"
 #include "random_walks/gaussian_helpers.hpp"
+#include <chrono>
 struct CRHMCWalk {
   template <typename NT, typename OracleFunctor> struct parameters {
     using Opts = opts<NT>;
@@ -94,7 +94,11 @@ struct CRHMCWalk {
     NT H, H_tilde, log_prob, u_logprob;
     // Density exponent
     NegativeLogprobFunctor &f;
-
+#ifdef TIME_KEEPING
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    std::chrono::duration<double> H_duration =
+        std::chrono::duration<double>::zero();
+#endif
     Walk(Polytope &Problem, Point &p, NegativeGradientFunctor &neg_grad_f,
          NegativeLogprobFunctor &neg_logprob_f,
          parameters<NT, NegativeGradientFunctor> &param)
@@ -146,11 +150,17 @@ struct CRHMCWalk {
       v_tilde = solver->get_state(1);
 
       if (metropolis_filter) {
-
+#ifdef TIME_KEEPING
+        start = std::chrono::system_clock::now();
+#endif
         // Calculate initial Hamiltonian
         H = solver->ham.hamiltonian(x, v);
         // Calculate new Hamiltonian
         H_tilde = solver->ham.hamiltonian(x_tilde, Point(dim) - v_tilde);
+#ifdef TIME_KEEPING
+        end = std::chrono::system_clock::now();
+        H_duration += end - start;
+#endif
         NT feasible = solver->ham.feasible(x_tilde.getCoefficients(),
                                            v_tilde.getCoefficients());
         prob = std::min(1.0, exp(H - H_tilde)) * feasible;
@@ -179,6 +189,19 @@ struct CRHMCWalk {
       if (update_modules) {
         module_update->updateModules(*this, rng);
       }
+    }
+    void print_timing_information() {
+      std::cerr << "--------------Timing Information--------------\n";
+      double DU_time = solver->DU_duration.count();
+      double DK_time = solver->approxDK_duration.count();
+      double H_time = H_duration.count();
+      double total_time = H_time + DK_time + DU_time;
+      std::cerr << "Total elapsed time: " << total_time << "\n";
+      std::cerr << "Computing the Hamiltonian in time, " << H_time << " secs\n";
+      std::cerr << "Computing DU partial derivatives in time, " << DU_time
+                << " secs\n";
+      std::cerr << "Computing DK partial derivatives in time, " << DK_time
+                << " secs\n";
     }
   };
 };

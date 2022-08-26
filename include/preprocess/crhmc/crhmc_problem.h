@@ -26,6 +26,7 @@
 #include "preprocess/crhmc/opts.h"
 #include "sos/barriers/TwoSidedBarrier.h"
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -301,89 +302,77 @@ public:
 
   void simplify() {
 #ifdef TIME_KEEPING
-    double tstart_rescale, tstart_sparsify, tstart_reorder, tstart_rm_rows,
-        tstart_rm_fixed_vars, tstart_ex_colapsed_vars;
-    tstart_rescale = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    std::chrono::duration<double> rescale_duration, sparsify_duration,
+        reordering_duration, rm_rows_duration, rm_fixed_vars_duration,
+        ex_collapsed_vars_duration;
+    start = std::chrono::system_clock::now();
 #endif
     rescale();
-
 #ifdef TIME_KEEPING
-    std::cerr << "Rescale completed in time, ";
-    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
-              << " secs " << std::endl;
-#endif
-#ifdef TIME_KEEPING
-    tstart_sparsify = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    end = std::chrono::system_clock::now();
+    rescale_duration = end - start;
+    start = std::chrono::system_clock::now();
 #endif
     splitDenseCols(options.maxNZ);
 #ifdef TIME_KEEPING
-    std::cerr << "Split dense columns completed in time, ";
-    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
-              << " secs " << std::endl;
-#endif
-#ifdef TIME_KEEPING
-    tstart_reorder = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    end = std::chrono::system_clock::now();
+    sparsify_duration = end - start;
+    start = std::chrono::system_clock::now();
 #endif
     reorder();
 #ifdef TIME_KEEPING
-    std::cerr << "Reordering completed in time, ";
-    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
-              << " secs " << std::endl;
+    end = std::chrono::system_clock::now();
+    reordering_duration = end - start;
 #endif
     int changed = 1;
     while (changed) {
       while (changed) {
         changed = 0;
-
 #ifdef TIME_KEEPING
-        tstart_rm_rows = (double)clock() / (double)CLOCKS_PER_SEC;
-
+        start = std::chrono::system_clock::now();
 #endif
         changed += remove_dependent_rows();
 #ifdef TIME_KEEPING
-        std::cerr << "Removing dependent rows completed in time, ";
-        std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rm_rows
-                  << " secs " << std::endl;
-#endif
-
-#ifdef TIME_KEEPING
-        tstart_rm_fixed_vars = (double)clock() / (double)CLOCKS_PER_SEC;
-
+        end = std::chrono::system_clock::now();
+        rm_rows_duration = end - start;
+        start = std::chrono::system_clock::now();
 #endif
         changed += remove_fixed_variables();
 #ifdef TIME_KEEPING
-        std::cerr << "Removing fixed variables completed in time, ";
-        std::cerr << (double)clock() / (double)CLOCKS_PER_SEC -
-                         tstart_rm_fixed_vars
-                  << " secs " << std::endl;
-#endif
-#ifdef TIME_KEEPING
-        tstart_reorder = (double)clock() / (double)CLOCKS_PER_SEC;
-
+        end = std::chrono::system_clock::now();
+        rm_fixed_vars_duration = end - start;
+        start = std::chrono::system_clock::now();
 #endif
         reorder();
 #ifdef TIME_KEEPING
-        std::cerr << "Reordering completed in time, ";
-        std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
-                  << " secs " << std::endl;
+        end = std::chrono::system_clock::now();
+        reordering_duration += end - start;
 #endif
       }
 #ifdef TIME_KEEPING
-      tstart_ex_colapsed_vars = (double)clock() / (double)CLOCKS_PER_SEC;
-
+      start = std::chrono::system_clock::now();
 #endif
-
       changed += extract_collapsed_variables();
 #ifdef TIME_KEEPING
-      std::cerr << "Extracting collapsed variables completed in time, ";
-      std::cerr << (double)clock() / (double)CLOCKS_PER_SEC -
-                       tstart_ex_colapsed_vars
-                << " secs " << std::endl;
+      end = std::chrono::system_clock::now();
+      ex_collapsed_vars_duration = end - start;
 #endif
     }
+#ifdef TIME_KEEPING
+    std::cerr << "Rescale completed in time, ";
+    std::cerr << rescale_duration.count() << " secs " << std::endl;
+    std::cerr << "Split dense columns completed in time, ";
+    std::cerr << sparsify_duration.count() << " secs " << std::endl;
+    std::cerr << "Reordering completed in time, ";
+    std::cerr << reordering_duration.count() << " secs " << std::endl;
+    std::cerr << "Removing dependent rows completed in time, ";
+    std::cerr << rm_rows_duration.count() << " secs " << std::endl;
+    std::cerr << "Removing fixed variables completed in time, ";
+    std::cerr << rm_fixed_vars_duration.count() << " secs " << std::endl;
+    std::cerr << "Extracting collapsed variables completed in time, ";
+    std::cerr << ex_collapsed_vars_duration.count() << " secs " << std::endl;
+#endif
   }
 
   VT estimate_width() {
@@ -528,8 +517,8 @@ public:
     }
     simplify();
 #ifdef TIME_KEEPING
-    double tstart_rest = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    start = std::chrono::system_clock::now();
 #endif
     if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
@@ -538,9 +527,8 @@ public:
     }
     shift_barrier(center);
 #ifdef TIME_KEEPING
-    std::cerr << "Shift_barrier completed in time, ";
-    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rest
-              << " secs " << std::endl;
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> shift_barrier_duration = end - start;
 #endif
     reorder();
 
@@ -554,8 +542,7 @@ public:
     //  Recenter again and make sure it is feasible
     VT hess;
 #ifdef TIME_KEEPING
-    double tstart_find_center = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    start = std::chrono::system_clock::now();
 #endif
     std::tie(center, std::ignore, std::ignore, w_center) =
         lewis_center(Asp, b, *this, options, center);
@@ -568,9 +555,8 @@ public:
     solver.solve((Tx *)input.data(), (Tx *)out.data());
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 #ifdef TIME_KEEPING
-    std::cerr << "Finding Center completed in time, ";
-    std::cerr << (double)clock() / (double)CLOCKS_PER_SEC - tstart_find_center
-              << " secs " << std::endl;
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> lewis_center_duration = end - start;
 #endif
     if ((center.array() > barrier.ub.array()).any() ||
         (center.array() < barrier.lb.array()).any()) {
@@ -578,6 +564,12 @@ public:
                    "point.\n";
       exit(1);
     }
+#ifdef TIME_KEEPING
+    std::cerr << "Shift_barrier completed in time, ";
+    std::cerr << shift_barrier_duration.count() << " secs " << std::endl;
+    std::cerr << "Finding Center completed in time, ";
+    std::cerr << lewis_center_duration.count() << " secs " << std::endl;
+#endif
   }
 
   /*Tansform the problem to the form Ax=b lb<=x<=ub*/

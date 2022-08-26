@@ -33,8 +33,6 @@ public:
         extraHessian(options.DynamicWeight
                          ? s.solver->ham.weighted_barrier->extraHessian
                          : s.solver->ham.barrier->extraHessian) {
-    std::cerr << "Using dynamic regularizer------------------------------------"
-              << '\n';
     n = s.dim;
     bound = VT::Ones(n);
     extraHessian = VT::Ones(n);

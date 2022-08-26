@@ -27,8 +27,6 @@ public:
   int n;
   VT &w;
   dynamic_weight(Sampler &s) : w(s.solver->ham.weighted_barrier->w) {
-    std::cerr << "Using dynamic weights------------------------------------"
-              << '\n';
     n = s.dim;
   }
   // If we have consecutive bad steps update the weights with

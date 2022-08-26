@@ -23,7 +23,7 @@ public:
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
   Type max_coord = 1e7;
-  bool EnableReordering = false;
+  bool EnableReordering = true;
 
   /*ODE options*/
   const Type implicitTol = 1e-5;
@@ -40,7 +40,7 @@ public:
   Type maxConsecutiveBadStep = 10;
   Type targetODEStep = 10;
   Type shrinkFactor = 1.1;
-  Type minStepSize = 0.00001;
+  Type minStepSize = 0.001;
   Type effectiveStepSize = 1;
 
   opts() {}
