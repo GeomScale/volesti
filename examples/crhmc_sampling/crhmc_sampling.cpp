@@ -42,7 +42,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 18;
+    NT var = 1;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -136,21 +136,21 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
     options.DynamicStepSize = false;
   }
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
-  MT A = MT::Ones(5, dim);
-  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  VT b = 10 * VT::Ones(5, 1);
-  // Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
-  // MT A = Polytope.get_mat();
-  // VT b = Polytope.get_vec();
-  // std::cerr<<"A.rows============== " << A.rows()<<"\n";
-  // std::cerr<<"A=\n"<<A<<"\n";
-  // std::cerr<<"b=\n"<<b.transpose()<<"\n";
+  // MT A = MT::Ones(5, dim);
+  // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
+  // VT b = 10 * VT::Ones(5, 1);
+  //  Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
+  //  MT A = Polytope.get_mat();
+  //  VT b = Polytope.get_vec();
+  //  std::cerr<<"A.rows============== " << A.rows()<<"\n";
+  //  std::cerr<<"A=\n"<<A<<"\n";
+  //  std::cerr<<"b=\n"<<b.transpose()<<"\n";
 
   Input input = Input(dim, f, g, h);
-  input.Aineq = A;
-  input.bineq = b;
-  // input.lb = -VT::Ones(dim);
-  // input.ub = VT::Ones(dim);
+  // input.Aineq = A;
+  // input.bineq = b;
+  input.lb = -VT::Ones(dim);
+  input.ub = VT::Ones(dim);
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   Point x0 = Point(P.center);

@@ -153,7 +153,7 @@ struct CRHMCWalk {
         H_tilde = solver->ham.hamiltonian(x_tilde, Point(dim) - v_tilde);
         NT feasible = solver->ham.feasible(x_tilde.getCoefficients(),
                                            v_tilde.getCoefficients());
-        NT prob = std::min(1.0, exp(H - H_tilde)) * feasible;
+        prob = std::min(1.0, exp(H - H_tilde)) * feasible;
 
         log_prob = log(prob);
         total_acceptance_log_prob += log_prob;

@@ -73,18 +73,23 @@ public:
 
     NT targetProbability = std::pow((1.0 - momentum), (2 / 3)) / 4;
     if (rejectSinceShrink > targetProbability * shiftedIter) {
+      std::cerr << "target prob\n";
       shrink = 1;
     }
 
     if (consecutiveBadStep > options.maxConsecutiveBadStep) {
+      std::cerr << "bad steps\n";
+
       shrink = 1;
     }
 
     if (ODEStepSinceShrink > options.targetODEStep * shiftedIter) {
+      std::cerr << "ode\n";
       shrink = 1;
     }
 
-    if (shrink) {
+    if (shrink == 1) {
+      std::cerr << "shrink------------------------\n";
       iterSinceShrink = 0;
       rejectSinceShrink = 0;
       ODEStepSinceShrink = 0;
