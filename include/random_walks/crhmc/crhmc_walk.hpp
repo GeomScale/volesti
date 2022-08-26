@@ -75,6 +75,8 @@ struct CRHMCWalk {
     // Acceptance probability
     NT prob;
     bool accepted;
+    NT accept;
+    bool update_modules;
 
     // References to xs
     Point x, v;
@@ -90,7 +92,6 @@ struct CRHMCWalk {
 
     // Helper variables
     NT H, H_tilde, log_prob, u_logprob;
-
     // Density exponent
     NegativeLogprobFunctor &f;
 
@@ -109,6 +110,9 @@ struct CRHMCWalk {
           new Solver(0.0, params.eta, pts{x, x}, F, Problem, params.options);
       v = solver->get_state(1);
       module_update = new auto_tuner<Sampler, RandomNumberGenerator>(*this);
+      update_modules = params.options.DynamicWeight ||
+                       params.options.DynamicRegularizer ||
+                       params.options.DynamicStepSize;
     };
     Point GetDirectionWithMomentum(unsigned int const &dim,
                                    RandomNumberGenerator &rng, Point x, Point v,
@@ -164,15 +168,15 @@ struct CRHMCWalk {
           accepted = false;
           v = Point(dim) - v;
         }
-
         discard_ratio = (1.0 * total_discarded_samples) / num_runs;
         average_acceptance_log_prob = total_acceptance_log_prob / num_runs;
+        accept = accepted ? 1 : 0;
 
       } else {
         x = x_tilde;
         v = v_tilde;
       }
-      if (params.options.DynamicWeight || params.options.DynamicRegularizer) {
+      if (update_modules) {
         module_update->updateModules(*this, rng);
       }
     }

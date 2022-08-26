@@ -31,12 +31,17 @@ public:
   Type initialStep = 0.2;
 
   /*Sampler options*/
-  bool DynamicWeight = true;
+  bool DynamicWeight = false;
   bool DynamicStepSize = false;
   bool DynamicRegularizer = false;
 
   /*Dynamic step choices*/
-  int warmUpStep = 10;
+  Type warmUpStep = 10;
+  Type maxConsecutiveBadStep = 10;
+  Type targetODEStep = 10;
+  Type shrinkFactor = 1.1;
+  Type minStepSize = 0.00001;
+  Type effectiveStepSize = 1;
 
   opts() {}
   void operator=(const opts &rhs) {

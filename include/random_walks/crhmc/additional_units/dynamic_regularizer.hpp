@@ -27,41 +27,28 @@ public:
   int n;
   VT bound;
   Opts &options;
-  dynamic_regularizer(Sampler &s) : options(s.params.options) {
+  VT &extraHessian;
+  dynamic_regularizer(Sampler &s)
+      : options(s.params.options),
+        extraHessian(options.DynamicWeight
+                         ? s.solver->ham.weighted_barrier->extraHessian
+                         : s.solver->ham.barrier->extraHessian) {
     std::cerr << "Using dynamic regularizer------------------------------------"
               << '\n';
     n = s.dim;
     bound = VT::Ones(n);
-    if (options.DynamicWeight) {
-      s.solver->ham.weighted_barrier->extraHessian = VT::Ones(n);
-    } else {
-      s.solver->ham.barrier->extraHessian = VT::Ones(n);
-    }
+    extraHessian = VT::Ones(n);
   }
 
   void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
     VT x = s.x.getCoefficients();
     x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
     bound = bound.cwiseMax(x);
-    bool Condition = false;
-    if (options.DynamicWeight) {
-      Condition = (2 / (bound.array() * bound.array()) <
-                   n * s.solver->ham.weighted_barrier->extraHessian.array())
-                      .any();
-    } else {
-      Condition = (2 / (bound.array() * bound.array()) <
-                   n * s.solver->ham.barrier->extraHessian.array())
-                      .any();
-    }
+    bool Condition =
+        (2 / (bound.array() * bound.array()) < n * extraHessian.array()).any();
 
     if (Condition) {
-      if (options.DynamicWeight) {
-        s.solver->ham.weighted_barrier->extraHessian =
-            (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
-      } else {
-        s.solver->ham.barrier->extraHessian =
-            (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
-      }
+      extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.move({s.x, s.v});
       s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
     }
@@ -70,9 +57,9 @@ public:
       bool change = false;
       if (options.DynamicWeight) {
         change = (2 / (bound(i) * bound(i))) <
-                 n * s.solver->ham.weighted_barrier->extraHessian(i);
+                 n * extraHessian(i);
         if (change) {
-          s.solver->ham.weighted_barrier->extraHessian =
+          extraHessian =
               (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
           s.solver->ham.move({s.x, s.v});
           s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);

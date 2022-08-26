@@ -48,18 +48,21 @@ public:
       } else {
         threshold = 16;
       }
-      bool changed = false;
+      bool changed = (lsc.array() > threshold * w.array()).any();
+      w = (lsc.array() > threshold * w.array())
+              .select((w * threshold).cwiseMin(VT::Ones(n)), w);
       //      (w.array() < lsc.array())
       //          .select(
       //              std::min(w(i) *
       //              threshold, 1.0), w);
-
-      for (int i = 0; i < n; i++) {
-        if (lsc(i) > threshold * w(i)) {
-          w(i) = std::min(w(i) * threshold, 1.0);
-          changed = true;
-        }
-      }
+      /*
+            for (int i = 0; i < n; i++) {
+              if (lsc(i) > threshold * w(i)) {
+                w(i) = std::min(w(i) * threshold, 1.0);
+                changed = true;
+              }
+            }
+            */
       if (changed) {
         s.solver->ham.forceUpdate = true;
         s.solver->ham.move({s.x, s.v});

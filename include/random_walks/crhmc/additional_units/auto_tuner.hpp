@@ -16,6 +16,7 @@
 #ifndef AUTO_TUNER_HPP
 #define AUTO_TUNER_HPP
 #include "random_walks/crhmc/additional_units/dynamic_regularizer.hpp"
+#include "random_walks/crhmc/additional_units/dynamic_step_size.hpp"
 #include "random_walks/crhmc/additional_units/dynamic_weight.hpp"
 
 /*This class is responsible for calling the additional modules for:
@@ -25,6 +26,7 @@ template <typename Sampler, typename RandomNumberGenerator> class auto_tuner {
   using weight_tuner = dynamic_weight<Sampler, RandomNumberGenerator>;
   using regularizion_tuner =
       dynamic_regularizer<Sampler, RandomNumberGenerator>;
+  using step_size_tuner = dynamic_step_size<Sampler>;
 
   using Opts = typename Sampler::Opts;
 
@@ -32,12 +34,16 @@ public:
   Opts options;
   weight_tuner *tune_weights;
   regularizion_tuner *tune_regularization;
+  step_size_tuner *tune_step_size;
   auto_tuner(Sampler &s) : options(s.params.options) {
     if (options.DynamicWeight) {
       tune_weights = new weight_tuner(s);
     }
     if (options.DynamicRegularizer) {
       tune_regularization = new regularizion_tuner(s);
+    }
+    if (options.DynamicStepSize) {
+      tune_step_size = new step_size_tuner(s);
     }
   }
   void updateModules(Sampler &s, RandomNumberGenerator &rng) {
@@ -46,6 +52,9 @@ public:
     }
     if (options.DynamicRegularizer) {
       tune_regularization->update_regularization_factor(s, rng);
+    }
+    if (options.DynamicStepSize) {
+      tune_step_size->update_step_size(s);
     }
   }
 };

@@ -42,7 +42,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 8;
+    NT var = 18;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -80,7 +80,7 @@ struct CustomFunctor {
 template <typename NT>
 void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
               int walk_length = 1, int burn_steps = 1, int dynamic_weight = 0,
-              int dynamic_regularization = 0) {
+              int dynamic_regularization = 0, int dynamic_step_size = 0) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -130,13 +130,18 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   } else {
     options.DynamicRegularizer = false;
   }
+  if (dynamic_step_size == 1) {
+    options.DynamicStepSize = true;
+  } else {
+    options.DynamicStepSize = false;
+  }
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
-  // MT A = MT::Ones(5, dim);
-  // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  // VT b = 10 * VT::Ones(5, 1);
-  Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
-  MT A = Polytope.get_mat();
-  VT b = Polytope.get_vec();
+  MT A = MT::Ones(5, dim);
+  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
+  VT b = 10 * VT::Ones(5, 1);
+  // Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
+  // MT A = Polytope.get_mat();
+  // VT b = Polytope.get_vec();
   // std::cerr<<"A.rows============== " << A.rows()<<"\n";
   // std::cerr<<"A=\n"<<A<<"\n";
   // std::cerr<<"b=\n"<<b.transpose()<<"\n";
@@ -204,5 +209,9 @@ int main(int argc, char *argv[]) {
   else if (argc == 8)
     run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
                      atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+  else if (argc == 9)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                     atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+                     atoi(argv[8]));
   return 0;
 }

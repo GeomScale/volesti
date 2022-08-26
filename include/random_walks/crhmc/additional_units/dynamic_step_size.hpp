@@ -15,51 +15,63 @@
 // Monte Carlo in a Constrained Space"
 #ifndef DYNAMIC_STEP_SIZE_HPP
 #define DYNAMIC_STEP_SIZE_HPP
+/*Module for dynamically choosing the ODE step size and the velocity momentum*/
 template <typename Sampler> class dynamic_step_size {
+  using NT = typename Sampler::NT;
+
+public:
   int consecutiveBadStep = 0;
   int iterSinceShrink = 0;
   NT rejectSinceShrink = 0;
   int ODEStepSinceShrink = 0;
   int effectiveStep = 0;
-  warmupFinished = false;
+  bool warmupFinished = false;
   Opts &options;
-  dynamic_step_size(Sampler &s) : options(s.params.options) {
-    if (warmUpStep > 0) {
-      s.solver->eta = 1e-3;
+  NT &eta;
+  NT &momentum;
+  NT acceptedStep = 0;
+  NT accumulatedMomentum = 0;
+  NT nEffectiveStep = 0; // number of effective steps
+
+  dynamic_step_size(Sampler &s)
+      : options(s.params.options), eta(s.solver->eta),
+        momentum(s.params.momentum) {
+    if (options.warmUpStep > 0) {
+      eta = 1e-3;
     } else {
       warmupFinished = true;
     }
   }
-  udate_step_size(Sampler &s) {
-    int bad_step = 0;
-    eta = s->solver.eta;
-    if (s.prob < 0.5 || s.ode_step == s.options.maxODEStep) {
-      bad_step = 1;
-    }
+  void update_step_size(Sampler &s) {
+    acceptedStep = acceptedStep + s.prob;
+    accumulatedMomentum = s.prob * momentum * accumulatedMomentum + eta;
+    nEffectiveStep = nEffectiveStep + eta * accumulatedMomentum * s.accept;
+
+    int bad_step =
+        s.prob < 0.5 || s.solver->num_steps == options.maxODEStep ? 1 : 0;
     consecutiveBadStep = bad_step * consecutiveBadStep + bad_step;
-    NT warmupRatio = s.auto_tuner.nEffectiveStep / options.warmUpStep;
+
+    NT warmupRatio = nEffectiveStep / options.warmUpStep;
     if (warmupRatio < 1 && !warmupFinished &&
         consecutiveBadStep < options.maxConsecutiveBadStep) {
-      s->solver.eta = options.initalStepSize * std::min(warmupRatio + 1e-2, 1);
-      s.params.momentum =
-          1 - std::min(1.0, s->solver.eta / options.effectiveStepSize);
+      eta = options.initialStep * std::min(warmupRatio + 1e-2, 1.0);
+      momentum = 1 - std::min(1.0, eta / options.effectiveStepSize);
       return;
     }
     if (!warmupFinished) {
-      s.i = 1;
-      s.acceptedStep = 0;
-      s.nEffectiveStep = 0;
+      acceptedStep = 0;
+      nEffectiveStep = 0;
       warmupFinished = true;
     }
 
-    iterSinceShrink = iterSinceShrink + 1;
-    rejectSinceShrink = rejectSinceShrink + 1 - s.prob;
-    ODEStepSinceShrink = ODEStepSinceShrink + s.ode_step;
+    iterSinceShrink++;
+    rejectSinceShrink += 1 - s.prob;
+    ODEStepSinceShrink += s.solver->num_steps;
 
-    shrink = 0;
-    shiftedIter = iterSinceShrink + 20 / (1 - s.params.momentum);
+    int shrink = 0;
+    NT shiftedIter = iterSinceShrink + 20 / (1 - momentum);
 
-    targetProbability = (1 - s.params.momentum) ^ (2 / 3) / 4;
+    NT targetProbability = std::pow((1.0 - momentum), (2 / 3)) / 4;
     if (rejectSinceShrink > targetProbability * shiftedIter) {
       shrink = 1;
     }
@@ -78,11 +90,10 @@ template <typename Sampler> class dynamic_step_size {
       ODEStepSinceShrink = 0;
       consecutiveBadStep = 0;
 
-      s->solver.eta /= options.shrinkFactor;
-      s.params.momentum =
-          1 - std::min(0.999, s->solver.eta / options.effectiveStepSize);
+      eta /= options.shrinkFactor;
+      momentum = 1 - std::min(0.999, eta / options.effectiveStepSize);
 
-      if (s->solver.eta < options.minStepSize) {
+      if (eta < options.minStepSize) {
         std::cerr << "Algorithm fails to converge even with step size h = "
                   << eta << "\n";
         exit(1);
