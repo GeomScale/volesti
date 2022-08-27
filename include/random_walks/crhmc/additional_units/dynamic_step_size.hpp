@@ -18,6 +18,7 @@
 /*Module for dynamically choosing the ODE step size and the velocity momentum*/
 template <typename Sampler> class dynamic_step_size {
   using NT = typename Sampler::NT;
+  using Opts = typename Sampler::Opts;
 
 public:
   int consecutiveBadStep = 0;

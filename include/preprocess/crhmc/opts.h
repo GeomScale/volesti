@@ -15,9 +15,7 @@
 // Monte Carlo in a Constrained Space"
 #ifndef OPTS_H
 #define OPTS_H
-template <typename Type>
-class opts
-{
+template <typename Type> class opts {
 public:
   /*Preprocess options*/
   const int ipmMaxIter = 200;
@@ -33,9 +31,9 @@ public:
   Type initialStep = 0.2;
 
   /*Sampler options*/
-  bool DynamicWeight = false;
-  bool DynamicStepSize = false;
-  bool DynamicRegularizer = false;
+  bool DynamicWeight = true;
+  bool DynamicStepSize = true;
+  bool DynamicRegularizer = true;
 
   /*Dynamic step choices*/
   Type warmUpStep = 10;
@@ -46,8 +44,7 @@ public:
   Type effectiveStepSize = 1;
 
   opts() {}
-  void operator=(const opts &rhs)
-  {
+  void operator=(const opts &rhs) {
     EnableReordering = rhs.EnableReordering;
     maxNZ = rhs.maxNZ;
   }

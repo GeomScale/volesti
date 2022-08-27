@@ -35,12 +35,9 @@
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
 
-struct CustomFunctor
-{
+struct CustomFunctor {
   // Custom Gaussian density
-  template <typename NT>
-  struct parameters
-  {
+  template <typename NT> struct parameters {
     unsigned int order;
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
@@ -49,41 +46,32 @@ struct CustomFunctor
     parameters() : L(4), m(4), kappa(1){};
   };
 
-  template <typename Point>
-  struct Grad
-  {
+  template <typename Point> struct Grad {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
     parameters<NT> &params;
     Grad(parameters<NT> &params_) : params(params_){};
-    Point operator()(Point const &x) const
-    {
+    Point operator()(Point const &x) const {
       Point y = -(1.0 / params.var) * x;
       return y;
     }
   };
-  template <typename Point>
-  struct Hess
-  {
+  template <typename Point> struct Hess {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
 
     parameters<NT> &params;
     Hess(parameters<NT> &params_) : params(params_){};
-    Point operator()(Point const &x) const
-    {
+    Point operator()(Point const &x) const {
       return (1.0 / params.var) * Point::all_ones(x.dimension());
     }
   };
 
-  template <typename Point>
-  struct Func
-  {
+  template <typename Point> struct Func {
     typedef typename Point::FT NT;
     parameters<NT> &params;
     Func(parameters<NT> &params_) : params(params_){};
-    NT operator()(Point const &x) const
-    {
+    NT operator()(Point const &x) const {
       return (1.0 / params.var) * 0.5 * x.dot(x);
     }
   };
@@ -92,8 +80,7 @@ struct CustomFunctor
 template <typename NT>
 void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
               int walk_length = 1, int burn_steps = 1, int dynamic_weight = 0,
-              int dynamic_regularization = 0, int dynamic_step_size = 0)
-{
+              int dynamic_regularization = 0, int dynamic_step_size = 0) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -115,8 +102,7 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   Func f(params);
   Grad g(params);
   Hess h(params);
-  if (n_burns == -1)
-  {
+  if (n_burns == -1) {
     n_burns = n_samples / 2;
   }
   RandomNumberGenerator rng(1);
@@ -132,47 +118,38 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
     dim = Polytope.dimension();
   */
   Opts options;
-  if (dynamic_weight == 1)
-  {
+  if (dynamic_weight == 1) {
     options.DynamicWeight = true;
-  }
-  else
-  {
+  } else {
     options.DynamicWeight = false;
   }
-  if (dynamic_regularization == 1)
-  {
+  if (dynamic_regularization == 1) {
 
     options.DynamicRegularizer = true;
-  }
-  else
-  {
+  } else {
     options.DynamicRegularizer = false;
   }
-  if (dynamic_step_size == 1)
-  {
+  if (dynamic_step_size == 1) {
     options.DynamicStepSize = true;
-  }
-  else
-  {
+  } else {
     options.DynamicStepSize = false;
   }
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
   // MT A = MT::Ones(5, dim);
   // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
   // VT b = 10 * VT::Ones(5, 1);
-  //  Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
-  //  MT A = Polytope.get_mat();
-  //  VT b = Polytope.get_vec();
+  Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
+  MT A = Polytope.get_mat();
+  VT b = Polytope.get_vec();
   //  std::cerr<<"A.rows============== " << A.rows()<<"\n";
   //  std::cerr<<"A=\n"<<A<<"\n";
   //  std::cerr<<"b=\n"<<b.transpose()<<"\n";
 
   Input input = Input(dim, f, g, h);
-  // input.Aineq = A;
-  // input.bineq = b;
-  input.lb = -VT::Ones(dim);
-  input.ub = VT::Ones(dim);
+  input.Aineq = A;
+  input.bineq = b;
+  // input.lb = -VT::Ones(dim);
+  // input.ub = VT::Ones(dim);
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   Point x0 = Point(P.center);
@@ -193,21 +170,17 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
       std::chrono::duration<double>::zero();
 #endif
   int j = 0;
-  for (int i = 0; i < n_samples; i++)
-  {
-    if (i % 1000 == 0)
-    {
+  for (int i = 0; i < n_samples; i++) {
+    if (i % 1000 == 0) {
       std::cerr << i << " out of " << n_samples << "\n";
     }
-    for (int k = 0; k < burn_steps; k++)
-    {
+    for (int k = 0; k < burn_steps; k++) {
       crhmc.apply(rng, walk_length, true);
     }
 #ifdef TIME_KEEPING
     start_file = std::chrono::system_clock::now();
 #endif
-    if (i >= n_burns)
-    {
+    if (i >= n_burns) {
       VT sample = crhmc.getPoint().getCoefficients();
       samples.col(j) = VT(sample);
       j++;
@@ -222,12 +195,13 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> total_time = end - start;
   std::cerr << "Real total time: " << total_time.count() << "\n";
+  crhmc.print_timing_information();
 #endif
 
   std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cerr << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cerr << "Average Acceptance Probability: "
-            << exp(crhmc.average_acceptance_log_prob) << std::endl;
+            << crhmc.average_acceptance_log_prob << std::endl;
   std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
 #ifdef TIME_KEEPING
   start_file = std::chrono::system_clock::now();
@@ -238,12 +212,10 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   end_file = std::chrono::system_clock::now();
   total_time_file += end_file - start_file;
   std::cerr << "Time for writing the file: " << total_time_file.count() << "\n";
-  crhmc.print_timing_information();
 #endif
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   std::cerr << "Example Usage: ./crhmc_sampling n_sample initial_burns "
                "dimension ode_steps steps_bettween_samples\n";
   std::cerr << "Example Usage: ./crhmc_sampling 10000 5000 "

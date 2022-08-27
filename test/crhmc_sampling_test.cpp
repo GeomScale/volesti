@@ -40,8 +40,7 @@ template <typename NT> struct SimulationStats {
   NT max_psrf = NT(0);
   NT time_per_draw = NT(0);
   NT time_per_independent_sample = NT(0);
-  NT average_acceptance_log_prob = NT(0);
-  NT average_number_of_reflections = NT(0);
+  NT average_acceptance_prob = NT(0);
   NT step_size = NT(0);
 
   friend std::ostream &operator<<(std::ostream &out,
@@ -49,9 +48,8 @@ template <typename NT> struct SimulationStats {
     out << stats.method << "," << stats.walk_length << "," << stats.min_ess
         << "," << stats.max_psrf << "," << stats.time_per_draw << ","
         << stats.time_per_independent_sample << ","
-        << stats.average_acceptance_log_prob << ","
-        << stats.average_number_of_reflections << "," << stats.step_size
-        << std::endl;
+        << stats.average_acceptance_prob << ","
+        << "," << stats.step_size << std::endl;
     return out;
   }
 };
@@ -360,7 +358,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   std::cout << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cout << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cout << "Average Acceptance Probability: "
-            << exp(crhmc.average_acceptance_log_prob) << std::endl;
+            << crhmc.average_acceptance_prob << std::endl;
   std::cout << std::endl;
 
   max_psrf = check_interval_psrf<NT, VT, MT>(samples);
@@ -372,8 +370,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   crhmc_stats.time_per_draw = ETA / max_actual_draws;
   crhmc_stats.time_per_independent_sample = ETA / min_ess;
   crhmc_stats.step_size = crhmc.solver->eta;
-  crhmc_stats.average_acceptance_log_prob =
-      exp(crhmc.average_acceptance_log_prob);
+  crhmc_stats.average_acceptance_prob = crhmc.average_acceptance_prob;
 
   return std::vector<SimulationStats<NT>>{rdhr_stats, crhmc_stats};
 }
@@ -407,20 +404,20 @@ template <typename NT> void call_test_benchmark_polytopes() {
   using RNGType = boost::mt19937;
   std::cout << " ---Sampling polytopes " << std::endl;
 
-    {
-      Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
-      std::string name = "100_skinny_cube";
-      bool centered = false;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, false);
-    }
-/*
-    {
-      Hpolytope P = generate_cross<Hpolytope>(10, false);
-      std::string name = "10_cross";
-      bool centered = false;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
-  */
+  {
+    Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
+    std::string name = "100_skinny_cube";
+    bool centered = false;
+    benchmark_polytope<NT, Point, Hpolytope>(P, name, false);
+  }
+  /*
+      {
+        Hpolytope P = generate_cross<Hpolytope>(10, false);
+        std::string name = "10_cross";
+        bool centered = false;
+        benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+      }
+    */
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
@@ -575,9 +572,7 @@ template <typename NT> void call_test_benchmark_crhmc() {
 
 TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 
-TEST_CASE("benchmark_crhmc_cube") {
-    call_test_benchmark_crhmc<double>();
-}
+TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_crhmc<double>(); }
 
 TEST_CASE("benchmark_polytopes_sampling_crhmc") {
   call_test_benchmark_polytopes<double>();

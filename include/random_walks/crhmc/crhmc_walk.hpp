@@ -20,11 +20,8 @@
 #include "random_walks/crhmc/additional_units/auto_tuner.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 #include <chrono>
-struct CRHMCWalk
-{
-  template <typename NT, typename OracleFunctor>
-  struct parameters
-  {
+struct CRHMCWalk {
+  template <typename NT, typename OracleFunctor> struct parameters {
     using Opts = opts<NT>;
     NT epsilon;   // tolerance in mixing
     NT eta = 0.2; // step size
@@ -33,8 +30,7 @@ struct CRHMCWalk
     Opts &options;
     parameters(OracleFunctor const &F, unsigned int dim, Opts &user_options,
                NT epsilon_ = 2)
-        : options(user_options)
-    {
+        : options(user_options) {
       epsilon = epsilon_;
       eta = 1.0 / (dim * sqrt(F.params.L));
       momentum = 1 - std::min(1.0, eta / effectiveStepSize);
@@ -44,8 +40,7 @@ struct CRHMCWalk
   template <typename Point, typename Polytope, typename RandomNumberGenerator,
             typename NegativeGradientFunctor, typename NegativeLogprobFunctor,
             typename Solver>
-  struct Walk
-  {
+  struct Walk {
     using point = Point;
     using pts = std::vector<Point>;
     using NT = typename Point::FT;
@@ -74,8 +69,8 @@ struct CRHMCWalk
     float discard_ratio = 0;
 
     // Average acceptance probability
-    float total_acceptance_log_prob = 0;
-    float average_acceptance_log_prob = 0;
+    float total_acceptance_prob = 0;
+    float average_acceptance_prob = 0;
 
     // Acceptance probability
     NT prob;
@@ -107,8 +102,7 @@ struct CRHMCWalk
     Walk(Polytope &Problem, Point &p, NegativeGradientFunctor &neg_grad_f,
          NegativeLogprobFunctor &neg_logprob_f,
          parameters<NT, NegativeGradientFunctor> &param)
-        : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem)
-    {
+        : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem) {
 
       dim = p.dimension();
 
@@ -126,8 +120,7 @@ struct CRHMCWalk
     };
     Point GetDirectionWithMomentum(unsigned int const &dim,
                                    RandomNumberGenerator &rng, Point x, Point v,
-                                   NT momentum = 0, bool normalize = true)
-    {
+                                   NT momentum = 0, bool normalize = true) {
       Point z = GetDirection<Point>::apply(dim, rng, normalize);
       solver->ham.move({x, v});
       VT sqrthess = (solver->ham.hess).cwiseSqrt();
@@ -136,17 +129,14 @@ struct CRHMCWalk
     }
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x.getCoefficients() + P.y); }
-    inline void blendv(Point &x, Point &x_new, std::vector<bool> accepted)
-    {
-      for (int i = 0; i < dim; i++)
-      {
+    inline void blendv(Point &x, Point &x_new, std::vector<bool> accepted) {
+      for (int i = 0; i < dim; i++) {
         if (accepted[i])
           x(i) = x_new(i);
       }
     }
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
-                      bool metropolis_filter = true)
-    {
+                      bool metropolis_filter = true) {
 
       num_runs++;
       //  Pick a random velocity with momentum
@@ -159,8 +149,7 @@ struct CRHMCWalk
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
 
-      if (metropolis_filter)
-      {
+      if (metropolis_filter) {
 #ifdef TIME_KEEPING
         start = std::chrono::system_clock::now();
 #endif
@@ -177,37 +166,31 @@ struct CRHMCWalk
         prob = std::min(1.0, exp(H - H_tilde)) * feasible;
 
         log_prob = log(prob);
-        total_acceptance_log_prob += log_prob;
+        total_acceptance_prob += prob;
 
         // Decide to switch
-        if (rng.sample_urdist() < prob)
-        {
+        if (rng.sample_urdist() < prob) {
           x = x_tilde;
           v = v_tilde;
           accepted = true;
-        }
-        else
-        {
+        } else {
           total_discarded_samples++;
           accepted = false;
           v = Point(dim) - v;
         }
         discard_ratio = (1.0 * total_discarded_samples) / num_runs;
-        average_acceptance_log_prob = total_acceptance_log_prob / num_runs;
+        average_acceptance_prob = total_acceptance_prob / num_runs;
         accept = accepted ? 1 : 0;
-      }
-      else
-      {
+      } else {
         x = x_tilde;
         v = v_tilde;
       }
-      if (update_modules)
-      {
+      if (update_modules) {
         module_update->updateModules(*this, rng);
       }
     }
-    void print_timing_information()
-    {
+#ifdef TIME_KEEPING
+    void print_timing_information() {
       std::cerr << "--------------Timing Information--------------\n";
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();
@@ -220,6 +203,7 @@ struct CRHMCWalk
       std::cerr << "Computing DK partial derivatives in time, " << DK_time
                 << " secs\n";
     }
+#endif
   };
 };
 
