@@ -138,12 +138,12 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   // MT A = MT::Ones(5, dim);
   // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
   // VT b = 10 * VT::Ones(5, 1);
-  Hpolytope Polytope = generate_simplex<Hpolytope>(dim, false);
+  Hpolytope Polytope = generate_cross<Hpolytope>(dim, false);
   MT A = Polytope.get_mat();
   VT b = Polytope.get_vec();
   //  std::cerr<<"A.rows============== " << A.rows()<<"\n";
-  //  std::cerr<<"A=\n"<<A<<"\n";
-  //  std::cerr<<"b=\n"<<b.transpose()<<"\n";
+  std::cerr<<"A=\n"<<A<<"\n";
+  std::cerr<<"b=\n"<<b.transpose()<<"\n";
 
   Input input = Input(dim, f, g, h);
   input.Aineq = A;
@@ -201,7 +201,7 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cerr << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cerr << "Average Acceptance Probability: "
-            << crhmc.average_acceptance_log_prob << std::endl;
+            << crhmc.average_acceptance_prob << std::endl;
   std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
 #ifdef TIME_KEEPING
   start_file = std::chrono::system_clock::now();

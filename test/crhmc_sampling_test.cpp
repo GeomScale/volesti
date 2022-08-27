@@ -241,7 +241,7 @@ Polytope read_polytope(std::string filename) {
 
 template <typename NT, typename Polytope>
 std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
-    Polytope &P, NT eta = NT(-1), unsigned int walk_length = 30,
+    Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     bool rounding = false, bool centered = false,
     unsigned int max_draws = 80000, unsigned int num_burns = 20000) {
   using Kernel = Cartesian<NT>;
@@ -390,7 +390,7 @@ void benchmark_polytope(HPolytope &P, std::string &name, bool centered) {
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, 30, false,
+  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, 1, false,
                                                        centered);
   outfile << results[0];
   outfile << results[1];
@@ -410,40 +410,36 @@ template <typename NT> void call_test_benchmark_polytopes() {
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, false);
   }
-  /*
+
+/*
       {
         Hpolytope P = generate_cross<Hpolytope>(10, false);
         std::string name = "10_cross";
         bool centered = false;
         benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
       }
-    */
+*/
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
-  /*
-    {
-      Hpolytope P = generate_cube<Hpolytope>(100, false);
-      std::string name = "100_cube";
-      bool centered = false;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
+
     {
       Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
       std::string name = "50_prod_simplex";
       bool centered = false;
       benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
     }
+
     {
       Hpolytope P = generate_birkhoff<Hpolytope>(10);
       std::string name = "10_birkhoff";
       bool centered = false;
       benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
     }
-
+/*
     if (exists_check("metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
       Hpolytope P = read_polytope<Hpolytope, NT>(
           "metabolic_full_dim/polytope_iAB_RBC_283.ine");
@@ -476,7 +472,7 @@ template <typename NT> void call_test_benchmark_polytopes() {
   */
 }
 
-template <typename NT> void benchmark_crhmc() {
+template <typename NT> void benchmark_cube_crhmc() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -566,13 +562,13 @@ template <typename NT> void call_test_crhmc() {
             << std::endl;
   test_crhmc<NT>();
 }
-template <typename NT> void call_test_benchmark_crhmc() {
-  benchmark_crhmc<NT>();
+template <typename NT> void call_test_benchmark_cube_crhmc() {
+  benchmark_cube_crhmc<NT>();
 }
 
 TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 
-TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_crhmc<double>(); }
+TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
 TEST_CASE("benchmark_polytopes_sampling_crhmc") {
   call_test_benchmark_polytopes<double>();
