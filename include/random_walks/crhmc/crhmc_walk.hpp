@@ -196,12 +196,12 @@ struct CRHMCWalk {
       double DK_time = solver->approxDK_duration.count();
       double H_time = H_duration.count();
       double total_time = H_time + DK_time + DU_time;
-      std::cerr << "Total elapsed time: " << total_time << "\n";
       std::cerr << "Computing the Hamiltonian in time, " << H_time << " secs\n";
       std::cerr << "Computing DU partial derivatives in time, " << DU_time
                 << " secs\n";
       std::cerr << "Computing DK partial derivatives in time, " << DK_time
                 << " secs\n";
+      std::cerr << "H_time + DK_time + DU_time: " << total_time << "\n";
     }
 #endif
   };

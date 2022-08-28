@@ -42,7 +42,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 0.3;
+    NT var = 1;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -142,8 +142,8 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   MT A = Polytope.get_mat();
   VT b = Polytope.get_vec();
   //  std::cerr<<"A.rows============== " << A.rows()<<"\n";
-  std::cerr<<"A=\n"<<A<<"\n";
-  std::cerr<<"b=\n"<<b.transpose()<<"\n";
+  // std::cerr<<"A=\n"<<A<<"\n";
+  // std::cerr<<"b=\n"<<b.transpose()<<"\n";
 
   Input input = Input(dim, f, g, h);
   input.Aineq = A;
@@ -194,7 +194,7 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
 #ifdef TIME_KEEPING
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> total_time = end - start;
-  std::cerr << "Real total time: " << total_time.count() << "\n";
+  std::cerr << "Total time: " << total_time.count() << "\n";
   crhmc.print_timing_information();
 #endif
 

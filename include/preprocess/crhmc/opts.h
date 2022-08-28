@@ -29,7 +29,7 @@ public:
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
-
+  Type solver_accuracy_threashold=1e-2;
   /*Sampler options*/
   bool DynamicWeight = true;
   bool DynamicStepSize = true;

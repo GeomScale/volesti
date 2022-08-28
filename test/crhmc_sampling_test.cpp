@@ -411,14 +411,13 @@ template <typename NT> void call_test_benchmark_polytopes() {
     benchmark_polytope<NT, Point, Hpolytope>(P, name, false);
   }
 
-/*
-      {
-        Hpolytope P = generate_cross<Hpolytope>(10, false);
-        std::string name = "10_cross";
-        bool centered = false;
-        benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-      }
-*/
+  {
+    Hpolytope P = generate_cross<Hpolytope>(10, false);
+    std::string name = "5_cross";
+    bool centered = false;
+    benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+  }
+
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
@@ -426,50 +425,50 @@ template <typename NT> void call_test_benchmark_polytopes() {
     benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
 
-    {
-      Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
-      std::string name = "50_prod_simplex";
-      bool centered = false;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
+  {
+    Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
+    std::string name = "50_prod_simplex";
+    bool centered = false;
+    benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+  }
 
-    {
-      Hpolytope P = generate_birkhoff<Hpolytope>(10);
-      std::string name = "10_birkhoff";
-      bool centered = false;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
-/*
-    if (exists_check("metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
-      Hpolytope P = read_polytope<Hpolytope, NT>(
-          "metabolic_full_dim/polytope_iAB_RBC_283.ine");
-      std::string name = "iAB_RBC_283";
-      bool centered = true;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
-    if (exists_check("metabolic_full_dim/polytope_iAT_PLT_636.ine")) {
-      Hpolytope P = read_polytope<Hpolytope, NT>(
-          "metabolic_full_dim/polytope_iAT_PLT_636.ine");
-      std::string name = "iAT_PLT_636";
-      bool centered = true;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
-    if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
-      Hpolytope P =
-          read_polytope<Hpolytope,
-    NT>("metabolic_full_dim/polytope_e_coli.ine"); std::string name = "e_coli";
-      bool centered = true;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
+  {
+    Hpolytope P = generate_birkhoff<Hpolytope>(10);
+    std::string name = "10_birkhoff";
+    bool centered = false;
+    benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+  }
+  /*
+      if (exists_check("metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
+        Hpolytope P = read_polytope<Hpolytope, NT>(
+            "metabolic_full_dim/polytope_iAB_RBC_283.ine");
+        std::string name = "iAB_RBC_283";
+        bool centered = true;
+        benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+      }
+      if (exists_check("metabolic_full_dim/polytope_iAT_PLT_636.ine")) {
+        Hpolytope P = read_polytope<Hpolytope, NT>(
+            "metabolic_full_dim/polytope_iAT_PLT_636.ine");
+        std::string name = "iAT_PLT_636";
+        bool centered = true;
+        benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+      }
+      if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
+        Hpolytope P =
+            read_polytope<Hpolytope,
+      NT>("metabolic_full_dim/polytope_e_coli.ine"); std::string name =
+     "e_coli"; bool centered = true; benchmark_polytope<NT, Point, Hpolytope>(P,
+     name, centered);
+      }
 
-    if (exists_check("metabolic_full_dim/polytope_recon2.ine")) {
-      Hpolytope P =
-          read_polytope<Hpolytope,
-    NT>("metabolic_full_dim/polytope_recon2.ine"); std::string name = "recon2";
-      bool centered = true;
-      benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-    }
-  */
+      if (exists_check("metabolic_full_dim/polytope_recon2.ine")) {
+        Hpolytope P =
+            read_polytope<Hpolytope,
+      NT>("metabolic_full_dim/polytope_recon2.ine"); std::string name =
+     "recon2"; bool centered = true; benchmark_polytope<NT, Point, Hpolytope>(P,
+     name, centered);
+      }
+    */
 }
 
 template <typename NT> void benchmark_cube_crhmc() {

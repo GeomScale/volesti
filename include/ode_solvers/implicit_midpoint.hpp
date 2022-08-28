@@ -84,8 +84,8 @@ struct ImplicitMidpointODESolver {
   ImplicitMidpointODESolver(NT initial_time, NT step, pts initial_state,
                             func oracle, Polytope &boundaries,
                             Opts &user_options)
-      : eta(step), t(initial_time), xs(initial_state), F(oracle),
-        options(user_options), P(boundaries), ham(hamiltonian(boundaries)) {
+      : eta(step), t(initial_time), xs(initial_state), F(oracle), P(boundaries),
+        options(user_options), ham(hamiltonian(boundaries)) {
     dim = xs[0].dimension();
   };
 
@@ -156,8 +156,8 @@ struct ImplicitMidpointODESolver {
       for (unsigned int i = 0; i < xs[j].dimension(); i++) {
         std::cerr << xs[j][i] << " ";
       }
+      std::cerr << '\n';
     }
-    std::cerr << '\n';
   }
 };
 

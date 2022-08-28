@@ -126,7 +126,6 @@ template <typename NT> void test_euler() {
 
   check_norm(euler_solver, 2000, NT(0));
 }
-
 template <typename NT, typename Solver>
 void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
                          NT tol = 1e-4) {
@@ -140,9 +139,7 @@ void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
       solver.print_state();
     }
 #endif
-
     NT norm = NT(0);
-
     for (unsigned int i = 0; i < solver.xs.size(); i++) {
       norm += solver.xs[i].dot(solver.xs[i]);
     }
@@ -152,8 +149,6 @@ void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
 
     if (target[t] != NT(0))
       error /= target[t];
-
-    // std::cout << "Error[" << t << "]= " << error << std::endl;
     CHECK(error < tol);
     if (error > tol) {
       break;
@@ -174,12 +169,8 @@ template <typename NT> void test_implicit_midpoint() {
   typedef HPolytope<Point> Hpolytope;
   unsigned d = 100;
   Opts opts;
-  double alpha = 0.5;
-  double eta = 1;
-  int order = 1;
   Point mean = Point(d);
   func_params params = func_params(mean, 0.5, 1);
-  params.order = order;
   grad F(params);
   func f(params);
   Input input = Input(d, f, F);
@@ -187,9 +178,11 @@ template <typename NT> void test_implicit_midpoint() {
   input.ub = VT::Ones(d);
   CrhmcProblem P = CrhmcProblem(input);
   d = P.dimension();
-  Point x0 = Point(P.center);
+  Point x0 = Point(d);
   Point v0 = Point::all_ones(d);
   pts q{x0, v0};
+  opts.solver_accuracy_threashold = 1e-2;
+  opts.DynamicWeight = false;
   ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>
       implicit_midpoint_solver =
           ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>(0, 0.01, q,
@@ -197,7 +190,7 @@ template <typename NT> void test_implicit_midpoint() {
   std::ifstream is("../test/test_norm_hypercube.txt");
   std::istream_iterator<NT> start(is), end;
   std::vector<NT> target_norms(start, end);
-  check_norm_progress(implicit_midpoint_solver, 200, target_norms);
+  check_norm_progress(implicit_midpoint_solver, 1, target_norms);
 }
 
 template <typename NT> void test_richardson() {

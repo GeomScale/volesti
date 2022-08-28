@@ -60,7 +60,7 @@ public:
     x = VT::Zero(n);
     xs = {Point(n), Point(n)};
     lsc = VT::Zero(n);
-
+    solver.accuracyThreshold=options.solver_accuracy_threashold;
     if (options.DynamicWeight)
     {
       weighted_barrier =

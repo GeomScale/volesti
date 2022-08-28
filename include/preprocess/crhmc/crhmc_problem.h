@@ -35,9 +35,7 @@
 #define SIMD_LEN 0
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
-template <typename Point, typename Input>
-class crhmc_problem
-{
+template <typename Point, typename Input> class crhmc_problem {
 public:
   using NT = double;
   using PolytopeType = HPolytope<Point>;
@@ -88,14 +86,18 @@ public:
   bool fHandle;   // whether f is handle or not
   bool dfHandle;  // whether df is handle or not
   bool ddfHandle; // whether ddf is handle or not
+#ifdef TIME_KEEPING
 
+  std::chrono::duration<double> rescale_duration, sparsify_duration,
+      reordering_duration, rm_rows_duration, rm_fixed_vars_duration,
+      ex_collapsed_vars_duration, shift_barrier_duration, lewis_center_duration;
+#endif
   const NT inf = options.max_coord + 1; // helper for barrier handling
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
   // Remove varibles that have width under some tolerance
-  int remove_fixed_variables(const NT tol = 1e-12)
-  {
+  int remove_fixed_variables(const NT tol = 1e-12) {
     int m = Asp.rows();
     int n = Asp.cols();
     VT d = estimate_width();
@@ -110,13 +112,9 @@ public:
     std::vector<Triple> freeIndices;
     std::vector<unsigned> indices;
     int nFreeVars = 0;
-    for (int i = 0; i < n; i++)
-    {
-      if (d(i) < tol * (1 + abs(x(i))))
-      {
-      }
-      else
-      {
+    for (int i = 0; i < n; i++) {
+      if (d(i) < tol * (1 + abs(x(i)))) {
+      } else {
         freeIndices.push_back(Triple(i, nFreeVars, 1));
         nFreeVars++;
         indices.push_back(i);
@@ -124,8 +122,7 @@ public:
       }
     }
 
-    if (freeIndices.size() != n)
-    {
+    if (freeIndices.size() != n) {
       SpMat S = SpMat(n, freeIndices.size());
       S.setFromTriplets(freeIndices.begin(), freeIndices.end());
       append_map(S, x);
@@ -135,22 +132,17 @@ public:
     return 0;
   }
 
-  int extract_collapsed_variables()
-  {
+  int extract_collapsed_variables() {
     SpMat Ac;
     VT bc;
-    if (isempty_center)
-    {
+    if (isempty_center) {
       std::tie(center, Ac, bc) = analytic_center(Asp, b, *this, options);
       isempty_center = false;
-    }
-    else
-    {
+    } else {
       std::tie(center, Ac, bc) =
           analytic_center(Asp, b, *this, options, center);
     }
-    if (Ac.rows() == 0)
-    {
+    if (Ac.rows() == 0) {
       return 0;
     }
     SpMat _A = Asp;
@@ -160,19 +152,14 @@ public:
     return 1;
   }
   // Rescale the polytope for numerical stability
-  void rescale(const VT x = VT::Zero(0, 1))
-  {
-    if (std::min(equations(), dimension()) <= 1)
-    {
+  void rescale(const VT x = VT::Zero(0, 1)) {
+    if (std::min(equations(), dimension()) <= 1) {
       return;
     }
     VT hess;
-    if (x.rows() == 0)
-    {
+    if (x.rows() == 0) {
       hess = VT::Ones(dimension(), 1);
-    }
-    else
-    {
+    } else {
       std::tie(std::ignore, hess) = analytic_center_oracle(x);
       hess = hess + (width.cwiseProduct(width)).cwiseInverse();
     }
@@ -187,31 +174,26 @@ public:
     barrier.set_bound(barrier.lb.cwiseProduct(cscale),
                       barrier.ub.cwiseProduct(cscale));
     append_map((cscale.cwiseInverse()).asDiagonal(), VT::Zero(dimension(), 1));
-    if (!isempty_center)
-    {
+    if (!isempty_center) {
       center = center.cwiseProduct(cscale);
     }
   }
 
   //  Rewrite P so that each cols has no more than maxNZ non-zeros
-  void splitDenseCols(const int maxnz)
-  {
+  void splitDenseCols(const int maxnz) {
     int m = Asp.rows();
     int n = Asp.cols();
-    if (m <= maxnz)
-    {
+    if (m <= maxnz) {
       return;
     }
-    if (Asp.nonZeros() > maxnz * n)
-    {
+    if (Asp.nonZeros() > maxnz * n) {
       return;
     }
     int numBadCols = 1;
     lb = barrier.lb;
     ub = barrier.ub;
 
-    while (numBadCols > 0)
-    {
+    while (numBadCols > 0) {
       m = Asp.rows();
       n = Asp.cols();
       std::vector<int> colCounts(n);
@@ -219,8 +201,7 @@ public:
       numBadCols = 0;
       std::tie(colCounts, badCols) = nnzPerColumn(Asp, maxnz);
       numBadCols = badCols.size();
-      if (numBadCols == 0)
-      {
+      if (numBadCols == 0) {
         break;
       }
 
@@ -233,14 +214,11 @@ public:
       lb.conservativeResize(n + numBadCols, 1);
       ub.conservativeResize(n + numBadCols, 1);
 
-      for (int j = 0; j < numBadCols; j++)
-      {
+      for (int j = 0; j < numBadCols; j++) {
         int i = badCols[j];
         int k = 0;
-        for (SpMat::InnerIterator it(Asp, i); it; ++it)
-        {
-          if (k >= colCounts[i] / 2)
-          {
+        for (SpMat::InnerIterator it(Asp, i); it; ++it) {
+          if (k >= colCounts[i] / 2) {
             newColumns.push_back(Triple(it.row(), j, it.value()));
             it.valueRef() = 0;
           }
@@ -266,8 +244,7 @@ public:
   }
   // Change A and the correpsonding Transformation
   template <typename MatrixType>
-  void append_map(MatrixType const &S, VT const &z)
-  {
+  void append_map(MatrixType const &S, VT const &z) {
     b = b - Asp * z;
     Asp = Asp * S;
     y = y + T * z;
@@ -275,23 +252,19 @@ public:
     updateT();
   }
   // Shift the problem with respect to x
-  void shift_barrier(VT const &x)
-  {
+  void shift_barrier(VT const &x) {
     int size = x.rows();
     b = b - Asp * x;
     y = y + T * x;
     barrier.set_bound(barrier.lb - x, barrier.ub - x);
-    if (!isempty_center)
-    {
+    if (!isempty_center) {
       center = center - x;
     }
   }
   // Reorder the polytope accordint to the AMD Reordering for better sparsity
   // pattern in the Cholesky decomposition
-  void reorder()
-  {
-    if (!options.EnableReordering)
-    {
+  void reorder() {
+    if (!options.EnableReordering) {
       return;
     }
     Asp.prune(0.0);
@@ -308,8 +281,7 @@ public:
     b = perm * b;
   }
 
-  int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64)
-  {
+  int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
     remove_zero_rows<SpMat, NT>(Asp);
     int m = Asp.rows();
     int n = Asp.cols();
@@ -319,15 +291,12 @@ public:
     solver.decompose((Tx *)w.data());
     solver.diagL((Tx *)v.data());
     std::vector<int> indices;
-    for (int i = 0; i < m; i++)
-    {
-      if ((v(i) > tolerance) && (v(i) < infinity))
-      {
+    for (int i = 0; i < m; i++) {
+      if ((v(i) > tolerance) && (v(i) < infinity)) {
         indices.push_back(i);
       }
     }
-    if (indices.size() == m)
-    {
+    if (indices.size() == m) {
       return 0;
     }
 
@@ -336,37 +305,31 @@ public:
     return 1;
   }
 
-  void simplify()
-  {
+  void simplify() {
 #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-    std::chrono::duration<double> rescale_duration, sparsify_duration,
-        reordering_duration, rm_rows_duration, rm_fixed_vars_duration,
-        ex_collapsed_vars_duration;
     start = std::chrono::system_clock::now();
 #endif
     rescale();
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
-    rescale_duration = end - start;
+    rescale_duration += end - start;
     start = std::chrono::system_clock::now();
 #endif
     splitDenseCols(options.maxNZ);
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
-    sparsify_duration = end - start;
+    sparsify_duration += end - start;
     start = std::chrono::system_clock::now();
 #endif
     reorder();
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
-    reordering_duration = end - start;
+    reordering_duration += end - start;
 #endif
     int changed = 1;
-    while (changed)
-    {
-      while (changed)
-      {
+    while (changed) {
+      while (changed) {
         changed = 0;
 #ifdef TIME_KEEPING
         start = std::chrono::system_clock::now();
@@ -374,13 +337,13 @@ public:
         changed += remove_dependent_rows();
 #ifdef TIME_KEEPING
         end = std::chrono::system_clock::now();
-        rm_rows_duration = end - start;
+        rm_rows_duration += end - start;
         start = std::chrono::system_clock::now();
 #endif
         changed += remove_fixed_variables();
 #ifdef TIME_KEEPING
         end = std::chrono::system_clock::now();
-        rm_fixed_vars_duration = end - start;
+        rm_fixed_vars_duration += end - start;
         start = std::chrono::system_clock::now();
 #endif
         reorder();
@@ -395,27 +358,12 @@ public:
       changed += extract_collapsed_variables();
 #ifdef TIME_KEEPING
       end = std::chrono::system_clock::now();
-      ex_collapsed_vars_duration = end - start;
+      ex_collapsed_vars_duration += end - start;
 #endif
     }
-#ifdef TIME_KEEPING
-    std::cerr << "Rescale completed in time, ";
-    std::cerr << rescale_duration.count() << " secs " << std::endl;
-    std::cerr << "Split dense columns completed in time, ";
-    std::cerr << sparsify_duration.count() << " secs " << std::endl;
-    std::cerr << "Reordering completed in time, ";
-    std::cerr << reordering_duration.count() << " secs " << std::endl;
-    std::cerr << "Removing dependent rows completed in time, ";
-    std::cerr << rm_rows_duration.count() << " secs " << std::endl;
-    std::cerr << "Removing fixed variables completed in time, ";
-    std::cerr << rm_fixed_vars_duration.count() << " secs " << std::endl;
-    std::cerr << "Extracting collapsed variables completed in time, ";
-    std::cerr << ex_collapsed_vars_duration.count() << " secs " << std::endl;
-#endif
   }
 
-  VT estimate_width()
-  {
+  VT estimate_width() {
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
     CholObj solver = CholObj(Asp);
@@ -428,13 +376,11 @@ public:
     return tau;
   }
 
-  void print(std::string const message = "Printing Sparse problem")
-  {
+  void print(std::string const message = "Printing Sparse problem") {
     std::cerr << "----------------" << message << "--------------" << '\n';
     std::cerr << "(m,n) = " << equations() << " , " << dimension()
               << " nnz= " << Asp.nonZeros() << "\n";
-    if (equations() > 20 || dimension() > 20)
-    {
+    if (equations() > 20 || dimension() > 20) {
       std::cerr << "too big for complete visulization\n";
       return;
     }
@@ -468,8 +414,7 @@ public:
     std::cerr << "\n";
   }
 
-  void print(const char *fileName)
-  {
+  void print(const char *fileName) {
     std::ofstream myfile;
     myfile.open(fileName);
     myfile << Asp.rows() << "  " << Asp.cols() << "\n";
@@ -502,10 +447,16 @@ public:
   }
 
   crhmc_problem(Input const &input, Opts _options = Opts())
-      : func(input.f), df(input.df), ddf(input.ddf), fHandle(input.fHandle),
-        dfHandle(input.dfHandle), ddfHandle(input.ddfHandle),
-        fZero(input.fZero), options(_options)
-  {
+      : options(_options), func(input.f), df(input.df), ddf(input.ddf),
+        fZero(input.fZero), fHandle(input.fHandle), dfHandle(input.dfHandle),
+        ddfHandle(input.ddfHandle) {
+#ifdef TIME_KEEPING
+    rescale_duration = sparsify_duration = reordering_duration =
+        rm_rows_duration = rm_fixed_vars_duration = ex_collapsed_vars_duration =
+            shift_barrier_duration = lewis_center_duration =
+                std::chrono::duration<double>::zero();
+#endif
+
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
     int nEq = input.Aeq.rows();
@@ -522,14 +473,11 @@ public:
     PreproccessProblem();
   }
   // Initialization funciton
-  void PreproccessProblem()
-  {
+  void PreproccessProblem() {
     int n = dimension();
     /*Move lb=ub to Ax=b*/
-    for (int i = 0; i < n; i++)
-    {
-      if (doubleVectorEqualityComparison(lb(i), ub(i)))
-      {
+    for (int i = 0; i < n; i++) {
+      if (doubleVectorEqualityComparison(lb(i), ub(i))) {
         VT temp = VT::Zero(1, n);
         temp(i) = 1;
         A.conservativeResize(A.rows() + 1, A.cols());
@@ -549,8 +497,7 @@ public:
     /*Update the transformation Tx + y*/
     T = SpMat(nP, n);
     std::vector<Triple> indices;
-    for (int i = 0; i < nP; i++)
-    {
+    for (int i = 0; i < nP; i++) {
       indices.push_back(Triple(i, i, 1));
     }
     T.setFromTriplets(indices.begin(), indices.end());
@@ -558,8 +505,7 @@ public:
     updateT();
     y = VT::Zero(nP, 1);
     /*Simplify*/
-    if (!fZero)
-    {
+    if (!fZero) {
       fZero = true;
       simplify();
       fZero = false;
@@ -569,8 +515,7 @@ public:
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
     start = std::chrono::system_clock::now();
 #endif
-    if (isempty_center)
-    {
+    if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
           analytic_center(Asp, b, *this, options);
       isempty_center = false;
@@ -578,13 +523,12 @@ public:
     shift_barrier(center);
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
-    std::chrono::duration<double> shift_barrier_duration = end - start;
+    shift_barrier_duration += end - start;
 #endif
     reorder();
 
     width = estimate_width();
-    if (width.maxCoeff() > 1e9)
-    {
+    if (width.maxCoeff() > 1e9) {
       std::cerr << "Domain seems to be unbounded. Either add a Gaussian term "
                    "via f, df, ddf or add bounds to variable via lb and ub."
                 << '\n';
@@ -607,16 +551,27 @@ public:
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
-    std::chrono::duration<double> lewis_center_duration = end - start;
+    lewis_center_duration += end - start;
 #endif
     if ((center.array() > barrier.ub.array()).any() ||
-        (center.array() < barrier.lb.array()).any())
-    {
+        (center.array() < barrier.lb.array()).any()) {
       std::cerr << "Polytope:Infeasible. The algorithm cannot find a feasible "
                    "point.\n";
       exit(1);
     }
 #ifdef TIME_KEEPING
+    std::cerr << "Rescale completed in time, ";
+    std::cerr << rescale_duration.count() << " secs " << std::endl;
+    std::cerr << "Split dense columns completed in time, ";
+    std::cerr << sparsify_duration.count() << " secs " << std::endl;
+    std::cerr << "Reordering completed in time, ";
+    std::cerr << reordering_duration.count() << " secs " << std::endl;
+    std::cerr << "Removing dependent rows completed in time, ";
+    std::cerr << rm_rows_duration.count() << " secs " << std::endl;
+    std::cerr << "Removing fixed variables completed in time, ";
+    std::cerr << rm_fixed_vars_duration.count() << " secs " << std::endl;
+    std::cerr << "Extracting collapsed variables completed in time, ";
+    std::cerr << ex_collapsed_vars_duration.count() << " secs " << std::endl;
     std::cerr << "Shift_barrier completed in time, ";
     std::cerr << shift_barrier_duration.count() << " secs " << std::endl;
     std::cerr << "Finding Center completed in time, ";
@@ -625,8 +580,7 @@ public:
   }
 
   /*Tansform the problem to the form Ax=b lb<=x<=ub*/
-  crhmc_problem(PolytopeType const &HP, Opts _options = Opts())
-  {
+  crhmc_problem(PolytopeType const &HP, Opts _options = Opts()) {
     options = _options;
     nP = HP.dimension();
     int m = HP.num_of_hyperplanes();
@@ -645,15 +599,13 @@ public:
     PreproccessProblem();
   }
   // Gradient and hessian of for the analytic center
-  std::pair<VT, VT> analytic_center_oracle(VT const &x)
-  {
+  std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     VT g, h;
     std::tie(std::ignore, g, h) = f_oracle(x);
     return std::make_pair(g + barrier.gradient(x), h + barrier.hessian(x));
   }
   // Gradient and hessian of for the lewis center
-  std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w)
-  {
+  std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
     VT g, h;
     std::tie(std::ignore, g, h) = f_oracle(x);
     return std::make_pair(g + w.cwiseProduct(barrier.gradient(x)),
@@ -661,13 +613,11 @@ public:
   }
   // Function that uses the transformation (T,y) to apply the function to the
   // original variables
-  std::tuple<NT, VT, VT> f_oracle(VT x)
-  {
+  std::tuple<NT, VT, VT> f_oracle(VT x) {
     NT f;
     VT g, h;
     int n = x.rows();
-    if (fZero)
-    {
+    if (fZero) {
       f = 0;
       g = VT::Zero(n);
       h = VT::Zero(n);
@@ -675,55 +625,42 @@ public:
     }
     // Take the correpsonding point in the original space
     VT z = VT::Zero(n);
-    if (fHandle || dfHandle || ddfHandle)
-    {
+    if (fHandle || dfHandle || ddfHandle) {
       z(Tidx, Eigen::all) = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
     }
 
     // If the function is given evaluate it at the original point
-    if (fHandle)
-    {
+    if (fHandle) {
       f = func(Point(z));
-    }
-    else
-    {
+    } else {
       f = 0;
     }
     // If the gradient is given evaluate it at the original point
-    if (dfHandle)
-    {
+    if (dfHandle) {
       g = VT::Zero(n, 1);
       g(Tidx, Eigen::all) = Ta.cwiseProduct(df(Point(z)).getCoefficients());
-    }
-    else
-    {
+    } else {
       g = VT::Zero(n, 1);
     }
     // If the hessian is given evaluate it at the original point
-    if (ddfHandle)
-    {
+    if (ddfHandle) {
       h = VT::Zero(n, 1);
       h(Tidx, Eigen::all) =
           (Ta.cwiseProduct(Ta)).cwiseProduct(ddf(Point(z)).getCoefficients());
-    }
-    else
-    {
+    } else {
       h = VT::Zero(n, 1);
     }
     return std::make_tuple(f, -g, h);
   }
 
   // Update the indices and values vectors of the matrix T
-  void updateT()
-  {
+  void updateT() {
     int n = T.cols();
     int m = T.rows();
     Ta = VT(m);
     // By construction each row of T has ar most one nonZero
-    for (int k = 0; k < T.outerSize(); ++k)
-    {
-      for (SpMat::InnerIterator it(T, k); it; ++it)
-      {
+    for (int k = 0; k < T.outerSize(); ++k) {
+      for (SpMat::InnerIterator it(T, k); it; ++it) {
         int pos = (int)it.row();
         int nz = it.col();
         Tidx[pos] = nz;
