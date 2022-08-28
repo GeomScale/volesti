@@ -83,7 +83,7 @@ void uniform_correlation_sampling(const unsigned int &n,
     PointType startingPoint(d);
     RNGType rng(d);
     
-    uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint,0);
+    uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint, nburns);
 }
 
 template
@@ -103,7 +103,7 @@ void uniform_correlation_sampling_MT(const unsigned int &n,
     PointType startingPoint(P.matrixSize());
     RNGType rng(d);
 
-    uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint,0);
+    uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint, nburns);
 }
 
 template
@@ -114,7 +114,7 @@ template
     typename PointList,
     typename NT
 >
-void gaussian_correlation_sampling(const unsigned int &n,
+void gaussian_correlation_sampling( const unsigned int &n,
                                     PointList &randPoints,
                                     const unsigned int &walkL,
                                     const unsigned int &num_points,
@@ -125,7 +125,30 @@ void gaussian_correlation_sampling(const unsigned int &n,
     PointType startingPoint(d);
     RNGType rng(d);
     
-    gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, 0);
+    gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, nburns);
+}
+
+template
+<
+        typename WalkTypePolicy,
+        typename PointType,
+        typename RNGType,
+        typename PointList,
+        typename NT
+>
+void exponential_correlation_sampling(  const unsigned int &n,
+                                        PointList &randPoints,
+                                        const unsigned int &walkL,
+                                        const unsigned int &num_points,
+                                        const Point &c,
+                                        const NT &a,
+                                        unsigned int const& nburns = 0){
+    CorreSpectra<PointType> P(n);
+    const unsigned int d = P.dimension();
+    PointType startingPoint(d);
+    RNGType rng(d);
+    
+    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, c, a, startingPoint, nburns);
 }
 
 #endif
