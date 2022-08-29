@@ -282,7 +282,7 @@ struct ExponentialRandomPointGenerator
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope &P,
                       Point &p,   // a point to start
                       Point const& c,   // bias function
                       NT const& T, // temperature/variance
@@ -315,7 +315,7 @@ struct ExponentialRandomPointGenerator
             typename RandomNumberGenerator,
             typename Parameters
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope &P,
                       Point &p,   // a point to start
                       Point const& c,   // bias function
                       NT const& T, // temperature/variance

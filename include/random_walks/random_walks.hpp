@@ -30,4 +30,6 @@
 #include "random_walks/hamiltonian_monte_carlo_walk.hpp"
 #include "random_walks/langevin_walk.hpp"
 
+#include "random_walks/exponential_ReHMC_correlation.hpp"
+
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP

@@ -140,15 +140,15 @@ void exponential_correlation_sampling(  const unsigned int &n,
                                         PointList &randPoints,
                                         const unsigned int &walkL,
                                         const unsigned int &num_points,
-                                        const Point &c,
-                                        const NT &a,
+                                        const PointType &c,
+                                        const NT &T,
                                         unsigned int const& nburns = 0){
     CorreSpectra<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
     
-    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, c, a, startingPoint, nburns);
+    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, c, T, startingPoint, nburns);
 }
 
 #endif
