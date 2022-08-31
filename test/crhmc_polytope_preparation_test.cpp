@@ -33,8 +33,8 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   using Point = typename Kernel::Point;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using CrhmcProblem = crhmc_problem<Point>;
-  using Input = crhmc_input<MT, NT>;
+  using Input = crhmc_input<MT, Point>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
 
@@ -45,7 +45,13 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   read_pointset(inp, Pin);
   inp.close();
   PolytopeType HP(Pin);
-  CrhmcProblem P = CrhmcProblem(HP);
+  Opts options = Opts();
+  int d = HP.dimension();
+  Input input = Input(d);
+  input.Aineq = HP.get_mat();
+  input.bineq = HP.get_vec();
+  options.EnableReordering = false;
+  CrhmcProblem P = CrhmcProblem(input, options);
 
   int m = 342;
   int n = 366;
@@ -73,8 +79,8 @@ template <typename NT> void test_crhmc_fixed_var_polytope() {
   using Point = typename Kernel::Point;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using CrhmcProblem = crhmc_problem<Point>;
-  using Input = crhmc_input<MT, NT>;
+  using Input = crhmc_input<MT, Point>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
   unsigned d = 2;
@@ -87,28 +93,29 @@ template <typename NT> void test_crhmc_fixed_var_polytope() {
   input.bineq = b;
   input.lb(1) = 10;
   input.ub(1) = 10;
-  CrhmcProblem P = CrhmcProblem(input);
-  MT Aout=MT(P.Asp);
-  MT Acheck=MT(5,6);
-  VT a=VT(5);
-  a<<0.5, -0.25, 0.625, 0.2, -0.45;
-  Acheck<<a, MT::Identity(5,5);
-  int n=Aout.cols();
-  int m=Aout.rows();
-  for(int i=0;i<m;i++){
-    for(int j=0;j<n;j++){
-      CHECK(std::abs(Aout(i, j) - Acheck(i,j)) < 0.001);
+  Opts options = Opts();
+  options.EnableReordering = false;
+  CrhmcProblem P = CrhmcProblem(input, options);
+  MT Aout = MT(P.Asp);
+  MT Acheck = MT(5, 6);
+  VT a = VT(5);
+  a << 0.5, -0.25, 0.625, 0.2, -0.45;
+  Acheck << a, MT::Identity(5, 5);
+  int n = Aout.cols();
+  int m = Aout.rows();
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      CHECK(std::abs(Aout(i, j) - Acheck(i, j)) < 0.001);
     }
   }
-
 }
 template <typename NT> void test_crhmc_dependent_polytope() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using CrhmcProblem = crhmc_problem<Point>;
-  using Input = crhmc_input<MT, NT>;
+  using Input = crhmc_input<MT, Point>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
   unsigned d = 3;
@@ -119,14 +126,18 @@ template <typename NT> void test_crhmc_dependent_polytope() {
   Input input = Input(d);
   input.Aeq = Aeq;
   input.beq = beq;
-  CrhmcProblem P = CrhmcProblem(input);
+  Opts options = Opts();
+  options.EnableReordering = true;
+  CrhmcProblem P = CrhmcProblem(input, options);
   CHECK(P.equations() == 2);
 }
 
 template <typename NT> void call_test_crhmc_preprocesssing() {
   std::cout << "--- Testing CRHMC data preprocessing" << std::endl;
   test_crhmc_polytope_preprocessing<NT>();
+  std::cout << "--- Testing fixed vars" << std::endl;
   test_crhmc_fixed_var_polytope<NT>();
+  std::cout << "--- Testing dep vars" << std::endl;
   test_crhmc_dependent_polytope<NT>();
 }
 

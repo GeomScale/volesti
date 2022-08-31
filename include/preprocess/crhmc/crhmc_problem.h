@@ -26,6 +26,7 @@
 #include "preprocess/crhmc/opts.h"
 #include "sos/barriers/TwoSidedBarrier.h"
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -34,59 +35,69 @@
 #define SIMD_LEN 0
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
-
-template <typename Point>
+template <typename Point, typename Input>
 class crhmc_problem {
 public:
   using NT = double;
   using PolytopeType = HPolytope<Point>;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using IVT = Eigen::Matrix<int, Eigen::Dynamic, 1>;
   using SpMat = Eigen::SparseMatrix<NT>;
   using PM = Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int>;
   using IndexVector = Eigen::Matrix<int, Eigen::Dynamic, 1>;
   using CholObj = PackedChol<chol_k, int>;
-  using Triple = Eigen::Triplet<double>;
-  using Barrier = TwoSidedBarrier<NT>;
+  using Triple = Eigen::Triplet<NT>;
+  using Barrier = TwoSidedBarrier<Point>;
   using Tx = FloatArray<double, chol_k>;
   using Opts = opts<NT>;
   using Diagonal_MT = Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;
-  using Input = crhmc_input<MT, NT>;
-  const NT inf = 1e9;
+  using Func = typename Input::Func;
+  using Grad = typename Input::Grad;
+  using Hess = typename Input::Hess;
 
   unsigned int _d; // dimension
-  MT A;            // matrix A
+  // Problem variables Ax=b st lb<=x<=ub
+  MT A;            // matrix A input matrix
+  SpMat Asp;       // problem matrix A in Sparse form
   VT b;            // vector b, s.t.: Ax=b
-  VT lb;
-  VT ub;
-  int nP;
-  // CholObj *solver;
-  SpMat T; // matrix T
+  VT lb;           // Lower bound for output coordinates
+  VT ub;           // Upper bound for output coordinates
+  Barrier barrier; // Class that holds functions that handle the log barrier for
+                   // lb and ub
+  Opts options;    // problem parameters
+  // Transformation (T,y) such that the new variables x
+  // can be tranform to the original z (z= Tx+y)
+  SpMat T;
   VT y;
-  Opts options;
-  VT width;
-  Barrier barrier;
-  SpMat Asp; // matrix A
+  // Non zero indices and values for fast tranform
+  std::vector<int> Tidx; // T x = x(Tidx) .* Ta
+  VT Ta;                 // T x = x(Tidx) .* Ta
   bool isempty_center = true;
-  VT center = VT::Zero(0, 1);
-  VT w_center;
+  VT center = VT::Zero(0, 1); // Resulting polytope Lewis or Analytic center
+  VT w_center;// weights of the lewis center
+
+  VT width; // width of the varibles
+  int nP;//input dimension
+
+  Func &func;     // function handle
+  Grad &df;       // gradient handle
+  Hess &ddf;      // hessian handle
+  bool fZero;     // whether f is completely zero
+  bool fHandle;   // whether f is handle or not
+  bool dfHandle;  // whether df is handle or not
+  bool ddfHandle; // whether ddf is handle or not
+#ifdef TIME_KEEPING
+//Timing information
+  std::chrono::duration<double> rescale_duration, sparsify_duration,
+      reordering_duration, rm_rows_duration, rm_fixed_vars_duration,
+      ex_collapsed_vars_duration, shift_barrier_duration, lewis_center_duration;
+#endif
+  const NT inf = options.max_coord + 1; // helper for barrier handling
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
 
-  VT project(VT const &x) {
-    int m = Asp.rows();
-    int n = Asp.cols();
-    CholObj solver = CholObj(Asp);
-    VT hess = barrier.hessian(x);
-    VT Hinv = hess.cwiseInverse();
-    solver.decompose((Tx *)Hinv.data());
-    VT out_vector = VT(m, 1);
-    VT in_vector = b.transpose() - Asp * x;
-    solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
-    out_vector = Asp.transpose() * out_vector;
-    return x + (out_vector).cwiseQuotient(hess);
-  }
-
+  // Remove varibles that have width under some tolerance
   int remove_fixed_variables(const NT tol = 1e-12) {
     int m = Asp.rows();
     int n = Asp.cols();
@@ -126,11 +137,11 @@ public:
     SpMat Ac;
     VT bc;
     if (isempty_center) {
-      std::tie(center, Ac, bc) = analytic_center(Asp, b, barrier, options);
+      std::tie(center, Ac, bc) = analytic_center(Asp, b, *this, options);
       isempty_center = false;
     } else {
       std::tie(center, Ac, bc) =
-          analytic_center(Asp, b, barrier, options, center);
+          analytic_center(Asp, b, *this, options, center);
     }
     if (Ac.rows() == 0) {
       return 0;
@@ -139,87 +150,10 @@ public:
     sparse_stack_v(Ac, _A, Asp);
     b.resize(b.rows() + bc.rows(), 1);
     b << bc, b;
-
     return 1;
   }
-
-  std::pair<VT, VT> colwiseMinMax(SpMat const &A) {
-    int n = A.cols();
-    VT cmax(n);
-    VT cmin(n);
-    for (int k = 0; k < A.outerSize(); ++k) {
-      NT minv = +std::numeric_limits<NT>::infinity();
-      NT maxv = -std::numeric_limits<NT>::infinity();
-      for (SpMat::InnerIterator it(A, k); it; ++it) {
-        minv = std::min(minv, it.value());
-        maxv = std::max(maxv, it.value());
-      }
-      cmin(k) = minv;
-      cmax(k) = maxv;
-    }
-    return std::make_pair(cmin, cmax);
-  }
-
-  void nextpow2(VT &a) {
-    a = (a.array() == 0).select(1, a);
-    a = (((a.array().log()) / std::log(2)).ceil()).matrix();
-    a = pow(2, a.array()).matrix();
-  }
-
-  std::pair<VT, VT> gmscale(SpMat &Asp, const NT scltol) {
-    int m = Asp.rows();
-    int n = Asp.cols();
-    SpMat A = Asp.cwiseAbs();
-    A.makeCompressed();
-    int maxpass = 10;
-    NT aratio = 1e+50;
-    NT sratio;
-    NT damp = 1e-4;
-    NT small = 1e-8;
-    VT rscale = VT::Ones(m, 1);
-    VT cscale = VT::Ones(n, 1);
-    VT cmax;
-    VT cmin;
-    VT rmax;
-    VT rmin;
-    VT eps = VT::Ones(n, 1) * 1e-12;
-    SpMat SA;
-    for (int npass = 0; npass < maxpass; npass++) {
-
-      rscale = (rscale.array() == 0).select(1, rscale);
-      Diagonal_MT Rinv = (rscale.cwiseInverse()).asDiagonal();
-      SA = Rinv * A;
-      std::tie(cmin, cmax) = colwiseMinMax(SA);
-
-      // cmin = (cmin + eps).cwiseInverse();
-      sratio = (cmax.cwiseQuotient(cmin)).maxCoeff();
-
-      if (npass > 0) {
-        cscale = ((cmin.cwiseMax(damp * cmax)).cwiseProduct(cmax)).cwiseSqrt();
-      }
-
-      if (npass >= 2 && sratio >= aratio * scltol) {
-        break;
-      }
-      aratio = sratio;
-      nextpow2(cscale);
-      Diagonal_MT Cinv = (cscale.cwiseInverse()).asDiagonal();
-      SA = A * Cinv;
-      std::tie(rmin, rmax) = colwiseMinMax(SA.transpose());
-      // rmin = (rmin + eps).cwiseInverse();
-      rscale = ((rmin.cwiseMax(damp * rmax)).cwiseProduct(rmax)).cwiseSqrt();
-      nextpow2(rscale);
-    }
-    rscale = (rscale.array() == 0).select(1, rscale);
-    Diagonal_MT Rinv = (rscale.cwiseInverse()).asDiagonal();
-    SA = Rinv * A;
-    std::tie(std::ignore, cscale) = colwiseMinMax(SA);
-    nextpow2(cscale);
-    return std::make_pair(cscale, rscale);
-  }
-
+  // Rescale the polytope for numerical stability
   void rescale(const VT x = VT::Zero(0, 1)) {
-
     if (std::min(equations(), dimension()) <= 1) {
       return;
     }
@@ -227,7 +161,7 @@ public:
     if (x.rows() == 0) {
       hess = VT::Ones(dimension(), 1);
     } else {
-      std::tie(std::ignore, hess) = barrier.analytic_center_oracle(x);
+      std::tie(std::ignore, hess) = analytic_center_oracle(x);
       hess = hess + (width.cwiseProduct(width)).cwiseInverse();
     }
     VT scale = (hess.cwiseSqrt()).cwiseInverse();
@@ -235,7 +169,7 @@ public:
     VT cscale;
     VT rscale;
 
-    std::tie(cscale, rscale) = gmscale(Ain, 0.9);
+    std::tie(cscale, rscale) = gmscale<SpMat, VT, NT>(Ain, 0.9);
     Asp = (rscale.cwiseInverse()).asDiagonal() * Asp;
     b = b.cwiseQuotient(rscale);
     barrier.set_bound(barrier.lb.cwiseProduct(cscale),
@@ -246,28 +180,8 @@ public:
     }
   }
 
-  std::pair<std::vector<int>, std::vector<int>>
-  nnzPerColumn(SpMat const &A, const int threashold) {
-    int n = A.cols();
-    std::vector<int> colCounts(n);
-    std::vector<int> badCols;
-    for (int k = 0; k < A.outerSize(); ++k) {
-      int nnz = 0;
-      for (SpMat::InnerIterator it(A, k); it; ++it) {
-        if (it.value() != 0) {
-          nnz++;
-        }
-      }
-      colCounts[k] = nnz;
-      if (nnz > threashold) {
-        badCols.push_back(k);
-      }
-    }
-    return std::make_pair(colCounts, badCols);
-  }
-
+  //  Rewrite P so that each cols has no more than maxNZ non-zeros
   void splitDenseCols(const int maxnz) {
-    //  Rewrite P so that each cols has no more than maxNZ non-zeros
     int m = Asp.rows();
     int n = Asp.cols();
     if (m <= maxnz) {
@@ -279,19 +193,20 @@ public:
     int numBadCols = 1;
     lb = barrier.lb;
     ub = barrier.ub;
-
+    //until there are columns with more than maxNZ elements
     while (numBadCols > 0) {
       m = Asp.rows();
       n = Asp.cols();
       std::vector<int> colCounts(n);
       std::vector<int> badCols;
       numBadCols = 0;
+      //find the columns with count larger than maxNZ
       std::tie(colCounts, badCols) = nnzPerColumn(Asp, maxnz);
       numBadCols = badCols.size();
       if (numBadCols == 0) {
         break;
       }
-
+      //create a new variable for each one and update Asp, b, lb, ub, T, y accordingly
       SpMat A_;
       SpMat Aj(m, numBadCols);
       SpMat Ai(numBadCols, n + numBadCols);
@@ -326,17 +241,19 @@ public:
     }
     SpMat _T = MT::Zero(T.rows(), ub.rows() - T.cols()).sparseView();
     sparse_stack_h_inplace(T, _T);
+    updateT();
     barrier.set_bound(lb, ub);
   }
-
+  // Change A and the correpsonding Transformation
   template <typename MatrixType>
   void append_map(MatrixType const &S, VT const &z) {
     b = b - Asp * z;
     Asp = Asp * S;
     y = y + T * z;
     T = T * S;
+    updateT();
   }
-
+  // Shift the problem with respect to x
   void shift_barrier(VT const &x) {
     int size = x.rows();
     b = b - Asp * x;
@@ -346,36 +263,28 @@ public:
       center = center - x;
     }
   }
-
+  // Reorder the polytope accordint to the AMD Reordering for better sparsity
+  // pattern in the Cholesky decomposition
   void reorder() {
     if (!options.EnableReordering) {
       return;
     }
+    Asp.prune(0.0);
+    Asp.makeCompressed();
     int m = Asp.rows();
     SpMat H;
     H = Asp * SpMat(Asp.transpose()) + MT::Identity(m, m);
     H.makeCompressed();
-    Eigen::AMDOrdering<int> ordering;
-    PM perm;
-    ordering(H, perm);
-    H = perm * H * perm.transpose();
-    IndexVector m_etree;
-    IndexVector firstRowElt;
-    Eigen::internal::coletree(H, m_etree, firstRowElt);
-
-    IndexVector post;
-    Eigen::internal::treePostorder(int(H.cols()), m_etree, post);
-
-    PM post_perm(m);
-    for (int i = 0; i < m; i++)
-      post_perm.indices()(i) = post(i);
-    perm = perm * post_perm;
-
+    PM permed = permuteMatAMD(H);
+    H = permed * H * permed.transpose();
+    PM post_perm = postOrderPerm(H);
+    PM perm = permed * post_perm;
     Asp = perm * Asp;
     b = perm * b;
   }
-
-  int remove_dependent_rows(NT tolerance=1e-12, NT infinity=1e+64) {
+//Using the Cholesky decomposition remove dependent rows in the systen Asp*x=b
+  int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
+    //this approach does not work with 0 collumns
     remove_zero_rows<SpMat, NT>(Asp);
     int m = Asp.rows();
     int n = Asp.cols();
@@ -398,90 +307,61 @@ public:
     b = b(indices);
     return 1;
   }
-
+//Apply number of operations that simplify the problem
   void simplify() {
 #ifdef TIME_KEEPING
-    double tstart_rescale, tstart_sparsify, tstart_reorder, tstart_rm_rows,
-        tstart_rm_fixed_vars, tstart_ex_colapsed_vars;
-    tstart_rescale = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    start = std::chrono::system_clock::now();
 #endif
     rescale();
-
 #ifdef TIME_KEEPING
-    std::cout << "Rescale completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
-              << " secs " << std::endl;
-#endif
-#ifdef TIME_KEEPING
-    tstart_sparsify = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    end = std::chrono::system_clock::now();
+    rescale_duration += end - start;
+    start = std::chrono::system_clock::now();
 #endif
     splitDenseCols(options.maxNZ);
 #ifdef TIME_KEEPING
-    std::cout << "Split dense columns completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rescale
-              << " secs " << std::endl;
-#endif
-#ifdef TIME_KEEPING
-    tstart_reorder = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    end = std::chrono::system_clock::now();
+    sparsify_duration += end - start;
+    start = std::chrono::system_clock::now();
 #endif
     reorder();
 #ifdef TIME_KEEPING
-    std::cout << "Reordering completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
-              << " secs " << std::endl;
+    end = std::chrono::system_clock::now();
+    reordering_duration += end - start;
 #endif
     int changed = 1;
     while (changed) {
       while (changed) {
         changed = 0;
-
 #ifdef TIME_KEEPING
-        tstart_rm_rows = (double)clock() / (double)CLOCKS_PER_SEC;
-
+        start = std::chrono::system_clock::now();
 #endif
         changed += remove_dependent_rows();
 #ifdef TIME_KEEPING
-        std::cout << "Removing dependent rows completed in time, ";
-        std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rm_rows
-                  << " secs " << std::endl;
-#endif
-
-#ifdef TIME_KEEPING
-        tstart_rm_fixed_vars = (double)clock() / (double)CLOCKS_PER_SEC;
-
+        end = std::chrono::system_clock::now();
+        rm_rows_duration += end - start;
+        start = std::chrono::system_clock::now();
 #endif
         changed += remove_fixed_variables();
 #ifdef TIME_KEEPING
-        std::cout << "Removing fixed variables completed in time, ";
-        std::cout << (double)clock() / (double)CLOCKS_PER_SEC -
-                         tstart_rm_fixed_vars
-                  << " secs " << std::endl;
-#endif
-#ifdef TIME_KEEPING
-        tstart_reorder = (double)clock() / (double)CLOCKS_PER_SEC;
-
+        end = std::chrono::system_clock::now();
+        rm_fixed_vars_duration += end - start;
+        start = std::chrono::system_clock::now();
 #endif
         reorder();
 #ifdef TIME_KEEPING
-        std::cout << "Reordering completed in time, ";
-        std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_reorder
-                  << " secs " << std::endl;
+        end = std::chrono::system_clock::now();
+        reordering_duration += end - start;
 #endif
       }
 #ifdef TIME_KEEPING
-      tstart_ex_colapsed_vars = (double)clock() / (double)CLOCKS_PER_SEC;
-
+      start = std::chrono::system_clock::now();
 #endif
-
       changed += extract_collapsed_variables();
 #ifdef TIME_KEEPING
-      std::cout << "Extracting collapsed variables completed in time, ";
-      std::cout << (double)clock() / (double)CLOCKS_PER_SEC -
-                       tstart_ex_colapsed_vars
-                << " secs " << std::endl;
+      end = std::chrono::system_clock::now();
+      ex_collapsed_vars_duration += end - start;
 #endif
     }
   }
@@ -499,48 +379,42 @@ public:
     return tau;
   }
 
-  int doubleVectorEqualityComparison(
-      const NT a, const NT b,
-      const NT tol = std::numeric_limits<NT>::epsilon()) {
-    return (abs(a - b) < tol * (1 + abs(a) + abs(b)));
-  }
-
-  void print() {
-    std::cout << "----------------Printing Sparse problem--------------"
-              << '\n';
-    std::cout << "(m,n) = " << equations() << " , " << dimension() << "\n";
-    if (equations() * dimension() > 50) {
-      std::cout << "too big for complete visulization\n";
+  void print(std::string const message = "Printing Sparse problem") {
+    std::cerr << "----------------" << message << "--------------" << '\n';
+    std::cerr << "(m,n) = " << equations() << " , " << dimension()
+              << " nnz= " << Asp.nonZeros() << "\n";
+    if (equations() > 20 || dimension() > 20) {
+      std::cerr << "too big for complete visulization\n";
       return;
     }
-    std::cout << "A=\n";
+    std::cerr << "A=\n";
 
-    std::cout << MT(Asp);
-    std::cout << "\n";
+    std::cerr << MT(Asp);
+    std::cerr << "\n";
 
-    std::cout << "b=\n";
-    std::cout << b;
-    std::cout << "\n";
+    std::cerr << "b=\n";
+    std::cerr << b;
+    std::cerr << "\n";
 
-    std::cout << "lb=\n";
-    std::cout << barrier.lb;
-    std::cout << "\n";
+    std::cerr << "lb=\n";
+    std::cerr << barrier.lb;
+    std::cerr << "\n";
 
-    std::cout << "ub=\n";
-    std::cout << barrier.ub;
-    std::cout << "\n";
+    std::cerr << "ub=\n";
+    std::cerr << barrier.ub;
+    std::cerr << "\n";
 
-    std::cout << "T=\n";
-    std::cout << MT(T);
-    std::cout << "\n";
+    std::cerr << "T=\n";
+    std::cerr << MT(T);
+    std::cerr << "\n";
 
-    std::cout << "y=\n";
-    std::cout << y;
-    std::cout << "\n";
+    std::cerr << "y=\n";
+    std::cerr << y;
+    std::cerr << "\n";
 
-    std::cout << "center=\n";
-    std::cout << center;
-    std::cout << "\n";
+    std::cerr << "center=\n";
+    std::cerr << center;
+    std::cerr << "\n";
   }
 
   void print(const char *fileName) {
@@ -574,9 +448,18 @@ public:
 
     myfile << center;
   }
+//Class constructor
+  crhmc_problem(Input const &input, Opts _options = Opts())
+      : options(_options), func(input.f), df(input.df), ddf(input.ddf),
+        fZero(input.fZero), fHandle(input.fHandle), dfHandle(input.dfHandle),
+        ddfHandle(input.ddfHandle) {
+#ifdef TIME_KEEPING
+    rescale_duration = sparsify_duration = reordering_duration =
+        rm_rows_duration = rm_fixed_vars_duration = ex_collapsed_vars_duration =
+            shift_barrier_duration = lewis_center_duration =
+                std::chrono::duration<double>::zero();
+#endif
 
-  crhmc_problem(Input const &input, Opts _options = Opts()) {
-    options = _options;
     nP = input.Aeq.cols();
     int nIneq = input.Aineq.rows();
     int nEq = input.Aeq.rows();
@@ -592,10 +475,9 @@ public:
     Asp.resize(nEq + nIneq, nP + nIneq);
     PreproccessProblem();
   }
-
+  // Initialization funciton
   void PreproccessProblem() {
     int n = dimension();
-
     /*Move lb=ub to Ax=b*/
     for (int i = 0; i < n; i++) {
       if (doubleVectorEqualityComparison(lb(i), ub(i))) {
@@ -622,29 +504,35 @@ public:
       indices.push_back(Triple(i, i, 1));
     }
     T.setFromTriplets(indices.begin(), indices.end());
+    Tidx = std::vector<int>(T.rows());
+    updateT();
     y = VT::Zero(nP, 1);
     /*Simplify*/
+    if (!fZero) {
+      fZero = true;
+      simplify();
+      fZero = false;
+    }
     simplify();
 #ifdef TIME_KEEPING
-    double tstart_rest = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    start = std::chrono::system_clock::now();
 #endif
     if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
-          analytic_center(Asp, b, barrier, options);
+          analytic_center(Asp, b, *this, options);
       isempty_center = false;
     }
     shift_barrier(center);
 #ifdef TIME_KEEPING
-    std::cout << "Shift_barrier completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_rest
-              << " secs " << std::endl;
+    end = std::chrono::system_clock::now();
+    shift_barrier_duration += end - start;
 #endif
     reorder();
 
     width = estimate_width();
     if (width.maxCoeff() > 1e9) {
-      std::cout << "Domain seems to be unbounded. Either add a Gaussian term "
+      std::cerr << "Domain seems to be unbounded. Either add a Gaussian term "
                    "via f, df, ddf or add bounds to variable via lb and ub."
                 << '\n';
       exit(1);
@@ -652,13 +540,11 @@ public:
     //  Recenter again and make sure it is feasible
     VT hess;
 #ifdef TIME_KEEPING
-    double tstart_find_center = (double)clock() / (double)CLOCKS_PER_SEC;
-
+    start = std::chrono::system_clock::now();
 #endif
     std::tie(center, std::ignore, std::ignore, w_center) =
-        lewis_center(Asp, b, barrier, options, center);
-    std::tie(std::ignore, hess) = barrier.lewis_center_oracle(center, w_center);
-
+        lewis_center(Asp, b, *this, options, center);
+    std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
     CholObj solver = CholObj(Asp);
     VT Hinv = hess.cwiseInverse();
     solver.decompose((Tx *)Hinv.data());
@@ -667,20 +553,38 @@ public:
     solver.solve((Tx *)input.data(), (Tx *)out.data());
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 #ifdef TIME_KEEPING
-    std::cout << "Finding Center completed in time, ";
-    std::cout << (double)clock() / (double)CLOCKS_PER_SEC - tstart_find_center
-              << " secs " << std::endl;
+    end = std::chrono::system_clock::now();
+    lewis_center_duration += end - start;
 #endif
     if ((center.array() > barrier.ub.array()).any() ||
         (center.array() < barrier.lb.array()).any()) {
-      std::cout << "Polytope:Infeasible. The algorithm cannot find a feasible "
+      std::cerr << "Polytope:Infeasible. The algorithm cannot find a feasible "
                    "point.\n";
       exit(1);
     }
+#ifdef TIME_KEEPING
+    std::cerr << "Rescale completed in time, ";
+    std::cerr << rescale_duration.count() << " secs " << std::endl;
+    std::cerr << "Split dense columns completed in time, ";
+    std::cerr << sparsify_duration.count() << " secs " << std::endl;
+    std::cerr << "Reordering completed in time, ";
+    std::cerr << reordering_duration.count() << " secs " << std::endl;
+    std::cerr << "Removing dependent rows completed in time, ";
+    std::cerr << rm_rows_duration.count() << " secs " << std::endl;
+    std::cerr << "Removing fixed variables completed in time, ";
+    std::cerr << rm_fixed_vars_duration.count() << " secs " << std::endl;
+    std::cerr << "Extracting collapsed variables completed in time, ";
+    std::cerr << ex_collapsed_vars_duration.count() << " secs " << std::endl;
+    std::cerr << "Shift_barrier completed in time, ";
+    std::cerr << shift_barrier_duration.count() << " secs " << std::endl;
+    std::cerr << "Finding Center completed in time, ";
+    std::cerr << lewis_center_duration.count() << " secs " << std::endl;
+#endif
   }
 
   /*Tansform the problem to the form Ax=b lb<=x<=ub*/
-  crhmc_problem(PolytopeType const &HP) : options(Opts()) {
+  crhmc_problem(PolytopeType const &HP, Opts _options = Opts()) {
+    options = _options;
     nP = HP.dimension();
     int m = HP.num_of_hyperplanes();
     int n = HP.dimension();
@@ -696,6 +600,77 @@ public:
     ub = VT::Ones(n) * inf;
     Asp.resize(m, n);
     PreproccessProblem();
+  }
+  // Gradient and hessian of for the analytic center
+  std::pair<VT, VT> analytic_center_oracle(VT const &x) {
+    VT g, h;
+    std::tie(std::ignore, g, h) = f_oracle(x);
+    return std::make_pair(g + barrier.gradient(x), h + barrier.hessian(x));
+  }
+  // Gradient and hessian of for the lewis center
+  std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
+    VT g, h;
+    std::tie(std::ignore, g, h) = f_oracle(x);
+    return std::make_pair(g + w.cwiseProduct(barrier.gradient(x)),
+                          h + w.cwiseProduct(barrier.hessian(x)));
+  }
+  // Function that uses the transformation (T,y) to apply the function to the
+  // original variables
+  std::tuple<NT, VT, VT> f_oracle(VT x) {
+    NT f;
+    VT g, h;
+    int n = x.rows();
+    if (fZero) {
+      f = 0;
+      g = VT::Zero(n);
+      h = VT::Zero(n);
+      return std::make_tuple(f, g, h);
+    }
+    // Take the correpsonding point in the original space
+    VT z = VT::Zero(n);
+    if (fHandle || dfHandle || ddfHandle) {
+      z(Tidx, Eigen::all) = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
+    }
+
+    // If the function is given evaluate it at the original point
+    if (fHandle) {
+      f = func(Point(z));
+    } else {
+      f = 0;
+    }
+    // If the gradient is given evaluate it at the original point
+    if (dfHandle) {
+      g = VT::Zero(n, 1);
+      g(Tidx, Eigen::all) = Ta.cwiseProduct(df(Point(z)).getCoefficients());
+    } else {
+      g = VT::Zero(n, 1);
+    }
+    // If the hessian is given evaluate it at the original point
+    if (ddfHandle) {
+      h = VT::Zero(n, 1);
+      h(Tidx, Eigen::all) =
+          (Ta.cwiseProduct(Ta)).cwiseProduct(ddf(Point(z)).getCoefficients());
+    } else {
+      h = VT::Zero(n, 1);
+    }
+    return std::make_tuple(f, -g, h);
+  }
+
+  // Update the indices and values vectors of the matrix T
+  void updateT() {
+    int n = T.cols();
+    int m = T.rows();
+    Ta = VT(m);
+    // By construction each row of T has ar most one nonZero
+    for (int k = 0; k < T.outerSize(); ++k) {
+      for (SpMat::InnerIterator it(T, k); it; ++it) {
+        int pos = (int)it.row();
+        int nz = it.col();
+        Tidx[pos] = nz;
+      }
+    }
+
+    Ta = T * VT::Ones(n, 1);
   }
 };
 #endif

@@ -22,12 +22,26 @@ public:
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
-  bool EnableReordering = false;
+  Type max_coord = 1e7;
+  bool EnableReordering = true;
 
   /*ODE options*/
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
+  Type solver_accuracy_threashold=1e-2;
+  /*Sampler options*/
+  bool DynamicWeight = true; //Enable the use of dynamic weights for each variable when sampling
+  bool DynamicStepSize = true;  // Enable adaptive step size that avoids low acceptance probability
+  bool DynamicRegularizer = true; //Enable the addition of a regularization term
+
+  /*Dynamic step choices*/
+  Type warmUpStep = 10;
+  Type maxConsecutiveBadStep = 10;
+  Type targetODEStep = 10;
+  Type shrinkFactor = 1.1;
+  Type minStepSize = 0.001;
+  Type effectiveStepSize = 1;
 
   opts() {}
   void operator=(const opts &rhs) {
