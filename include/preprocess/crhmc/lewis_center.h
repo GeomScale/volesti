@@ -39,10 +39,16 @@ using Opts = opts<NT>;
 NT epsilon = 1e-8;
 int numberOfFullSteps = 8;
 template <typename Polytope>
-//Lewis center computation
-std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b,
-                                           Polytope &f, Opts const &options,
-                                           VT x = VT::Zero(0, 1))
+/*This function computes the Lewis center of the polytope*/
+//And detects additional constraint that need to be added
+// x - It outputs the minimizer of min f(x) subjects to {Ax=b}
+// w - Output weights that correspond to the Lewis center, they are gone be used in the sampler to reduce the conditon number
+// C - detected constraint matrix
+//     If the domain ({Ax=b} intersect dom(f)) is not full dimensional in {Ax=b}
+//     because of the dom(f), the algorithm will detect the collapsed dimension
+//     and output the detected constraint C x = d
+// d - detected constraint vector
+std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b, Polytope &f, Opts const &options, VT x = VT::Zero(0, 1))
 {
   // initial conditions
   int n = A.cols();
