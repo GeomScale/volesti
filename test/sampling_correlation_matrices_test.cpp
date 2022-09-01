@@ -241,61 +241,61 @@ void test_new_exponential(const unsigned int n, const unsigned int num_points = 
 }
 
 int n = 3;
-int num_points_BallWalk = 100000;
-int num_points_RDHRWalk = 10000;
-int num_points_BilliardWalk = 1000;
+int num_points_BallWalk = 1000;
+int num_points_RDHRWalk = 1000;
+int num_points_BilliardWalk = 100;
 int num_points_ReHMCWalk = 100;
 
 ///////////////////////////////////////////////////////////////////
 //      Test new classes
 //
 
-// TEST_CASE("corre_spectra") {
-//     test_corre_spectra_classes<double>(n);
-// }
+TEST_CASE("corre_spectra") {
+    test_corre_spectra_classes<double>(n);
+}
 
 ///////////////////////////////////////////////////////////////////
 //      Old implementation
 //
 
-// TEST_CASE("old_ball_uniform") {
-//     std::cout << "Ball Walk :: ";
-//     test_old_uniform<double, BallWalk>(n, num_points_BallWalk);
-// }
+TEST_CASE("old_ball_uniform") {
+    std::cout << "Ball Walk :: ";
+    test_old_uniform<double, BallWalk>(n, num_points_BallWalk);
+}
 
-// TEST_CASE("old_billiard_uniform") {
-//     std::cout << "Billiard Walk :: ";
-//     test_old_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
-// }
+TEST_CASE("old_billiard_uniform") {
+    std::cout << "Billiard Walk :: ";
+    test_old_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
+}
 
-// TEST_CASE("old_accelerated_billiard_uniform") {
-//     std::cout << "Accelerated Billiard Walk :: ";
-//     test_old_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
-// }
+TEST_CASE("old_accelerated_billiard_uniform") {
+    std::cout << "Accelerated Billiard Walk :: ";
+    test_old_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
+}
 
 ///////////////////////////////////////////////////////////////////
 //      New implementation : CorreSpectra Vector PointType
 //
 
-// TEST_CASE("new_ball_uniform") {
-//     std::cout << "Ball Walk :: ";
-//     test_new_uniform<double, BallWalk>(n,num_points_BallWalk);
-// }
+TEST_CASE("new_ball_uniform") {
+    std::cout << "Ball Walk :: ";
+    test_new_uniform<double, BallWalk>(n,num_points_BallWalk);
+}
 
-// TEST_CASE("new_rdhr_uniform") {
-//     std::cout << "RDHR Walk :: ";
-//     test_new_uniform<double, RDHRWalk>(n,num_points_RDHRWalk);
-// }
+TEST_CASE("new_rdhr_uniform") {
+    std::cout << "RDHR Walk :: ";
+    test_new_uniform<double, RDHRWalk>(n,num_points_RDHRWalk);
+}
 
-// TEST_CASE("new_billiard_uniform") {
-//     std::cout << "Billiard Walk :: ";
-//     test_new_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
-// }
+TEST_CASE("new_billiard_uniform") {
+    std::cout << "Billiard Walk :: ";
+    test_new_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
+}
 
-// TEST_CASE("new_accelerated_billiard_uniform") {
-//     std::cout << "Accelerated Billiard Walk :: ";
-//     test_new_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
-// }
+TEST_CASE("new_accelerated_billiard_uniform") {
+    std::cout << "Accelerated Billiard Walk :: ";
+    test_new_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
+}
 
 TEST_CASE("new_ReHMC_exponential") {
     std::cout << "ExponentialReHMC Walk :: ";
@@ -306,27 +306,27 @@ TEST_CASE("new_ReHMC_exponential") {
 //      New implementation : CorreSpectra Matrix PointType
 //
 
-// TEST_CASE("new_ball_uniform_MT") {
-//     std::cout << "Ball Walk MT :: ";
-//     test_new_uniform_MT<double, BallWalk>(n,num_points_BallWalk);
-// }
+TEST_CASE("new_ball_uniform_MT") {
+    std::cout << "Ball Walk MT :: ";
+    test_new_uniform_MT<double, BallWalk>(n,num_points_BallWalk);
+}
 
-// TEST_CASE("new_rdhr_uniform_MT") {
-//     std::cout << "RDHR Walk MT :: ";
-//     test_new_uniform_MT<double, RDHRWalk>(n,num_points_RDHRWalk);
-// }
+TEST_CASE("new_rdhr_uniform_MT") {
+    std::cout << "RDHR Walk MT :: ";
+    test_new_uniform_MT<double, RDHRWalk>(n,num_points_RDHRWalk);
+}
 
-// TEST_CASE("new_billiard_uniform_MT") {
-//     std::cout << "Billiard Walk MT :: ";
-//     test_new_uniform_MT<double, BilliardWalk>(n, num_points_BilliardWalk);
-// }
+TEST_CASE("new_billiard_uniform_MT") {
+    std::cout << "Billiard Walk MT :: ";
+    test_new_uniform_MT<double, BilliardWalk>(n, num_points_BilliardWalk);
+}
 
-// TEST_CASE("new_accelerated_billiard_uniform_MT") {
-//     std::cout << "Accelerated Billiard Walk MT :: ";
-//     test_new_uniform_MT<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
-// }
+TEST_CASE("new_accelerated_billiard_uniform_MT") {
+    std::cout << "Accelerated Billiard Walk MT :: ";
+    test_new_uniform_MT<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
+}
 
-// TEST_CASE("new_ReHMC_exponential_MT") {
-//     std::cout << "ExponentialReHMC Walk MT :: ";
-//     test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
-// }
+TEST_CASE("new_ReHMC_exponential_MT") {
+    std::cout << "ExponentialReHMC Walk MT :: ";
+    test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
+}
