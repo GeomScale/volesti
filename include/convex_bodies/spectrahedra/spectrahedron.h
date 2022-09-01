@@ -467,7 +467,7 @@ public:
         return maxDistance;
     }
 
-    int is_in(PointType const& p, NT tol=NT(0))
+    int is_in(PointType const& p, NT tol=NT(0)) const
     {
         if (isExterior(p.getCoefficients())) {
             return 0;
@@ -478,14 +478,14 @@ public:
     /// Find out is lmi(current position) = mat is in the exterior of the spectrahedron
     /// \param mat a matrix where mat = lmi(current position)
     /// \return true if position is outside the spectrahedron
-    bool isExterior(MT const & mat) {
+    bool isExterior(MT const & mat) const {
         return !lmi.isNegativeSemidefinite(mat);
     }
 
     /// Find out is pos is in the exterior of the spectrahedron
     /// \param pos a vector
     /// \return true if pos is outside the spectrahedron
-    bool isExterior(VT const & pos) {
+    bool isExterior(VT const & pos) const {
         return !lmi.isNegativeSemidefinite(pos);
     }
 };
