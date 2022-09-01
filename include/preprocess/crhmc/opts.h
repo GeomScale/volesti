@@ -29,11 +29,15 @@ public:
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
+
+  /*PackedCS Solver Options*/
   Type solver_accuracy_threashold=1e-2;
+  int simdLen=1;
+  
   /*Sampler options*/
-  bool DynamicWeight = true;
-  bool DynamicStepSize = true;
-  bool DynamicRegularizer = true;
+  bool DynamicWeight = true; //Enable the use of dynamic weights for each variable when sampling
+  bool DynamicStepSize = true;  // Enable adaptive step size that avoids low acceptance probability
+  bool DynamicRegularizer = true; //Enable the addition of a regularization term
 
   /*Dynamic step choices*/
   Type warmUpStep = 10;

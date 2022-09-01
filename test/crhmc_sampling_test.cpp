@@ -380,7 +380,7 @@ inline bool exists_check(const std::string &name) {
 }
 
 template <typename NT, typename Point, typename HPolytope>
-void benchmark_polytope(HPolytope &P, std::string &name, bool centered) {
+void benchmark_polytope(HPolytope &P, std::string &name, bool centered,int walk_length=1) {
   std::vector<SimulationStats<NT>> results;
   NT step_size = 0;
   std::pair<Point, NT> inner_ball;
@@ -390,7 +390,7 @@ void benchmark_polytope(HPolytope &P, std::string &name, bool centered) {
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, 1, false,
+  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, false,
                                                        centered);
   outfile << results[0];
   outfile << results[1];
@@ -438,6 +438,13 @@ template <typename NT> void call_test_benchmark_polytopes() {
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
+
+  if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
+    Hpolytope P =read_polytope<Hpolytope,NT>("metabolic_full_dim/polytope_e_coli.ine");
+    std::string name ="e_coli";
+    bool centered = true;
+    benchmark_polytope<NT, Point, Hpolytope>(P,name, centered,4);
+  }
   /*
       if (exists_check("metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
         Hpolytope P = read_polytope<Hpolytope, NT>(
@@ -452,13 +459,6 @@ template <typename NT> void call_test_benchmark_polytopes() {
         std::string name = "iAT_PLT_636";
         bool centered = true;
         benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
-      }
-      if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
-        Hpolytope P =
-            read_polytope<Hpolytope,
-      NT>("metabolic_full_dim/polytope_e_coli.ine"); std::string name =
-     "e_coli"; bool centered = true; benchmark_polytope<NT, Point, Hpolytope>(P,
-     name, centered);
       }
 
       if (exists_check("metabolic_full_dim/polytope_recon2.ine")) {
@@ -518,6 +518,7 @@ template <typename NT> void benchmark_cube_crhmc() {
     std::cout << ETA << std::endl;
   }
 }
+
 template <typename NT> void test_crhmc() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
@@ -564,6 +565,7 @@ template <typename NT> void call_test_crhmc() {
 template <typename NT> void call_test_benchmark_cube_crhmc() {
   benchmark_cube_crhmc<NT>();
 }
+
 
 TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 

@@ -4,7 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 // Copyright (c) 2022 Ioannis Iakovidis
 
-// This file is converted from PolytopeSamplerMatlab 
+// This file is converted from PolytopeSamplerMatlab
 //(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
 
 #pragma once
@@ -60,9 +60,9 @@ template <int k, typename Ti> struct PackedChol {
   LeverageOutput<Te, Ti> diagP_exact;     // cache for L = chol(H)
   LeverageJLOutput<Te, Ti> diagPJL_exact; // cache for L = chol(H)
   SparseMatrix<Te, Ti> Le[k];             // store output of L_exact
-  typedef Eigen::Matrix<Tx, Eigen::Dynamic, Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<Tx, Eigen::Dynamic, 1> VT;
-  typedef Eigen::SparseMatrix<Tx> SpMat;
+  using  MT=Eigen::Matrix<Tx, Eigen::Dynamic, Eigen::Dynamic>;
+  using  VT=Eigen::Matrix<Tx, Eigen::Dynamic, 1>;
+  using SpMat=Eigen::SparseMatrix<Tx>;
 
   PackedChol(SpMat const &mat) {
     A = SparseMatrix<Tx, Ti>(mat.rows(), mat.cols(), mat.nonZeros());

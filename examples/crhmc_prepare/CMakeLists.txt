@@ -14,6 +14,7 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 if (APPLE)
 	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 elseif(UNIX)
+  #set(MKLROOT /opt/intel/oneapi/mkl/latest)
 	set(MKLROOT $ENV{HOME}/intel/mkl)
 endif()
 
@@ -121,6 +122,7 @@ add_library(QD_LIB ${QDSOURCES})
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+	#add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
 	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
   add_definitions(${CMAKE_CXX_FLAGS} "-O3 "  ${ADDITIONAL_FLAGS})  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
@@ -129,6 +131,6 @@ add_library(QD_LIB ${QDSOURCES})
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
   add_executable (crhmc_prepare crhmc_prepare.cpp ${QD_SOURCES})
-  TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${MKL_LINK} ${LP_SOLVE})
 
 endif()

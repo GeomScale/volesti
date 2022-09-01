@@ -35,7 +35,8 @@
 #define SIMD_LEN 0
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
-template <typename Point, typename Input> class crhmc_problem {
+template <typename Point, typename Input>
+class crhmc_problem {
 public:
   using NT = double;
   using PolytopeType = HPolytope<Point>;
@@ -57,8 +58,8 @@ public:
 
   unsigned int _d; // dimension
   // Problem variables Ax=b st lb<=x<=ub
-  MT A;            // matrix A
-  SpMat Asp;       // matrix A in Sparse form
+  MT A;            // matrix A input matrix
+  SpMat Asp;       // problem matrix A in Sparse form
   VT b;            // vector b, s.t.: Ax=b
   VT lb;           // Lower bound for output coordinates
   VT ub;           // Upper bound for output coordinates
@@ -74,10 +75,10 @@ public:
   VT Ta;                 // T x = x(Tidx) .* Ta
   bool isempty_center = true;
   VT center = VT::Zero(0, 1); // Resulting polytope Lewis or Analytic center
-  VT w_center;
+  VT w_center;// weights of the lewis center
 
   VT width; // width of the varibles
-  int nP;
+  int nP;//input dimension
 
   Func &func;     // function handle
   Grad &df;       // gradient handle
@@ -87,7 +88,7 @@ public:
   bool dfHandle;  // whether df is handle or not
   bool ddfHandle; // whether ddf is handle or not
 #ifdef TIME_KEEPING
-
+//Timing information
   std::chrono::duration<double> rescale_duration, sparsify_duration,
       reordering_duration, rm_rows_duration, rm_fixed_vars_duration,
       ex_collapsed_vars_duration, shift_barrier_duration, lewis_center_duration;
@@ -192,19 +193,20 @@ public:
     int numBadCols = 1;
     lb = barrier.lb;
     ub = barrier.ub;
-
+    //until there are columns with more than maxNZ elements
     while (numBadCols > 0) {
       m = Asp.rows();
       n = Asp.cols();
       std::vector<int> colCounts(n);
       std::vector<int> badCols;
       numBadCols = 0;
+      //find the columns with count larger than maxNZ
       std::tie(colCounts, badCols) = nnzPerColumn(Asp, maxnz);
       numBadCols = badCols.size();
       if (numBadCols == 0) {
         break;
       }
-
+      //create a new variable for each one and update Asp, b, lb, ub, T, y accordingly
       SpMat A_;
       SpMat Aj(m, numBadCols);
       SpMat Ai(numBadCols, n + numBadCols);
@@ -280,8 +282,9 @@ public:
     Asp = perm * Asp;
     b = perm * b;
   }
-
+//Using the Cholesky decomposition remove dependent rows in the systen Asp*x=b
   int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
+    //this approach does not work with 0 collumns
     remove_zero_rows<SpMat, NT>(Asp);
     int m = Asp.rows();
     int n = Asp.cols();
@@ -304,7 +307,7 @@ public:
     b = b(indices);
     return 1;
   }
-
+//Apply number of operations that simplify the problem
   void simplify() {
 #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
@@ -445,7 +448,7 @@ public:
 
     myfile << center;
   }
-
+//Class constructor
   crhmc_problem(Input const &input, Opts _options = Opts())
       : options(_options), func(input.f), df(input.df), ddf(input.ddf),
         fZero(input.fZero), fHandle(input.fHandle), dfHandle(input.dfHandle),

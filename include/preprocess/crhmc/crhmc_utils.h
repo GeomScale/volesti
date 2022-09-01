@@ -213,8 +213,8 @@ std::pair<VectorType, VectorType> colwiseMinMax(SparseMatrixType const &A)
   VectorType cmin(n);
   for (int k = 0; k < A.outerSize(); ++k)
   {
-    Type minv = +std::numeric_limits<Type>::infinity();
-    Type maxv = -std::numeric_limits<Type>::infinity();
+    Type minv = +std::numeric_limits<Type>::max();
+    Type maxv = std::numeric_limits<Type>::lowest();
     for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it)
     {
       minv = std::min(minv, it.value());

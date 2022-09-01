@@ -79,8 +79,7 @@ struct CustomFunctor {
 
 template <typename NT>
 void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
-              int walk_length = 1, int burn_steps = 1, int dynamic_weight = 0,
-              int dynamic_regularization = 0, int dynamic_step_size = 0) {
+              int walk_length = 1, int burn_steps = 1) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -90,7 +89,6 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   using Func = CustomFunctor::Func<Point>;
   using Grad = CustomFunctor::Grad<Point>;
   using Hess = CustomFunctor::Hess<Point>;
-  // using Input = crhmc_input<MT, Point>;
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
@@ -107,49 +105,12 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   }
   RandomNumberGenerator rng(1);
   unsigned int dim = dimension;
-  /*
-    std::cerr << "Reading input from file..." << std::endl;
-    std::ifstream inp;
-    std::vector<std::vector<NT>> Pin;
-    inp.open("../../test/metabolic_full_dim/polytope_e_coli.ine",
-             std::ifstream::in);
-    read_pointset(inp, Pin);
-    Hpolytope Polytope(Pin);
-    dim = Polytope.dimension();
-  */
   Opts options;
-  if (dynamic_weight == 1) {
-    options.DynamicWeight = true;
-  } else {
-    options.DynamicWeight = false;
-  }
-  if (dynamic_regularization == 1) {
 
-    options.DynamicRegularizer = true;
-  } else {
-    options.DynamicRegularizer = false;
-  }
-  if (dynamic_step_size == 1) {
-    options.DynamicStepSize = true;
-  } else {
-    options.DynamicStepSize = false;
-  }
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
-  // MT A = MT::Ones(5, dim);
-  // A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  // VT b = 10 * VT::Ones(5, 1);
-  Hpolytope Polytope = generate_cross<Hpolytope>(dim, false);
-  MT A = Polytope.get_mat();
-  VT b = Polytope.get_vec();
-  //  std::cerr<<"A.rows============== " << A.rows()<<"\n";
-  // std::cerr<<"A=\n"<<A<<"\n";
-  // std::cerr<<"b=\n"<<b.transpose()<<"\n";
-
   Input input = Input(dim, f, g, h);
-  input.Aineq = A;
-  input.bineq = b;
-  // input.lb = -VT::Ones(dim);
-  // input.ub = VT::Ones(dim);
+  input.lb = -VT::Ones(dim);
+  input.ub = VT::Ones(dim);
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   Point x0 = Point(P.center);
@@ -231,18 +192,5 @@ int main(int argc, char *argv[]) {
   else if (argc == 5)
     run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
                      atoi(argv[4]));
-  else if (argc == 6)
-    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                     atoi(argv[5]));
-  else if (argc == 7)
-    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                     atoi(argv[5]), atoi(argv[6]));
-  else if (argc == 8)
-    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                     atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
-  else if (argc == 9)
-    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                     atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
-                     atoi(argv[8]));
   return 0;
 }
