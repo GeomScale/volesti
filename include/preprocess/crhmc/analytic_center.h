@@ -57,9 +57,9 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope 
   VT lambda = VT::Zero(n, 1);
   int fullStep = 0;
   NT tConst = 0;
-  NT primalErr = std::numeric_limits<NT>::infinity();
-  NT dualErr = std::numeric_limits<NT>::infinity();
-  NT primalErrMin = std::numeric_limits<NT>::infinity();
+  NT primalErr = std::numeric_limits<NT>::max();
+  NT dualErr = std::numeric_limits<NT>::max();
+  NT primalErrMin = std::numeric_limits<NT>::max();
   NT primalFactor = 1;
   NT dualFactor = 1 + b.norm();
   std::vector<int> idx;
@@ -77,10 +77,10 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope 
     VT rs = b - A * x;
 
     // check stagnation
-    NT primalErrMin = std::min(primalErr, primalErrMin);
-    NT primalErr = rx.norm() / primalFactor;
+    primalErrMin = std::min(primalErr, primalErrMin);
+    primalErr = rx.norm() / primalFactor;
     NT dualErrLast = dualErr;
-    NT dualErr = rs.norm() / dualFactor;
+    dualErr = rs.norm() / dualFactor;
     bool feasible = f.barrier.feasible(x);
     //Compare the dual and primal error to the last and minimum so far
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
@@ -131,7 +131,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope 
     {
       //do some more fullStep
       fullStep = fullStep + 1;
-      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > 8)
+      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > options.min_convergence_steps)
       {
         break;
       }
