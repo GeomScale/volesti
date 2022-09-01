@@ -428,7 +428,7 @@ public:
     // Using LDLT decomposition to check membership
     // Faster than computing the largest eigenvalue with Spectra 
     // more numerically stable for singular matrices
-    bool isPositiveSemidefinite(MT const &A) {
+    bool isPositiveSemidefinite(MT const &A) const {
         Eigen::LDLT<MT> A_ldlt(A);
         if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
             return true;
@@ -440,7 +440,7 @@ public:
     /// \param[in] A: symmetric positive definite matrix
     /// \param[in] B: symmetric matrix
     /// \return The minimum positive eigenvalue and the corresponding eigenvector
-    NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) {
+    NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) const {
         NT lambdaMinPositive = NT(0);
         Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A);
         lambdaMinPositive = 1/ges.eigenvalues().reverse()[0];
