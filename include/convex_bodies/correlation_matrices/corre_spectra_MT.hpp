@@ -132,13 +132,8 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
     {
-        // NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
-        // NT neg_inter = positiveLinearIntersection(r.getCoefficients(), NT(-1)*v.getCoefficients());
-
-        // return std::make_pair(pos_inter, neg_inter);
         return this->EigenvaluesProblem.symGeneralizedProblem(-r.mat, -v.mat);
     }
 
@@ -163,19 +158,18 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
     /// Test if a point p is in the spectrahedron
     /// \param p is the current point
     /// \return true if position is outside the spectrahedron
-    int is_in(PointType const& p, NT tol=NT(0)) {
+    int is_in(PointType const& p, NT tol=NT(0)) const{
         if(this->EigenvaluesProblem.isPositiveSemidefinite(p.mat)){
             return -1;
         }
         return 0;
     }
 
-    bool isExterior(MT const& mat) {
+    bool isExterior(MT const& mat) const{
         return !this->EigenvaluesProblem.isPositiveSemidefinite(mat);
     }
 
-    MT get_mat() const
-    {
+    MT get_mat() const{
         return MT::Identity(this->d, this->d);
     }
 };

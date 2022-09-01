@@ -27,6 +27,16 @@ class CorreMatrix{
         this->mat = mat;
     }
 
+    CorreMatrix(VT const& coeffs, unsigned int n){
+        this->mat = MT::Identity(n,n);
+        int ind = 0;
+        for(int i = 0; i < n; ++i){
+            for(int j = 0; j < i; ++j){
+                this->mat(i,j) = coeffs(ind++);
+            }
+        }
+    }
+
     int dimension() const {
         int n = this->mat.rows();
         return n*(n-1)/2;

@@ -75,7 +75,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     /// Build a correlation matrix from a vector of entries
     /// \param[in] vector of coefficients
     /// \param[in] the matrix to be assigned
-    void buildMatrix(const VT &pvector, unsigned int const n, MT & mat){
+    void buildMatrix(const VT &pvector, unsigned int const n, MT & mat) const{
         NT coeff;
         int i, j, ind = 0;
         for(i = 0; i < n ; ++i){
@@ -200,9 +200,8 @@ class CorreSpectra : public Spectrahedron<Point> {
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
-    {
+    {        
         createMatricesForPositiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return this->EigenvaluesProblem.symGeneralizedProblem(_precomputedValues.A, _precomputedValues.B);
     }
@@ -245,24 +244,22 @@ class CorreSpectra : public Spectrahedron<Point> {
     /// Test if a point p is in the spectrahedron
     /// \param p is the current point
     /// \return true if position is outside the spectrahedron
-    int is_in(PointType const& p, NT tol=NT(0)){
+    int is_in(PointType const& p, NT tol=NT(0)) const{
         if(isExterior(p.getCoefficients())) return 0;
         return -1;
     }
 
-    bool isExterior(VT const& pos){
-        if(!_precomputedValues.computed_A){
-            buildMatrix(pos, n, _precomputedValues.A);
-        }
-        return isExterior(_precomputedValues.A);
+    bool isExterior(VT const& pos) const{ 
+        MT mat = MT(n, n);
+        buildMatrix(pos, n, mat);
+        return isExterior(mat);
     }
 
-    bool isExterior(MT const& mat){
+    bool isExterior(MT const& mat) const{
         return !this->EigenvaluesProblem.isPositiveSemidefinite(-mat);
     }
 
-    MT get_mat() const
-    {
+    MT get_mat() const{
         return MT::Identity(this->d, this->d);
     }
 };
