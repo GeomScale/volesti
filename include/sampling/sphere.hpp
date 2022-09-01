@@ -27,15 +27,20 @@ struct GetDirection
         Point p(dim);
         NT* data = p.pointerToData();
 
-        for (unsigned int i=0; i<dim; ++i)
-        {
-            *data = rng.sample_ndist();
-            normal += *data * *data;
-            data++;
+        if (normalize){
+            for (unsigned int i=0; i<dim; ++i){
+                *data = rng.sample_ndist();
+                normal += *data * *data;
+                data++;
+            }
+            normal = NT(1)/std::sqrt(normal);
+            p *= normal;
+        }else{
+            for (unsigned int i=0; i<dim; ++i){
+                *data = rng.sample_ndist();
+                data++;
+            }
         }
-
-        normal = NT(1)/std::sqrt(normal);
-        if (normalize) p *= normal;
 
         return p;
     }
@@ -58,16 +63,25 @@ struct GetDirection<CorreMatrix<NT>>
         NT normal = NT(0), coeff;
 
         int i, j;
-        for(i = 0; i < n ; ++i){
-            for(j = 0; j < i; ++j){
-                coeff = rng.sample_ndist();
-                mat(i,j) = coeff;
-                normal +=  coeff * coeff;
+        if(normalize){
+            for(i = 0; i < n ; ++i){
+                for(j = 0; j < i; ++j){
+                    coeff = rng.sample_ndist();
+                    mat(i,j) = coeff;
+                    normal +=  coeff * coeff;
+                }
+            }
+            normal = NT(1)/std::sqrt(normal);
+            mat *= normal;
+        }else{
+            for(i = 0; i < n ; ++i){
+                for(j = 0; j < i; ++j){
+                    coeff = rng.sample_ndist();
+                    mat(i,j) = coeff;
+                }
             }
         }
-
-        normal = NT(1)/std::sqrt(normal);
-        if (normalize) mat *= normal;
+        
         return CorreMatrix<NT>(mat);
     }
 };
