@@ -7,8 +7,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef VOLUME_COOLING_GAUSSIANS_HPP
-#define VOLUME_COOLING_GAUSSIANS_HPP
+#ifndef VOLUME_COOLING_GAUSSIANS_GENERAL_MASS_MATRIX_HPP
+#define VOLUME_COOLING_GAUSSIANS_GENERAL_MASS_MATRIX_HPP
 
 //#define VOLESTI_DEBUG
 
@@ -25,39 +25,9 @@
 #include "random_walks/gaussian_hamiltonian_monte_carlo_exact_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
 #include "Eigen/Eigen"
 
-
-/////////////////// Helpers for random walks
-
-template <typename WalkType>
-struct update_delta
-{
-    template <typename NT>
-    static void apply(WalkType, NT) {}
-};
-
-template <typename Polytope, typename RandomNumberGenerator>
-struct update_delta<GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator>>
-{
-    template <typename NT>
-    static void apply(GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator> & walk,
-                      NT delta)
-    {
-        walk.update_delta(delta);
-    }
-};
-
-template <typename Polytope, typename RandomNumberGenerator>
-struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
-{
-    template <typename NT>
-    static void apply(GaussianBallWalk::Walk<Polytope, RandomNumberGenerator> & walk,
-                      NT delta)
-    {
-        walk.update_delta(delta);
-    }
-};
 
 
 ////////////////////////////// Algorithms
@@ -68,128 +38,6 @@ struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
 
-// Compute the first variance a_0 for the starting gaussian
-template <typename Polytope, typename NT>
-void get_first_gaussian(Polytope const& P,
-                        NT const& frac,
-                        NT const& chebychev_radius,
-                        NT const& error,
-                        std::vector<NT> & a_vals)
-{
-    // if tol is smaller than 1e-6 no convergence can be obtained when float is used
-    NT tol = std::is_same<float, NT>::value ? 0.001 : 0.0000001;
-
-    std::vector <NT> dists = P.get_dists(chebychev_radius);
-    NT lower = 0.0;
-    NT upper = 1.0;
-
-    // Compute an upper bound for a_0
-    unsigned int i;
-    const unsigned int maxiter = 10000;
-    for (i= 1; i <= maxiter; ++i) {
-        NT sum = 0.0;
-        for (auto it = dists.begin(); it != dists.end(); ++it)
-        {
-            sum += std::exp(-upper * std::pow(*it, 2.0))
-                    / (2.0 * (*it) * std::sqrt(M_PI * upper));
-        }
-
-        if (sum > frac * error)
-        {
-            upper = upper * 10;
-        } else {
-            break;
-        }
-    }
-
-    if (i == maxiter) {
-#ifdef VOLESTI_DEBUG
-        std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
-#endif
-        return;
-    }
-
-    //get a_0 with binary search
-    while (upper - lower > tol)
-    {
-        NT mid = (upper + lower) / 2.0;
-        NT sum = 0.0;
-        for (auto it = dists.begin(); it != dists.end(); ++it) {
-            sum += std::exp(-mid * std::pow(*it, 2.0))
-                    / (2.0 * (*it) * std::sqrt(M_PI * mid));
-        }
-
-        if (sum < frac * error) {
-            upper = mid;
-        } else {
-            lower = mid;
-        }
-    }
-    a_vals.push_back((upper + lower) / NT(2.0));
-}
-
-
-// Compute a_{i+1} when a_i is given
-template
-<
-    typename RandomPointGenerator,
-    typename Polytope,
-    typename Point,
-    typename NT,
-    typename RandomNumberGenerator
->
-NT get_next_gaussian(Polytope const& P,
-                     Point &p,
-                     NT const& a,
-                     const unsigned int &N,
-                     const NT &ratio,
-                     const NT &C,
-                     const unsigned int& walk_length,
-                     RandomNumberGenerator& rng)
-{
-
-    NT last_a = a;
-    NT last_ratio = 0.1;
-    //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
-    NT k = 1.0;
-    const NT tol = 0.00001;
-    bool done=false;
-    std::vector<NT> fn(N,NT(0.0));
-    std::list<Point> randPoints;
-    typedef typename std::vector<NT>::iterator viterator;
-
-    //sample N points
-    PushBackWalkPolicy push_back_policy;
-    RandomPointGenerator::apply(P, p, last_a, N, walk_length, randPoints,
-                                push_back_policy, rng);
-
-    while (!done)
-    {
-        NT new_a = last_a * std::pow(ratio,k);
-
-        auto fnit = fn.begin();
-        for (auto pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++)
-        {
-            *fnit = eval_exp(*pit, new_a)/eval_exp(*pit, last_a);
-        }
-        std::pair<NT, NT> mv = get_mean_variance(fn);
-
-        // Compute a_{i+1}
-        if (mv.second/(mv.first * mv.first)>=C || mv.first/last_ratio<1.0+tol)
-        {
-            if (k != 1.0)
-            {
-                k = k / 2;
-            }
-            done = true;
-        } else {
-            k = 2 * k;
-        }
-        last_ratio = mv.first;
-    }
-    return last_a * std::pow(ratio, k);
-}
-
 // Compute the sequence of spherical gaussians
 template
 <
@@ -199,7 +47,7 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-void compute_annealing_schedule(Polytope const& P,
+void compute_general_annealing_schedule(Polytope const& P,
                                 NT const& ratio,
                                 NT const& C,
                                 NT const& frac,
@@ -299,24 +147,6 @@ void compute_annealing_schedule(Polytope const& P,
     }
 }
 
-template <typename NT>
-struct gaussian_annealing_parameters
-{
-    gaussian_annealing_parameters(unsigned int d)
-        :   frac(0.1)
-        ,   ratio(NT(1)-NT(1)/(NT(d)))
-        ,   C(NT(2))
-        ,   N(500 * ((int) C) + ((int) (d * d / 2)))
-        ,   W(6*d*d+800)
-    {}
-
-    NT frac;
-    NT ratio;
-    NT C;
-    unsigned int N;
-    unsigned int W;
-};
-
 template
 <
     typename WalkTypePolicy,
@@ -324,7 +154,7 @@ template
     typename RandomNumberGenerator
 
 >
-double volume_cooling_gaussians(Polytope const& Pin,
+double volume_general_cooling_gaussians(Polytope const& Pin,
                                 RandomNumberGenerator& rng,
                                 double const& error = 0.1,
                                 unsigned int const& walk_length = 1)
@@ -371,7 +201,7 @@ double volume_cooling_gaussians(Polytope const& Pin,
     unsigned int N = parameters.N;
     Eigen::MatrixXd covar(n, n);
 
-    compute_annealing_schedule
+    compute_general_annealing_schedule
     <
         WalkType,
         RandomPointGenerator
@@ -498,12 +328,12 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
-double volume_cooling_gaussians(Polytope &Pin,
+double volume_general_cooling_gaussians(Polytope &Pin,
                                  double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
 {
     RandomNumberGenerator rng(Pin.dimension());
-    return volume_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
+    return volume_general_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
 }
 
 
@@ -513,7 +343,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
-double volume_cooling_gaussians(Polytope &Pin,
+double volume_general_cooling_gaussians(Polytope &Pin,
                                 Cartesian<double>::Point const& interior_point,
                                 unsigned int const& walk_length = 1,
                                 double const& error = 0.1)
@@ -521,8 +351,8 @@ double volume_cooling_gaussians(Polytope &Pin,
     RandomNumberGenerator rng(Pin.dimension());
     Pin.set_interior_point(interior_point);
     
-    return volume_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
+    return volume_general_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
 }
 
 
-#endif // VOLUME_COOLING_GAUSSIANS_HPP
+#endif // VOLUME_COOLING_GAUSSIANS_GENERAL_MASS_MATRIX_HPP
