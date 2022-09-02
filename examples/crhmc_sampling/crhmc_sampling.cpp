@@ -79,7 +79,7 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   MT samples = MT(dim, n_samples - n_burns);
 #ifdef TIME_KEEPING
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-  start = std::chrono::system_clock::now();
+  start = std::chrono::high_resolution_clock::now();
 #endif
 #ifdef TIME_KEEPING
   std::chrono::time_point<std::chrono::high_resolution_clock> start_file,
@@ -96,7 +96,7 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
       crhmc.apply(rng, walk_length, true);
     }
 #ifdef TIME_KEEPING
-    start_file = std::chrono::system_clock::now();
+    start_file = std::chrono::high_resolution_clock::now();
 #endif
     if (i >= n_burns) {
       VT sample = crhmc.getPoint().getCoefficients();
@@ -104,13 +104,13 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
       j++;
     }
 #ifdef TIME_KEEPING
-    end_file = std::chrono::system_clock::now();
+    end_file = std::chrono::high_resolution_clock::now();
     total_time_file += end_file - start_file;
 #endif
   }
   std::cerr << "\n";
 #ifdef TIME_KEEPING
-  end = std::chrono::system_clock::now();
+  end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> total_time = end - start;
   std::cerr << "Total time: " << total_time.count() << "\n";
   crhmc.print_timing_information();
@@ -122,12 +122,12 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
             << crhmc.average_acceptance_prob << std::endl;
   std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
 #ifdef TIME_KEEPING
-  start_file = std::chrono::system_clock::now();
+  start_file = std::chrono::high_resolution_clock::now();
 #endif
   std::cerr << "Writing samples in a file \n";
   std::cout << samples.transpose() << std::endl;
 #ifdef TIME_KEEPING
-  end_file = std::chrono::system_clock::now();
+  end_file = std::chrono::high_resolution_clock::now();
   total_time_file += end_file - start_file;
   std::cerr << "Time for writing the file: " << total_time_file.count() << "\n";
 #endif
