@@ -50,6 +50,8 @@ struct Walk
     {
         _Len = compute_diameter<GenericPolytope>::template compute<NT>(P);
         _step = NT(0.05);
+        _astep = a * _step;
+        num_leaps = ceil(_Len / _step);
         _rho = 100 * P.dimension();
         initialize(P, p, a, rng);
     }
@@ -64,34 +66,32 @@ struct Walk
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
-        unsigned int n = P.dimension(), num_leaps = ceil(_Len / _step);
+        unsigned int n = P.dimension();
         NT T, h1, h2, u, diff;
         Point p0 = p;
-
-        h1 = Hamiltonian(_p, _v, a);
 
         for(int i = 0; i < walk_length; ++i){
             T = _step;
             _v = GetDirection<Point>::apply(n, rng, false);
             _p = p0;
-            
+            h1 = Hamiltonian(_p, _v, a);
             for(int j = 0; j < num_leaps; ++j){   
-                _v -= (_step * a) * _p;
+                _v -= _astep * _p;
 
-                while(true){   
+                while(true){
                     auto pbpair = P.line_positive_intersect(_p, _v);
+                    
                     if (T <= pbpair.first){
                         _p += T * _v;
                         break;
                     }
-                    
                     _lambda_prev = 0.995 * pbpair.first;
                     _p += _lambda_prev * _v;
                     T -= _lambda_prev;
                     
                     P.compute_reflection(_v, _p, pbpair.second);
                 }
-                _v -= (_step * a) * _p;
+                _v -= _astep * _p;
             }
             h2 = Hamiltonian(_p, _v, a);
             diff = h1 - h2 < 0 ? h1 - h2 : 0;
@@ -104,10 +104,6 @@ struct Walk
         p = p0;
     }
 
-    inline NT Hamiltonian(Point &p, Point &v, NT a){
-        return a * p.squared_length() + 0.5 * v.squared_length();
-    }
-
     inline void update_delta(NT L)
     {
         _Len = L;
@@ -115,6 +111,10 @@ struct Walk
 
 
 private :
+
+    inline NT Hamiltonian(Point &p, Point &v, NT a){
+        return a * p.squared_length() + 0.5 * v.squared_length();
+    }
 
     template
     <
@@ -126,14 +126,12 @@ private :
                            RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension(), it;
-        NT T = rng.sample_urdist() * _Len;
-        unsigned int num_leaps = ceil(T / _step);
-
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
-
+        NT T = _step;
+        
         for(int j = 0; j < num_leaps; ++j){            
-            _v -= (_step * a) * _p;
+            _v -= _astep * _p;
 
             it = 0;
             while(it <= _rho){   
@@ -152,17 +150,19 @@ private :
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-            _v -= (_step * a) * _p;
+            _v -= _astep * _p;
         }
         p = _p;
     }
 
     NT _Len;
     NT _step;
+    NT _astep;
     Point _p;
     Point _v;
     NT _lambda_prev;
     unsigned int _rho;
+    unsigned int num_leaps;
 };
 
 };
