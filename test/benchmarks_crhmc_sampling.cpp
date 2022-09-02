@@ -14,19 +14,19 @@
 // Riemannian Hamiltonian
 // Monte Carlo in a Constrained Space"
 #include "Eigen/Eigen"
-#include "diagnostics/diagnostics.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
+#include "diagnostics/diagnostics.hpp"
 #include "generators/known_polytope_generators.h"
+#include "misc/misc.h"
 #include "ode_solvers.hpp"
+#include "preprocess/crhmc/crhmc_input.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 #include "random.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_int.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
-#include "misc/misc.h"
-#include "preprocess/crhmc/crhmc_input.h"
-#include "preprocess/crhmc/crhmc_problem.h"
 #include <assert.h>
 #include <chrono>
 #include <fstream>
@@ -136,8 +136,7 @@ using func_params = GaussianFunctor::parameters<NT, Point>;
 using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
 using CrhmcProblem = crhmc_problem<Point, Input>;
 using Opts = opts<NT>;
-using Solver =
-    ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
+using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
 using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
 
 inline bool exists_check(const std::string &name) {
@@ -158,9 +157,10 @@ NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
 }
 
 std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
-    Hpolytope &P, NT eta = NT(-1), unsigned int walk_length = 1, double target_time=std::numeric_limits<NT>::max(),
-    bool rounding = false, bool centered = false,
-    unsigned int max_draws = 80000, unsigned int num_burns = 20000) {
+    Hpolytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
+    double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
+    bool centered = false, unsigned int max_draws = 80000,
+    unsigned int num_burns = 20000) {
 
   SimulationStats<NT> rdhr_stats;
   SimulationStats<NT> crhmc_stats;
@@ -202,16 +202,15 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
   Opts options;
-  CRHMCWalk::parameters<NT, Grad> crhmc_params(F, dim,
-                                                                  options);
+  CRHMCWalk::parameters<NT, Grad> crhmc_params(F, dim, options);
   Input input = Input(P.dimension(), f, F, H);
   input.Aineq = P.get_mat();
   input.bineq = P.get_vec();
 
   CrhmcProblem crhmc_problem = CrhmcProblem(input);
   Point x_start(crhmc_problem.center);
-  CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator,
-                  Grad, Func, Solver>
+  CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator, Grad, Func,
+                  Solver>
       crhmc(crhmc_problem, x_start, F, f, crhmc_params);
 
   min_ess = 0;
@@ -249,14 +248,15 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
             .count();
 
   std::cout << std::endl;
-  #ifdef TIME_KEEPING
-    std::chrono::duration<double> total_time = stop - start;
-    std::cerr << "Total time: " << total_time.count() << "\n";
-    assert(total_time.count() < target_time);
-    std::cout << "Assertion (preparation_time< "<<target_time <<" secs) passed!" << std::endl
-              << std::endl;
-    crhmc.print_timing_information();
-  #endif
+#ifdef TIME_KEEPING
+  std::chrono::duration<double> total_time = stop - start;
+  std::cerr << "Total time: " << total_time.count() << "\n";
+  assert(total_time.count() < target_time);
+  std::cout << "Assertion (preparation_time< " << target_time
+            << " secs) passed!" << std::endl
+            << std::endl;
+  crhmc.print_timing_information();
+#endif
   print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
   std::cout << "min ess " << min_ess << "us" << std::endl;
   std::cout << "Average time per sample: " << ETA / max_actual_draws << "us"
@@ -267,9 +267,9 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   std::cout << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cout << "Average Acceptance Probability: "
             << crhmc.average_acceptance_prob << std::endl;
-  std::cout << std::endl;
-
   max_psrf = check_interval_psrf(samples);
+  std::cout << "max_psrf: " << max_psrf << std::endl;
+  std::cout << std::endl;
 
   crhmc_stats.method = "CRHMC";
   crhmc_stats.walk_length = walk_length;
@@ -283,8 +283,9 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   return std::vector<SimulationStats<NT>>{rdhr_stats, crhmc_stats};
 }
 
-void test_benchmark_polytope(Hpolytope &P, std::string &name, bool centered,
-                        int walk_length = 1,double target_time=std::numeric_limits<NT>::max()) {
+void test_benchmark_polytope(
+    Hpolytope &P, std::string &name, bool centered,
+    double target_time = std::numeric_limits<NT>::max(), int walk_length = 1) {
   std::cout << "CRHMC polytope preparation for " << name << std::endl;
   std::vector<SimulationStats<NT>> results;
   NT step_size = 0;
@@ -295,7 +296,8 @@ void test_benchmark_polytope(Hpolytope &P, std::string &name, bool centered,
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling(P, step_size, walk_length, target_time, false, centered);
+  results = benchmark_polytope_sampling(P, step_size, walk_length, target_time,
+                                        false, centered);
   outfile << results[0];
   outfile << results[1];
 
@@ -308,42 +310,47 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
     std::string name = "100_skinny_cube";
     bool centered = false;
-    benchmark_polytope(P, name, false);
+    double target_time=20; //secs
+    test_benchmark_polytope(P, name, false, target_time);
   }
 
   {
     Hpolytope P = generate_cross<Hpolytope>(5, false);
     std::string name = "5_cross";
     bool centered = false;
-    test_benchmark_polytope(P, name, centered);
+    double target_time=10; //secs
+    test_benchmark_polytope(P, name, centered, target_time);
   }
 
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
-    test_benchmark_polytope(P, name, centered);
+    double target_time=15; //secs
+    test_benchmark_polytope(P, name, centered, target_time);
   }
 
   {
     Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
     std::string name = "50_prod_simplex";
     bool centered = false;
-    test_benchmark_polytope(P, name, centered);
+    double target_time=15; //secs
+    test_benchmark_polytope(P, name, centered, target_time);
   }
 
   {
     Hpolytope P = generate_birkhoff<Hpolytope>(10);
     std::string name = "10_birkhoff";
     bool centered = false;
-    test_benchmark_polytope(P, name, centered);
+    double target_time=15; //secs
+    test_benchmark_polytope(P, name, centered, target_time);
   }
 
-  if (exists_check("netlib/afiro.ine")) {
-    Hpolytope P = read_polytope<Hpolytope, NT>("netlib/afiro.ine");
+  if (exists_check("../netlib/afiro.ine")) {
+    Hpolytope P = read_polytope<Hpolytope, NT>("../netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
-    test_benchmark_polytope(P, name, centered, 4);
+    test_benchmark_polytope(P, name, centered);
   }
 
   if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
