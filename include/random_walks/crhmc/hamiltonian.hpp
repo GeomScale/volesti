@@ -50,6 +50,7 @@ public:
   VT fx;
   int n;
   int m;
+  int num_runs=0;
   Barrier *barrier;
   WeightedBarrier *weighted_barrier;
   Opts &options;
@@ -189,7 +190,12 @@ public:
     {
       prepare(x_bar);
       solver.leverageScoreComplement((Tx *)lsc.data());
+      if(num_runs<10){
+        std::cerr<<"--------lsc----------\n";
+        std::cerr<<lsc<<"\n";
+        std::cerr<<"---------------endlsc\n";
 
+      }
       if (options.DynamicWeight)
       {
         last_dUdx = -(weighted_barrier->tensor(x).cwiseProduct(lsc))
@@ -218,6 +224,17 @@ public:
     x = xs[0];
     MT h;
     std::tie(fx, dfx, h) = P.f_oracle(x);
+    num_runs++;
+    if(num_runs<10){
+      std::cerr<<"--------fx----------\n";
+      std::cerr<<fx<<"\n";
+      std::cerr<<"--------dfx----------\n";
+      std::cerr<<dfx<<"\n";
+      std::cerr<<"--------h----------\n";
+      std::cerr<<h<<"\n";
+      std::cerr<<"--------end----------\n";
+
+    }
     if (options.DynamicWeight)
     {
       hess = weighted_barrier->hessian(x) + h;

@@ -86,7 +86,7 @@ struct ImplicitMidpointODESolver {
                             Opts &user_options)
       : eta(step), t(initial_time), xs(initial_state), F(oracle), P(boundaries),
         options(user_options), ham(hamiltonian(boundaries)) {
-    dim = xs[0].cols();
+    dim = xs[0].rows();
   };
 
   void step(int k, bool accepted) {
@@ -95,12 +95,20 @@ struct ImplicitMidpointODESolver {
 #ifdef TIME_KEEPING
     start = std::chrono::system_clock::now();
 #endif
+if(num_runs<10){
+std::cerr<<"---states------------\n";
+std::cerr<< xs[0]<<"\n";
+std::cerr<<"----------------------------\n";
+std::cerr<< xs[1]<<"\n";
+std::cerr<<"------------end------------\n";
+}
 partialDerivatives = ham.DU(xs);
     if(num_runs<10){
     std::cerr<<"partialDerivatives\n";
     std::cerr<< partialDerivatives[0]<<"\n";
-    std::cerr<< partialDerivatives[1]<<"\n";
     std::cerr<<"----------------------------\n";
+    std::cerr<< partialDerivatives[1]<<"\n";
+    std::cerr<<"---------end----------\n";
   }
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
