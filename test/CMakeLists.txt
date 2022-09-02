@@ -4,6 +4,7 @@
 # Copyright (c) 2021 Vaibhav Thakkar
 
 # Contributed and/or modified by Vaibhav Thakkar
+# Contributed and/or modified by Ioannis Iakovidis
 # Licensed under GNU LGPL.3, see LICENCE file
 
 project( VolEsti )
@@ -208,7 +209,7 @@ else ()
   add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
   add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
   add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
-  
+
   add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
   add_test(NAME test_john COMMAND sampling_test -tc=john)
@@ -218,11 +219,23 @@ else ()
   add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
   add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
   add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-  
+
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
-  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+		set(QDSOURCES
+			../external/qd/bits.cc
+			../external/qd/c_dd.cc
+			../external/qd/c_qd.cc
+			../external/qd/dd_const.cc
+			../external/qd/dd_real.cc
+			../external/qd/fpu.cc
+			../external/qd/qd_const.cc
+			../external/qd/qd_real.cc
+			../external/qd/util.cc
+			)
+	add_library(QD_LIB ${QDSOURCES})
+  add_executable (ode_solvers_test  ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
   add_test(NAME ode_solvers_test_second_order
@@ -231,6 +244,12 @@ else ()
   add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
+
+	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
+
+	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
+	add_test(NAME crhmc_polytope_test_preparation
+	COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
@@ -299,6 +318,14 @@ else ()
   add_test(NAME logconcave_sampling_test_exponential_biomass_sampling
           COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
 
+
+	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+	add_test(NAME crhmc_sampling_test_crhmc
+					COMMAND crhmc_sampling_test -tc=crhmc)
+	add_test(NAME crhmc_sampling_test_benchmark_cube
+					COMMAND crhmc_sampling_test -tc=benchmark_crhmc_cube)
+	add_test(NAME crhmc_sampling_test_benchmark_polytopes
+					COMMAND crhmc_sampling_test -tc=benchmark_polytopes_sampling_crhmc)
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)
@@ -318,7 +345,10 @@ else ()
   add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
+	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
+	set_target_properties(benchmarks_crhmc
+                                PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
@@ -337,12 +367,15 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} QD_LIB  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
+	TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
 
 
 endif()
