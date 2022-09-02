@@ -52,14 +52,12 @@ void direct_uniform_sampling(int n, int num_points, int walkL, PointList &randPo
 }
 
 template <typename NT, typename WalkType, typename RNGType, typename Point, typename PointList>
-void direct_gaussian_sampling(int n, int num_points, int walkL, PointList &randPoints, int nburns){
+void direct_gaussian_sampling(int n, int num_points, int walkL, PointList &randPoints, NT a, int nburns){
 
     Spectrahedron<Point> spectra = prepare_input<NT, Point>(n);
     int d = spectra.dimension();
     Point p(d);
     RNGType rng(d);
-    NT variance = 1.0;
-    NT a = NT(1) / (NT(2) * variance);
 
     gaussian_sampling<WalkType>(randPoints, spectra, rng, walkL, num_points, a, p, nburns);
 }
