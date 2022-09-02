@@ -19,6 +19,7 @@
 #include "sos/barriers/WeightedTwoSidedBarrier.h"
 #include "PackedCSparse/PackedChol.h"
 #include <utility>
+#include "random_walks/eigen_utils.hpp"
 
 template <typename Polytope, typename Point, int simdLen>
 class Hamiltonian
@@ -183,15 +184,6 @@ public:
                    2;
     }
     return {dKdv, dKdx};
-  }
-  inline MT operator+(const MT &M, const VT v) {
-    return M.colwise()+v;
-  }
-  inline MT operator-(const MT &M, const VT v) {
-    return M.colwise()-v;
-  }
-  inline MT operator-( const VT v,const MT &M) {
-    return (-M).colwise()+v;
   }
   // Compute the partial derivatives of one term
   // This is only dependent on x and so DU/Dv=0
