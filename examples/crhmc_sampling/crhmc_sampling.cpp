@@ -110,14 +110,9 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   MT x0=MT(P.dimension(),simdLen);
-  x0<<P.center,P.center,P.center,P.center;
-  std::cerr<<"center"<<"\n";
-  std::cerr<<P.center<<"\n";
-  std::cerr<<"uno"<<"\n";
-  std::cerr<<MT::Ones(1,simdLen)<<"\n";
-  std::cerr<<"please"<<"\n";
-  std::cerr<<P.center*MT::Ones(1,simdLen)<<"\n";
-  std::cerr<<"x0= \n" << x0.transpose() << '\n';
+  //x0<<P.center,P.center,P.center,P.center;
+  x0=P.center*MT::Ones(1,simdLen);
+  std::cerr<<"x0= \n" << x0 << '\n'<< '\n';
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
   crhmc_params.eta = 0.2;
   crhmc_params.momentum = 0.8;
@@ -188,10 +183,7 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
 template void test_simdLen_sampling<double,4>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
 //template void test_simdLen_sampling<double,1>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
 int main(int argc, char *argv[]) {
-  std::cerr << "Example Usage: ./crhmc_sampling n_sample initial_burns "
-               "dimension ode_steps steps_bettween_samples\n";
-  std::cerr << "Example Usage: ./crhmc_sampling 10000 5000 "
-               "2 1 1\n";
+
   if (atoi(argv[1])==1){
     test_simdLen_sampling<double,1>();
   }

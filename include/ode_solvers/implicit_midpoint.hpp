@@ -72,7 +72,7 @@ struct ImplicitMidpointODESolver {
   VT nu;
 
   hamiltonian ham;
-
+  int num_runs=0;
   bool done;
 #ifdef TIME_KEEPING
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
@@ -90,11 +90,18 @@ struct ImplicitMidpointODESolver {
   };
 
   void step(int k, bool accepted) {
+    num_runs++;
     pts partialDerivatives;
 #ifdef TIME_KEEPING
     start = std::chrono::system_clock::now();
 #endif
-    partialDerivatives = ham.DU(xs);
+partialDerivatives = ham.DU(xs);
+    if(num_runs<10){
+    std::cerr<<"partialDerivatives\n";
+    std::cerr<< partialDerivatives[0]<<"\n";
+    std::cerr<< partialDerivatives[1]<<"\n";
+    std::cerr<<"----------------------------\n";
+  }
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
     DU_duration += end - start;

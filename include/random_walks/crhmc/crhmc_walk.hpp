@@ -146,16 +146,24 @@ struct CRHMCWalk {
     }
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
                       bool metropolis_filter = true) {
-      std::cerr<<"x=\n"<<x<<"\n";
+
       num_runs++;
       //  Pick a random velocity with momentum
       v = GetDirectionWithMomentum(dim, rng, x, v, params.momentum, false);
+      if(num_runs<10){
+        std::cerr<<"x=\n"<<x<<"\n";
+        std::cerr<<"v=\n"<<v<<"\n";
+      }
       solver->set_state(0, x);
       solver->set_state(1, v);
       // Get proposals
       solver->steps(walk_length, accepted);
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
+      if(num_runs<10){
+        std::cerr<<"x_tilde=\n"<<x_tilde<<"\n";
+        std::cerr<<"v_tilde=\n"<<v_tilde<<"\n";
+      }
 
       if (metropolis_filter) {
 #ifdef TIME_KEEPING
