@@ -331,7 +331,7 @@ inline bool exists_check(const std::string &name) {
 }
 
 template <typename NT, typename Point, typename HPolytope>
-void test_benchmark_polytope(HPolytope &P, std::string &name, bool centered,
+void test_sampling_polytope(HPolytope &P, std::string &name, bool centered,
                              int walk_length = 1) {
   NT step_size = 0;
   std::pair<Point, NT> inner_ball;
@@ -341,7 +341,7 @@ void test_benchmark_polytope(HPolytope &P, std::string &name, bool centered,
   step_size = inner_ball.second / 10;
   benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, false, centered);
 }
-template <typename NT> void call_test_benchmark_polytope() {
+template <typename NT> void call_test_sampling_polytope() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using Hpolytope = HPolytope<Point>;
@@ -351,35 +351,35 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
     std::string name = "100_skinny_cube";
     bool centered = false;
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, false);
+    test_sampling_polytope<NT, Point, Hpolytope>(P, name, false);
   }
 
   {
     Hpolytope P = generate_cross<Hpolytope>(5, false);
     std::string name = "5_cross";
     bool centered = false;
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
 
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
 
   {
     Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
     std::string name = "50_prod_simplex";
     bool centered = false;
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
 
   {
     Hpolytope P = generate_birkhoff<Hpolytope>(10);
     std::string name = "10_birkhoff";
     bool centered = false;
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
 
 }
@@ -484,5 +484,5 @@ TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
 TEST_CASE("test_polytope_sampling_crhmc") {
-  call_test_benchmark_polytope<double>();
+  call_test_sampling_polytope<double>();
 }
