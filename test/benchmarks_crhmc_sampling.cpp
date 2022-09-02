@@ -31,6 +31,15 @@
 #include <chrono>
 #include <fstream>
 #include "preprocess/svd_rounding.hpp"
+template <typename Polytope, typename NT>
+Polytope read_polytope(std::string filename) {
+  std::ifstream inp;
+  std::vector<std::vector<NT>> Pin;
+  inp.open(filename, std::ifstream::in);
+  read_pointset(inp, Pin);
+  Polytope P(Pin);
+  return P;
+}
 template <typename NT> struct SimulationStats {
   std::string method;
   unsigned int walk_length;
@@ -149,7 +158,7 @@ NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
 }
 
 std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
-    HPolytope &P, NT eta = NT(-1), unsigned int walk_length = 1, double target_time=std::numeric_limits<NT>::max(),
+    Hpolytope &P, NT eta = NT(-1), unsigned int walk_length = 1, double target_time=std::numeric_limits<NT>::max(),
     bool rounding = false, bool centered = false,
     unsigned int max_draws = 80000, unsigned int num_burns = 20000) {
 
@@ -241,8 +250,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::cout << std::endl;
   #ifdef TIME_KEEPING
-    end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> total_time = end - start;
+    std::chrono::duration<double> total_time = stop - start;
     std::cerr << "Total time: " << total_time.count() << "\n";
     assert(total_time.count() < target_time);
     std::cout << "Assertion (preparation_time< "<<target_time <<" secs) passed!" << std::endl
@@ -261,7 +269,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
             << crhmc.average_acceptance_prob << std::endl;
   std::cout << std::endl;
 
-  max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+  max_psrf = check_interval_psrf(samples);
 
   crhmc_stats.method = "CRHMC";
   crhmc_stats.walk_length = walk_length;
@@ -277,7 +285,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
 void test_benchmark_polytope(Hpolytope &P, std::string &name, bool centered,
                         int walk_length = 1,double target_time=std::numeric_limits<NT>::max()) {
-  std::cout << "CRHMC polytope preparation for " << fileName << std::endl;
+  std::cout << "CRHMC polytope preparation for " << name << std::endl;
   std::vector<SimulationStats<NT>> results;
   NT step_size = 0;
   std::pair<Point, NT> inner_ball;
@@ -287,8 +295,7 @@ void test_benchmark_polytope(Hpolytope &P, std::string &name, bool centered,
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling<NT, Hpolytope>(
-      P, step_size, walk_length, target_time, false, centered);
+  results = benchmark_polytope_sampling(P, step_size, walk_length, target_time, false, centered);
   outfile << results[0];
   outfile << results[1];
 
