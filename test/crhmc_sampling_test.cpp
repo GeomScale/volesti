@@ -495,5 +495,5 @@ TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
 TEST_CASE("benchmark_polytopes_sampling_crhmc") {
-  call_test_benchmark_polytopes<double>();
+  call_test_benchmark_polytope<double>();
 }
