@@ -196,7 +196,7 @@ public:
         std::cerr<<"------x--------------\n";
         std::cerr<<x<<"\n";
         std::cerr<<"------x--------------\n";
-        std::cerr<<barrier.ub-x.colwise()<<"\n";
+        std::cerr<<barrier->ub-x.colwise()<<"\n";
         std::cerr<<"------tensor--------------\n";
         std::cerr<< barrier->tensor(x)<<"\n";
         std::cerr<<"---------------end------------\n";
