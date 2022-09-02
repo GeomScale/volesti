@@ -68,8 +68,12 @@ public:
     {
       weighted_barrier =
           new WeightedBarrier(P.barrier.lb, P.barrier.ub, P.w_center);
+      weighted_barrier->extraHessian,resize(n,simdLen);
+      weighted_barrier->extraHessian=MT::Ones(n,simdLen)*options.regularization_factor;
     }
     barrier = &P.barrier;
+    barrier->extraHessian,resize(n,simdLen);
+    barrier->extraHessian=MT::Ones(n,simdLen)*options.regularization_factor;
   }
 
   // Compute H(x,v)
@@ -180,6 +184,15 @@ public:
     }
     return {dKdv, dKdx};
   }
+  inline MT operator+(const MT &M, const VT v) {
+    return M.colwise()+v;
+  }
+  inline MT operator-(const MT &M, const VT v) {
+    return M.colwise()-v;
+  }
+  inline MT operator-( const VT v,const MT &M) {
+    return (-M).colwise()+v;
+  }
   // Compute the partial derivatives of one term
   // This is only dependent on x and so DU/Dv=0
   pts DU(pts const &x_bar)
@@ -199,6 +212,8 @@ public:
         std::cerr<<barrier->ub-x.colwise()<<"\n";
         std::cerr<<"------b-x.col^2--------------\n";
         std::cerr<<(barrier->ub-x.colwise()).cwiseProduct(barrier->ub-x.colwise())<<"\n";
+        std::cerr<<"------b-x.col^2--------------\n";
+        std::cerr<<(barrier->ub-x).cwiseProduct(barrier->ub-x).cwiseInverse()+(x-barrier->lb).cwiseProduct(x-barrier->lb).cwiseInverse()+<<"\n";
         std::cerr<<"------tensor--------------\n";
         std::cerr<< barrier->tensor(x)<<"\n";
         std::cerr<<"---------------end------------\n";
@@ -255,7 +270,7 @@ public:
       std::cerr<<"----------barrier->hess-------------\n";
       std::cerr << barrier->hessian(x) << '\n';
       std::cerr<<"--------hess----------\n";
-      std::cerr<<h<<"\n";
+      std::cerr<<hess<<"\n";
       std::cerr<<"--------end----------\n";
     }
     forceUpdate = false;

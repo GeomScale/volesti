@@ -90,7 +90,7 @@ public:
     return d + extraHessian;
   }
   MT hessian(MT const &x){
-    MT d =((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseInverse() +
+    MT d = (((- x).colwise()+ub).cwiseProduct(((- x).colwise()+ub))).cwiseInverse() +
            ((x.colwise() - lb).cwiseProduct((x.colwise() - lb))).cwiseInverse();
     return d + extraHessian;
   }

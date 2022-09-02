@@ -38,7 +38,7 @@ public:
   bool DynamicWeight = false; //Enable the use of dynamic weights for each variable when sampling
   bool DynamicStepSize = false;  // Enable adaptive step size that avoids low acceptance probability
   bool DynamicRegularizer = false; //Enable the addition of a regularization term
-
+  NT regularization_factor=1e-20;
   /*Dynamic step choices*/
   Type warmUpStep = 10;
   Type maxConsecutiveBadStep = 10;
