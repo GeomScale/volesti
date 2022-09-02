@@ -129,12 +129,7 @@ struct CRHMCWalk {
     }
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x.getCoefficients() + P.y); }
-    inline void blendv(Point &x, Point &x_new, std::vector<bool> accepted) {
-      for (int i = 0; i < dim; i++) {
-        if (accepted[i])
-          x(i) = x_new(i);
-      }
-    }
+    
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
                       bool metropolis_filter = true) {
 

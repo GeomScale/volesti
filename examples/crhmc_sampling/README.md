@@ -1,5 +1,5 @@
 ## Constrained Riemannian Hamiltonian Monte Carlo for Polytopes
-This is an example that illustrates the simplification and preparation process.
+This is an example that illustrates sampling from the random walk for the hypercube.
 
 References:
 Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with Riemannian Hamiltonian
@@ -16,5 +16,5 @@ For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 
 ## Running:
 ```bash
- ./crhmc_prepare [file_path]
+ ./crhmc_sampling
 ```
