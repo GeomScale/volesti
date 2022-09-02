@@ -89,8 +89,13 @@ public:
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d + extraHessian;
   }
+  MT hessian(MT const &x){
+    MT d =((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseInverse() +
+           ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
+    return d + extraHessian;
+  }
   MT tensor(MT const &x) {
-    VT d = 2 * (((ub - x.colwise()).cwiseProduct((ub - x.colwise()))).cwiseProduct((ub - x.colwise())))
+    MT d = 2 * ((((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseProduct(((-x).colwise()+ub)))
                    .cwiseInverse() -
            2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb)))
                    .cwiseInverse();

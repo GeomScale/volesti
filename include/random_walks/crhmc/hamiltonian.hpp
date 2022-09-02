@@ -195,8 +195,10 @@ public:
         std::cerr<<lsc<<"\n";
         std::cerr<<"------x--------------\n";
         std::cerr<<x<<"\n";
-        std::cerr<<"------x--------------\n";
+        std::cerr<<"------b-x.col--------------\n";
         std::cerr<<barrier->ub-x.colwise()<<"\n";
+        std::cerr<<"------b-x.col^2--------------\n";
+        std::cerr<<(barrier->ub-x.colwise()).cwiseProduct(barrier->ub-x.colwise())<<"\n";
         std::cerr<<"------tensor--------------\n";
         std::cerr<< barrier->tensor(x)<<"\n";
         std::cerr<<"---------------end------------\n";
@@ -250,7 +252,7 @@ public:
       hess = barrier->hessian(x) + h;
     }
     if(num_runs<10){
-      std::cerr<<"--------------------------\n";
+      std::cerr<<"----------barrier->hess-------------\n";
       std::cerr << barrier->hessian(x) << '\n';
       std::cerr<<"--------hess----------\n";
       std::cerr<<h<<"\n";
