@@ -582,25 +582,6 @@ public:
 #endif
   }
 
-  /*Tansform the problem to the form Ax=b lb<=x<=ub*/
-  crhmc_problem(PolytopeType const &HP, Opts _options = Opts()) {
-    options = _options;
-    nP = HP.dimension();
-    int m = HP.num_of_hyperplanes();
-    int n = HP.dimension();
-
-    A.resize(m, n + m);
-    A << HP.get_mat(), MT::Identity(m, m);
-    b = HP.get_vec();
-    lb.resize(n + m, 1);
-    ub.resize(n + m, 1);
-    lb = VT(n + m);
-    lb << -VT::Ones(n) * inf, VT::Zero(m);
-    n = n + m;
-    ub = VT::Ones(n) * inf;
-    Asp.resize(m, n);
-    PreproccessProblem();
-  }
   // Gradient and hessian of for the analytic center
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     VT g, h;

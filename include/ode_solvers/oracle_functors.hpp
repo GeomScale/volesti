@@ -371,6 +371,24 @@ struct GaussianFunctor {
 
   };
 
+  template
+  <
+    typename Point
+  >
+  struct HessianFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    HessianFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (Point const& x) const {
+      return (2.0 * params.a) * Point::all_ones(x.dimension());
+    }
+
+  };
+
 };
 
 #endif

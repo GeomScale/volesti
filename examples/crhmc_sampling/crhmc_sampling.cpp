@@ -25,7 +25,6 @@
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "diagnostics/multivariate_psrf.hpp"
-#include "generators/known_polytope_generators.h"
 #include "ode_solvers/ode_solvers.hpp"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
@@ -34,69 +33,27 @@
 #include "random/uniform_int.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
-
-struct CustomFunctor {
-  // Custom Gaussian density
-  template <typename NT> struct parameters {
-    unsigned int order;
-    NT L;     // Lipschitz constant for gradient
-    NT m;     // Strong convexity constant
-    NT kappa; // Condition number
-    NT var = 1;
-    parameters() : L(4), m(4), kappa(1){};
-  };
-
-  template <typename Point> struct Grad {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
-    parameters<NT> &params;
-    Grad(parameters<NT> &params_) : params(params_){};
-    Point operator()(Point const &x) const {
-      Point y = -(1.0 / params.var) * x;
-      return y;
-    }
-  };
-  template <typename Point> struct Hess {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
-
-    parameters<NT> &params;
-    Hess(parameters<NT> &params_) : params(params_){};
-    Point operator()(Point const &x) const {
-      return (1.0 / params.var) * Point::all_ones(x.dimension());
-    }
-  };
-
-  template <typename Point> struct Func {
-    typedef typename Point::FT NT;
-    parameters<NT> &params;
-    Func(parameters<NT> &params_) : params(params_){};
-    NT operator()(Point const &x) const {
-      return (1.0 / params.var) * 0.5 * x.dot(x);
-    }
-  };
-};
+#include "ode_solvers/oracle_functors.hpp"
 
 template <typename NT>
 void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
               int walk_length = 1, int burn_steps = 1) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
-  using pts = std::vector<Point>;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
-  using Func = CustomFunctor::Func<Point>;
-  using Grad = CustomFunctor::Grad<Point>;
-  using Hess = CustomFunctor::Hess<Point>;
+  using Func = GaussianFunctor::FunctionFunctor<Point>;
+  using Grad = GaussianFunctor::GradientFunctor<Point>;
+  using Hess = GaussianFunctor::HessianFunctor<Point>;
+  using func_params=GaussianFunctor::parameters<NT, Point>;
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
   using Opts = opts<NT>;
   using Hpolytope = HPolytope<Point>;
 
-  CustomFunctor::parameters<NT> params;
-
+  func_params params = func_params(Point(dimension), 4, 1);
   Func f(params);
   Grad g(params);
   Hess h(params);

@@ -412,7 +412,7 @@ template <typename NT> void call_test_benchmark_polytopes() {
   }
 
   {
-    Hpolytope P = generate_cross<Hpolytope>(10, false);
+    Hpolytope P = generate_cross<Hpolytope>(5, false);
     std::string name = "5_cross";
     bool centered = false;
     benchmark_polytope<NT, Point, Hpolytope>(P, name, centered);
