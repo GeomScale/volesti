@@ -202,7 +202,7 @@ public:
         std::cerr<<"------b-x.col--------------\n";
         std::cerr<<(-x).colwise()+barrier->ub<<"\n";
         std::cerr<<"------b-x.col^2--------------\n";
-        std::cerr<<(barrier->ub-x.colwise()).cwiseProduct(barrier->ub-x.colwise())+(x.colwise()-barrier->lb).cwiseProduct(x.colwise()-barrier->lb)<<"\n";
+        std::cerr<<((-x).colwise()+barrier->ub).cwiseProduct((-x).colwise()+barrier->ub)+(x.colwise()-barrier->lb).cwiseProduct(x.colwise()-barrier->lb)<<"\n";
         std::cerr<<"------tensor--------------\n";
         std::cerr<< barrier->tensor(x)<<"\n";
         std::cerr<<"---------------end------------\n";
