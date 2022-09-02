@@ -274,7 +274,6 @@ void benchmark_polytope_sampling(
   NT ETA;
   NT max_psrf;
 
-  std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
   Opts options;
   CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,
                                                                   options);
@@ -308,7 +307,6 @@ void benchmark_polytope_sampling(
   std::cout << std::endl;
   std::cout << "Sampling" << std::endl;
 
-  start = std::chrono::high_resolution_clock::now();
   for (unsigned int i = 0; i < max_actual_draws; i++) {
     for (int k = 0; k < walk_length; k++) {
       crhmc.apply(rng, 1);
@@ -317,23 +315,14 @@ void benchmark_polytope_sampling(
     if (i % 1000 == 0 && i > 0)
       std::cout << ".";
   }
-  stop = std::chrono::high_resolution_clock::now();
-
-  ETA = (NT)std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
-            .count();
-
   std::cout << std::endl;
-  std::cout << "min ess " << min_ess << "us" << std::endl;
-  std::cout << "Average time per sample: " << ETA / max_actual_draws << "us"
-            << std::endl;
-  std::cout << "Average time per independent sample: " << ETA / min_ess << "us"
-            << std::endl;
   std::cout << "Step size (final): " << crhmc.solver->eta << std::endl;
   std::cout << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cout << "Average Acceptance Probability: "
             << crhmc.average_acceptance_prob << std::endl;
-  std::cout << std::endl;
   max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+  std::cout<<"max_psrf: "<<max_psrf<<std::endl;
+  std::cout << std::endl;
 
 }
 inline bool exists_check(const std::string &name) {
@@ -494,6 +483,6 @@ TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 
 TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
-TEST_CASE("benchmark_polytopes_sampling_crhmc") {
+TEST_CASE("test_polytope_sampling_crhmc") {
   call_test_benchmark_polytope<double>();
 }
