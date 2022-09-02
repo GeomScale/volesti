@@ -351,7 +351,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "afiro";
     bool centered = true;
     double target_time=100; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, total_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
   if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
@@ -360,7 +360,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "e_coli";
     bool centered = true;
     double target_time=600; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, total_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 }
 
