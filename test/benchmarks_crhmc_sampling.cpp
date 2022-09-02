@@ -123,27 +123,12 @@ struct InnerBallFunctor {
     }
   };
 };
-using NT = double;
-using Kernel = Cartesian<NT>;
-using Point = typename Kernel::Point;
-using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-using Hpolytope = HPolytope<Point>;
-using Func = InnerBallFunctor::FunctionFunctor<Point>;
-using Grad = InnerBallFunctor::GradientFunctor<Point>;
-using Hess = InnerBallFunctor::Hess<Point>;
-using func_params = GaussianFunctor::parameters<NT, Point>;
-using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
-using CrhmcProblem = crhmc_problem<Point, Input>;
-using Opts = opts<NT>;
-using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
-using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
 
 inline bool exists_check(const std::string &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
-
+template <typename NT, typename VT, typename MT>
 NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
   NT max_psrf = NT(0);
   VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
@@ -155,12 +140,24 @@ NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
   }
   return max_psrf;
 }
-
+template <typename NT, typename Polytope>
 std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
-    Hpolytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
+    Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
     bool centered = false, unsigned int max_draws = 80000,
     unsigned int num_burns = 20000) {
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using MT = typename Polytope::MT;
+  using VT = typename Polytope::VT;
+  using Func = InnerBallFunctor::FunctionFunctor<Point>;
+  using Grad = InnerBallFunctor::GradientFunctor<Point>;
+  using Hess = InnerBallFunctor::Hess<Point>;
+  using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
+  using Opts = opts<NT>;
+  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
+  using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
 
   SimulationStats<NT> rdhr_stats;
   SimulationStats<NT> crhmc_stats;
@@ -267,7 +264,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   std::cout << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   std::cout << "Average Acceptance Probability: "
             << crhmc.average_acceptance_prob << std::endl;
-  max_psrf = check_interval_psrf(samples);
+  max_psrf = check_interval_psrf<NT, VT, MT>(samples);
   std::cout << "max_psrf: " << max_psrf << std::endl;
   std::cout << std::endl;
 
@@ -283,8 +280,9 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   return std::vector<SimulationStats<NT>>{rdhr_stats, crhmc_stats};
 }
 
+template <typename NT, typename Point, typename HPolytope>
 void test_benchmark_polytope(
-    Hpolytope &P, std::string &name, bool centered,
+    HPolytope &P, std::string &name, bool centered,
     double target_time = std::numeric_limits<NT>::max(), int walk_length = 1) {
   std::cout << "CRHMC polytope preparation for " << name << std::endl;
   std::vector<SimulationStats<NT>> results;
@@ -296,7 +294,7 @@ void test_benchmark_polytope(
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling(P, step_size, walk_length, target_time,
+  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, target_time,
                                         false, centered);
   outfile << results[0];
   outfile << results[1];
@@ -305,13 +303,15 @@ void test_benchmark_polytope(
 }
 
 template <typename NT> void call_test_benchmark_polytope() {
-
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using Hpolytope = HPolytope<Point>;
   {
     Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
     std::string name = "100_skinny_cube";
     bool centered = false;
     double target_time=20; //secs
-    test_benchmark_polytope(P, name, false, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, false, target_time);
   }
 
   {
@@ -319,7 +319,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "5_cross";
     bool centered = false;
     double target_time=10; //secs
-    test_benchmark_polytope(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
   {
@@ -327,7 +327,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "100_simplex";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
   {
@@ -335,7 +335,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "50_prod_simplex";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
   {
@@ -343,14 +343,15 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "10_birkhoff";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
-  if (exists_check("../netlib/afiro.ine")) {
-    Hpolytope P = read_polytope<Hpolytope, NT>("../netlib/afiro.ine");
+  if (exists_check("netlib/afiro.ine")) {
+    Hpolytope P = read_polytope<Hpolytope, NT>("netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
-    test_benchmark_polytope(P, name, centered);
+    double target_time=100; //secs
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, total_time);
   }
 
   if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
@@ -358,7 +359,8 @@ template <typename NT> void call_test_benchmark_polytope() {
         read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine");
     std::string name = "e_coli";
     bool centered = true;
-    test_benchmark_polytope(P, name, centered, 4);
+    double target_time=600; //secs
+    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, total_time);
   }
 }
 
