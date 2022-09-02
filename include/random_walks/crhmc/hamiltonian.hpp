@@ -193,24 +193,30 @@ public:
       if(num_runs<10){
         std::cerr<<"--------lsc----------\n";
         std::cerr<<lsc<<"\n";
-        std::cerr<<"---------------endlsc\n";
-
+        std::cerr<<"------x--------------\n";
+        std::cerr<<x<<"\n";
+        std::cerr<<"------x--------------\n";
+        std::cerr<<barrier.ub-x.colwise()<<"\n";
+        std::cerr<<"------tensor--------------\n";
+        std::cerr<< barrier->tensor(x)<<"\n";
+        std::cerr<<"---------------end------------\n";
       }
       if (options.DynamicWeight)
       {
-        last_dUdx = -(weighted_barrier->tensor(x).cwiseProduct(lsc))
-                               .cwiseQuotient(2 * hess) -
+        last_dUdx = (weighted_barrier->tensor(x).cwiseProduct(lsc))
+                               .cwiseQuotient(2 * hess) +
                           dfx;
       }
       else
       {
         last_dUdx =
-            -(barrier->tensor(x).cwiseProduct(lsc)).cwiseQuotient(2 * hess) -
+            (barrier->tensor(x).cwiseProduct(lsc)).cwiseQuotient(2 * hess) +
             dfx;
       }
       dUDx_empty = false;
     }
-    return {MT::Zero(n,simdLen), last_dUdx};
+
+    return {MT::Zero(n,simdLen), -last_dUdx};
   }
   // Compute the computations involving only x iff x has been changed
   // Else they are stored
@@ -243,7 +249,13 @@ public:
     {
       hess = barrier->hessian(x) + h;
     }
-
+    if(num_runs<10){
+      std::cerr<<"--------------------------\n";
+      std::cerr << barrier->hessian(x) << '\n';
+      std::cerr<<"--------hess----------\n";
+      std::cerr<<h<<"\n";
+      std::cerr<<"--------end----------\n";
+    }
     forceUpdate = false;
     prepared = false;
   }

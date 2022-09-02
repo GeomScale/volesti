@@ -89,10 +89,10 @@ public:
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d + extraHessian;
   }
-  VT tensor(VT const &x) {
-    VT d = 2 * (((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x)))
+  MT tensor(MT const &x) {
+    VT d = 2 * (((ub - x.colwise()).cwiseProduct((ub - x.colwise()))).cwiseProduct((ub - x.colwise())))
                    .cwiseInverse() -
-           2 * (((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)))
+           2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb)))
                    .cwiseInverse();
     return d;
   }
