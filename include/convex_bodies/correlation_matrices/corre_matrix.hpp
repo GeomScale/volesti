@@ -99,6 +99,17 @@ class CorreMatrix{
         return ret;
     }
 
+    NT squared_length() const {
+        int i, j, n = this->mat.rows();
+        NT ret = NT(0);
+        for(i = 0; i < n ; ++i){
+            for(j = 0; j < i; ++j){
+                ret += this->mat(i,j) * this->mat(i,j);
+            }
+        }
+        return ret;
+    }
+
     void print() const
     {
         int n = this->mat.rows(), i, j;
@@ -110,7 +121,7 @@ class CorreMatrix{
         std::cout<<"\n";
     }
 
-    VT getCoefficients(){
+    VT getCoefficients() const {
         int n = this->mat.rows(), ind = 0, i, j;
         VT coeff(n*(n-1)/2);
         for(i = 0; i < n ; ++i){
