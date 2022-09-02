@@ -19,7 +19,6 @@
 #include "sos/barriers/WeightedTwoSidedBarrier.h"
 #include "PackedCSparse/PackedChol.h"
 #include <utility>
-#include "random_walks/eigen_utils.hpp"
 
 template <typename Polytope, typename Point, int simdLen>
 class Hamiltonian
@@ -69,11 +68,11 @@ public:
     {
       weighted_barrier =
           new WeightedBarrier(P.barrier.lb, P.barrier.ub, P.w_center);
-      weighted_barrier->extraHessian,resize(n,simdLen);
+      weighted_barrier->extraHessian.resize(n,simdLen);
       weighted_barrier->extraHessian=MT::Ones(n,simdLen)*options.regularization_factor;
     }
     barrier = &P.barrier;
-    barrier->extraHessian,resize(n,simdLen);
+    barrier->extraHessian.resize(n,simdLen);
     barrier->extraHessian=MT::Ones(n,simdLen)*options.regularization_factor;
   }
 
@@ -201,11 +200,9 @@ public:
         std::cerr<<"------x--------------\n";
         std::cerr<<x<<"\n";
         std::cerr<<"------b-x.col--------------\n";
-        std::cerr<<barrier->ub-x.colwise()<<"\n";
+        std::cerr<<(-x).colwise()+barrier->ub<<"\n";
         std::cerr<<"------b-x.col^2--------------\n";
-        std::cerr<<(barrier->ub-x.colwise()).cwiseProduct(barrier->ub-x.colwise())<<"\n";
-        std::cerr<<"------b-x.col^2--------------\n";
-        std::cerr<<(barrier->ub-x).cwiseProduct(barrier->ub-x).cwiseInverse()+(x-barrier->lb).cwiseProduct(x-barrier->lb).cwiseInverse()+<<"\n";
+        std::cerr<<(barrier->ub-x.colwise()).cwiseProduct(barrier->ub-x.colwise())+(x.colwise()-barrier->lb).cwiseProduct(x.colwise()-barrier->lb)<<"\n";
         std::cerr<<"------tensor--------------\n";
         std::cerr<< barrier->tensor(x)<<"\n";
         std::cerr<<"---------------end------------\n";
