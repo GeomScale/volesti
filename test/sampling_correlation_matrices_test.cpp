@@ -156,6 +156,36 @@ template
     typename NT,
     typename WalkType
 >
+void test_old_gaussian(const unsigned int n, NT a, const unsigned int num_points = 1000){
+    typedef Cartesian<NT>                                       Kernel;
+    typedef typename Kernel::Point                              Point;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>           RNGType;
+
+    std::cout << "Test old sampling : "<< num_points <<" uniform correlation matrices of size " << n << std::endl;
+    std::chrono::steady_clock::time_point start, end;
+    double time;
+    std::vector<Point> randPoints;
+    unsigned int walkL = 1;
+
+    start = std::chrono::steady_clock::now();
+
+    direct_gaussian_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, a, 0);
+
+    end = std::chrono::steady_clock::now();
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
+
+    check_output<NT, VT, MT>(randPoints, num_points, n);
+}
+
+
+template
+<
+    typename NT,
+    typename WalkType
+>
 void test_new_uniform(const unsigned int n, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
@@ -212,6 +242,35 @@ template
     typename NT,
     typename WalkType
 >
+void test_new_gaussian(const unsigned int n, NT a, const unsigned int num_points = 1000){
+    typedef Cartesian<NT>                                       Kernel;
+    typedef typename Kernel::Point                              Point;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
+
+    std::cout << "Test new Gaussian sampling : "<< num_points << " correlation matrices of size " << n << std::endl;
+    std::chrono::steady_clock::time_point start, end;
+    double time;
+    std::vector<Point> randPoints;
+    unsigned int walkL = 1;
+
+    start = std::chrono::steady_clock::now();
+
+    gaussian_correlation_sampling<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, a, 0);
+
+    end = std::chrono::steady_clock::now();
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
+
+    check_output<NT, VT, MT>(randPoints, num_points, n);
+}
+
+template
+<
+    typename NT,
+    typename WalkType
+>
 void test_new_exponential(const unsigned int n, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
@@ -241,10 +300,12 @@ void test_new_exponential(const unsigned int n, const unsigned int num_points = 
 }
 
 int n = 3;
-int num_points_BallWalk = 1000;
-int num_points_RDHRWalk = 1000;
-int num_points_BilliardWalk = 100;
-int num_points_ReHMCWalk = 100;
+int num_points_BallWalk = 10000;
+int num_points_RDHRWalk = 10000;
+int num_points_BilliardWalk = 1000;
+int num_points_ReHMCWalk = 10000;
+
+double a = 2.0; // pdf of Gaussian distribution is exp( -a * <x,x> )
 
 ///////////////////////////////////////////////////////////////////
 //      Test new classes
@@ -254,9 +315,9 @@ TEST_CASE("corre_spectra") {
     test_corre_spectra_classes<double>(n);
 }
 
-///////////////////////////////////////////////////////////////////
-//      Old implementation
-//
+/////////////////////////////////////////////////////////////////
+     Old implementation
+
 
 TEST_CASE("old_ball_uniform") {
     std::cout << "Ball Walk :: ";
@@ -271,6 +332,11 @@ TEST_CASE("old_billiard_uniform") {
 TEST_CASE("old_accelerated_billiard_uniform") {
     std::cout << "Accelerated Billiard Walk :: ";
     test_old_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
+}
+
+TEST_CASE("old_ReHMC_gaussian") {
+    std::cout << "Gaussian ReHMC for Spectrahedron :: ";
+    test_old_gaussian<double, GaussianReHMCWalk>(n, a, num_points_ReHMCWalk);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -297,10 +363,15 @@ TEST_CASE("new_accelerated_billiard_uniform") {
     test_new_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
 
-TEST_CASE("new_ReHMC_exponential") {
-    std::cout << "ExponentialReHMC Walk :: ";
-    test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
+TEST_CASE("new_ReHMC_gaussian") {
+    std::cout << "Gaussian ReHMC Walk :: ";
+    test_new_gaussian<double, GaussianReHMCWalk>(n, a, num_points_ReHMCWalk);
 }
+
+// TEST_CASE("new_ReHMC_exponential") {
+//     std::cout << "ExponentialReHMC Walk :: ";
+//     test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
+// }
 
 ///////////////////////////////////////////////////////////////////
 //      New implementation : CorreSpectra Matrix PointType
@@ -326,7 +397,7 @@ TEST_CASE("new_accelerated_billiard_uniform_MT") {
     test_new_uniform_MT<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
 
-TEST_CASE("new_ReHMC_exponential_MT") {
-    std::cout << "ExponentialReHMC Walk MT :: ";
-    test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
-}
+// TEST_CASE("new_ReHMC_exponential_MT") {
+//     std::cout << "ExponentialReHMC Walk MT :: ";
+//     test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
+// }

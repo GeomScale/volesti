@@ -324,15 +324,21 @@ else ()
   add_test(NAME test_old_ball_uniform COMMAND matrix_sampling_test -tc=old_ball_uniform)
   add_test(NAME test_old_billiard_uniform COMMAND matrix_sampling_test -tc=old_billiard_uniform)
   add_test(NAME test_old_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=old_accelerated_billiard_uniform)
+  
   add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
   add_test(NAME test_new_rdhr_uniform COMMAND matrix_sampling_test -tc=new_rdhr_uniform)
   add_test(NAME test_new_billiard_uniform COMMAND matrix_sampling_test -tc=new_billiard_uniform)
   add_test(NAME test_new_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform)
-  add_test(NAME test_new_ReHMC_exponential COMMAND matrix_sampling_test -tc=new_ReHMC_exponential)
+  
   add_test(NAME test_new_ball_uniform_MT COMMAND matrix_sampling_test -tc=new_ball_uniform_MT)
   add_test(NAME test_new_rdhr_uniform_MT COMMAND matrix_sampling_test -tc=new_rdhr_uniform_MT)
   add_test(NAME test_new_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_billiard_uniform_MT)
   add_test(NAME test_new_accelerated_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform_MT)
+  
+  add_test(NAME test_old_ReHMC_gaussian COMMAND matrix_sampling_test -tc=old_ReHMC_gaussian)
+  add_test(NAME test_new_ReHMC_gaussian COMMAND matrix_sampling_test -tc=new_ReHMC_gaussian)
+  add_test(NAME test_new_ReHMC_exponential COMMAND matrix_sampling_test -tc=new_ReHMC_exponential)
+  add_test(NAME test_new_ReHMC_gaussian_MT COMMAND matrix_sampling_test -tc=new_ReHMC_gaussian_MT)
   add_test(NAME test_new_ReHMC_exponential_MT COMMAND matrix_sampling_test -tc=new_ReHMC_exponential_MT)
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
