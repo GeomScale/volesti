@@ -275,7 +275,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   return std::vector<SimulationStats<NT>>{rdhr_stats, crhmc_stats};
 }
 
-void test_benchmark_polytope(HPolytope &P, std::string &name, bool centered,
+void test_benchmark_polytope(Hpolytope &P, std::string &name, bool centered,
                         int walk_length = 1,double target_time=std::numeric_limits<NT>::max()) {
   std::cout << "CRHMC polytope preparation for " << fileName << std::endl;
   std::vector<SimulationStats<NT>> results;
@@ -287,7 +287,7 @@ void test_benchmark_polytope(HPolytope &P, std::string &name, bool centered,
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling<NT, HPolytope>(
+  results = benchmark_polytope_sampling<NT, Hpolytope>(
       P, step_size, walk_length, target_time, false, centered);
   outfile << results[0];
   outfile << results[1];

@@ -327,8 +327,6 @@ else ()
 	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_sampling_test_crhmc
 					COMMAND crhmc_sampling_test -tc=crhmc)
-	#add_test(NAME crhmc_sampling_test_benchmark_cube
-	#				COMMAND crhmc_sampling_test -tc=benchmark_crhmc_cube)
 	add_test(NAME crhmc_test_polytope_sampling
 					COMMAND crhmc_sampling_test -tc=test_polytope_sampling_crhmc)
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
