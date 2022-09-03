@@ -62,7 +62,7 @@ public:
     m = P.equations();
     x = MT::Zero(n,simdLen);
     xs = {x,x};
-    lsc = MT::Zero(n,simdLen);
+    lsc = MT::Zero(simdLen,n);
     solver.accuracyThreshold=options.solver_accuracy_threashold;
     if (options.DynamicWeight)
     {
@@ -134,8 +134,7 @@ public:
     move(xs);
     if (!prepared)
     {
-      MT Hinv = hess.cwiseInverse();
-      Hinv=Hinv.transpose();
+      MT Hinv = (hess.cwiseInverse()).transpose();
       solver.decompose((Tx *)Hinv.data());
     }
     dUDx_empty = true;
@@ -149,8 +148,10 @@ public:
     move(x_bar);
     MT invHessV = v.cwiseQuotient(hess);
     MT input_vector = P.Asp * invHessV;
-    MT out_vector = MT::Zero(m,simdLen);
+    input_vector.transposeInPlace();
+    MT out_vector = MT::Zero(simdLen,m);
     solver.solve((Tx *)input_vector.data(), (Tx *)out_vector.data());
+    out_vector.transposeInPlace();
     MT dKdv =
         invHessV - (P.Asp.transpose() * out_vector).cwiseQuotient(hess);
 
@@ -176,8 +177,10 @@ public:
     MT v = x_bar[1];
     move(x_bar);
     MT dUdv_b = P.Asp * (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
-    MT out_solver = MT(nu.rows(), nu.cols());
+    dUdv_b.transposeInPlace();
+    MT out_solver = MT(nu.cols(), nu.rows());
     solver.solve((Tx *)dUdv_b.data(), (Tx *)out_solver.data());
+    out_solver.transposeInPlace();
     nu = nu + out_solver;
     MT dKdv = (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
     MT dKdx = MT::Zero(n,simdLen);
@@ -219,14 +222,14 @@ public:
       }
       if (options.DynamicWeight)
       {
-        last_dUdx = (weighted_barrier->tensor(x).cwiseProduct(lsc))
+        last_dUdx = (weighted_barrier->tensor(x).cwiseProduct(lsc.transpose()))
                                .cwiseQuotient(2 * hess) +
                           dfx;
       }
       else
       {
         last_dUdx =
-            (barrier->tensor(x).cwiseProduct(lsc)).cwiseQuotient(2 * hess) +
+            (barrier->tensor(x).cwiseProduct(lsc.transpose())).cwiseQuotient(2 * hess) +
             dfx;
       }
       dUDx_empty = false;
@@ -281,9 +284,11 @@ public:
     move(xs);
     MT x = xs[0];
     int m = P.Asp.rows();
-    MT out_vector = MT(m,simdLen);
+    MT out_vector = MT(simdLen,m);
     MT in_vector = P.b - P.Asp * x;
+    in_vector.transposeInPlace();
     solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
+    out_vector.transposeInPlace();
     out_vector = P.Asp.transpose() * out_vector;
     xs[0] = xs[0] + (out_vector).cwiseQuotient(hess);
   }
