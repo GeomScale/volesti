@@ -98,7 +98,6 @@ struct Walk
             u = log(rng.sample_urdist());
             if(u < diff){
                 p0 = _p;
-                h1 = h2;
             }
         }
         p = p0;
