@@ -8,11 +8,13 @@
 #include "doctest.h"
 #include <fstream>
 #include <iostream>
-#include "misc.h"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+
+#include "misc/misc.h"
 
 #include "random_walks/random_walks.hpp"
 
@@ -24,7 +26,7 @@
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 
-#include "known_polytope_generators.h"
+#include "generators/known_polytope_generators.h"
 
 template <typename NT>
 NT factorial(NT n)
