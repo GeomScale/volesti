@@ -23,12 +23,12 @@ if __name__ == '__main__':
         Script to plot samples from logconcave density
         Example usage:
 
-        ./simple_hmc | python3 plot_hmc.py
+        ./crhmc_sampling | python3 plot_crhmc.py
 
     '''
 
     argparser = argparse.ArgumentParser(usage=usage)
-    argparser.add_argument('--name', type=str, default='hmc_plot', help='Plot name')
+    argparser.add_argument('--name', type=str, default='crhmc_plot', help='Plot name')
     argparser.add_argument('--limits', type=str, default='auto', help='Plot limits for scatter plots')
     argparser.add_argument('--save', action='store_true', help='Save output figures')
     argparser.add_argument('--max_marginals', default=-1, type=int, help='Plot the maximum number of marginals')
@@ -83,6 +83,8 @@ if __name__ == '__main__':
         plt.ylabel('y')
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Counts')
+        if args.save:
+            plt.savefig('{}_heatmap.png'.format(args.name))
     if dims in [2, 3]:
         print('Plotting scatterplot')
         fig = plt.figure()

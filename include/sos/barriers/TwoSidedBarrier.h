@@ -101,6 +101,10 @@ public:
                    .cwiseInverse();
     return d;
   }
+  MT quadratic_form_gradient(MT const &x, MT const &u) {
+    // Output the -grad of u' (hess phi(x)) u.
+    return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
+  }
   VT quadratic_form_gradient(VT const &x, VT const &u) {
     // Output the -grad of u' (hess phi(x)) u.
 

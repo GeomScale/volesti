@@ -92,7 +92,7 @@ public:
   template <typename MatrixType>
   IVT is_not_nan(MatrixType x)
   {
-    IVT result=IVT::Ones(1,x.cols());
+    IVT result=IVT::Ones(x.cols());
     for (int i = 0; i < x.rows(); i++)
     {
       for (int j = 0; j < x.cols(); j++)
@@ -117,11 +117,11 @@ public:
       feasible_coordinate = barrier->feasible(x);
     }
     if(num_runs<10){
-      std::cerr<<"------feasible---------\n"
+      std::cerr<<"------feasible---------\n";
       std::cerr <<feasible_coordinate  << '\n';
-      std::cerr<<"------is_not_nan(x)---------\n"
+      std::cerr<<"------is_not_nan(x)---------\n";
       std::cerr << is_not_nan(x) << '\n';
-      std::cerr<<"------is_not_nan(v)---------\n"
+      std::cerr<<"------is_not_nan(v)---------\n";
       std::cerr << is_not_nan(v) << '\n';
 
     }

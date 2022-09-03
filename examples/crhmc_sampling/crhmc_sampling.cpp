@@ -21,7 +21,6 @@
 #include <typeinfo>
 #include <unistd.h>
 #include <vector>
-
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "diagnostics/multivariate_psrf.hpp"
@@ -78,7 +77,7 @@ struct CustomFunctor {
 };
 
 template <typename NT,int simdLen>
-void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1){
+void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1){
   std::cerr<<"--------------------------simdLen= "<<simdLen<<"\n";
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
@@ -110,7 +109,6 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   MT x0=MT(P.dimension(),simdLen);
-  //x0<<P.center,P.center,P.center,P.center;
   x0=P.center*MT::Ones(1,simdLen);
   std::cerr<<"x0= \n" << x0 << '\n'<< '\n';
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
@@ -135,7 +133,6 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
       if (i % 1000 == 0) {
         MT sample = crhmc.getPoints();
         std::cerr<<sample<<"\n";
-        std::cerr<<"i*simdLen= "<<i*simdLen<<"i*simdLen+simdLen-1= "<<i*simdLen+simdLen-1<<"\n";
         std::cerr << i << " out of " << n_samples << "\n";
       }
       for (int k = 0; k < burn_steps; k++) {
@@ -146,8 +143,7 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
   #endif
       if (i >= n_burns) {
         MT sample = crhmc.getPoints();
-        std::cout<<sample.transpose()<<"\n";
-        //samples(Eigen::all,Eigen::seq(i*simdLen,i*simdLen+simdLen-1)) = sample;
+        samples(Eigen::all,Eigen::seq((i-n_burns)*simdLen,(i-n_burns)*simdLen+simdLen-1)) = sample;
         j++;
       }
   #ifdef TIME_KEEPING
@@ -172,7 +168,7 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
     start_file = std::chrono::system_clock::now();
   #endif
     std::cerr << "Writing samples in a file \n";
-    //std::cout << samples.transpose() << std::endl;
+    std::cout << samples.transpose() << std::endl;
   #ifdef TIME_KEEPING
     end_file = std::chrono::system_clock::now();
     total_time_file += end_file - start_file;
@@ -181,7 +177,7 @@ void test_simdLen_sampling(int n_samples = 5000, int n_burns = -1,int dim=2,int 
 }
 
 template void test_simdLen_sampling<double,4>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
-//template void test_simdLen_sampling<double,1>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
+template void test_simdLen_sampling<double,1>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
 int main(int argc, char *argv[]) {
 
   if (atoi(argv[1])==1){

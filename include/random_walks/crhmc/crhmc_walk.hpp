@@ -135,14 +135,21 @@ struct CRHMCWalk {
     }
     // Returns the current point in the tranformed in the original space
     inline MT getPoints() {
-      return x;
-    //  return P.T * x + P.y*MT::Ones(1,simdLen);
+      return (P.T * x).colwise() + P.y;
      }
 
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x + P.y); }
-    inline MT blendv(MT &x,MT &x_tilde,IVT &accept){
-      return (accept.array()==1).select(x_tilde,x);
+    inline MT masked_choose(MT &x,MT &x_tilde,IVT &accept){
+      MT result=MT(x.rows(),x.cols());
+      for(int i=0;i<simdLen;i++){
+        if(accept(i)==1){
+          result(Eigen::all,i)=x_tilde(Eigen::all,i);
+        }else{
+          result(Eigen::all,i)=x(Eigen::all,i);
+        }
+      }
+      return result;
     }
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
                       bool metropolis_filter = true) {
@@ -196,9 +203,12 @@ struct CRHMCWalk {
         VT rng_vector=VT(simdLen);
         for(int i=0;i<simdLen;i++){rng_vector(i)=rng.sample_urdist();}
         accept=(rng_vector.array()<prob.array()).select(1*IVT::Ones(simdLen),0*IVT::Ones(simdLen));
-        x=blendv(x,x_tilde,accept);
+        if(num_runs<10){
+        std::cerr<<"--------accept----------\n"<<accept<<"\n";
+        }
+        x=masked_choose(x,x_tilde,accept);
         v=-v;
-        v=blendv(v,v_tilde,accept);
+        v=masked_choose(v,v_tilde,accept);
         discard_ratio = (1.0 * total_discarded_samples) / num_runs;
         average_acceptance_prob = total_acceptance_prob / num_runs;
       } else {

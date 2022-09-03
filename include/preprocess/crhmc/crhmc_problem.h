@@ -651,6 +651,14 @@ std::cerr<<"simplify\n";
     if (dfHandle) {
       g = VT::Zero(n, m);
       for(int k=0;k<m;k++){
+        std::cerr<<"k= ";
+        std::cerr<<k<<\n;
+        std::cerr<<"Tidx\n";
+        std::cerr<<Tidx<<"\n";
+        std::cerr<<"Ta"<<"\n";
+        std::cerr<<Ta<<"\n";
+        std::cerr<<"Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients())"<<"\n";
+        std::cerr<<Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients())<<"\n";
         g(Tidx, k) += Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients());
       }
     } else {
