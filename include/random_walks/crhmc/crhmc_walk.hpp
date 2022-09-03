@@ -206,6 +206,14 @@ struct CRHMCWalk {
         if(num_runs<10){
         std::cerr<<"--------accept----------\n"<<accept<<"\n";
         }
+        if(num_runs<10){
+          std::cerr<<"x=\n"<<x<<"\n";
+          std::cerr<<"v=\n"<<v<<"\n";
+        }
+        if(num_runs<10){
+          std::cerr<<"x_tilde=\n"<<x_tilde<<"\n";
+          std::cerr<<"v_tilde=\n"<<v_tilde<<"\n";
+        }
         x=masked_choose(x,x_tilde,accept);
         v=-v;
         v=masked_choose(v,v_tilde,accept);

@@ -168,6 +168,13 @@ partialDerivatives = ham.DU(xs);
     DU_duration += end - start;
 #endif
     xs = xs + partialDerivatives * (eta / 2);
+    if(num_runs<10){
+    std::cerr<<"---stateslast------------\n";
+    std::cerr<< xs[0]<<"\n";
+    std::cerr<<"----------------------------\n";
+    std::cerr<< xs[1]<<"\n";
+    std::cerr<<"------------end------------\n";
+    }
     ham.project(xs);
   }
 
