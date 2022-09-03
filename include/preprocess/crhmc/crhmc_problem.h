@@ -309,7 +309,6 @@ public:
   }
 //Apply number of operations that simplify the problem
   void simplify() {
-    std::cerr<<"simplify\n";
 #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -331,7 +330,6 @@ public:
     end = std::chrono::system_clock::now();
     reordering_duration += end - start;
 #endif
-std::cerr<<"simplify\n";
     int changed = 1;
     while (changed) {
       while (changed) {
@@ -351,7 +349,6 @@ std::cerr<<"simplify\n";
         rm_fixed_vars_duration += end - start;
         start = std::chrono::system_clock::now();
 #endif
-std::cerr<<"simplify\n";
         reorder();
 #ifdef TIME_KEEPING
         end = std::chrono::system_clock::now();

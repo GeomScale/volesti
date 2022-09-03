@@ -41,7 +41,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 0.1;
+    NT var = 1;
     parameters() : L(4), m(4), kappa(1){};
   };
 
@@ -88,8 +88,8 @@ void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int
   using Func = CustomFunctor::Func<Point>;
   using Grad = CustomFunctor::Grad<Point>;
   using Hess = CustomFunctor::Hess<Point>;
-  //using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
-  using Input = crhmc_input<MT, Point>;
+  using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
+  //using Input = crhmc_input<MT, Point>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad,simdLen>;
   using Opts = opts<NT>;
@@ -102,10 +102,13 @@ void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int
   Grad g(params);
   Hess h(params);
   Opts options;
-  Input input =Input(dim);
-  //Input input = Input(dim, f, g, h);
-  input.lb = -VT::Ones(dim);
-  input.ub = VT::Ones(dim);
+  //Input input =Input(dim);
+  Input input = Input(dim, f, g, h);
+  MT A = MT::Ones(5, dim);
+  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
+  VT b = 10 * VT::Ones(5, 1);
+  input.Aineq = A;
+  input.bineq = b;
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   MT x0=MT(P.dimension(),simdLen);

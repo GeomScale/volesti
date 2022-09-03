@@ -135,6 +135,7 @@ public:
     if (!prepared)
     {
       MT Hinv = hess.cwiseInverse();
+      Hinv=Hinv.transpose();
       solver.decompose((Tx *)Hinv.data());
     }
     dUDx_empty = true;
