@@ -126,6 +126,13 @@ partialDerivatives = ham.DU(xs);
 #endif
       // partialDerivatives = ham.DK(xmid);
       partialDerivatives = ham.approxDK(xmid, nu);
+      if(num_runs<10){
+      std::cerr<<"DK_partial\n";
+      std::cerr<< partialDerivatives[0]<<"\n";
+      std::cerr<<"----------------------------\n";
+      std::cerr<< partialDerivatives[1]<<"\n";
+      std::cerr<<"---------end----------\n";
+    }
 #ifdef TIME_KEEPING
       end = std::chrono::system_clock::now();
       approxDK_duration += end - start;

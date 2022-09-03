@@ -116,6 +116,15 @@ public:
     {
       feasible_coordinate = barrier->feasible(x);
     }
+    if(num_runs<10){
+      std::cerr<<"------feasible---------\n"
+      std::cerr <<feasible_coordinate  << '\n';
+      std::cerr<<"------is_not_nan(x)---------\n"
+      std::cerr << is_not_nan(x) << '\n';
+      std::cerr<<"------is_not_nan(v)---------\n"
+      std::cerr << is_not_nan(v) << '\n';
+
+    }
     VT r= feasible_coordinate.cwiseProduct((is_not_nan(x) *is_not_nan(v)).matrix());
     return r;
   }
