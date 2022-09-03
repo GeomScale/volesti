@@ -23,7 +23,6 @@ class dynamic_regularizer {
 public:
   using NT = typename Sampler::NT;
   using Point = typename Sampler::point;
-  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using Opts = typename Sampler::Opts;
   int n;
@@ -43,7 +42,7 @@ public:
 
   void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
     MT x = s.x;
-    x = (x.cwiseAbs()).cwiseMax(VT::Ones(n,k));
+    x = (x.cwiseAbs()).cwiseMax(MT::Ones(n,k));
     bound = bound.cwiseMax(x);
     bool Condition =
         (2 / (bound.array() * bound.array()) < n * extraHessian.array()).any();

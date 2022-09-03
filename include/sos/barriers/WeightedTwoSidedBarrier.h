@@ -63,12 +63,28 @@ public:
            w.cwiseQuotient((x - lb).cwiseProduct((x - lb)));
     return d + extraHessian;
   }
+  MT hessian(MT const &x){
+    MT d = (((- x).colwise()+ub).cwiseProduct(((- x).colwise()+ub))).cwiseInverse() +
+           ((x.colwise() - lb).cwiseProduct((x.colwise() - lb))).cwiseInverse();
+    return w.asDiagonal()*d + extraHessian;
+  }
   VT tensor(VT const &x) {
     VT d = 2 * w.cwiseQuotient(
                    ((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
            2 * w.cwiseQuotient(
                    ((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
     return d;
+  }
+  MT tensor(MT const &x) {
+    MT d = 2 * ((((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseProduct(((-x).colwise()+ub)))
+                   .cwiseInverse() -
+           2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb)))
+                   .cwiseInverse();
+    return w.asDiagonal()*d;
+  }
+  MT quadratic_form_gradient(MT const &x, MT const &u) {
+    // Output the -grad of u' (hess phi(x)) u.
+    return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
   }
   VT quadratic_form_gradient(VT const &x, VT const &u) {
     // Output the -grad of u' (hess phi(x)) u.
