@@ -4,6 +4,8 @@
 #include "sampling/sphere.hpp"
 
 // Reflective HMC for sampling correlation matrices from the Exponential distribution
+// Pdf function is exp(- <c, x+I> / T)
+
 struct ExponentialReHMCWalk
 {
     ExponentialReHMCWalk(double L)
@@ -49,7 +51,9 @@ struct Walk
         _Len = compute_diameter<GenericPolytope>::template compute<NT>(P);
         _Temp = T;
         _c = c;
-        _step = NT(0.02);
+        _step = NT(0.03);
+        num_leaps = ceil(_Len / _step);
+        _Ac = (_step / (2 * _Temp)) * _c;
         _rho = 100 * P.dimension();
         initialize(P, p, rng);
     }
@@ -63,25 +67,24 @@ struct Walk
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
-        unsigned int n = P.dimension(), it, num_leaps = ceil(_Len / _step);
-        NT T;
-        Point p0 = _p;
+        unsigned int n = P.dimension();
+        NT T, h1, h2, u, diff;
+        Point p0 = p;
         
         for(int i = 0; i < walk_length; ++i){
-            T = _Len;
+            T = _step;
             _v = GetDirection<Point>::apply(n, rng, false);
-            p0 = _p;
+            _p = p0;
+            h1 = Hamiltonian(_p, _v);
 
             for(int j = 0; j < num_leaps; ++j){            
-                _v -= (_step * _Temp/2) * _c;
+                _v -= _Ac;
 
-                it = 0;
-                while(it < _rho){   
+                while(true){   
                     auto pbpair = P.line_positive_intersect(_p, _v);
 
                     if (T <= pbpair.first){
                         _p += T * _v;
-                        _lambda_prev = T;
                         break;
                     }
                     
@@ -90,16 +93,17 @@ struct Walk
                     T -= _lambda_prev;
                     
                     P.compute_reflection(_v, _p, pbpair.second);
-                    it++;
                 }
-                if (it == _rho){
-                    _p = p0;
-                    break;
-                }
-                _v -= (_step * _Temp/2) * _c;
+                _v -= _Ac;
+            }
+            h2 = Hamiltonian(_p, _v);
+            diff = h1 - h2 < 0 ? h1 - h2 : 0;
+            u = log(rng.sample_urdist());
+            if(u < diff){
+                p0 = _p;
             }
         }
-        p = _p;
+        p = p0;
         return true;
     }
 
@@ -111,6 +115,10 @@ struct Walk
 
 private :
 
+    inline NT Hamiltonian(Point &p, Point &v){
+        return p.dot(_c)/_Temp + 0.5 * v.squared_length();
+    }
+
     template
     <
         typename GenericPolytope
@@ -121,13 +129,12 @@ private :
     {
         unsigned int n = P.dimension(), it;
         NT T = rng.sample_urdist() * _Len;
-        unsigned int num_leaps = ceil(T / _step);
 
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
 
         for(int j = 0; j < num_leaps; ++j){            
-            _v -= (_step * _Temp/2) * _c;
+            _v -= _Ac;
 
             it = 0;
             while(it <= _rho){   
@@ -146,7 +153,7 @@ private :
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-            _v -= (_step * _Temp/2) * _c;
+            _v -= _Ac;
         }
     }
 
@@ -155,9 +162,11 @@ private :
     Point _p;
     Point _v;
     Point _c;
+    Point _Ac;
     NT _Temp;
     NT _lambda_prev;
     unsigned int _rho;
+    unsigned int num_leaps;
 };
 
 };
