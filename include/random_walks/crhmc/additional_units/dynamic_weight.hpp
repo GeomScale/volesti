@@ -48,8 +48,8 @@ public:
     NT threshold;
     consecutiveBadStep = bad_step * consecutiveBadStep + bad_step;
 
-    if (!s.accepted) {
-      MT lsc = s.solver->ham.lsc;
+    if (s.accept.sum()<k) {
+      VT lsc = s.solver->ham.lsc.rowwise().maxCoeff();
       if (consecutiveBadStep.maxCoeff() > 2) {
         threshold = 4;
       } else {
