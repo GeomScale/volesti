@@ -49,7 +49,7 @@ public:
     consecutiveBadStep = bad_step * consecutiveBadStep + bad_step;
 
     if (!s.accepted) {
-      VT lsc = s.solver->ham.lsc;
+      MT lsc = s.solver->ham.lsc;
       if (consecutiveBadStep.maxCoeff() > 2) {
         threshold = 4;
       } else {

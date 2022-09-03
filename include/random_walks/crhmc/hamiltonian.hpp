@@ -292,16 +292,11 @@ public:
     MT x = xs[0];
     int m = P.Asp.rows();
     MT out_vector = MT(simdLen,m);
-    MT in_vector = P.b - P.Asp * x;
+    MT in_vector = (- P.Asp * x).colwise()+ P.b;
     in_vector.transposeInPlace();
     solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
     out_vector.transposeInPlace();
     out_vector = P.Asp.transpose() * out_vector;
-    if(num_runs<10){
-    std::cerr<<"--------projection------------\n";
-    std::cerr<< out_vector<<"\n";
-    std::cerr<<"------------end------------\n";
-    }
     xs[0] = xs[0] + (out_vector).cwiseQuotient(hess);
   }
   // Get the inner product of x and ds weighted by the hessian
