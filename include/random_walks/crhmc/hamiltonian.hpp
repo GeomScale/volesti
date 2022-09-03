@@ -178,10 +178,17 @@ public:
     move(x_bar);
     MT dUdv_b = P.Asp * (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
     dUdv_b.transposeInPlace();
+    if(num_runs<10){
+    std::cerr<<"dUdv_b------------\n";
+    std::cerr<<dUdv_b<<"\n";
+    }
     MT out_solver = MT(nu.cols(), nu.rows());
     solver.solve((Tx *)dUdv_b.data(), (Tx *)out_solver.data());
-    out_solver.transposeInPlace();
-    nu = nu + out_solver;
+    nu = nu + out_solver.transpose();
+    if(num_runs<10){
+    std::cerr<<"nu------------\n";
+    std::cerr<<nu<<"\n";
+    }
     MT dKdv = (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
     MT dKdx = MT::Zero(n,simdLen);
     if (options.DynamicWeight)
