@@ -636,7 +636,6 @@ std::cerr<<"simplify\n";
     if (fHandle || dfHandle || ddfHandle) {
       z(Tidx, Eigen::all) = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
     }
-    std::cerr<<"point= \n"<<z<<"\n";
 
     // If the function is given evaluate it at the original point
     if (fHandle) {
@@ -646,28 +645,18 @@ std::cerr<<"simplify\n";
     } else {
       f = VT::Zero(m);
     }
-    std::cerr<<"f= \n"<<f<<"\n";
     // If the gradient is given evaluate it at the original point
     if (dfHandle) {
-      g = VT::Zero(n, m);
+      g = MT::Zero(n, m);
       for(int k=0;k<m;k++){
-        std::cerr<<"k= ";
-        std::cerr<<k<<\n;
-        std::cerr<<"Tidx\n";
-        std::cerr<<Tidx<<"\n";
-        std::cerr<<"Ta"<<"\n";
-        std::cerr<<Ta<<"\n";
-        std::cerr<<"Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients())"<<"\n";
-        std::cerr<<Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients())<<"\n";
         g(Tidx, k) += Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients());
       }
     } else {
       g = MT::Zero(n, m);
     }
-    std::cerr<<"grad= \n"<<g<<"\n";
     // If the hessian is given evaluate it at the original point
     if (ddfHandle) {
-      h = VT::Zero(n, m);
+      h = MT::Zero(n, m);
       for(int k=0;k<m;k++){
         h(Tidx, k) +=
         (Ta.cwiseProduct(Ta)).cwiseProduct(ddf(Point(z(Eigen::all,k))).getCoefficients());
@@ -675,7 +664,6 @@ std::cerr<<"simplify\n";
     } else {
       h = MT::Zero(n,m);
     }
-    std::cerr<<"hess= \n"<<h<<"\n";
     return std::make_tuple(f, -g, h);
   }
 
