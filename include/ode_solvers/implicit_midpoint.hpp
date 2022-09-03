@@ -69,7 +69,7 @@ struct ImplicitMidpointODESolver {
   func F;
   Polytope &P;
   Opts &options;
-  VT nu;
+  MT nu;
 
   hamiltonian ham;
   int num_runs=0;
@@ -140,6 +140,14 @@ partialDerivatives = ham.DU(xs);
       xs = xs_prev + partialDerivatives * (eta);
       VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
       NT maxdist = dist.maxCoeff();
+      if(num_runs<10){
+      std::cerr<<"===============states=================\n";
+      std::cerr<< xs[0]<<"\n";
+      std::cerr<<"----------------------------\n";
+      std::cerr<< xs[1]<<"\n";
+      std::cerr<<"------------end------------\n";
+      std::cerr<<"maxdist= "<<maxdist<<"\n";
+      }
       if (maxdist < options.implicitTol) {
         done = true;
         num_steps = i;

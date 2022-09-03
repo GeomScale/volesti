@@ -171,7 +171,7 @@ public:
     return {dKdv, dKdx};
   }
   // Approximate computation of the partial derivatives of the K term
-  pts approxDK(pts const &x_bar, VT &nu)
+  pts approxDK(pts const &x_bar, MT &nu)
   {
     MT x = x_bar[0];
     MT v = x_bar[1];
