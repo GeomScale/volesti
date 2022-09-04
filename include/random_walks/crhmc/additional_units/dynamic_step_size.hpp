@@ -35,12 +35,11 @@ public:
   NT &momentum;
   VT acceptedStep;
   VT nEffectiveStep; // number of effective steps
-  VT accumulatedMomentum;
+  NT accumulatedMomentum=0;
   dynamic_step_size(Sampler &s)
       :k(s.solver->k), options(s.params.options), eta(s.solver->eta),
         momentum(s.params.momentum) {
     nEffectiveStep = VT::Zero(k);
-    accumulatedMomentum = VT::Zero(k);
     acceptedStep = VT::Zero(k);
     consecutiveBadStep=IVT::Zero(k);
     rejectSinceShrink=VT::Zero(k);
@@ -53,8 +52,9 @@ public:
   }
   void update_step_size(Sampler &s) {
     acceptedStep = acceptedStep + s.prob.array();
-    //accumulatedMomentum = s.prob.array() * momentum * accumulatedMomentum + eta;
-    //nEffectiveStep = nEffectiveStep + eta * accumulatedMomentum * s.accept.array();
+    accumulatedMomentum = s.prob.mean() * momentum * accumulatedMomentum + eta;
+    Eigen::Matrix<NT,Eigen::Dynamic,1> accept= (s.accept.template cast<NT>());
+    nEffectiveStep = nEffectiveStep + eta * accumulatedMomentum * accept.array();
     IVT bad_step=IVT::Zero(k);
     if(s.solver->num_steps == options.maxODEStep){
       bad_step+=1;
@@ -70,6 +70,7 @@ public:
       momentum = 1 - std::min(1.0, eta / options.effectiveStepSize);
       return;
     }
+
     if (!warmupFinished) {
       acceptedStep = VT::Zero(k);
       nEffectiveStep = VT::Zero(k);

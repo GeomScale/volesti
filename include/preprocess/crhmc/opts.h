@@ -41,7 +41,7 @@ public:
   Type regularization_factor=1e-20;
   /*Dynamic step choices*/
   Type warmUpStep = 10;
-  Type maxConsecutiveBadStep = 10;
+  int maxConsecutiveBadStep = 10;
   Type targetODEStep = 10;
   Type shrinkFactor = 1.1;
   Type minStepSize = 0.001;

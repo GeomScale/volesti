@@ -41,7 +41,7 @@ struct CustomFunctor {
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
     NT kappa; // Condition number
-    NT var = 1;
+    NT var = 2;
     parameters() : L(4), m(4), kappa(1){};
   };
 
