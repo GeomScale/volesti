@@ -102,6 +102,39 @@ struct GetPointInDsphere
     }
 };
 
+template <typename NT>
+struct GetPointInDsphere<CorreMatrix<NT>>
+{
+    template <typename RandomNumberGenerator>
+    inline static CorreMatrix<NT> apply(unsigned int const& dim,
+                              NT const& radius,
+                              RandomNumberGenerator &rng)
+    {
+        typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+        typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
+
+        unsigned int n = std::ceil(std::sqrt(2*dim));
+        MT mat = MT::Identity(n,n);
+        NT normal = NT(0), coeff;
+
+        int i, j;
+        for(i = 0; i < n ; ++i){
+            for(j = 0; j < i; ++j){
+                coeff = rng.sample_ndist();
+                mat(i,j) = coeff;
+                normal +=  coeff * coeff;
+            }
+        }
+        NT U = rng.sample_urdist();
+        U = std::pow(U, NT(1)/(NT(dim)));
+
+        normal = (radius * U)/std::sqrt(normal);
+        mat.template triangularView<Eigen::StrictlyLower>() *= normal;
+        
+        return CorreMatrix<NT>(mat);
+    }
+};
+
 template <typename Point>
 struct GetPointOnDsphere
 {
