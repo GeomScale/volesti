@@ -27,7 +27,8 @@ class CorreMatrix{
         this->mat = mat;
     }
 
-    CorreMatrix(VT const& coeffs, unsigned int n){
+    CorreMatrix(VT const& coeffs){
+        unsigned int n = ceil(sqrt(2*coeffs.rows()));
         this->mat = MT::Identity(n,n);
         int ind = 0;
         for(int i = 0; i < n; ++i){
@@ -74,18 +75,19 @@ class CorreMatrix{
 
     void operator*= (const FT k)
     {
-        this->mat = k*this->mat.template triangularView<Eigen::StrictlyLower>();
+        this->mat.template triangularView<Eigen::StrictlyLower>() *= k;
     }
 
     CorreMatrix<NT> operator* (const FT k) const
     {
-        MT M = k * this->mat;
+        MT M = this->mat;
+        M *= k;
         return CorreMatrix<NT>(M);
     }
 
     void operator/= (const FT k)
     {
-        this->mat /= k;
+        this->mat.template triangularView<Eigen::StrictlyLower>() /= k;
     }
 
     NT dot(MT grad){
@@ -94,6 +96,17 @@ class CorreMatrix{
         for(i = 0; i < n ; ++i){
             for(j = 0; j < i; ++j){
                 ret += this->mat(i,j) * grad(i,j);
+            }
+        }
+        return ret;
+    }
+
+    NT dot(CorreMatrix<NT> c){
+        int i, j, n = this->mat.rows();
+        NT ret = NT(0);
+        for(i = 0; i < n ; ++i){
+            for(j = 0; j < i; ++j){
+                ret += this->mat(i,j) * c.mat(i,j);
             }
         }
         return ret;
