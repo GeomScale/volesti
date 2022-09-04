@@ -271,11 +271,39 @@ template
     typename NT,
     typename WalkType
 >
-void test_new_exponential(const unsigned int n, const unsigned int num_points = 1000){
+void test_new_gaussian_MT(const unsigned int n, NT a, const unsigned int num_points = 1000){
+    typedef CorreMatrix<NT>                                     Point;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
+    
+    std::cout << "Test new Gaussian sampling 2 : "<< num_points << " correlation matrices of size " << n << std::endl;
+    std::chrono::steady_clock::time_point start, end;
+    double time;
+    std::vector<Point> randPoints;
+    unsigned int walkL = 1;
+
+    start = std::chrono::steady_clock::now();
+
+    gaussian_correlation_sampling_MT<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, a, 0);
+
+    end = std::chrono::steady_clock::now();
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
+
+    check_output<NT, VT, MT>(randPoints, num_points, n);
+}
+
+template
+<
+    typename NT,
+    typename WalkType,
+    typename VT
+>
+void test_new_exponential(const unsigned int n, VT c, NT T, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
     std::cout << "Test new sampling : "<< num_points << " uniform correlation matrices of size " << n << std::endl;
@@ -283,10 +311,6 @@ void test_new_exponential(const unsigned int n, const unsigned int num_points = 
     double time;
     std::vector<Point> randPoints;
     unsigned int walkL = 1;
-    VT _c(n*(n-1)/2);
-    _c << 1,1,1;
-    Point c(_c);
-    NT T = NT(3);
 
     start = std::chrono::steady_clock::now();
 
@@ -299,13 +323,45 @@ void test_new_exponential(const unsigned int n, const unsigned int num_points = 
     check_output<NT, VT, MT>(randPoints, num_points, n);
 }
 
-int n = 3;
+template
+<
+    typename NT,
+    typename WalkType,
+    typename VT
+>
+void test_new_exponential_MT(const unsigned int n, VT c, NT T, const unsigned int num_points = 1000){
+    typedef CorreMatrix<NT>                                     Point;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
+    
+    std::cout << "Test new sampling 2 : "<< num_points << " uniform correlation matrices of size " << n << std::endl;
+    std::chrono::steady_clock::time_point start, end;
+    double time;
+    std::vector<Point> randPoints;
+    unsigned int walkL = 1;
+    
+    start = std::chrono::steady_clock::now();
+
+    exponential_correlation_sampling_MT<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, c, T, 0);
+
+    end = std::chrono::steady_clock::now();
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
+
+    check_output<NT, VT, MT>(randPoints, num_points, n);
+}
+
+unsigned int n = 3, d = n*(n-1)/2;
 int num_points_BallWalk = 10000;
 int num_points_RDHRWalk = 10000;
 int num_points_BilliardWalk = 1000;
-int num_points_ReHMCWalk = 10000;
+int num_points_ReHMCWalk = 1000;
 
 double a = 2.0; // pdf of Gaussian distribution is exp( -a * <x,x> )
+
+// pdf of Exponential distribution
+Eigen::Matrix<double, Eigen::Dynamic, 1> c = Eigen::Matrix<double, Eigen::Dynamic, 1>::Random(d);
+double T = 1;
 
 ///////////////////////////////////////////////////////////////////
 //      Test new classes
@@ -316,8 +372,8 @@ TEST_CASE("corre_spectra") {
 }
 
 /////////////////////////////////////////////////////////////////
-     Old implementation
-
+//      Old implementation
+//
 
 TEST_CASE("old_ball_uniform") {
     std::cout << "Ball Walk :: ";
@@ -368,10 +424,10 @@ TEST_CASE("new_ReHMC_gaussian") {
     test_new_gaussian<double, GaussianReHMCWalk>(n, a, num_points_ReHMCWalk);
 }
 
-// TEST_CASE("new_ReHMC_exponential") {
-//     std::cout << "ExponentialReHMC Walk :: ";
-//     test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
-// }
+TEST_CASE("new_ReHMC_exponential") {
+    std::cout << "ExponentialReHMC Walk :: ";
+    test_new_exponential<double, ExponentialReHMCWalk>(n, c, T, num_points_ReHMCWalk);
+}
 
 ///////////////////////////////////////////////////////////////////
 //      New implementation : CorreSpectra Matrix PointType
@@ -397,7 +453,12 @@ TEST_CASE("new_accelerated_billiard_uniform_MT") {
     test_new_uniform_MT<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
 
-// TEST_CASE("new_ReHMC_exponential_MT") {
-//     std::cout << "ExponentialReHMC Walk MT :: ";
-//     test_new_exponential<double, ExponentialReHMCWalk>(n, num_points_ReHMCWalk);
-// }
+TEST_CASE("new_ReHMC_gaussian_MT") {
+    std::cout << "Gaussian ReHMC Walk MT :: ";
+    test_new_gaussian_MT<double, GaussianReHMCWalk>(n, a, num_points_ReHMCWalk);
+}
+
+TEST_CASE("new_ReHMC_exponential_MT") {
+    std::cout << "ExponentialReHMC Walk MT :: ";
+    test_new_exponential_MT<double, ExponentialReHMCWalk>(n, c, T, num_points_ReHMCWalk);
+}
