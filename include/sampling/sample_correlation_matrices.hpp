@@ -154,21 +154,23 @@ template
         typename PointType,
         typename RNGType,
         typename PointList,
-        typename NT
+        typename NT,
+        typename VT
 >
 void exponential_correlation_sampling(  const unsigned int &n,
                                         PointList &randPoints,
                                         const unsigned int &walkL,
                                         const unsigned int &num_points,
-                                        const PointType &c,
+                                        const VT &c,
                                         const NT &T,
                                         unsigned int const& nburns = 0){
     CorreSpectra<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
+    PointType _c(c);
     
-    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, c, T, startingPoint, nburns);
+    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
 }
 
 template
@@ -177,21 +179,23 @@ template
         typename PointType,
         typename RNGType,
         typename PointList,
-        typename NT
+        typename NT,
+        typename VT
 >
 void exponential_correlation_sampling_MT(  const unsigned int &n,
                                         PointList &randPoints,
                                         const unsigned int &walkL,
                                         const unsigned int &num_points,
-                                        const PointType &c,
+                                        const VT &c,
                                         const NT &T,
                                         unsigned int const& nburns = 0){
     CorreSpectra_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
+    PointType _c(c);
     
-    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, c, T, startingPoint, nburns);
+    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
 }
 
 #endif
