@@ -113,7 +113,6 @@ void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int
   P.print();
   MT x0=MT(P.dimension(),simdLen);
   x0=P.center*MT::Ones(1,simdLen);
-  std::cerr<<"x0= \n" << x0 << '\n'<< '\n';
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
   crhmc_params.eta = 0.2;
   crhmc_params.momentum = 0.8;
@@ -134,8 +133,6 @@ void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int
     int j = 0;
     for (int i = 0; i < n_samples; i++) {
       if (i % 1000 == 0) {
-        MT sample = crhmc.getPoints();
-        std::cerr<<sample<<"\n";
         std::cerr << i << " out of " << n_samples << "\n";
       }
       for (int k = 0; k < burn_steps; k++) {

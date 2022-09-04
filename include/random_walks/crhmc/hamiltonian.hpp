@@ -116,15 +116,6 @@ public:
     {
       feasible_coordinate = barrier->feasible(x);
     }
-    if(num_runs<10){
-      std::cerr<<"------feasible---------\n";
-      std::cerr <<feasible_coordinate  << '\n';
-      std::cerr<<"------is_not_nan(x)---------\n";
-      std::cerr << is_not_nan(x) << '\n';
-      std::cerr<<"------is_not_nan(v)---------\n";
-      std::cerr << is_not_nan(v) << '\n';
-
-    }
     VT r= feasible_coordinate.cwiseProduct((is_not_nan(x) *is_not_nan(v)).matrix());
     return r;
   }
@@ -178,17 +169,10 @@ public:
     move(x_bar);
     MT dUdv_b = P.Asp * (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
     dUdv_b.transposeInPlace();
-    if(num_runs<10){
-    std::cerr<<"dUdv_b------------\n";
-    std::cerr<<dUdv_b<<"\n";
-    }
     MT out_solver = MT(nu.cols(), nu.rows());
     solver.solve((Tx *)dUdv_b.data(), (Tx *)out_solver.data());
     nu = nu + out_solver.transpose();
-    if(num_runs<10){
-    std::cerr<<"nu------------\n";
-    std::cerr<<nu<<"\n";
-    }
+
     MT dKdv = (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
     MT dKdx = MT::Zero(n,simdLen);
     if (options.DynamicWeight)
@@ -214,19 +198,7 @@ public:
     {
       prepare(x_bar);
       solver.leverageScoreComplement((Tx *)lsc.data());
-      if(num_runs<10){
-        std::cerr<<"--------lsc----------\n";
-        std::cerr<<lsc<<"\n";
-        std::cerr<<"------x--------------\n";
-        std::cerr<<x<<"\n";
-        std::cerr<<"------b-x.col--------------\n";
-        std::cerr<<(-x).colwise()+barrier->ub<<"\n";
-        std::cerr<<"------b-x.col^2--------------\n";
-        std::cerr<<((-x).colwise()+barrier->ub).cwiseProduct((-x).colwise()+barrier->ub)+(x.colwise()-barrier->lb).cwiseProduct(x.colwise()-barrier->lb)<<"\n";
-        std::cerr<<"------tensor--------------\n";
-        std::cerr<< barrier->tensor(x)<<"\n";
-        std::cerr<<"---------------end------------\n";
-      }
+
       if (options.DynamicWeight)
       {
         last_dUdx = (weighted_barrier->tensor(x).cwiseProduct(lsc.transpose()))
@@ -256,17 +228,6 @@ public:
     x = xs[0];
     MT h;
     std::tie(fx, dfx, h) = P.f_oracle(x);
-    num_runs++;
-    if(num_runs<10){
-      std::cerr<<"--------fx----------\n";
-      std::cerr<<fx<<"\n";
-      std::cerr<<"--------dfx----------\n";
-      std::cerr<<dfx<<"\n";
-      std::cerr<<"--------h----------\n";
-      std::cerr<<h<<"\n";
-      std::cerr<<"--------end----------\n";
-
-    }
     if (options.DynamicWeight)
     {
       hess = weighted_barrier->hessian(x) + h;
@@ -274,13 +235,6 @@ public:
     else
     {
       hess = barrier->hessian(x) + h;
-    }
-    if(num_runs<10){
-      std::cerr<<"----------barrier->hess-------------\n";
-      std::cerr << barrier->hessian(x) << '\n';
-      std::cerr<<"--------hess----------\n";
-      std::cerr<<hess<<"\n";
-      std::cerr<<"--------end----------\n";
     }
     forceUpdate = false;
     prepared = false;

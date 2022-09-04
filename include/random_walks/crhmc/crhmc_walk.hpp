@@ -178,14 +178,10 @@ struct CRHMCWalk {
 #endif
         // Calculate initial Hamiltonian
         H = solver->ham.hamiltonian(x, v);
-        if(num_runs<10){
-        std::cerr<<"------------Hamiltonian--------=\n"<<H<<"\n";
-      }
+
         // Calculate new Hamiltonian
         H_tilde = solver->ham.hamiltonian(x_tilde, - v_tilde);
-        if(num_runs<10){
-        std::cerr<<"------------Hamiltonian_tilde--------=\n"<<H_tilde<<"\n";
-      }
+
 #ifdef TIME_KEEPING
         end = std::chrono::system_clock::now();
         H_duration += end - start;
@@ -193,8 +189,7 @@ struct CRHMCWalk {
         VT feasible = solver->ham.feasible(x_tilde,
                                            v_tilde);
         prob=(1.0< exp((H - H_tilde).array())).select(1.0,exp((H - H_tilde).array()));
-        if(num_runs<10){
-        std::cerr<<"--------prob----------\n"<<prob<<"\n";}
+
         prob=prob.cwiseProduct(feasible);
         if(num_runs<10){
         std::cerr<<"--------prob*feasible----------\n"<<prob<<"\n";
@@ -203,17 +198,7 @@ struct CRHMCWalk {
         VT rng_vector=VT(simdLen);
         for(int i=0;i<simdLen;i++){rng_vector(i)=rng.sample_urdist();}
         accept=(rng_vector.array()<prob.array()).select(1*IVT::Ones(simdLen),0*IVT::Ones(simdLen));
-        if(num_runs<10){
-        std::cerr<<"--------accept----------\n"<<accept<<"\n";
-        }
-        if(num_runs<10){
-          std::cerr<<"x=\n"<<x<<"\n";
-          std::cerr<<"v=\n"<<v<<"\n";
-        }
-        if(num_runs<10){
-          std::cerr<<"x_tilde=\n"<<x_tilde<<"\n";
-          std::cerr<<"v_tilde=\n"<<v_tilde<<"\n";
-        }
+        
         x=masked_choose(x,x_tilde,accept);
         v=-v;
         v=masked_choose(v,v_tilde,accept);

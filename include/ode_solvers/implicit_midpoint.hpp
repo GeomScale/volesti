@@ -95,21 +95,8 @@ struct ImplicitMidpointODESolver {
 #ifdef TIME_KEEPING
     start = std::chrono::system_clock::now();
 #endif
-if(num_runs<10){
-std::cerr<<"---states------------\n";
-std::cerr<< xs[0]<<"\n";
-std::cerr<<"----------------------------\n";
-std::cerr<< xs[1]<<"\n";
-std::cerr<<"------------end------------\n";
-}
 partialDerivatives = ham.DU(xs);
-    if(num_runs<10){
-    std::cerr<<"partialDerivatives\n";
-    std::cerr<< partialDerivatives[0]<<"\n";
-    std::cerr<<"----------------------------\n";
-    std::cerr<< partialDerivatives[1]<<"\n";
-    std::cerr<<"---------end----------\n";
-  }
+
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
     DU_duration += end - start;
@@ -126,13 +113,6 @@ partialDerivatives = ham.DU(xs);
 #endif
       // partialDerivatives = ham.DK(xmid);
       partialDerivatives = ham.approxDK(xmid, nu);
-      if(num_runs<10){
-      std::cerr<<"DK_partial\n";
-      std::cerr<< partialDerivatives[0]<<"\n";
-      std::cerr<<"----------------------------\n";
-      std::cerr<< partialDerivatives[1]<<"\n";
-      std::cerr<<"---------end----------\n";
-    }
 #ifdef TIME_KEEPING
       end = std::chrono::system_clock::now();
       approxDK_duration += end - start;
@@ -140,14 +120,6 @@ partialDerivatives = ham.DU(xs);
       xs = xs_prev + partialDerivatives * (eta);
       VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
       NT maxdist = dist.maxCoeff();
-      if(num_runs<10){
-      std::cerr<<"===============states=================\n";
-      std::cerr<< xs[0]<<"\n";
-      std::cerr<<"----------------------------\n";
-      std::cerr<< xs[1]<<"\n";
-      std::cerr<<"------------end------------\n";
-      std::cerr<<"maxdist= "<<maxdist<<"\n";
-      }
       if (maxdist < options.implicitTol) {
         done = true;
         num_steps = i;
@@ -168,13 +140,6 @@ partialDerivatives = ham.DU(xs);
     DU_duration += end - start;
 #endif
     xs = xs + partialDerivatives * (eta / 2);
-    if(num_runs<10){
-    std::cerr<<"---stateslast------------\n";
-    std::cerr<< xs[0]<<"\n";
-    std::cerr<<"----------------------------\n";
-    std::cerr<< xs[1]<<"\n";
-    std::cerr<<"------------end------------\n";
-    }
     ham.project(xs);
   }
 
