@@ -117,9 +117,9 @@ struct ImplicitMidpointODESolver {
       partialDerivatives = ham.approxDK(xmid, nu);
       if(num_runs<10){
         std::cerr<<"approxDK[0]=\n";
-        std::cerr<<partialDerivatives[0];
+        std::cerr<<partialDerivatives[0]<<"\n";
         std::cerr<<"approxDK[1]=\n";
-        std::cerr<<partialDerivatives[1];
+        std::cerr<<partialDerivatives[1]<<"\n";
       }
 
 #ifdef TIME_KEEPING

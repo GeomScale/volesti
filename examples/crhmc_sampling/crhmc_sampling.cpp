@@ -77,7 +77,7 @@ struct CustomFunctor {
 };
 
 template <typename NT,int simdLen>
-void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1){
+void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1){
   std::cerr<<"--------------------------simdLen= "<<simdLen<<"\n";
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
@@ -176,15 +176,19 @@ void test_simdLen_sampling(int n_samples = 10000, int n_burns = -1,int dim=2,int
   #endif
 }
 
-template void test_simdLen_sampling<double,4>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
-template void test_simdLen_sampling<double,1>(int n_samples = 10000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
+template void test_simdLen_sampling<double,4>(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
+template void test_simdLen_sampling<double,1>(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
 int main(int argc, char *argv[]) {
 
+  if(argc != 4){
+    std::cerr<< "Usage: ./crhmc_sampling [simdLen= 1 or 4] [n_samples] [n_burns] [dimension]"
+  }else{
   if (atoi(argv[1])==1){
-    test_simdLen_sampling<double,1>();
+    test_simdLen_sampling<double,1>(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
   }
   else if (atoi(argv[1])==4){
-    test_simdLen_sampling<double,4>();
+    test_simdLen_sampling<double,4>(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
+  }
   }
   return 0;
 }

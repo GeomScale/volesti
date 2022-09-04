@@ -107,7 +107,6 @@ public:
   VT boundary_distance(VT const &x) {
     // Output the distance of x with its closest boundary for each
     // coordinate
-
     return ((x - lb).cwiseMin(ub - x)).cwiseAbs();
   }
 
