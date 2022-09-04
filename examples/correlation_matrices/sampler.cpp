@@ -7,11 +7,10 @@
 #include "random_walks/random_walks.hpp"
 #include "sampling/sample_correlation_matrices.hpp"
 
-typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
-
 typedef double                                              NT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
+typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
 
 typedef Cartesian<NT>                                       Kernel;
 typedef typename Kernel::Point                              Point;
@@ -164,7 +163,7 @@ int main(int argc, char const *argv[]) {
     printf("\n");
 #endif
 
-    unsigned int n = 3, d = n*(n-1)/2, num_points = 100;
+    unsigned int n = 3, d = n*(n-1)/2, num_points = 10000;
     
     ///////////////////////////////////////////////////////////
     //          Uniform sampling
