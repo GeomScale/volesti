@@ -75,6 +75,7 @@ struct Walk
             _v = GetDirection<Point>::apply(n, rng, false);
             _p = p0;
             h1 = Hamiltonian(_p, _v, a);
+            
             for(int j = 0; j < num_leaps; ++j){   
                 _v -= _astep * _p;
 

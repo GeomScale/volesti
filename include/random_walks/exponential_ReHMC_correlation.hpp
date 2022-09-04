@@ -80,7 +80,7 @@ struct Walk
             for(int j = 0; j < num_leaps; ++j){            
                 _v -= _Ac;
 
-                while(true){   
+                while(true){
                     auto pbpair = P.line_positive_intersect(_p, _v);
 
                     if (T <= pbpair.first){
