@@ -1,6 +1,6 @@
 set(PackedCSparse_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(GetPackedCSparse)
-  find_path(PackedCSparse_DIR NAMES PackedChol.h PATHS ${QD_CMAKE_DIR}/../_deps/PackedCSparse)
+  find_path(PackedCSparse_DIR NAMES PackedCSparse PATHS "${PackedCSparse_CMAKE_DIR}/../_deps/polytopesampler-src/code/solver")
   if (NOT PackedCSparse_DIR)
       include(FetchContent)
       set(FETCHCONTENT_BASE_DIR "${PackedCSparse_CMAKE_DIR}/../_deps")
@@ -12,11 +12,10 @@ function(GetPackedCSparse)
       FetchContent_GetProperties(polytopesampler)
 
       if(NOT polytopesampler_POPULATED)
-          message(STATUS "qd_solve library not found locally, downloading it.")
+          message(STATUS "PackedCSparse library not found locally, downloading it.")
           FetchContent_Populate(polytopesampler)
       endif()
 
-      message(STATUS "dir= ${polytopesampler_SOURCE_DIR}")
       set(PackedCSparse_DIR "${polytopesampler_SOURCE_DIR}/code/solver")
       message(STATUS "Using downloaded PackedCSparse at: ${PackedCSparse_DIR}/PackedCSparse")
 
