@@ -115,6 +115,9 @@ GetBoost()
 include("../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../external/cmake-files/PackedCSparse.cmake")
+GetPackedCSparse()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -223,18 +226,6 @@ else ()
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
-		set(QDSOURCES
-			../external/qd/bits.cc
-			../external/qd/c_dd.cc
-			../external/qd/c_qd.cc
-			../external/qd/dd_const.cc
-			../external/qd/dd_real.cc
-			../external/qd/fpu.cc
-			../external/qd/qd_const.cc
-			../external/qd/qd_real.cc
-			../external/qd/util.cc
-			)
-	add_library(QD_LIB ${QDSOURCES})
   add_executable (ode_solvers_test  ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)

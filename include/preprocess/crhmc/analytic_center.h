@@ -64,7 +64,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope 
   NT dualFactor = 1 + b.norm();
   std::vector<int> idx;
 
-  CholObj solver = CholObj(A);
+  CholObj solver = CholObj(transform_format<SpMat,NT,int>(A));
 
   for (int iter = 0; iter < options.ipmMaxIter; iter++)
   {
