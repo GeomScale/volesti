@@ -4,6 +4,7 @@
 // Copyright (c) 2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -163,7 +164,7 @@ public:
     {
         int matrixDim = A.rows();
         double lambdaMinPositive;
-        
+
         Spectra::DenseSymMatProd<NT> op(B);
         Spectra::DenseCholesky<NT> Bop(-A);
 
@@ -426,7 +427,7 @@ public:
     }
 
     // Using LDLT decomposition to check membership
-    // Faster than computing the largest eigenvalue with Spectra 
+    // Faster than computing the largest eigenvalue with Spectra
     // more numerically stable for singular matrices
     bool isPositiveSemidefinite(MT const &A) const {
         Eigen::LDLT<MT> A_ldlt(A);

@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+// Contributed by Huu Phuoc Le as part of Google Summer of Code 2022 program
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #ifndef VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
 #define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
 
@@ -22,7 +31,7 @@ class CorreMatrix{
     CorreMatrix(unsigned int n){
         mat = MT::Identity(n,n);
     }
-    
+
     CorreMatrix(MT const& mat){
         this->mat = mat;
     }

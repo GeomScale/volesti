@@ -3,7 +3,7 @@
 
 # Copyright (c) 2012-2021 Vissarion Fisikopoulos
 # Copyright (c) 2018-2021 Apostolos Chalkis
-# Contributed and/or modified by Vaibhav Thakkar
+
 # Contributed and/or modified by Huu Phuoc Le
 
 # Licensed under GNU LGPL.3, see LICENCE file
@@ -78,7 +78,7 @@ else ()
 endif(BUILTIN_EIGEN)
 
 if (USE_MKL)
-  find_library(BLAS NAME libblas.so 
+  find_library(BLAS NAME libblas.so
   PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib64/atlas /usr/lib/atlas /usr/lib64 /usr/lib /usr/local/lib64 /usr/local/lib
   )
   message(STATUS "BLAS library found: ${BLAS}")
@@ -124,7 +124,7 @@ else ()
   else ()
     add_compile_definitions("EIGEN_NO_DEBUG")
   endif ()
-  
+
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
