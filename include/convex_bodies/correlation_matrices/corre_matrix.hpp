@@ -51,49 +51,41 @@ class CorreMatrix{
         return n*(n-1)/2;
     }
 
-    void operator+= (const CorreMatrix<NT> & p)
-    {
+    void operator+= (const CorreMatrix<NT> & p){
         this->mat += p.mat;
     }
 
-    void operator-= (const CorreMatrix<NT> & p)
-    {
+    void operator-= (const CorreMatrix<NT> & p){
         this->mat -= p.mat;
     }
 
-    void operator= (const CorreMatrix<NT> & p)
-    {
+    void operator= (const CorreMatrix<NT> & p){
         this->mat = p.mat;
     }
 
-    CorreMatrix<NT> operator+ (const CorreMatrix<NT>& p) const
-    {
+    CorreMatrix<NT> operator+ (const CorreMatrix<NT>& p) const {
         CorreMatrix<NT> temp;
         temp.mat = this->mat + p.mat;
         return temp;
     }
 
 
-    CorreMatrix<NT> operator- () const
-    {
+    CorreMatrix<NT> operator- () const {
         CorreMatrix<NT> temp;
         temp.mat = - this->mat;
         return temp;
     }
 
-    void operator*= (const FT k)
-    {
+    void operator*= (const FT k){
         this->mat = k*this->mat;
     }
 
-    CorreMatrix<NT> operator* (const FT k) const
-    {
+    CorreMatrix<NT> operator* (const FT k) const {
         MT M = k * this->mat;
         return CorreMatrix<NT>(M);
     }
 
-    void operator/= (const FT k)
-    {
+    void operator/= (const FT k) {
         this->mat /= k;
     }
 
@@ -108,8 +100,7 @@ class CorreMatrix{
         return ret;
     }
 
-    void print() const
-    {
+    void print() const {
         int n = this->mat.rows(), i, j;
         for(i = 0; i < n ; ++i){
             for(j = 0; j < i; ++j){
@@ -133,14 +124,12 @@ class CorreMatrix{
 };
 
 template<typename NT>
-CorreMatrix<NT> operator* (const NT k, CorreMatrix<NT> p)
-{
+CorreMatrix<NT> operator* (const NT k, CorreMatrix<NT> p){
     return p * k;
 }
 
 template<typename NT>
-std::ostream& operator<<(std::ostream& os, const CorreMatrix<NT>& p)
-{
+std::ostream& operator<<(std::ostream& os, const CorreMatrix<NT>& p){
     os << p.mat;
     return os;
 }
