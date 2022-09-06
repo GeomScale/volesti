@@ -35,10 +35,16 @@ using CholObj = PackedChol<chol_k2, int>;
 using Triple = Eigen::Triplet<double>;
 using Tx = FloatArray<double, chol_k2>;
 using Opts = opts<NT>;
+/*This function computes the analytic center of the polytope*/
+//And detects additional constraint that need to be added
+// x - It outputs the minimizer of min f(x) subjects to {Ax=b}
+// C - detected constraint matrix
+//     If the domain ({Ax=b} intersect dom(f)) is not full dimensional in {Ax=b}
+//     because of the dom(f), the algorithm will detect the collapsed dimension
+//     and output the detected constraint C x = d
+// d - detected constraint vector
 template <typename Polytope>
-std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
-                                          Polytope &f, Opts const &options,
-                                          VT x = VT::Zero(0, 1))
+std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope &f, Opts const &options, VT x = VT::Zero(0, 1))
 {
   // initial conditions
   int n = A.cols();
@@ -51,14 +57,14 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
   VT lambda = VT::Zero(n, 1);
   int fullStep = 0;
   NT tConst = 0;
-  NT primalErr = std::numeric_limits<NT>::infinity();
-  NT dualErr = std::numeric_limits<NT>::infinity();
-  NT primalErrMin = std::numeric_limits<NT>::infinity();
+  NT primalErr = std::numeric_limits<NT>::max();
+  NT dualErr = std::numeric_limits<NT>::max();
+  NT primalErrMin = std::numeric_limits<NT>::max();
   NT primalFactor = 1;
   NT dualFactor = 1 + b.norm();
   std::vector<int> idx;
 
-  CholObj solver = CholObj(A);
+  CholObj solver = CholObj(transform_format<SpMat,NT,int>(A));
 
   for (int iter = 0; iter < options.ipmMaxIter; iter++)
   {
@@ -71,11 +77,12 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
     VT rs = b - A * x;
 
     // check stagnation
-    NT primalErrMin = std::min(primalErr, primalErrMin);
-    NT primalErr = rx.norm() / primalFactor;
+    primalErrMin = std::min(primalErr, primalErrMin);
+    primalErr = rx.norm() / primalFactor;
     NT dualErrLast = dualErr;
-    NT dualErr = rs.norm() / dualFactor;
+    dualErr = rs.norm() / dualFactor;
     bool feasible = f.barrier.feasible(x);
+    //Compare the dual and primal error to the last and minimum so far
     if ((dualErr > (1 - 0.9 * tConst) * dualErrLast) ||
         (primalErr > 10 * primalErrMin) || !feasible)
     {
@@ -119,11 +126,12 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b,
     {
       break;
     }
-
+    //If we have have converged
     if (tGrad == 1)
     {
+      //do some more fullStep
       fullStep = fullStep + 1;
-      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > 8)
+      if (fullStep > log(dualErr / options.ipmDualTol) && fullStep > options.min_convergence_steps)
       {
         break;
       }

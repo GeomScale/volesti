@@ -114,7 +114,7 @@ struct CRHMCWalk {
       solver =
           new Solver(0.0, params.eta, {x, x}, F, Problem, params.options);
       simdLen=solver->k;
-      v = solver->get_state(1);
+      v = MT(dim,simdLen);
       module_update = new auto_tuner<Sampler, RandomNumberGenerator>(*this);
       update_modules = params.options.DynamicWeight ||
                        params.options.DynamicRegularizer ||
@@ -122,7 +122,7 @@ struct CRHMCWalk {
     };
     //Sample a new velocity with momentum
     MT GetDirectionWithMomentum(unsigned int const &dim,
-                                   RandomNumberGenerator &rng, MT x, MT v,
+                                   RandomNumberGenerator const &rng, MT const& x, MT v,
                                    NT momentum = 0, bool normalize = true) {
       MT z=MT(dim,simdLen);
       for(int i=0;i<simdLen;i++){
@@ -198,7 +198,7 @@ struct CRHMCWalk {
         VT rng_vector=VT(simdLen);
         for(int i=0;i<simdLen;i++){rng_vector(i)=rng.sample_urdist();}
         accept=(rng_vector.array()<prob.array()).select(1*IVT::Ones(simdLen),0*IVT::Ones(simdLen));
-        
+
         x=masked_choose(x,x_tilde,accept);
         v=-v;
         v=masked_choose(v,v_tilde,accept);

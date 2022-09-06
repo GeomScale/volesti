@@ -96,7 +96,7 @@ int main() {
     preparation_time =
         benchmark("../test/metabolic_full_dim/polytope_e_coli.ine");
     assert(preparation_time < 2.0);
-    std::cout << "Assertion (preparation_time< 0.2 secs) passed!" << std::endl
+    std::cout << "Assertion (preparation_time< 2 secs) passed!" << std::endl
               << std::endl;
   }
   if (exists_check("../test/netlib/afiro.ine")) {

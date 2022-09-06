@@ -115,6 +115,9 @@ GetBoost()
 include("../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../external/cmake-files/PackedCSparse.cmake")
+GetPackedCSparse()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -223,18 +226,6 @@ else ()
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
-		set(QDSOURCES
-			../external/qd/bits.cc
-			../external/qd/c_dd.cc
-			../external/qd/c_qd.cc
-			../external/qd/dd_const.cc
-			../external/qd/dd_real.cc
-			../external/qd/fpu.cc
-			../external/qd/qd_const.cc
-			../external/qd/qd_real.cc
-			../external/qd/util.cc
-			)
-	add_library(QD_LIB ${QDSOURCES})
   add_executable (ode_solvers_test  ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
@@ -250,6 +241,10 @@ else ()
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
 	COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
+	add_test(NAME crhmc_test_fixed_vars
+	COMMAND crhmc_polytope_preparation_test -tc=test_fixed_vars_crhmc)
+	add_test(NAME crhmc_test_dep_vars
+	COMMAND crhmc_polytope_preparation_test -tc=test_dep_vars_crhmc)
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
@@ -322,10 +317,9 @@ else ()
 	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_sampling_test_crhmc
 					COMMAND crhmc_sampling_test -tc=crhmc)
-	add_test(NAME crhmc_sampling_test_benchmark_cube
-					COMMAND crhmc_sampling_test -tc=benchmark_crhmc_cube)
-	add_test(NAME crhmc_sampling_test_benchmark_polytopes
-					COMMAND crhmc_sampling_test -tc=benchmark_polytopes_sampling_crhmc)
+	add_test(NAME crhmc_test_polytope_sampling
+					COMMAND crhmc_sampling_test -tc=test_polytope_sampling_crhmc)
+
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)

@@ -11,6 +11,7 @@
 #ifndef CRHMC_UTILS_H
 #define CRHMC_UTILS_H
 #include "Eigen/Eigen"
+#include "PackedCSparse/SparseMatrix.h"
 #include <algorithm>
 #include <vector>
 
@@ -213,8 +214,8 @@ std::pair<VectorType, VectorType> colwiseMinMax(SparseMatrixType const &A)
   VectorType cmin(n);
   for (int k = 0; k < A.outerSize(); ++k)
   {
-    Type minv = +std::numeric_limits<Type>::infinity();
-    Type maxv = -std::numeric_limits<Type>::infinity();
+    Type minv = +std::numeric_limits<Type>::max();
+    Type maxv = std::numeric_limits<Type>::lowest();
     for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it)
     {
       minv = std::min(minv, it.value());
@@ -350,4 +351,21 @@ PM postOrderPerm(SparseMatrixType const &A)
     post_perm.indices()(i) = post(i);
   return post_perm;
 }
+
+template<typename SparseMatrixType,typename Type,typename IndexType>
+PackedCSparse::SparseMatrix<Type,IndexType> transform_format(SparseMatrixType const &mat) {
+  PackedCSparse::SparseMatrix<Type, IndexType> A = PackedCSparse::SparseMatrix<Type, IndexType>(mat.rows(), mat.cols(), mat.nonZeros());
+  IndexType nnz = 0;
+  for (IndexType outeindex = 0; outeindex < mat.outerSize(); ++outeindex) {
+    A.p[outeindex] = nnz;
+    for (typename SparseMatrixType::InnerIterator it(mat, outeindex); it; ++it) {
+      A.i[nnz] = it.row();
+      A.x[nnz] = it.value();
+      nnz++;
+    }
+  }
+  A.p[A.n] = nnz;
+  return A;
+}
+
 #endif

@@ -102,7 +102,7 @@ public:
     int m = Asp.rows();
     int n = Asp.cols();
     VT d = estimate_width();
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     VT w = VT::Ones(n, 1);
     solver.decompose((Tx *)w.data());
     VT out_vector = VT(m, 1);
@@ -290,7 +290,7 @@ public:
     int n = Asp.cols();
     VT v = VT(m);
     VT w = VT::Ones(n, 1);
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     solver.decompose((Tx *)w.data());
     solver.diagL((Tx *)v.data());
     std::vector<int> indices;
@@ -369,7 +369,7 @@ public:
   VT estimate_width() {
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     solver.decompose((Tx *)hess.data());
     VT w_vector(n, 1);
     solver.leverageScoreComplement((Tx *)w_vector.data());
@@ -545,7 +545,7 @@ public:
     std::tie(center, std::ignore, std::ignore, w_center) =
         lewis_center(Asp, b, *this, options, center);
     std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     VT Hinv = hess.cwiseInverse();
     solver.decompose((Tx *)Hinv.data());
     VT out(equations(), 1);
@@ -582,25 +582,6 @@ public:
 #endif
   }
 
-  /*Tansform the problem to the form Ax=b lb<=x<=ub*/
-  crhmc_problem(PolytopeType const &HP, Opts _options = Opts()) {
-    options = _options;
-    nP = HP.dimension();
-    int m = HP.num_of_hyperplanes();
-    int n = HP.dimension();
-
-    A.resize(m, n + m);
-    A << HP.get_mat(), MT::Identity(m, m);
-    b = HP.get_vec();
-    lb.resize(n + m, 1);
-    ub.resize(n + m, 1);
-    lb = VT(n + m);
-    lb << -VT::Ones(n) * inf, VT::Zero(m);
-    n = n + m;
-    ub = VT::Ones(n) * inf;
-    Asp.resize(m, n);
-    PreproccessProblem();
-  }
   // Gradient and hessian of for the analytic center
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     MT g, h;

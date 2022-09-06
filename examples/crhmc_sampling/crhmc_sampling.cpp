@@ -180,8 +180,8 @@ template void test_simdLen_sampling<double,4>(int n_samples = 100000, int n_burn
 template void test_simdLen_sampling<double,1>(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
 int main(int argc, char *argv[]) {
 
-  if(argc != 4){
-    std::cerr<< "Usage: ./crhmc_sampling [simdLen= 1 or 4] [n_samples] [n_burns] [dimension]"
+  if(argc != 5){
+    std::cerr<< "Usage: ./crhmc_sampling [simdLen= 1 or 4] [n_samples] [n_burns] [dimension] \n";
   }else{
   if (atoi(argv[1])==1){
     test_simdLen_sampling<double,1>(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
