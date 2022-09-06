@@ -237,10 +237,8 @@ else ()
           COMMAND root_finders_test -tc=root_finders)
 
 	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
-	add_dependencies(benchmarks_crhmc QD_LIB)
 
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
-	add_dependencies(crhmc_polytope_preparation_test QD_LIB)
 	add_test(NAME crhmc_polytope_test_preparation
 	COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
 	add_test(NAME crhmc_test_fixed_vars

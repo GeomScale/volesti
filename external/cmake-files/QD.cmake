@@ -32,17 +32,23 @@ function(GetQD)
     COMMAND ./configure
     WORKING_DIRECTORY ${QD_DIR}
     OUTPUT_FILE CMD_OUTPUT
-    RESULT_VARIABLE EXECUTE_MAKE
+    RESULT_VARIABLE EXECUTE
   )
   if(NOT ${EXECUTE} EQUAL "0")
     message(FATAL_ERROR "./configure QD library failed")
   endif()
-  find_library(QD_LIB NAMES libqd.a PATHS "${QD_DIR}/src/.libs")
-  add_custom_target(QD_LIB
-      ALL
+
+  execute_process(
+      COMMAND make
       WORKING_DIRECTORY ${QD_DIR}
-      COMMAND make  #>qd_compilation.txt
-      USES_TERMINAL
+      OUTPUT_FILE qd_compilation.txt
+      RESULT_VARIABLE EXECUTE_MAKE
   )
+
+  if(NOT ${EXECUTE_MAKE} EQUAL "0")
+    message(FATAL_ERROR "building the QD library failed")
+  endif()
+
+  find_library(QD_LIB NAMES libqd.a PATHS "${QD_DIR}/src/.libs")
 
 endfunction()
