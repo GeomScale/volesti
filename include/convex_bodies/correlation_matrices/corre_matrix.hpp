@@ -1,5 +1,14 @@
-#ifndef VOLESTI_CORRE_MATRIX_H
-#define VOLESTI_CORRE_MATRIX_H
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+// Contributed by Huu Phuoc Le as part of Google Summer of Code 2022 program
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#ifndef VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
+#define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
 
 /// This class handles the PointType used by CorreSpectra_MT class.
 /// Every point is a correlation matrix and only the lower triangular part is stored.
@@ -22,7 +31,7 @@ class CorreMatrix{
     CorreMatrix(unsigned int n){
         mat = MT::Identity(n,n);
     }
-    
+
     CorreMatrix(MT const& mat){
         this->mat = mat;
     }
@@ -33,7 +42,8 @@ class CorreMatrix{
         int ind = 0;
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < i; ++j){
-                this->mat(i,j) = coeffs(ind++);
+                this->mat(i,j) = coeffs(ind);
+                ++ind;
             }
         }
     }
@@ -43,50 +53,42 @@ class CorreMatrix{
         return n*(n-1)/2;
     }
 
-    void operator+= (const CorreMatrix<NT> & p)
-    {   
+    void operator+= (const CorreMatrix<NT> & p){
         this->mat += p.mat.template triangularView<Eigen::StrictlyLower>();;
     }
 
-    void operator-= (const CorreMatrix<NT> & p)
-    {
+    void operator-= (const CorreMatrix<NT> & p){
         this->mat -= p.mat.template triangularView<Eigen::StrictlyLower>();
     }
 
-    void operator= (const CorreMatrix<NT> & p)
-    {
+    void operator= (const CorreMatrix<NT> & p){
         this->mat = p.mat;
     }
 
-    CorreMatrix<NT> operator+ (const CorreMatrix<NT>& p) const
-    {
+    CorreMatrix<NT> operator+ (const CorreMatrix<NT>& p) const {
         CorreMatrix<NT> temp;
         temp.mat = this->mat + p.mat;
         return temp;
     }
 
 
-    CorreMatrix<NT> operator- () const
-    {
+    CorreMatrix<NT> operator- () const {
         CorreMatrix<NT> temp;
         temp.mat = - this->mat;
         return temp;
     }
 
-    void operator*= (const FT k)
-    {
+    void operator*= (const FT k){
         this->mat.template triangularView<Eigen::StrictlyLower>() *= k;
     }
 
-    CorreMatrix<NT> operator* (const FT k) const
-    {
+    CorreMatrix<NT> operator* (const FT k) const {
         MT M = this->mat;
         M *= k;
         return CorreMatrix<NT>(M);
     }
 
-    void operator/= (const FT k)
-    {
+    void operator/= (const FT k){
         this->mat.template triangularView<Eigen::StrictlyLower>() /= k;
     }
 
@@ -123,8 +125,7 @@ class CorreMatrix{
         return ret;
     }
 
-    void print() const
-    {
+    void print() const {
         int n = this->mat.rows(), i, j;
         for(i = 0; i < n ; ++i){
             for(j = 0; j < i; ++j){
@@ -148,16 +149,14 @@ class CorreMatrix{
 };
 
 template<typename NT>
-CorreMatrix<NT> operator* (const NT k, CorreMatrix<NT> p)
-{
+CorreMatrix<NT> operator* (const NT k, CorreMatrix<NT> p){
     return p * k;
 }
 
 template<typename NT>
-std::ostream& operator<<(std::ostream& os, const CorreMatrix<NT>& p)
-{
+std::ostream& operator<<(std::ostream& os, const CorreMatrix<NT>& p){
     os << p.mat;
     return os;
 }
 
-#endif //VOLESTI_CORRE_MATRIX_H
+#endif //VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP

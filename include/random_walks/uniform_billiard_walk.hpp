@@ -4,6 +4,7 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 // Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2019 program.
+// Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -16,8 +17,8 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
-#include "convex_bodies/correlation_matrices/corre_spectra.hpp"
-#include "convex_bodies/correlation_matrices/corre_spectra_MT.hpp"
+#include "convex_bodies/correlation_matrices/correlation_spectrahedron.hpp"
+#include "convex_bodies/correlation_matrices/correlation_spectrahedron_MT.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
@@ -41,46 +42,46 @@ struct compute_diameter
 template <typename Point>
 struct compute_diameter<HPolytope<Point>>
 {
-template <typename NT>
-static NT compute(HPolytope<Point> &P)
-{
-    NT diameter = NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
-    return diameter;
-}
+    template <typename NT>
+    static NT compute(HPolytope<Point> &P)
+    {
+        NT diameter = NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
+        return diameter;
+    }
 };
 
 template <typename Point>
 struct compute_diameter<Spectrahedron<Point>>
 {
-template <typename NT>
-static NT compute(Spectrahedron<Point> &P)
-{
-    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
-    NT diameter = NT(6) * NT(P.dimension()) * inner_ball.second;
-    return diameter;
-}
+    template <typename NT>
+    static NT compute(Spectrahedron<Point> &P)
+    {
+        std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+        NT diameter = NT(6) * NT(P.dimension()) * inner_ball.second;
+        return diameter;
+    }
 };
 
 template <typename Point>
-struct compute_diameter<CorreSpectra<Point>>
+struct compute_diameter<CorrelationSpectrahedron<Point>>
 {
-template <typename NT>
-static NT compute(CorreSpectra<Point> &P)
-{
-    std::pair<Point, NT> inner_ball = P.getInnerBall();
-    return NT(P.dimension()) * inner_ball.second;
-}
+    template <typename NT>
+    static NT compute(CorrelationSpectrahedron<Point> &P)
+    {
+        std::pair<Point, NT> inner_ball = P.getInnerBall();
+        return NT(P.dimension()) * inner_ball.second;
+    }
 };
 
 template <typename Point>
-struct compute_diameter<CorreSpectra_MT<Point>>
+struct compute_diameter<CorrelationSpectrahedron_MT<Point>>
 {
-template <typename NT>
-static NT compute(CorreSpectra_MT<Point> &P)
-{
-    std::pair<Point, NT> inner_ball = P.getInnerBall();
-    return NT(P.dimension()) * inner_ball.second;
-}
+    template <typename NT>
+    static NT compute(CorrelationSpectrahedron_MT<Point> &P)
+    {
+        std::pair<Point, NT> inner_ball = P.getInnerBall();
+        return NT(P.dimension()) * inner_ball.second;
+    }
 };
 
 #ifndef DISABLE_LPSOLVE
@@ -300,7 +301,7 @@ struct Walk
                     _lambda_prev = T;
                     break;
                 }
-                
+
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
@@ -330,7 +331,7 @@ private :
     inline void initialize(GenericPolytope &P,
                            Point const& p,
                            RandomNumberGenerator &rng)
-    {   
+    {
         unsigned int n = P.dimension();
         const NT dl = 0.995;
         _lambdas.setZero(P.num_of_hyperplanes());
@@ -382,12 +383,5 @@ private :
 };
 
 };
-
-
-
-
-
-
-
 
 #endif // RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP
