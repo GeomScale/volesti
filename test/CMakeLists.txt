@@ -332,7 +332,7 @@ else ()
   add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
-	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
+	set(ADDITIONAL_FLAGS "-DSIMD_LEN=0 -DTIME_KEEPING")
 
 	set_target_properties(benchmarks_crhmc
                       	PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})

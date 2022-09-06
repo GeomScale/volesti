@@ -127,7 +127,7 @@ template <typename NT> void test_crhmc_dependent_polytope() {
   input.Aeq = Aeq;
   input.beq = beq;
   Opts options = Opts();
-  options.EnableReordering = false;
+  options.EnableReordering = true;
   CrhmcProblem P = CrhmcProblem(input, options);
   CHECK(P.equations() == 2);
 }
@@ -137,8 +137,8 @@ template <typename NT> void call_test_crhmc_fixed_var_polytope(){
   test_crhmc_fixed_var_polytope<NT>();
 }
 template <typename NT>void call_test_crhmc_dependent_polytope(){
-    std::cout << "--- Testing dep vars" << std::endl;
-    test_crhmc_dependent_polytope<NT>();
+  std::cout << "--- Testing dep vars" << std::endl;
+  test_crhmc_dependent_polytope<NT>();
 }
 template <typename NT> void call_test_crhmc_preprocesssing() {
   std::cout << "--- Testing CRHMC data preprocessing" << std::endl;

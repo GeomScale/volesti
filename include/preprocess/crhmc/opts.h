@@ -23,7 +23,7 @@ public:
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
   Type max_coord = 1e7;
-  bool EnableReordering = true;
+  bool EnableReordering = false;
   const int min_convergence_steps=8;
 
   /*ODE options*/
