@@ -23,7 +23,7 @@ struct Precompute {
         computed_A = computed_B = false;
     }
 
-    void set_mat_size(int const& n) 
+    void set_mat_size(int const& n)
     {
         A = -MT::Identity(n,n);
         B.setZero(n, n);
@@ -32,7 +32,7 @@ struct Precompute {
 };
 
 /// This class handles the spectrahedra of correlation matrices
-/// The PointType here is stored as vector. 
+/// The PointType here is stored as vector.
 /// For the matrix PointType class, refer to CorreSpectra_MT
 
 /// @tparam Point
@@ -82,7 +82,7 @@ class CorreSpectra : public Spectrahedron<Point> {
             mat(i,i) = -1;
         }
         for(i = 0; i < n ; ++i){
-            for(j = i+1; j < n; ++j){
+            for(j = 0; j < i; ++j){
                 coeff = -pvector[ind];
                 mat(i,j) = mat(j,i) = coeff;
                 ++ind;
@@ -95,14 +95,14 @@ class CorreSpectra : public Spectrahedron<Point> {
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
-    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {   
+    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {
         VT grad(this->d);
         VT e = _precomputedValues.eigenvector;
         int i, j, ind = 0;
         NT sum_sq = NT(0);
 
         for(i = 0; i < n ; ++i){
-            for(j = i+1; j < n; ++j){
+            for(j = 0; j < i; ++j){
                 grad(ind) = e[i]*e[j];
                 sum_sq += grad(ind)*grad(ind);
                 ++ind;
@@ -123,7 +123,7 @@ class CorreSpectra : public Spectrahedron<Point> {
             NT coeff;
             int i, j, ind =0;
             for(i = 0; i < n ; ++i){
-                for(j = i+1; j < n; ++j){
+                for(j = 0; j < i; ++j){
                     coeff = -pvector[ind];
                     _precomputedValues.A(i,j) = _precomputedValues.A(j,i) = coeff;
                     coeff = -vvector[ind];
@@ -201,7 +201,7 @@ class CorreSpectra : public Spectrahedron<Point> {
 
     // compute intersection point of ray starting from r and pointing to v
     std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
-    {        
+    {
         createMatricesForPositiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return this->EigenvaluesProblem.symGeneralizedProblem(_precomputedValues.A, _precomputedValues.B);
     }
@@ -232,7 +232,7 @@ class CorreSpectra : public Spectrahedron<Point> {
         int i, j, ind = 0;
         NT sum_sqqrt_sq = NT(0);
         for(i = 0; i < n ; ++i){
-            for(j = i+1; j < n; ++j){
+            for(j = 0; j < i; ++j){
                 ret(ind) = e[i]*e[j];
                 sum_sqqrt_sq += ret(ind)*ret(ind);
                 ++ind;
@@ -249,7 +249,7 @@ class CorreSpectra : public Spectrahedron<Point> {
         return -1;
     }
 
-    bool isExterior(VT const& pos) const{ 
+    bool isExterior(VT const& pos) const{
         MT mat = MT(n, n);
         buildMatrix(pos, n, mat);
         return isExterior(mat);
