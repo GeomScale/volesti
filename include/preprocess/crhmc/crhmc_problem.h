@@ -481,7 +481,7 @@ public:
     /*Move lb=ub to Ax=b*/
     for (int i = 0; i < n; i++) {
       if (doubleVectorEqualityComparison(lb(i), ub(i))) {
-        VT temp = VT::Zero(1, n);
+        MT temp = MT::Zero(1, n);
         temp(i) = 1;
         A.conservativeResize(A.rows() + 1, A.cols());
         A.row(A.rows() - 1) = temp;

@@ -226,7 +226,7 @@ else ()
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
-  add_executable (ode_solvers_test  ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
   add_test(NAME ode_solvers_test_second_order
@@ -248,7 +248,7 @@ else ()
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
-    			COMMAND boundary_oracles_test -tc=h_poly_oracles)
+    COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
   add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
@@ -321,23 +321,22 @@ else ()
   add_test(NAME simple_mc_integration_over_simplices
           COMMAND simple_mc_integration -tc=simplex)
   add_test(NAME simple_mc_integration_over_product_simplices
-		  		COMMAND simple_mc_integration -tc=prod_simplex)
+		  COMMAND simple_mc_integration -tc=prod_simplex)
   add_test(NAME simple_mc_integration_over_cross_polytopes
-		  		COMMAND simple_mc_integration -tc=cross)
+		  COMMAND simple_mc_integration -tc=cross)
   add_test(NAME simple_mc_integration_over_birkhoff_polytopes
-		  		COMMAND simple_mc_integration -tc=birkhoff)
+		  COMMAND simple_mc_integration -tc=birkhoff)
 
   add_executable (order_polytope order_polytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME order_polytope_basics COMMAND order_polytope -tc=basics)
   add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
-	set(ADDITIONAL_FLAGS "-DSIMD_LEN=0 -DTIME_KEEPING")
 
-	set_target_properties(benchmarks_crhmc
-                      	PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
-	set_target_properties(crhmc_polytope_preparation_test
-											  PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	set(ADDITIONAL_FLAGS "-DSIMD_LEN=0 -DTIME_KEEPING")
+	set_target_properties(benchmarks_crhmc PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	set_target_properties(crhmc_polytope_preparation_test PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
@@ -358,7 +357,7 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
 	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} ${QD_LIB}  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK}  coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
