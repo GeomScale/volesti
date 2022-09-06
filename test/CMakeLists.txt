@@ -208,7 +208,7 @@ else ()
   add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
   add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
   add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
-  
+
   add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
   add_test(NAME test_john COMMAND sampling_test -tc=john)
@@ -218,7 +218,7 @@ else ()
   add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
   add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
   add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-  
+
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
@@ -321,9 +321,6 @@ else ()
 
   add_executable (matrix_sampling_test sampling_correlation_matrices_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_corre_spectra_classes COMMAND matrix_sampling_test -tc=corre_spectra)
-  add_test(NAME test_old_ball_uniform COMMAND matrix_sampling_test -tc=old_ball_uniform)
-  add_test(NAME test_old_billiard_uniform COMMAND matrix_sampling_test -tc=old_billiard_uniform)
-  add_test(NAME test_old_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=old_accelerated_billiard_uniform)
   add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
   add_test(NAME test_new_rdhr_uniform COMMAND matrix_sampling_test -tc=new_rdhr_uniform)
   add_test(NAME test_new_billiard_uniform COMMAND matrix_sampling_test -tc=new_billiard_uniform)
