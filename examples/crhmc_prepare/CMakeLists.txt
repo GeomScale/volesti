@@ -73,8 +73,8 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
-include("../../external/cmake-files/PackedCSparse.cmake")
-GetPackedCSparse()
+include("../../external/cmake-files/QD.cmake")
+GetQD()
 
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
@@ -121,7 +121,8 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  add_executable (crhmc_prepare crhmc_prepare.cpp ${QD_SOURCES})
-  TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${MKL_LINK} ${LP_SOLVE})
+  add_executable (crhmc_prepare crhmc_prepare.cpp)
+	add_dependencies(crhmc_prepare QD_LIB)
+	TARGET_LINK_LIBRARIES(crhmc_prepare ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
 
 endif()
