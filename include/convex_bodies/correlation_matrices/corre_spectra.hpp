@@ -82,7 +82,7 @@ class CorreSpectra : public Spectrahedron<Point> {
             mat(i,i) = -1;
         }
         for(i = 0; i < n ; ++i){
-            for(j = i+1; j < n; ++j){
+            for(j = 0; j < i; ++j){
                 coeff = -pvector[ind];
                 mat(i,j) = mat(j,i) = coeff;
                 ++ind;
@@ -102,7 +102,7 @@ class CorreSpectra : public Spectrahedron<Point> {
         NT sum_sq = NT(0);
 
         for(i = 0; i < n ; ++i){
-            for(j = i+1; j < n; ++j){
+            for(j = 0; j < i; ++j){
                 grad(ind) = e[i]*e[j];
                 sum_sq += grad(ind)*grad(ind);
                 ++ind;
@@ -123,7 +123,7 @@ class CorreSpectra : public Spectrahedron<Point> {
             NT coeff;
             int i, j, ind =0;
             for(i = 0; i < n ; ++i){
-                for(j = i+1; j < n; ++j){
+                for(j = 0; j < i; ++j){
                     coeff = -pvector[ind];
                     _precomputedValues.A(i,j) = _precomputedValues.A(j,i) = coeff;
                     coeff = -vvector[ind];
@@ -232,7 +232,7 @@ class CorreSpectra : public Spectrahedron<Point> {
         int i, j, ind = 0;
         NT sum_sqqrt_sq = NT(0);
         for(i = 0; i < n ; ++i){
-            for(j = i+1; j < n; ++j){
+            for(j = 0; j < i; ++j){
                 ret(ind) = e[i]*e[j];
                 sum_sqqrt_sq += ret(ind)*ret(ind);
                 ++ind;
