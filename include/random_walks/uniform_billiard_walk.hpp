@@ -16,8 +16,8 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
-#include "convex_bodies/correlation_matrices/corre_spectra.hpp"
-#include "convex_bodies/correlation_matrices/corre_spectra_MT.hpp"
+#include "convex_bodies/correlation_matrices/correlation_spectrahedron.hpp"
+#include "convex_bodies/correlation_matrices/correlation_spectrahedron_MT.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
