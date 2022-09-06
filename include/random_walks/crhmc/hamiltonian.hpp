@@ -18,7 +18,7 @@
 #include "sos/barriers/TwoSidedBarrier.h"
 #include "sos/barriers/WeightedTwoSidedBarrier.h"
 #include "PackedCSparse/PackedChol.h"
-#include "preprocess/crhmc_utils.h"
+#include "preprocess/crhmc/crhmc_utils.h"
 #include <utility>
 
 template <typename Polytope, typename Point, int simdLen>
@@ -84,7 +84,7 @@ public:
     prepare({x, v});
     pts pd = DK({x, v});
     VT K = 0.5 * (v.cwiseProduct(pd[0])).colwise().sum();
-    NT logdet=NT(solver.logdet());
+    NT logdet=get(solver.logdet(),0);
     VT U = ((hess.array()).log()).colwise().sum();
     U = (U +logdet*VT::Ones(simdLen))*0.5 + fx;
     VT E = U + K;

@@ -26,18 +26,18 @@ public:
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using Opts = typename Sampler::Opts;
   int n;
-  int k;
+  int simdLen;
   MT bound;
   Opts &options;
   MT &extraHessian;
   dynamic_regularizer(Sampler &s)
-      : k(s.solver->k), options(s.params.options),
+      : simdLen(s.simdLen), options(s.params.options),
         extraHessian(options.DynamicWeight
                          ? s.solver->ham.weighted_barrier->extraHessian
                          : s.solver->ham.barrier->extraHessian) {
     n = s.dim;
-    bound = MT::Ones(n,k);
-    extraHessian = MT::Ones(n,k);
+    bound = MT::Ones(n,simdLen);
+    extraHessian = MT::Ones(n,simdLen);
   }
 
   void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
@@ -51,7 +51,7 @@ public:
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.forceUpdate = true;
       s.solver->ham.move({s.x, s.v});
-      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n,k), false);
+      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n,simdLen), false);
     }
   }
 };

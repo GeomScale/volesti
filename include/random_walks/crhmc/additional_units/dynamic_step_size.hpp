@@ -23,7 +23,7 @@ template <typename Sampler> class dynamic_step_size {
   using VT = Eigen::Array<NT,Eigen::Dynamic,1>;
 
 public:
-  int k;
+  int simdLen;
   IVT consecutiveBadStep;
   int iterSinceShrink = 0;
   VT rejectSinceShrink;
@@ -37,12 +37,12 @@ public:
   VT nEffectiveStep; // number of effective steps
   NT accumulatedMomentum=0;
   dynamic_step_size(Sampler &s)
-      :k(s.solver->k), options(s.params.options), eta(s.solver->eta),
+      :simdLen(s.simdLen), options(s.params.options), eta(s.solver->eta),
         momentum(s.params.momentum) {
-    nEffectiveStep = VT::Zero(k);
-    acceptedStep = VT::Zero(k);
-    consecutiveBadStep=IVT::Zero(k);
-    rejectSinceShrink=VT::Zero(k);
+    nEffectiveStep = VT::Zero(simdLen);
+    acceptedStep = VT::Zero(simdLen);
+    consecutiveBadStep=IVT::Zero(simdLen);
+    rejectSinceShrink=VT::Zero(simdLen);
 
     if (options.warmUpStep > 0) {
       eta = 1e-3;
@@ -55,11 +55,11 @@ public:
     accumulatedMomentum = s.prob.mean() * momentum * accumulatedMomentum + eta;
     Eigen::Matrix<NT,Eigen::Dynamic,1> accept= (s.accept.template cast<NT>());
     nEffectiveStep = nEffectiveStep + eta * accumulatedMomentum * accept.array();
-    IVT bad_step=IVT::Zero(k);
+    IVT bad_step=IVT::Zero(simdLen);
     if(s.solver->num_steps == options.maxODEStep){
       bad_step+=1;
     }else {
-       bad_step =(s.prob.array()<0.5 ).select(1,IVT::Zero(k));
+       bad_step =(s.prob.array()<0.5 ).select(1,IVT::Zero(simdLen));
     }
     consecutiveBadStep = bad_step*consecutiveBadStep + bad_step;
 
@@ -72,8 +72,8 @@ public:
     }
 
     if (!warmupFinished) {
-      acceptedStep = VT::Zero(k);
-      nEffectiveStep = VT::Zero(k);
+      acceptedStep = VT::Zero(simdLen);
+      nEffectiveStep = VT::Zero(simdLen);
       warmupFinished = true;
     }
 
@@ -104,8 +104,8 @@ public:
       std::cerr << "shrink------------------------\n";
       iterSinceShrink = 0;
       ODEStepSinceShrink = 0;
-      rejectSinceShrink = VT::Zero(k);
-      consecutiveBadStep = IVT::Zero(k);
+      rejectSinceShrink = VT::Zero(simdLen);
+      consecutiveBadStep = IVT::Zero(simdLen);
 
       eta /= options.shrinkFactor;
       momentum = 1 - std::min(0.999, eta / options.effectiveStepSize);
