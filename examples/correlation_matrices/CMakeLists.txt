@@ -4,6 +4,7 @@
 # Copyright (c) 2012-2021 Vissarion Fisikopoulos
 # Copyright (c) 2018-2021 Apostolos Chalkis
 # Contributed and/or modified by Vaibhav Thakkar
+# Contributed and/or modified by Huu Phuoc Le
 
 # Licensed under GNU LGPL.3, see LICENCE file
 
