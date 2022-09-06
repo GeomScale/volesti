@@ -100,21 +100,20 @@ struct CRHMCWalk {
     std::chrono::duration<double> H_duration =
         std::chrono::duration<double>::zero();
 #endif
-    Walk(Polytope &Problem, MT &p, NegativeGradientFunctor &neg_grad_f,
+    Walk(Polytope &Problem, Point &p, NegativeGradientFunctor &neg_grad_f,
          NegativeLogprobFunctor &neg_logprob_f,
          parameters<NT, NegativeGradientFunctor> &param)
         : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem) {
 
-      dim = p.rows();
-
+      dim = p.dimension();
+      simdLen=params.options.simdLen;
       // Starting point is provided from outside
-      x = p;
+      MT x = p.getCoefficients()*MT::Ones(1,simdLen);
       accepted = false;
       // Initialize solver
       solver =
           new Solver(0.0, params.eta, {x, x}, F, Problem, params.options);
-      simdLen=solver->k;
-      v = MT(dim,simdLen);
+      v = MT::Zero(dim,simdLen);
       module_update = new auto_tuner<Sampler, RandomNumberGenerator>(*this);
       update_modules = params.options.DynamicWeight ||
                        params.options.DynamicRegularizer ||

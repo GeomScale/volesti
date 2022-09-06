@@ -102,6 +102,7 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   Grad g(params);
   Hess h(params);
   Opts options;
+  options.simdLen=simdLen;
   //Input input =Input(dim);
   Input input = Input(dim, f, g, h);
   MT A = MT::Ones(5, dim);
@@ -111,8 +112,7 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   input.bineq = b;
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
-  MT x0=MT(P.dimension(),simdLen);
-  x0=P.center*MT::Ones(1,simdLen);
+  Point x0=Point(P.center);
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
   crhmc_params.eta = 0.2;
   crhmc_params.momentum = 0.8;

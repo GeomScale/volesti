@@ -47,7 +47,7 @@ inline std::vector<T> operator-(const std::vector<T> &v1,
 
   return v1 + v2 * (-1.0);
 }
-template <typename Point, typename NT, typename Polytope, typename func,int simdLen>
+template <typename Point, typename NT, typename Polytope, typename func,int simdLen=1>
 struct ImplicitMidpointODESolver {
   using VT = typename Polytope::VT;
   using MT = typename Polytope::MT;
@@ -56,7 +56,6 @@ struct ImplicitMidpointODESolver {
   using Opts = opts<NT>;
 
   unsigned int dim;
-  int k=simdLen;
   NT eta;
   int num_steps = 0;
   NT t;
