@@ -56,7 +56,7 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   int m = 342;
   int n = 366;
   std::ifstream testdata;
-  std::string testDataFileName("../examples/crhmc_prepare/outputMatrix.txt");
+  std::string testDataFileName("../test/crhmc_polytope_test_output.txt");
   testdata.open(testDataFileName, std::ifstream::in);
   int size;
   testdata >> size;
