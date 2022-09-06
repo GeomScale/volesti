@@ -4,6 +4,7 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -27,16 +28,25 @@ struct GetDirection
         Point p(dim);
         NT* data = p.pointerToData();
 
-        for (unsigned int i=0; i<dim; ++i)
+        if(normalize)
         {
-            *data = rng.sample_ndist();
-            normal += *data * *data;
-            data++;
+            for (unsigned int i=0; i<dim; ++i)
+            {
+                *data = rng.sample_ndist();
+                normal += *data * *data;
+                data++;
+            }
+
+            normal = NT(1)/std::sqrt(normal);
+            p *= normal;
+        }else
+        {
+            for (unsigned int i=0; i<dim; ++i)
+            {
+                *data = rng.sample_ndist();
+                data++;
+            }
         }
-
-        normal = NT(1)/std::sqrt(normal);
-        if (normalize) p *= normal;
-
         return p;
     }
 };
@@ -49,7 +59,7 @@ struct GetDirection<CorreMatrix<NT>>
     inline static CorreMatrix<NT> apply(unsigned int const& dim,
                               RandomNumberGenerator &rng,
                               bool normalize=true)
-    {   
+    {
         typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
         typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
 
@@ -58,16 +68,31 @@ struct GetDirection<CorreMatrix<NT>>
         NT normal = NT(0), coeff;
 
         int i, j;
-        for(i = 0; i < n ; ++i){
-            for(j = 0; j < i; ++j){
-                coeff = rng.sample_ndist();
-                mat(i,j) = coeff;
-                normal +=  coeff * coeff;
+
+        if(normalize)
+        {
+            for(i = 0; i < n ; ++i)
+            {
+                for(j = 0; j < i; ++j)
+                {
+                    coeff = rng.sample_ndist();
+                    mat(i,j) = coeff;
+                    normal +=  coeff * coeff;
+                }
+            }
+            normal = NT(1)/std::sqrt(normal);
+            mat *= normal;
+        }else
+        {
+            for(i = 0; i < n ; ++i)
+            {
+                for(j = 0; j < i; ++j)
+                {
+                    coeff = rng.sample_ndist();
+                    mat(i,j) = coeff;
+                }
             }
         }
-
-        normal = NT(1)/std::sqrt(normal);
-        if (normalize) mat *= normal;
         return CorreMatrix<NT>(mat);
     }
 };
