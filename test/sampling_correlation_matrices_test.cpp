@@ -99,36 +99,6 @@ template
     typename NT,
     typename WalkType
 >
-void test_old_uniform(const unsigned int n, const unsigned int num_points = 1000){
-    typedef Cartesian<NT>                                       Kernel;
-    typedef typename Kernel::Point                              Point;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>                VT;
-    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>           RNGType;
-
-    std::cout << "Test old sampling : "<< num_points <<" uniform correlation matrices of size " << n << std::endl;
-    std::chrono::steady_clock::time_point start, end;
-    double time;
-    std::vector<Point> randPoints;
-    unsigned int walkL = 1;
-
-
-    start = std::chrono::steady_clock::now();
-
-    direct_uniform_sampling<NT, WalkType, RNGType, Point>(n, num_points, walkL, randPoints, 0);
-
-    end = std::chrono::steady_clock::now();
-    time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
-
-    check_output<NT, VT, MT>(randPoints, num_points, n);
-}
-
-template
-<
-    typename NT,
-    typename WalkType
->
 void test_new_uniform(const unsigned int n, const unsigned int num_points = 1000){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
@@ -191,30 +161,6 @@ int num_points_BilliardWalk = 1000;
 
 TEST_CASE("corre_spectra") {
     test_corre_spectra_classes<double>(n);
-}
-
-///////////////////////////////////////////////////////////////////
-//      Old implementation
-//
-
-TEST_CASE("old_ball_uniform") {
-    std::cout << "Ball Walk :: ";
-    test_old_uniform<double, BallWalk>(n, num_points_BallWalk);
-}
-
-TEST_CASE("old_rdhr_uniform") {
-    std::cout << "RDHR Walk :: ";
-    test_old_uniform<double, RDHRWalk>(n,num_points_RDHRWalk);
-}
-
-TEST_CASE("old_billiard_uniform") {
-    std::cout << "Billiard Walk :: ";
-    test_old_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
-}
-
-TEST_CASE("old_accelerated_billiard_uniform") {
-    std::cout << "Accelerated Billiard Walk :: ";
-    test_old_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
 
 ///////////////////////////////////////////////////////////////////
