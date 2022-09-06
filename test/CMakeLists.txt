@@ -19,13 +19,13 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 if (APPLE)
 	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 elseif(UNIX)
-	set(MKLROOT $ENV{HOME}/intel/mkl)
+	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 endif()
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -191,6 +191,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+  add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
