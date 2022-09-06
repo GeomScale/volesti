@@ -121,7 +121,7 @@ struct CRHMCWalk {
     };
     //Sample a new velocity with momentum
     MT GetDirectionWithMomentum(unsigned int const &dim,
-                                   RandomNumberGenerator const &rng, MT const& x, MT v,
+                                   RandomNumberGenerator  &rng, MT const& x, MT v,
                                    NT momentum = 0, bool normalize = true) {
       MT z=MT(dim,simdLen);
       for(int i=0;i<simdLen;i++){
