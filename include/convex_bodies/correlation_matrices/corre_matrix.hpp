@@ -1,5 +1,5 @@
-#ifndef VOLESTI_CORRE_MATRIX_H
-#define VOLESTI_CORRE_MATRIX_H
+#ifndef VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
+#define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
 
 /// This class handles the PointType used by CorreSpectra_MT class.
 /// Every point is a correlation matrix and only the lower triangular part is stored.
@@ -136,4 +136,4 @@ std::ostream& operator<<(std::ostream& os, const CorreMatrix<NT>& p)
     return os;
 }
 
-#endif //VOLESTI_CORRE_MATRIX_H
+#endif //VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP

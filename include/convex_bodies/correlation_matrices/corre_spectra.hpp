@@ -1,5 +1,5 @@
-#ifndef VOLESTI_CORRE_SPECTRAHEDRON_H
-#define VOLESTI_CORRE_SPECTRAHEDRON_H
+#ifndef VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_HPP
+#define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_HPP
 
 template <typename NT, typename MT, typename VT>
 struct Precompute {
@@ -23,7 +23,7 @@ struct Precompute {
         computed_A = computed_B = false;
     }
 
-    void set_mat_size(int const& n) 
+    void set_mat_size(int const& n)
     {
         A = -MT::Identity(n,n);
         B.setZero(n, n);
@@ -32,7 +32,7 @@ struct Precompute {
 };
 
 /// This class handles the spectrahedra of correlation matrices
-/// The PointType here is stored as vector. 
+/// The PointType here is stored as vector.
 /// For the matrix PointType class, refer to CorreSpectra_MT
 
 /// @tparam Point
@@ -95,7 +95,7 @@ class CorreSpectra : public Spectrahedron<Point> {
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
-    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {   
+    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {
         VT grad(this->d);
         VT e = _precomputedValues.eigenvector;
         int i, j, ind = 0;
@@ -201,7 +201,7 @@ class CorreSpectra : public Spectrahedron<Point> {
 
     // compute intersection point of ray starting from r and pointing to v
     std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
-    {        
+    {
         createMatricesForPositiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return this->EigenvaluesProblem.symGeneralizedProblem(_precomputedValues.A, _precomputedValues.B);
     }
@@ -249,7 +249,7 @@ class CorreSpectra : public Spectrahedron<Point> {
         return -1;
     }
 
-    bool isExterior(VT const& pos) const{ 
+    bool isExterior(VT const& pos) const{
         MT mat = MT(n, n);
         buildMatrix(pos, n, mat);
         return isExterior(mat);
@@ -264,4 +264,4 @@ class CorreSpectra : public Spectrahedron<Point> {
     }
 };
 
-#endif //VOLESTI_CORRE_SPECTRAHEDRON_H
+#endif //VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_HPP

@@ -1,7 +1,7 @@
-#ifndef VOLESTI_CORRE_SPECTRAHEDRON_MT_H
-#define VOLESTI_CORRE_SPECTRAHEDRON_MT_H
+#ifndef VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_MT_HPP
+#define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_MT_HPP
 
-#include "corre_matrix.hpp"
+#include "convex_bodies/correlation_matrices/corre_matrix.hpp"
 //
 /// This class handles the spectrahedra of correlation matrices
 /// @tparam Point
@@ -57,7 +57,7 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
                 dot += grad(i,j) * v.mat(i,j);
             }
         }
-        dot = 2 * dot / sum_sq;        
+        dot = 2 * dot / sum_sq;
         grad = dot*grad;
         v -= PointType(grad);
     }
@@ -174,4 +174,4 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
     }
 };
 
-#endif //VOLESTI_CORRE_SPECTRAHEDRON_MT_H
+#endif //VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_MT_HPP
