@@ -240,15 +240,15 @@ else ()
 
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
-	COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
+					COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
 	add_test(NAME crhmc_test_fixed_vars
-	COMMAND crhmc_polytope_preparation_test -tc=test_fixed_vars_crhmc)
+					COMMAND crhmc_polytope_preparation_test -tc=test_fixed_vars_crhmc)
 	add_test(NAME crhmc_test_dep_vars
-	COMMAND crhmc_polytope_preparation_test -tc=test_dep_vars_crhmc)
+					COMMAND crhmc_polytope_preparation_test -tc=test_dep_vars_crhmc)
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
-    COMMAND boundary_oracles_test -tc=h_poly_oracles)
+    			COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
   add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
@@ -321,11 +321,11 @@ else ()
   add_test(NAME simple_mc_integration_over_simplices
           COMMAND simple_mc_integration -tc=simplex)
   add_test(NAME simple_mc_integration_over_product_simplices
-		  COMMAND simple_mc_integration -tc=prod_simplex)
+		  		COMMAND simple_mc_integration -tc=prod_simplex)
   add_test(NAME simple_mc_integration_over_cross_polytopes
-		  COMMAND simple_mc_integration -tc=cross)
+		  		COMMAND simple_mc_integration -tc=cross)
   add_test(NAME simple_mc_integration_over_birkhoff_polytopes
-		  COMMAND simple_mc_integration -tc=birkhoff)
+		  		COMMAND simple_mc_integration -tc=birkhoff)
 
   add_executable (order_polytope order_polytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME order_polytope_basics COMMAND order_polytope -tc=basics)
@@ -335,7 +335,9 @@ else ()
 	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 	set_target_properties(benchmarks_crhmc
-                                PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+                      	PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	set_target_properties(crhmc_polytope_preparation_test
+											  PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
