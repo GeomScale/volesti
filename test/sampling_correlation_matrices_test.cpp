@@ -18,7 +18,7 @@ MT rebuildMatrix(const VT &xvector, const unsigned int n){
     NT coeff;
     int i, j, ind = 0;
     for(i = 0; i < n ; ++i){
-        for(j = i+1; j < n; ++j){
+        for(j = 0; j < i; ++j){
             coeff = xvector[ind];
             mat(i,j) = mat(j,i) = coeff;
             ++ind;
@@ -34,42 +34,6 @@ void check_output(PointList &randPoints, int num_points, int n){
     Eigen::LDLT<MT> A_ldlt;
     for(int i = 0; i < num_points ; ++i){
         A = rebuildMatrix<NT, MT>(randPoints[i].getCoefficients(), n);
-        A_ldlt = Eigen::LDLT<MT>(A);
-        if (A_ldlt.info() == Eigen::NumericalIssue || !A_ldlt.isPositive()){
-            ++count;
-        }
-    }
-    std::cout << "Fails " << count << " / " << num_points << " samples\n";
-    CHECK(count == 0);
-
-    if(num_points >= 100){
-        MT samples(d, num_points);
-        unsigned int jj = 0;
-
-        for (typename PointList::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++){
-            samples.col(jj) = (*rpit).getCoefficients();
-        }
-
-        VT score = univariate_psrf<NT, VT>(samples);
-        std::cout << "psrf = " << score.maxCoeff() << std::endl;
-
-        CHECK(score.maxCoeff() < 1.1);
-    }
-}
-
-template<typename NT, typename VT, typename MT, typename PointList>
-void check_output_MT(PointList &randPoints, int num_points, int n){
-    int d = n*(n-1)/2, count = 0;
-    int i, j, k;
-    MT A;
-    Eigen::LDLT<MT> A_ldlt;
-    for(i = 0; i < num_points ; ++i){
-        A = MT::Identity(n,n);
-        for(j = 0; j < n ; ++j){
-            for(k = j+1 ; k < n ; ++k){
-                A(j,k) = A(k,j) = randPoints[i].mat(k,j);
-            }
-        }
         A_ldlt = Eigen::LDLT<MT>(A);
         if (A_ldlt.info() == Eigen::NumericalIssue || !A_ldlt.isPositive()){
             ++count;
@@ -96,14 +60,14 @@ void test_corre_spectra_classes(unsigned int const n){
     typedef Cartesian<NT>                                       Kernel;
     typedef typename Kernel::Point                              Point;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>     MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1>                  VT; 
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1>                  VT;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3>   RNGType;
     typedef CorreMatrix<NT>                                     PMT;
 
     const unsigned int d = n*(n-1)/2;
     RNGType rng(d);
 
-    CorreSpectra<Point> P(n); 
+    CorreSpectra<Point> P(n);
     Point startingPoint(n);
 
     CHECK(P.matrixSize() == n);
@@ -111,7 +75,7 @@ void test_corre_spectra_classes(unsigned int const n){
     CHECK(P.is_in(startingPoint) == -1);
     std::cout << "Diameter of P = " << P.InnerBall().second <<std::endl;
 
-    CorreSpectra_MT<PMT> P2(n); 
+    CorreSpectra_MT<PMT> P2(n);
 
     CHECK(P2.matrixSize() == n);
     CHECK(P2.dimension() == d);
@@ -197,14 +161,14 @@ void test_new_uniform_MT(const unsigned int n, const unsigned int num_points = 1
     unsigned int walkL = 1;
 
     start = std::chrono::steady_clock::now();
-    
+
     uniform_correlation_sampling_MT<WalkType, Point, RNGType>(n, randPoints, walkL, num_points, 0);
-    
+
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    check_output_MT<NT, VT, MT>(randPoints, num_points, n);
+    check_output<NT, VT, MT>(randPoints, num_points, n);
 }
 
 int n = 3;
