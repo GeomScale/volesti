@@ -14,8 +14,8 @@ std::vector<MT> LMIGen(int n){
     std::vector<MT> list_Mat;
     MT A;
     list_Mat.push_back(-MT::Identity(n, n));
-    for(i = 0; i < n; i++){
-        for(j = i+1; j < n; j++){
+    for(i = 0; i < n; ++i){
+        for(j = 0; j < i; ++j){
             A = MT::Zero(n, n);
             A(i,j) = -1;
             A(j,i) = -1;
@@ -46,7 +46,7 @@ void direct_uniform_sampling(int n, int num_points, int walkL, PointList &randPo
     Spectrahedron<Point> spectra = prepare_input<NT, Point>(n);
     int d = spectra.dimension();
     Point p(d);
-    RNGType rng(d);                
+    RNGType rng(d);
 
     uniform_sampling<WalkType>(randPoints, spectra, rng, walkL, num_points, p, nburns);
 }
@@ -80,7 +80,7 @@ void uniform_correlation_sampling(const unsigned int &n,
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
-    
+
     uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint, nburns);
 }
 
@@ -122,7 +122,7 @@ void gaussian_correlation_sampling( const unsigned int &n,
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
-    
+
     gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, nburns);
 }
 
@@ -144,7 +144,7 @@ void gaussian_correlation_sampling_MT( const unsigned int &n,
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
-    
+
     gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, nburns);
 }
 
@@ -169,7 +169,7 @@ void exponential_correlation_sampling(  const unsigned int &n,
     PointType startingPoint(d);
     RNGType rng(d);
     PointType _c(c);
-    
+
     exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
 }
 
@@ -194,7 +194,7 @@ void exponential_correlation_sampling_MT(  const unsigned int &n,
     PointType startingPoint(n);
     RNGType rng(d);
     PointType _c(c);
-    
+
     exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
 }
 
