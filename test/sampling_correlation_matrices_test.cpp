@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+// Contributed by Huu Phuoc Le as part of Google Summer of Code 2022 program
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #include "doctest.h"
 #include <iostream>
 #include "misc.h"
@@ -67,15 +76,15 @@ void test_corre_spectra_classes(unsigned int const n){
     const unsigned int d = n*(n-1)/2;
     RNGType rng(d);
 
-    CorreSpectra<Point> P(n);
-    Point startingPoint(n);
+    CorrelationSpectrahedron<Point> P(n);
+    Point startingPoint(d);
 
     CHECK(P.matrixSize() == n);
     CHECK(P.dimension() == d);
     CHECK(P.is_in(startingPoint) == -1);
     std::cout << "Diameter of P = " << P.InnerBall().second <<std::endl;
 
-    CorreSpectra_MT<PMT> P2(n);
+    CorrelationSpectrahedron_MT<PMT> P2(n);
 
     CHECK(P2.matrixSize() == n);
     CHECK(P2.dimension() == d);
@@ -174,7 +183,7 @@ void test_new_uniform_MT(const unsigned int n, const unsigned int num_points = 1
 int n = 3;
 int num_points_BallWalk = 10000;
 int num_points_RDHRWalk = 10000;
-int num_points_BilliardWalk = 100;
+int num_points_BilliardWalk = 1000;
 
 ///////////////////////////////////////////////////////////////////
 //      Test new classes
@@ -193,6 +202,11 @@ TEST_CASE("old_ball_uniform") {
     test_old_uniform<double, BallWalk>(n, num_points_BallWalk);
 }
 
+TEST_CASE("old_rdhr_uniform") {
+    std::cout << "RDHR Walk :: ";
+    test_old_uniform<double, RDHRWalk>(n,num_points_RDHRWalk);
+}
+
 TEST_CASE("old_billiard_uniform") {
     std::cout << "Billiard Walk :: ";
     test_old_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);
@@ -204,7 +218,7 @@ TEST_CASE("old_accelerated_billiard_uniform") {
 }
 
 ///////////////////////////////////////////////////////////////////
-//      New implementation : CorreSpectra Vector PointType
+//      New implementation : CorrelationSpectrahedron Vector PointType
 //
 
 TEST_CASE("new_ball_uniform") {
@@ -228,7 +242,7 @@ TEST_CASE("new_accelerated_billiard_uniform") {
 }
 
 ///////////////////////////////////////////////////////////////////
-//      New implementation : CorreSpectra Matrix PointType
+//      New implementation : CorrelationSpectrahedron Matrix PointType
 //
 
 TEST_CASE("new_ball_uniform_MT") {

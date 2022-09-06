@@ -1,7 +1,16 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+// Contributed by Huu Phuoc Le as part of Google Summer of Code 2022 program
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
 /// Functions to sample correlation matrices w.r.t. a truncated density
 
-#ifndef SAMPLE_CORRELATION_MATRICES_HPP
-#define SAMPLE_CORRELATION_MATRICES_HPP
+#ifndef VOLESTI_SAMPLING_SAMPLE_CORRELATION_MATRICES_HPP
+#define VOLESTI_SAMPLING_SAMPLE_CORRELATION_MATRICES_HPP
 
 #include <sampling/sampling.hpp>
 
@@ -76,7 +85,7 @@ void uniform_correlation_sampling(const unsigned int &n,
                                     const unsigned int &walkL,
                                     const unsigned int &num_points,
                                     unsigned int const& nburns){
-    CorreSpectra<PointType> P(n);
+    CorrelationSpectrahedron<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
@@ -91,12 +100,12 @@ template
     typename RNGType,
     typename PointList
 >
-void uniform_correlation_sampling_MT(const unsigned int &n,
-                                    PointList &randPoints,
-                                    const unsigned int &walkL,
-                                    const unsigned int &num_points,
-                                    unsigned int const& nburns){
-    CorreSpectra_MT<PointType> P(n);
+void uniform_correlation_sampling_MT(   const unsigned int &n,
+                                        PointList &randPoints,
+                                        const unsigned int &walkL,
+                                        const unsigned int &num_points,
+                                        unsigned int const& nburns){
+    CorrelationSpectrahedron_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
@@ -118,7 +127,7 @@ void gaussian_correlation_sampling( const unsigned int &n,
                                     const unsigned int &num_points,
                                     const NT &a,
                                     unsigned int const& nburns = 0){
-    CorreSpectra<PointType> P(n);
+    CorrelationSpectrahedron<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
@@ -134,13 +143,13 @@ template
     typename PointList,
     typename NT
 >
-void gaussian_correlation_sampling_MT( const unsigned int &n,
-                                    PointList &randPoints,
-                                    const unsigned int &walkL,
-                                    const unsigned int &num_points,
-                                    const NT &a,
-                                    unsigned int const& nburns = 0){
-    CorreSpectra_MT<PointType> P(n);
+void gaussian_correlation_sampling_MT(  const unsigned int &n,
+                                        PointList &randPoints,
+                                        const unsigned int &walkL,
+                                        const unsigned int &num_points,
+                                        const NT &a,
+                                        unsigned int const& nburns = 0){
+    CorrelationSpectrahedron_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
@@ -164,7 +173,7 @@ void exponential_correlation_sampling(  const unsigned int &n,
                                         const VT &c,
                                         const NT &T,
                                         unsigned int const& nburns = 0){
-    CorreSpectra<PointType> P(n);
+    CorrelationSpectrahedron<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(d);
     RNGType rng(d);
@@ -182,14 +191,14 @@ template
         typename NT,
         typename VT
 >
-void exponential_correlation_sampling_MT(  const unsigned int &n,
-                                        PointList &randPoints,
-                                        const unsigned int &walkL,
-                                        const unsigned int &num_points,
-                                        const VT &c,
-                                        const NT &T,
-                                        unsigned int const& nburns = 0){
-    CorreSpectra_MT<PointType> P(n);
+void exponential_correlation_sampling_MT(   const unsigned int &n,
+                                            PointList &randPoints,
+                                            const unsigned int &walkL,
+                                            const unsigned int &num_points,
+                                            const VT &c,
+                                            const NT &T,
+                                            unsigned int const& nburns = 0){
+    CorrelationSpectrahedron_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
@@ -198,4 +207,4 @@ void exponential_correlation_sampling_MT(  const unsigned int &n,
     exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
 }
 
-#endif
+#endif //VOLESTI_SAMPLING_SAMPLE_CORRELATION_MATRICES_HPP

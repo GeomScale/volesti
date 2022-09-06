@@ -6,7 +6,7 @@
 /// This class handles the spectrahedra of correlation matrices
 /// @tparam Point
 template<typename CorreMatrix>
-class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
+class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
     public:
 
     /// The numeric/matrix/vector types we use
@@ -22,7 +22,7 @@ class CorreSpectra_MT : public Spectrahedron<CorreMatrix> {
 
     /// Constructor of correlation matrix spectrahedra
     /// \param[in] : matrix size
-    CorreSpectra_MT(unsigned int n){
+    CorrelationSpectrahedron_MT(unsigned int n){
         int i,j;
         this->n = n;
         this->d = n*(n-1)/2;

@@ -62,10 +62,10 @@ struct compute_diameter<Spectrahedron<Point>>
 };
 
 template <typename Point>
-struct compute_diameter<CorreSpectra<Point>>
+struct compute_diameter<CorrelationSpectrahedron<Point>>
 {
     template <typename NT>
-    static NT compute(CorreSpectra<Point> &P)
+    static NT compute(CorrelationSpectrahedron<Point> &P)
     {
         std::pair<Point, NT> inner_ball = P.getInnerBall();
         return NT(P.dimension()) * inner_ball.second;
@@ -73,10 +73,10 @@ struct compute_diameter<CorreSpectra<Point>>
 };
 
 template <typename Point>
-struct compute_diameter<CorreSpectra_MT<Point>>
+struct compute_diameter<CorrelationSpectrahedron_MT<Point>>
 {
     template <typename NT>
-    static NT compute(CorreSpectra_MT<Point> &P)
+    static NT compute(CorrelationSpectrahedron_MT<Point> &P)
     {
         std::pair<Point, NT> inner_ball = P.getInnerBall();
         return NT(P.dimension()) * inner_ball.second;
