@@ -24,6 +24,7 @@
 #include "doctest.h"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
+#include "ode_solvers/oracle_functors.hpp"
 
 #include "convex_bodies/hpolytope.h"
 #include "misc/misc.h"
@@ -132,6 +133,41 @@ template <typename NT> void test_crhmc_dependent_polytope() {
   CHECK(P.equations() == 2);
 }
 
+template <typename NT> void test_center_computation() {
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using Func = GaussianFunctor::FunctionFunctor<Point>;
+  using Grad = GaussianFunctor::GradientFunctor<Point>;
+  using Hess = GaussianFunctor::HessianFunctor<Point>;
+  using func_params=GaussianFunctor::parameters<NT, Point>;
+  using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
+  using PolytopeType = HPolytope<Point>;
+  using Opts = opts<NT>;
+  unsigned dim = 100;
+  Point mean=Point(VT::Ones(dim));
+  mean=mean*0.5;
+  func_params params = func_params(mean, 0.5, 1);
+  Func f(params);
+  Grad g(params);
+  Hess h(params);
+  Opts options = Opts();
+  options.EnableReordering = true;
+  Input input = Input(dim, f, g, h);
+  input.lb = -VT::Ones(dim);
+  input.ub = VT::Ones(dim);
+  CrhmcProblem P = CrhmcProblem(input, options);
+  /*(grad_f(x)+grad_barrier(x))=(x-0.5+1/(1-x)-1/(x+1))=0 iff x~=0.1637, x in [-1,1]*/
+  for(int i=0;i<dim;i++){
+    CHECK(std::abs(P.analytic_ctr(i) - 0.1637) < 0.001);
+    CHECK(std::abs(P.width(i) - 1) < 0.001);
+    CHECK(std::abs(P.center(i) - (-9.2528e-10)) < 0.001);
+  }
+
+}
+
 template <typename NT> void call_test_crhmc_fixed_var_polytope(){
   std::cout << "--- Testing fixed vars" << std::endl;
   test_crhmc_fixed_var_polytope<NT>();
@@ -144,7 +180,10 @@ template <typename NT> void call_test_crhmc_preprocesssing() {
   std::cout << "--- Testing CRHMC data preprocessing" << std::endl;
   test_crhmc_polytope_preprocessing<NT>();
 }
-
+template <typename NT> void call_test_center_computation(){
+  std::cout << "--- Testing CRHMC polytope-center computation" << std::endl;
+  test_center_computation<NT>();
+}
 TEST_CASE("test_preparation_crhmc") {
   call_test_crhmc_preprocesssing<double>();
 }
@@ -155,4 +194,8 @@ TEST_CASE("test_fixed_vars_crhmc") {
 
 TEST_CASE("test_dep_vars_crhmc") {
   call_test_crhmc_dependent_polytope<double>();
+}
+
+TEST_CASE("test_center_computation"){
+  call_test_center_computation<double>();
 }
