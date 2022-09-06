@@ -150,8 +150,7 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(PointType const &r,
-                                               PointType const &v) {
+    std::pair<NT, int> line_positive_intersect(PointType const &r, PointType const &v){
         NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return std::pair<NT, int> (pos_inter, -1);
     }
@@ -179,8 +178,7 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
                                                VT&,
                                                VT& ,
                                                NT const&,
-                                               update_parameters&)
-    {
+                                               update_parameters&){
         return line_positive_intersect(r, v);
     }
 
@@ -191,8 +189,7 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
                                                VT&,
                                                NT const&,
                                                MT const&,
-                                               update_parameters& )
-    {
+                                               update_parameters&){
         return line_positive_intersect(r, v);
     }
 
@@ -201,14 +198,12 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
                                                      PointType const &v,
                                                      VT&,
                                                      VT&,
-                                                     update_parameters&)
-    {
+                                                     update_parameters&){
         return line_positive_intersect(r, v);
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    std::pair<NT,NT> line_intersect(PointType const &r, PointType const &v)
-    {
+    std::pair<NT,NT> line_intersect(PointType const &r, PointType const &v){
         createMatricesForPositiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return this->EigenvaluesProblem.symGeneralizedProblem(_precomputedValues.A, _precomputedValues.B);
     }
@@ -217,8 +212,7 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
     std::pair<NT,NT> line_intersect(PointType const &r,
                                     PointType const &v,
                                     VT&,
-                                    VT&)
-    {
+                                    VT&){
         return line_intersect(r, v);
     }
 
@@ -226,8 +220,7 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
                                     PointType const &v,
                                     VT&,
                                     VT&,
-                                    NT&)
-    {
+                                    NT&){
         return line_intersect(r, v);
     }
 

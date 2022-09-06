@@ -15,7 +15,7 @@
 /// This class handles the spectrahedra of correlation matrices
 /// @tparam Point
 template<typename CorreMatrix>
-class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
+class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     public:
 
     /// The numeric/matrix/vector types we use
@@ -54,7 +54,7 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
-    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const {
+    void compute_reflection(PointType &v, PointType const &r, update_parameters&) const {
         MT grad = MT::Zero(this->n, this->n);
         int i, j;
         NT sum_sq = NT(0), dot = NT(0);
@@ -75,7 +75,7 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
     /// \param[in] r
     /// \param[in] v
     /// \param[out] a NT value t
-    NT positiveLinearIntersection(PointType const & r, PointType const & v) {
+    NT positiveLinearIntersection(PointType const &r, PointType const &v){
 
         // minPosLinearEigenvalue_EigenSymSolver(A,B) computes the minimal positive eigenvalue of A-t*B
 
@@ -84,14 +84,14 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v) {
+    std::pair<NT, int> line_positive_intersect(PointType const &r,
+                                               PointType const &v) {
         NT pos_inter = positiveLinearIntersection(r, v);
         return std::pair<NT, int> (pos_inter, -1);
     }
 
-    std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v,
+    std::pair<NT, int> line_positive_intersect(PointType const &r,
+                                               PointType const &v,
                                                VT&,
                                                VT& ,
                                                NT const&){
@@ -100,66 +100,60 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v,
+    std::pair<NT, int> line_positive_intersect(PointType const &r,
+                                               PointType const &v,
                                                VT&,
                                                VT&){
         return line_positive_intersect(r, v);
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v,
+    std::pair<NT, int> line_positive_intersect(PointType const &r,
+                                               PointType const &v,
                                                VT&,
                                                VT& ,
                                                NT const&,
-                                               update_parameters&)
-    {
+                                               update_parameters&){
         return line_positive_intersect(r, v);
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType const& r,
-                                               PointType const& v,
+    std::pair<NT, int> line_positive_intersect(PointType const &r,
+                                               PointType const &v,
                                                VT&,
                                                VT&,
                                                NT const&,
                                                MT const&,
-                                               update_parameters& )
-    {
+                                               update_parameters&){
         return line_positive_intersect(r, v);
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_first_positive_intersect(PointType const& r,
-                                                     PointType const& v,
+    std::pair<NT, int> line_first_positive_intersect(PointType const &r,
+                                                     PointType const &v,
                                                      VT&,
                                                      VT&,
-                                                     update_parameters&)
-    {
+                                                     update_parameters&){
         return line_positive_intersect(r, v);
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
-    {
+    std::pair<NT,NT> line_intersect(PointType const &r, PointType const &v){
         return this->EigenvaluesProblem.symGeneralizedProblem(-r.mat, -v.mat);
     }
 
-    std::pair<NT,NT> line_intersect(PointType const& r,
-                                    PointType const& v,
+    std::pair<NT,NT> line_intersect(PointType const &r,
+                                    PointType const &v,
                                     VT&,
-                                    VT&)
-    {
+                                    VT&){
         return line_intersect(r, v);
     }
 
-    std::pair<NT,NT> line_intersect(PointType const& r,
-                                    PointType const& v,
+    std::pair<NT,NT> line_intersect(PointType const &r,
+                                    PointType const &v,
                                     VT&,
                                     VT&,
-                                    NT&)
-    {
+                                    NT&){
         return line_intersect(r, v);
     }
 
@@ -167,18 +161,18 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix> {
     /// Test if a point p is in the spectrahedron
     /// \param p is the current point
     /// \return true if position is outside the spectrahedron
-    int is_in(PointType const& p, NT tol=NT(0)) const{
+    int is_in(PointType const &p, NT tol=NT(0)) const {
         if(this->EigenvaluesProblem.isPositiveSemidefinite(p.mat)){
             return -1;
         }
         return 0;
     }
 
-    bool isExterior(MT const& mat) const{
+    bool isExterior(MT const &mat) const {
         return !this->EigenvaluesProblem.isPositiveSemidefinite(mat);
     }
 
-    MT get_mat() const{
+    MT get_mat() const {
         return MT::Identity(this->d, this->d);
     }
 };
