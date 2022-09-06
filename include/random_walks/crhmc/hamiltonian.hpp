@@ -18,6 +18,7 @@
 #include "sos/barriers/TwoSidedBarrier.h"
 #include "sos/barriers/WeightedTwoSidedBarrier.h"
 #include "PackedCSparse/PackedChol.h"
+#include "preprocess/crhmc_utils.h"
 #include <utility>
 
 template <typename Polytope, typename Point, int simdLen>
@@ -28,6 +29,7 @@ class Hamiltonian
   using BVT = Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>;
   using NT = typename Polytope::NT;
   using MT = typename Polytope::MT;
+  using SpMat= typename Polytope::SpMat;
   using Tx = FloatArray<double, simdLen>;
   using CholObj = PackedChol<simdLen, int>;
   using Opts = typename Polytope::Opts;
@@ -55,7 +57,7 @@ public:
   WeightedBarrier *weighted_barrier;
   Opts &options;
   Hamiltonian(Polytope &boundaries)
-      : P(boundaries), solver(CholObj(boundaries.Asp)),
+      : P(boundaries), solver(CholObj(transform_format<SpMat,NT,int>(boundaries.Asp))),
         options(boundaries.options)
   {
     n = P.dimension();
@@ -82,7 +84,7 @@ public:
     prepare({x, v});
     pts pd = DK({x, v});
     VT K = 0.5 * (v.cwiseProduct(pd[0])).colwise().sum();
-    NT logdet=(NT)solver.logdet();
+    NT logdet=NT(solver.logdet());
     VT U = ((hess.array()).log()).colwise().sum();
     U = (U +logdet*VT::Ones(simdLen))*0.5 + fx;
     VT E = U + K;
