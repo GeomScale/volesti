@@ -54,11 +54,11 @@ class CorreMatrix{
     }
 
     void operator+= (const CorreMatrix<NT> & p){
-        this->mat += p.mat.template triangularView<Eigen::StrictlyLower>();;
+        this->mat += p.mat;
     }
 
     void operator-= (const CorreMatrix<NT> & p){
-        this->mat -= p.mat.template triangularView<Eigen::StrictlyLower>();
+        this->mat -= p.mat;
     }
 
     void operator= (const CorreMatrix<NT> & p){
@@ -79,7 +79,7 @@ class CorreMatrix{
     }
 
     void operator*= (const FT k){
-        this->mat.template triangularView<Eigen::StrictlyLower>() *= k;
+        this->mat *= k;
     }
 
     CorreMatrix<NT> operator* (const FT k) const {
@@ -89,7 +89,7 @@ class CorreMatrix{
     }
 
     void operator/= (const FT k){
-        this->mat.template triangularView<Eigen::StrictlyLower>() /= k;
+        this->mat /= k;
     }
 
     NT dot(MT grad){
