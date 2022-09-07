@@ -123,7 +123,7 @@ public:
     /// \param[in] A Input matrix
     /// \param[in] B Input matrix
     /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NTpair symGeneralizedProblem(MT const & A, MT const & B) {
+    NTpair symGeneralizedProblem(MT const & A, MT const & B) const {
 
         int matrixDim = A.rows();
 
@@ -160,8 +160,7 @@ public:
         return {lambdaMinPositive, lambdaMaxNegative};
     }
 
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec)
-    {
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) {
         int matrixDim = A.rows();
         double lambdaMinPositive;
 
@@ -318,8 +317,7 @@ public:
     /// \param[in] A Input matrix
     /// \param[in] B Input matrix
     /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const
-    {
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const {
         int matrixDim = A.rows();
         double lambdaMinPositive;
 
@@ -396,8 +394,7 @@ public:
     /// \param[out] eigenvector The eigenvector corresponding to the minimum positive eigenvalue
     /// \param[in, out] updateOnly True if X,Y were previously computed and only B,C changed
     /// \return Minimum positive eigenvalue
-    NT
-    minPosQuadraticEigenvalue(MT const & A, MT const &B, MT const &C, MT &X, MT &Y, VT &eigenvector, bool &updateOnly) {
+    NT minPosQuadraticEigenvalue(MT const & A, MT const &B, MT const &C, MT &X, MT &Y, VT &eigenvector, bool &updateOnly) {
         // perform linearization and create generalized eigenvalue problem X+lY
         linearization(A, B, C, X, Y, updateOnly);
 
