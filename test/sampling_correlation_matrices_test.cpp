@@ -172,11 +172,6 @@ TEST_CASE("new_ball_uniform") {
     test_new_uniform<double, BallWalk>(n,num_points_BallWalk);
 }
 
-TEST_CASE("new_rdhr_uniform") {
-    std::cout << "RDHR Walk :: ";
-    test_new_uniform<double, RDHRWalk>(n,num_points_RDHRWalk);
-}
-
 TEST_CASE("new_billiard_uniform") {
     std::cout << "Billiard Walk :: ";
     test_new_uniform<double, BilliardWalk>(n, num_points_BilliardWalk);

@@ -138,14 +138,14 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    std::pair<NT,NT> line_intersect(PointType const &r, PointType const &v){
+    std::pair<NT,NT> line_intersect(PointType const &r, PointType const &v) const {
         return this->EigenvaluesProblem.symGeneralizedProblem(-r.mat, -v.mat);
     }
 
     std::pair<NT,NT> line_intersect(PointType const &r,
                                     PointType const &v,
                                     VT&,
-                                    VT&){
+                                    VT&) const {
         return line_intersect(r, v);
     }
 
@@ -153,7 +153,7 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
                                     PointType const &v,
                                     VT&,
                                     VT&,
-                                    NT&){
+                                    NT&) const {
         return line_intersect(r, v);
     }
 
