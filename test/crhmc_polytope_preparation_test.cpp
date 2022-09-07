@@ -25,7 +25,7 @@
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
 #include "ode_solvers/oracle_functors.hpp"
-
+#include "generators/known_polytope_generators.h"
 #include "convex_bodies/hpolytope.h"
 #include "misc/misc.h"
 
@@ -146,7 +146,8 @@ template <typename NT> void test_center_computation() {
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
-  unsigned dim = 100;
+  using PolytopeType = HPolytope<Point>;
+  unsigned dim = 2;
   Point mean=Point(VT::Ones(dim));
   mean=mean*0.5;
   func_params params = func_params(mean, 0.5, 1);
@@ -155,15 +156,18 @@ template <typename NT> void test_center_computation() {
   Hess h(params);
   Opts options = Opts();
   options.EnableReordering = true;
+  PolytopeType HP = generate_cross<PolytopeType>(2, false);
   Input input = Input(dim, f, g, h);
-  input.lb = -VT::Ones(dim);
-  input.ub = VT::Ones(dim);
+  input.Aineq = HP.get_mat();
+  input.bineq = HP.get_vec();
   CrhmcProblem P = CrhmcProblem(input, options);
-  /*(grad_f(x)+grad_barrier(x))=(x-0.5+1/(1-x)-1/(x+1))=0 iff x~=0.1637, x in [-1,1]*/
+  VT analytic_ctr=VT(P.dimension());
+  analytic_ctr<<  0.0970, 0.0970, 1.1939, 1.0000, 1.0000, 0.8061;
+  VT lewis_center=VT(P.dimension());
+  lewis_center<< -0.0585, -0.0585, -0.1171, 0, 0, 0.1171;
   for(int i=0;i<dim;i++){
-    CHECK(std::abs(P.analytic_ctr(i) - 0.1637) < 0.001);
-    CHECK(std::abs(P.width(i) - 1) < 0.001);
-    CHECK(std::abs(P.center(i) - (-9.2528e-10)) < 0.001);
+    CHECK(std::abs(P.analytic_ctr(i) - analytic_ctr(i)) < 0.001);
+    CHECK(std::abs(P.center(i) - (lewis_center(i))) < 0.001);
   }
 
 }
