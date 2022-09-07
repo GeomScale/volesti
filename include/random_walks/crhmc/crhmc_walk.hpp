@@ -180,7 +180,7 @@ struct CRHMCWalk {
         prob=(1.0< exp((H - H_tilde).array())).select(1.0,exp((H - H_tilde).array()));
 
         prob=prob.cwiseProduct(feasible);
-        
+
         total_acceptance_prob += prob.sum();
         VT rng_vector=VT(simdLen);
         for(int i=0;i<simdLen;i++){rng_vector(i)=rng.sample_urdist();}
@@ -189,8 +189,9 @@ struct CRHMCWalk {
         x=masked_choose(x,x_tilde,accept);
         v=-v;
         v=masked_choose(v,v_tilde,accept);
-        discard_ratio = (1.0 * total_discarded_samples) / num_runs;
-        average_acceptance_prob = total_acceptance_prob / num_runs;
+        total_discarded_samples+=simdLen-accept.sum*();
+        discard_ratio = (1.0 * total_discarded_samples) / (num_runs*simdLen);
+        average_acceptance_prob = total_acceptance_prob / (num_runs*simdLen);
       } else {
         x = x_tilde;
         v = v_tilde;

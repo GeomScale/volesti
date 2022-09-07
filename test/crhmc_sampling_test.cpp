@@ -316,7 +316,7 @@ void benchmark_polytope_sampling(
     if(i*simdLen+simdLen-1<max_actual_draws){
       samples(Eigen::all,Eigen::seq(i*simdLen,i*simdLen+simdLen-1)) = sample;
     }else{
-      samples(Eigen::all,Eigen::seq(i*simdLen,max_actual_draws-1) = sample(Eigen::all,Eigen::seq(0,max_actual_draws-1-simdLen*i));
+      samples(Eigen::all,Eigen::seq(i*simdLen,max_actual_draws-1)) = sample(Eigen::all,Eigen::seq(0,max_actual_draws-1-simdLen*i));
     }
     if (i % 1000 == 0 && i > 0)
       std::cout << ".";
@@ -480,7 +480,9 @@ template <typename NT, int simdLen=1> void test_crhmc() {
 template <typename NT> void call_test_crhmc() {
   std::cout << "--- Testing Constrained Riemannian Hamiltonian Monte Carlo"
             << std::endl;
+  std::cout<<"------------SIMDLEN=1-------------------\n"<<std::endl;
   test_crhmc<NT,1>();
+  std::cout<<"------------SIMDLEN=4-------------------\n"<<std::endl;
   test_crhmc<NT,4>();
 }
 template <typename NT> void call_test_benchmark_cube_crhmc() {
@@ -492,5 +494,8 @@ TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
 TEST_CASE("test_polytope_sampling_crhmc") {
-  call_test_sampling_polytope<double>();
+  std::cout<<"------------SIMDLEN=1-------------------\n"<<std::endl;
+  call_test_sampling_polytope<double,1>();
+  std::cout<<"------------SIMDLEN=4-------------------\n"<<std::endl;
+  call_test_sampling_polytope<double,4>();
 }
