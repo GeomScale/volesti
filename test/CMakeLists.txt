@@ -323,7 +323,6 @@ else ()
   add_test(NAME test_corre_spectra_classes COMMAND matrix_sampling_test -tc=corre_spectra)
 
   add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
-  add_test(NAME test_new_rdhr_uniform COMMAND matrix_sampling_test -tc=new_rdhr_uniform)
   add_test(NAME test_new_billiard_uniform COMMAND matrix_sampling_test -tc=new_billiard_uniform)
   add_test(NAME test_new_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform)
 
