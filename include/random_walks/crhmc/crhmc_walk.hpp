@@ -45,6 +45,7 @@ struct CRHMCWalk {
     using pts = std::vector<Point>;
     using NT = typename Point::FT;
     using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+    using MT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
     using Sampler = CRHMCWalk::Walk<Point, Polytope, RandomNumberGenerator,
                                     NegativeGradientFunctor,
                                     NegativeLogprobFunctor, Solver>;
