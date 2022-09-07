@@ -335,7 +335,7 @@ else ()
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
-	set(ADDITIONAL_FLAGS "-DSIMD_LEN=0 -DTIME_KEEPING")
+	set(ADDITIONAL_FLAGS "-DSIMD_LEN=0 -march=native -DTIME_KEEPING")
 	set_target_properties(benchmarks_crhmc PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_polytope_preparation_test PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 
