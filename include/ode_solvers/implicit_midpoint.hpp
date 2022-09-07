@@ -94,10 +94,6 @@ struct ImplicitMidpointODESolver {
     start = std::chrono::system_clock::now();
 #endif
     partialDerivatives = ham.DU(xs);
-    if(num_runs<10){
-      std::cerr<<"DU=\n";
-      std::cerr<<partialDerivatives[1];
-    }
 #ifdef TIME_KEEPING
     end = std::chrono::system_clock::now();
     DU_duration += end - start;
@@ -114,12 +110,6 @@ struct ImplicitMidpointODESolver {
 #endif
       // partialDerivatives = ham.DK(xmid);
       partialDerivatives = ham.approxDK(xmid, nu);
-      if(num_runs<10){
-        std::cerr<<"approxDK[0]=\n";
-        std::cerr<<partialDerivatives[0]<<"\n";
-        std::cerr<<"approxDK[1]=\n";
-        std::cerr<<partialDerivatives[1]<<"\n";
-      }
 
 #ifdef TIME_KEEPING
       end = std::chrono::system_clock::now();

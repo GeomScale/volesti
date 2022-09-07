@@ -108,7 +108,7 @@ struct CRHMCWalk {
       dim = p.dimension();
       simdLen=params.options.simdLen;
       // Starting point is provided from outside
-      MT x = p.getCoefficients()*MT::Ones(1,simdLen);
+      x = p.getCoefficients()*MT::Ones(1,simdLen);
       accepted = false;
       // Initialize solver
       solver =
@@ -133,12 +133,9 @@ struct CRHMCWalk {
       return v * std::sqrt(momentum) + z * std::sqrt(1 - momentum);
     }
     // Returns the current point in the tranformed in the original space
-    inline MT getPoints() {
-      return (P.T * x).colwise() + P.y;
-     }
-
+    inline MT getPoints() { return (P.T * x).colwise() + P.y; }
     // Returns the current point in the tranformed in the original space
-    inline Point getPoint() { return Point(P.T * x + P.y); }
+    inline Point getPoint() { return Point(P.T * x.col(0) + P.y); }
     inline MT masked_choose(MT &x,MT &x_tilde,IVT &accept){
       MT result=MT(x.rows(),x.cols());
       for(int i=0;i<simdLen;i++){
@@ -150,26 +147,19 @@ struct CRHMCWalk {
       }
       return result;
     }
+
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
                       bool metropolis_filter = true) {
 
       num_runs++;
       //  Pick a random velocity with momentum
       v = GetDirectionWithMomentum(dim, rng, x, v, params.momentum, false);
-      if(num_runs<10){
-        std::cerr<<"x=\n"<<x<<"\n";
-        std::cerr<<"v=\n"<<v<<"\n";
-      }
       solver->set_state(0, x);
       solver->set_state(1, v);
       // Get proposals
       solver->steps(walk_length, accepted);
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
-      if(num_runs<10){
-        std::cerr<<"x_tilde=\n"<<x_tilde<<"\n";
-        std::cerr<<"v_tilde=\n"<<v_tilde<<"\n";
-      }
 
       if (metropolis_filter) {
 #ifdef TIME_KEEPING
@@ -190,9 +180,7 @@ struct CRHMCWalk {
         prob=(1.0< exp((H - H_tilde).array())).select(1.0,exp((H - H_tilde).array()));
 
         prob=prob.cwiseProduct(feasible);
-        if(num_runs<10){
-        std::cerr<<"--------prob*feasible----------\n"<<prob<<"\n";
-        }
+        
         total_acceptance_prob += prob.sum();
         VT rng_vector=VT(simdLen);
         for(int i=0;i<simdLen;i++){rng_vector(i)=rng.sample_urdist();}
@@ -206,10 +194,6 @@ struct CRHMCWalk {
       } else {
         x = x_tilde;
         v = v_tilde;
-      }
-      if(num_runs<10){
-        std::cerr<<"x_new=\n"<<x<<"\n";
-        std::cerr<<"v_new=\n"<<v<<"\n";
       }
       if (update_modules) {
         module_update->updateModules(*this, rng);
