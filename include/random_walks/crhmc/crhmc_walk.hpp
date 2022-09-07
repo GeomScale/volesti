@@ -190,7 +190,7 @@ struct CRHMCWalk {
         x=masked_choose(x,x_tilde,accept);
         v=-v;
         v=masked_choose(v,v_tilde,accept);
-        total_discarded_samples+=simdLen-accept.sum*();
+        total_discarded_samples+=simdLen-accept.sum();
         discard_ratio = (1.0 * total_discarded_samples) / (num_runs*simdLen);
         average_acceptance_prob = total_acceptance_prob / (num_runs*simdLen);
       } else {
