@@ -51,32 +51,6 @@ public:
       s.solver->ham.move({s.x, s.v});
       s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
     }
-    /*
-    for (int i = 0; i < n; i++) {
-      bool change = false;
-      if (options.DynamicWeight) {
-        change = (2 / (bound(i) * bound(i))) <
-                 n * extraHessian(i);
-        if (change) {
-          extraHessian =
-              (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
-          s.solver->ham.move({s.x, s.v});
-          s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
-          break;
-        }
-      } else {
-        change = (2 / (bound(i) * bound(i))) <
-                 n * s.solver->ham.barrier->extraHessian(i);
-        if (change) {
-          s.solver->ham.barrier->extraHessian =
-              (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
-          s.solver->ham.move({s.x, s.v});
-          s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
-          break;
-        }
-      }
-    }
-    */
   }
 };
 #endif

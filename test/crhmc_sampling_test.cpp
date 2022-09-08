@@ -219,7 +219,7 @@ Polytope read_polytope(std::string filename) {
 }
 
 template <typename NT, typename Polytope>
-void benchmark_polytope_sampling(
+void crhmc_polytope_sampling(
     Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     bool rounding = false, bool centered = false,
     unsigned int max_draws = 80000, unsigned int num_burns = 20000) {
@@ -339,7 +339,7 @@ void test_sampling_polytope(HPolytope &P, std::string &name, bool centered,
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, false, centered);
+  crhmc_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, false, centered);
 }
 template <typename NT> void call_test_sampling_polytope() {
   using Kernel = Cartesian<NT>;
@@ -479,10 +479,8 @@ template <typename NT> void call_test_benchmark_cube_crhmc() {
   benchmark_cube_crhmc<NT>();
 }
 
-TEST_CASE("crhmc") { call_test_crhmc<double>(); }
+TEST_CASE("crhmc") { call_test_crhmc<double>();}
 
 TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
-TEST_CASE("test_polytope_sampling_crhmc") {
-  call_test_sampling_polytope<double>();
-}
+TEST_CASE("test_polytope_sampling_crhmc") {call_test_sampling_polytope<double>();}

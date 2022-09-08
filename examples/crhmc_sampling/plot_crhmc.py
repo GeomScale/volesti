@@ -23,7 +23,7 @@ if __name__ == '__main__':
         Script to plot samples from logconcave density
         Example usage:
 
-        ./simple_hmc | python3 plot_hmc.py
+        ./crhmc_sampling | python3 plot_crhmc.py
 
     '''
 
