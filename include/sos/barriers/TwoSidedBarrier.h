@@ -39,10 +39,10 @@ public:
   std::vector<int> freeIdx;
   VT center;
   const NT max_step = 1e16; // largest step size
-  VT extraHessian;
+  VT extraHessian;  //Regularization factor
 
   const NT inf = std::numeric_limits<NT>::infinity();
-
+  //initialization function
   void set_bound(VT const &_lb, VT const &_ub) {
 
     lb = _lb;
@@ -79,16 +79,17 @@ public:
     extraHessian = (1e-20) * VT::Ones(n);
   }
   TwoSidedBarrier() { vdim = 1; }
-
+  //barrier function gradient
   VT gradient(VT const &x) {
     return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();
   }
-
+  //Return the barrier hessian with the extra Regularization
   VT hessian(VT const &x) {
     VT d = ((ub - x).cwiseProduct((ub - x))).cwiseInverse() +
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d + extraHessian;
   }
+  //third derivative of the barrier
   VT tensor(VT const &x) {
     VT d = 2 * (((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x)))
                    .cwiseInverse() -
@@ -126,14 +127,12 @@ public:
   }
 
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
-    //[~, g, h] = o.f_oracle(x);
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
     return std::make_pair(g + gradient(x), h + hessian(x));
   }
 
   std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
-    //   [~, g, h] = o.f_oracle(x);
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
     return std::make_pair(g + w.cwiseProduct(gradient(x)),

@@ -17,7 +17,7 @@
 #include <Eigen/Eigen>
 
 #include "lp_oracles/vpolyoracles.h"
-#include <khach.h>
+#include <minimum_ellipsoid/khach.h>
 
 
 // V-Polytope class
