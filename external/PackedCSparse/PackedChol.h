@@ -14,7 +14,7 @@
 #include "leverage.h"
 #include "leverageJL.h"
 #include "multiply.h"
-#include "qd/dd_real.h"
+#include "dd_real.h"
 #include <random>
 #include <vector>
 using namespace PackedCSparse;
@@ -22,13 +22,13 @@ using namespace PackedCSparse;
 template <typename Tin, typename Tout>
 void get_slice(Tout *out, Tin *in, size_t n, size_t idx) {
   for (size_t j = 0; j < n; j++)
-    out[j] = double(get(in[j], idx));
+    out[j] = to_double(get(in[j], idx));
 }
 
 template <typename Tin, typename Tout>
 void set_slice(Tout *out, Tin *in, size_t n, size_t idx) {
   for (size_t j = 0; j < n; j++)
-    set(out[j], idx, double(in[j]));
+    set(out[j], idx, to_double(in[j]));
 }
 
 template <int k, typename Ti> struct PackedChol {
@@ -60,27 +60,6 @@ template <int k, typename Ti> struct PackedChol {
   LeverageOutput<Te, Ti> diagP_exact;     // cache for L = chol(H)
   LeverageJLOutput<Te, Ti> diagPJL_exact; // cache for L = chol(H)
   SparseMatrix<Te, Ti> Le[k];             // store output of L_exact
-  using  MT=Eigen::Matrix<Tx, Eigen::Dynamic, Eigen::Dynamic>;
-  using  VT=Eigen::Matrix<Tx, Eigen::Dynamic, 1>;
-  using SpMat=Eigen::SparseMatrix<Tx>;
-
-  PackedChol(SpMat const &mat) {
-    A = SparseMatrix<Tx, Ti>(mat.rows(), mat.cols(), mat.nonZeros());
-    int nnz = 0;
-    for (int outeindex = 0; outeindex < mat.outerSize(); ++outeindex) {
-      A.p[outeindex] = nnz;
-      for (SpMat::InnerIterator it(mat, outeindex); it; ++it) {
-        A.i[nnz] = it.row();
-        A.x[nnz] = it.value();
-        nnz++;
-      }
-    }
-    A.p[A.n] = nnz;
-    At = transpose(A);
-    w.reset(pcs_aligned_new<Tx2>(A.n));
-    numExact.resize(k + 1);
-    // this(PackedChol(A));
-  }
 
   PackedChol(const SparseMatrix<Tx, Ti> &A_) {
     A = std::move(A_.clone());
@@ -177,7 +156,7 @@ template <int k, typename Ti> struct PackedChol {
         for (Ti j = 0; j < m; j++)
           ret_e += log(Lx[Lp[j]]);
 
-        set(ret, i, Tx(ret_e));
+        set(ret, i, to_double(ret_e));
       }
     }
 
@@ -202,7 +181,7 @@ template <int k, typename Ti> struct PackedChol {
         Te *Lx = Le[i].x.get();
 
         for (Ti j = 0; j < m; j++)
-          set(out[j], i, Tx(Lx[Lp[j]]));
+          set(out[j], i, to_double(Lx[Lp[j]]));
       }
     }
   }
@@ -232,7 +211,7 @@ template <int k, typename Ti> struct PackedChol {
     if (isExact) {
       Te *Lx = Le[i].x.get();
       for (Ti s = 0; s < nz; s++)
-        outx[s] = double(Lx[s]);
+        outx[s] = to_double(Lx[s]);
     } else {
       Tx2 *Lx = L.x.get();
       for (Ti s = 0; s < nz; s++)
@@ -289,7 +268,7 @@ template <int k, typename Ti> struct PackedChol {
 
         Te *tau = diagP_exact.x.get();
         for (Ti j = 0; j < n; j++)
-          set(out[j], i, Tx(T1 - tau[j] * get(w[j], i)));
+          set(out[j], i, to_double(T1 - tau[j] * get(w[j], i)));
       }
     }
   }
@@ -316,7 +295,7 @@ template <int k, typename Ti> struct PackedChol {
 
         Te *tau = diagPJL_exact.x.get();
         for (Ti j = 0; j < n; j++)
-          set(out[j], i, Tx(T1 - tau[j] * get(w[j], i)));
+          set(out[j], i, to_double(T1 - tau[j] * get(w[j], i)));
       }
     }
   }

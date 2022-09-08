@@ -206,7 +206,7 @@ namespace PackedCSparse {
 
 		static T clipped_sqrt(const T& x, const T& nonpos_output)
 		{
-			if (x > 0)
+			if (x > 0.0)
 				return sqrt(x);
 			else
 				return nonpos_output;

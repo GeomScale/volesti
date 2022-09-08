@@ -75,6 +75,7 @@ public:
   VT Ta;                 // T x = x(Tidx) .* Ta
   bool isempty_center = true;
   VT center = VT::Zero(0, 1); // Resulting polytope Lewis or Analytic center
+  VT analytic_ctr; //analytic center vector (for testing)
   VT w_center;// weights of the lewis center
 
   VT width; // width of the varibles
@@ -102,7 +103,7 @@ public:
     int m = Asp.rows();
     int n = Asp.cols();
     VT d = estimate_width();
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     VT w = VT::Ones(n, 1);
     solver.decompose((Tx *)w.data());
     VT out_vector = VT(m, 1);
@@ -142,6 +143,7 @@ public:
     } else {
       std::tie(center, Ac, bc) =
           analytic_center(Asp, b, *this, options, center);
+          analytic_ctr=center;
     }
     if (Ac.rows() == 0) {
       return 0;
@@ -290,7 +292,7 @@ public:
     int n = Asp.cols();
     VT v = VT(m);
     VT w = VT::Ones(n, 1);
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     solver.decompose((Tx *)w.data());
     solver.diagL((Tx *)v.data());
     std::vector<int> indices;
@@ -369,7 +371,7 @@ public:
   VT estimate_width() {
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     solver.decompose((Tx *)hess.data());
     VT w_vector(n, 1);
     solver.leverageScoreComplement((Tx *)w_vector.data());
@@ -481,7 +483,7 @@ public:
     /*Move lb=ub to Ax=b*/
     for (int i = 0; i < n; i++) {
       if (doubleVectorEqualityComparison(lb(i), ub(i))) {
-        VT temp = VT::Zero(1, n);
+        MT temp = MT::Zero(1, n);
         temp(i) = 1;
         A.conservativeResize(A.rows() + 1, A.cols());
         A.row(A.rows() - 1) = temp;
@@ -545,7 +547,7 @@ public:
     std::tie(center, std::ignore, std::ignore, w_center) =
         lewis_center(Asp, b, *this, options, center);
     std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
-    CholObj solver = CholObj(Asp);
+    CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     VT Hinv = hess.cwiseInverse();
     solver.decompose((Tx *)Hinv.data());
     VT out(equations(), 1);

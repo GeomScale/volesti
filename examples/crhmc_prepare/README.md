@@ -16,5 +16,5 @@ For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 
 ## Running:
 ```bash
- ./crhmc_prepare [file_path]
+ ./crhmc_prepare [filepath]
 ```

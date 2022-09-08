@@ -73,6 +73,9 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../../external/cmake-files/QD.cmake")
+GetQD()
+
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 
@@ -101,18 +104,6 @@ else ()
   include_directories (BEFORE ../../external/minimum_ellipsoid)
   include_directories (BEFORE ../../include/)
 
-  set(QDSOURCES
-    ../../external/qd/bits.cc
-    ../../external/qd/c_dd.cc
-    ../../external/qd/c_qd.cc
-    ../../external/qd/dd_const.cc
-    ../../external/qd/dd_real.cc
-    ../../external/qd/fpu.cc
-    ../../external/qd/qd_const.cc
-    ../../external/qd/qd_real.cc
-    ../../external/qd/util.cc
-    )
-add_library(QD_LIB ${QDSOURCES})
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
     add_compile_options(-D "EIGEN_NO_DEBUG")
@@ -131,6 +122,6 @@ add_library(QD_LIB ${QDSOURCES})
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
   add_executable (crhmc_prepare crhmc_prepare.cpp)
-  TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${MKL_LINK} ${LP_SOLVE})
+	TARGET_LINK_LIBRARIES(crhmc_prepare ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
 
 endif()
