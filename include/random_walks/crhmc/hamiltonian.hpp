@@ -17,6 +17,7 @@
 #define HAMILTONIAN_HPP
 #include "sos/barriers/TwoSidedBarrier.h"
 #include "sos/barriers/WeightedTwoSidedBarrier.h"
+#include "preprocess/crhmc/crhmc_utils.h"
 #include <utility>
 
 template <typename Polytope, typename Point>
@@ -28,7 +29,7 @@ class Hamiltonian
   using Tx = typename Polytope::Tx;
   using CholObj = typename Polytope::CholObj;
   using Opts = typename Polytope::Opts;
-
+  using SpMat=typename Polytope::SpMat;
   using pts = std::vector<Point>;
   using Barrier = TwoSidedBarrier<Point>;
   using WeightedBarrier = WeightedTwoSidedBarrier<Point>;
@@ -52,7 +53,7 @@ public:
   WeightedBarrier *weighted_barrier;
   Opts &options;
   Hamiltonian(Polytope &boundaries)
-      : P(boundaries), solver(CholObj(boundaries.Asp)),
+      : P(boundaries), solver(CholObj(transform_format<SpMat,NT,int>(boundaries.Asp))),
         options(boundaries.options)
   {
     n = P.dimension();
