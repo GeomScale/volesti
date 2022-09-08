@@ -140,7 +140,7 @@ NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
   }
   return max_psrf;
 }
-template <typename NT, typename Polytope>
+template <typename NT, typename Polytope,int simdLen=1>
 std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
@@ -156,7 +156,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Opts = opts<NT>;
-  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
+  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad,simdLen>;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
 
   SimulationStats<NT> rdhr_stats;
@@ -199,6 +199,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
   Opts options;
+  options.simdLen=simdLen;
   CRHMCWalk::parameters<NT, Grad> crhmc_params(F, dim, options);
   Input input = Input(P.dimension(), f, F, H);
   input.Aineq = P.get_mat();
@@ -231,11 +232,16 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   std::cout << "Sampling" << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
-  for (unsigned int i = 0; i < max_actual_draws; i++) {
+  for (unsigned int i = 0; i < std::ceil(max_actual_draws/simdLen); i++) {
     for (int k = 0; k < walk_length; k++) {
       crhmc.apply(rng, 1);
     }
-    samples.col(i) = crhmc.getPoint().getCoefficients();
+    MT sample = crhmc.getPoints();
+    if(i*simdLen+simdLen-1<max_actual_draws){
+      samples(Eigen::all,Eigen::seq(i*simdLen,i*simdLen+simdLen-1)) = sample;
+    }else{
+      samples(Eigen::all,Eigen::seq(i*simdLen,max_actual_draws-1)) = sample(Eigen::all,Eigen::seq(0,max_actual_draws-1-simdLen*i));
+    }
     if (i % 1000 == 0 && i > 0)
       std::cout << ".";
   }
@@ -280,7 +286,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   return std::vector<SimulationStats<NT>>{rdhr_stats, crhmc_stats};
 }
 
-template <typename NT, typename Point, typename HPolytope>
+template <typename NT, typename Point, typename HPolytope, int simdLen=1>
 void test_benchmark_polytope(
     HPolytope &P, std::string &name, bool centered,
     double target_time = std::numeric_limits<NT>::max(), int walk_length = 1) {
@@ -294,7 +300,7 @@ void test_benchmark_polytope(
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, target_time,
+  results = benchmark_polytope_sampling<NT, HPolytope, simdLen>(P, step_size, walk_length, target_time,
                                         false, centered);
   outfile << results[0];
   outfile << results[1];
@@ -302,7 +308,7 @@ void test_benchmark_polytope(
   outfile.close();
 }
 
-template <typename NT> void call_test_benchmark_polytope() {
+template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using Hpolytope = HPolytope<Point>;
@@ -311,7 +317,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "100_skinny_cube";
     bool centered = false;
     double target_time=20; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, false, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, false, target_time);
   }
 
   {
@@ -319,7 +325,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "5_cross";
     bool centered = false;
     double target_time=10; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, centered, target_time);
   }
 
   {
@@ -327,7 +333,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "100_simplex";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, centered, target_time);
   }
 
   {
@@ -335,7 +341,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "50_prod_simplex";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, centered, target_time);
   }
 
   {
@@ -343,7 +349,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "10_birkhoff";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, centered, target_time);
   }
 
   if (exists_check("netlib/afiro.ine")) {
@@ -351,7 +357,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "afiro";
     bool centered = true;
     double target_time=100; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, centered, target_time);
   }
 
   if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
@@ -360,7 +366,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     std::string name = "e_coli";
     bool centered = true;
     double target_time=600; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(P, name, centered, target_time);
   }
 }
 
@@ -370,6 +376,7 @@ int main() {
       << "---------------CRHMC polytope sampling benchmarking---------------"
       << std::endl
       << std::endl;
-  call_test_benchmark_polytope<double>();
+  call_test_benchmark_polytope<double,1>();
+  call_test_benchmark_polytope<double,4>();  
   return 0;
 }
