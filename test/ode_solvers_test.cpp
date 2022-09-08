@@ -141,7 +141,7 @@ void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
 #endif
     NT norm = NT(0);
     for (unsigned int i = 0; i < solver.xs.size(); i++) {
-      norm += solver.xs[i].dot(solver.xs[i]);
+      norm += (solver.xs[i].cwiseProduct(solver.xs[i])).sum();
     }
 
     norm = sqrt(norm);
@@ -159,7 +159,7 @@ void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
 template <typename NT> void test_implicit_midpoint() {
   typedef Cartesian<NT> Kernel;
   typedef typename Kernel::Point Point;
-  typedef std::vector<Point> pts;
+  typedef std::vector<MT> pts;
   typedef GaussianFunctor::GradientFunctor<Point> grad;
   typedef GaussianFunctor::FunctionFunctor<Point> func;
   typedef GaussianFunctor::parameters<NT, Point> func_params;
@@ -178,8 +178,8 @@ template <typename NT> void test_implicit_midpoint() {
   input.ub = VT::Ones(d);
   CrhmcProblem P = CrhmcProblem(input);
   d = P.dimension();
-  Point x0 = Point(d);
-  Point v0 = Point::all_ones(d);
+  MT x0 = MT::Zero(d,1);
+  MT v0 = MT::Ones(d,1);
   pts q{x0, v0};
   opts.solver_accuracy_threashold = 1e-2;
   opts.DynamicWeight = false;

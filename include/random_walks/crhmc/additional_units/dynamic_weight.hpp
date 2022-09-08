@@ -56,9 +56,9 @@ public:
         threshold = 16;
       }
       bool changed = (lsc.array() > threshold * w.array()).any();
-      w = (lsc.array() > threshold * w.array())
-              .select((w * threshold).cwiseMin(VT::Ones(n)), w);
       if (changed) {
+        w = (lsc.array() > threshold * w.array())
+        .select((w * threshold).cwiseMin(1), w);
         s.solver->ham.forceUpdate = true;
         s.solver->ham.move({s.x, s.v});
         s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n,simdLen), false);

@@ -51,7 +51,7 @@ public:
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.forceUpdate = true;
       s.solver->ham.move({s.x, s.v});
-      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n,simdLen), false);
+      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n,simdLen),0, false);
     }
   }
 };
