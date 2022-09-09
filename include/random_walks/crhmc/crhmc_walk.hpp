@@ -203,6 +203,11 @@ struct CRHMCWalk {
       }
     }
 #ifdef TIME_KEEPING
+    void initialize_timers(){
+       H_duration =std::chrono::duration<double>::zero();
+       solver->DU_duration =std::chrono::duration<double>::zero();
+       solver->approxDK_duration =std::chrono::duration<double>::zero();
+    }
     void print_timing_information() {
       std::cerr << "--------------Timing Information--------------\n";
       double DU_time = solver->DU_duration.count();

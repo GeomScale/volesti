@@ -230,7 +230,9 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::cout << std::endl;
   std::cout << "Sampling" << std::endl;
-
+  #ifdef TIME_KEEPING
+  crhmc.initialize_timers();
+  #endif
   start = std::chrono::high_resolution_clock::now();
   for (unsigned int i = 0; i < std::ceil(max_actual_draws/simdLen); i++) {
     for (int k = 0; k < walk_length; k++) {
@@ -377,6 +379,6 @@ int main() {
       << std::endl
       << std::endl;
   call_test_benchmark_polytope<double,1>();
-  call_test_benchmark_polytope<double,4>();  
+  call_test_benchmark_polytope<double,4>();
   return 0;
 }
