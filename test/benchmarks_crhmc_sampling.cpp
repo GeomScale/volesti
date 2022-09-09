@@ -377,6 +377,25 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     double target_time=600; //secs
     test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, target_time);
   }
+
+  if (exists_check("metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
+    Hpolytope P =
+        read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAB_RBC_283.ine");
+    std::string name = "e_coli";
+    bool centered = true;
+    double target_time=600; //secs
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, target_time);
+  }
+
+  if (exists_check("metabolic_full_dim/polytope_recon1.ine")) {
+    Hpolytope P =
+        read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon1.ine");
+    std::string name = "e_coli";
+    bool centered = true;
+    double target_time=600; //secs
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, target_time);
+  }
+
   stream.close();
 
 }
