@@ -1,0 +1,4 @@
+breathe
+sphinx_sitemap
+myst_parser
+sphinx-math-dollar
