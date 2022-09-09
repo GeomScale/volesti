@@ -562,26 +562,27 @@ public:
                    "point.\n";
       exit(1);
     }
-#ifdef TIME_KEEPING
-    std::cerr << "Rescale completed in time, ";
-    std::cerr << rescale_duration.count() << " secs " << std::endl;
-    std::cerr << "Split dense columns completed in time, ";
-    std::cerr << sparsify_duration.count() << " secs " << std::endl;
-    std::cerr << "Reordering completed in time, ";
-    std::cerr << reordering_duration.count() << " secs " << std::endl;
-    std::cerr << "Removing dependent rows completed in time, ";
-    std::cerr << rm_rows_duration.count() << " secs " << std::endl;
-    std::cerr << "Removing fixed variables completed in time, ";
-    std::cerr << rm_fixed_vars_duration.count() << " secs " << std::endl;
-    std::cerr << "Extracting collapsed variables completed in time, ";
-    std::cerr << ex_collapsed_vars_duration.count() << " secs " << std::endl;
-    std::cerr << "Shift_barrier completed in time, ";
-    std::cerr << shift_barrier_duration.count() << " secs " << std::endl;
-    std::cerr << "Finding Center completed in time, ";
-    std::cerr << lewis_center_duration.count() << " secs " << std::endl;
-#endif
   }
-
+void print_preparation_time(std::ofstream bencmark_file){
+  #ifdef TIME_KEEPING
+  bencmark_file << "Rescale completed in time, ";
+  bencmark_file << rescale_duration.count() << " secs " << std::endl;
+  bencmark_file << "Split dense columns completed in time, ";
+  bencmark_file << sparsify_duration.count() << " secs " << std::endl;
+  bencmark_file << "Reordering completed in time, ";
+  bencmark_file << reordering_duration.count() << " secs " << std::endl;
+  bencmark_file << "Removing dependent rows completed in time, ";
+  bencmark_file << rm_rows_duration.count() << " secs " << std::endl;
+  bencmark_file << "Removing fixed variables completed in time, ";
+  bencmark_file << rm_fixed_vars_duration.count() << " secs " << std::endl;
+  bencmark_file << "Extracting collapsed variables completed in time, ";
+  bencmark_file << ex_collapsed_vars_duration.count() << " secs " << std::endl;
+  bencmark_file << "Shift_barrier completed in time, ";
+  bencmark_file << shift_barrier_duration.count() << " secs " << std::endl;
+  bencmark_file << "Finding Center completed in time, ";
+  bencmark_file << lewis_center_duration.count() << " secs " << std::endl;
+  #endif
+}
   // Gradient and hessian of for the analytic center
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     MT g, h;
