@@ -179,8 +179,9 @@ struct CRHMCWalk {
         VT feasible = solver->ham.feasible(x_tilde,
                                            v_tilde);
         prob=(1.0< exp((H - H_tilde).array())).select(1.0,exp((H - H_tilde).array()));
+        prob=(feasible.array()>0.5).select(prob,0);
 
-        prob=prob.cwiseProduct(feasible);
+        //prob=prob.cwiseProduct(feasible);
 
         total_acceptance_prob += prob.sum();
         VT rng_vector=VT(simdLen);
