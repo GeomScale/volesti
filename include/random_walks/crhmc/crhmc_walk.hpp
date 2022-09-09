@@ -208,18 +208,19 @@ struct CRHMCWalk {
        solver->DU_duration =std::chrono::duration<double>::zero();
        solver->approxDK_duration =std::chrono::duration<double>::zero();
     }
-    void print_timing_information(std::ofstream benchmark_file) {
-      benchmark_file << "--------------Timing Information--------------\n";
+    template<typename StreamType>
+    void print_timing_information(StreamType& stream) {
+      stream << "--------------Timing Information--------------\n";
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();
       double H_time = H_duration.count();
       double total_time = H_time + DK_time + DU_time;
-      benchmark_file << "Computing the Hamiltonian in time, " << H_time << " secs\n";
-      benchmark_file << "Computing DU partial derivatives in time, " << DU_time
+      stream << "Computing the Hamiltonian in time, " << H_time << " secs\n";
+      stream << "Computing DU partial derivatives in time, " << DU_time
                 << " secs\n";
-      benchmark_file << "Computing DK partial derivatives in time, " << DK_time
+      stream << "Computing DK partial derivatives in time, " << DK_time
                 << " secs\n";
-      benchmark_file << "H_time + DK_time + DU_time: " << total_time << "\n";
+      stream << "H_time + DK_time + DU_time: " << total_time << "\n";
     }
 #endif
   };

@@ -563,24 +563,25 @@ public:
       exit(1);
     }
   }
-void print_preparation_time(std::ofstream benchmark_file){
+  template <typename StreamType>
+void print_preparation_time(StreamType& stream){
   #ifdef TIME_KEEPING
-  benchmark_file << "Rescale completed in time, ";
-  benchmark_file << rescale_duration.count() << " secs " << std::endl;
-  benchmark_file << "Split dense columns completed in time, ";
-  benchmark_file << sparsify_duration.count() << " secs " << std::endl;
-  benchmark_file << "Reordering completed in time, ";
-  benchmark_file << reordering_duration.count() << " secs " << std::endl;
-  benchmark_file << "Removing dependent rows completed in time, ";
-  benchmark_file << rm_rows_duration.count() << " secs " << std::endl;
-  benchmark_file << "Removing fixed variables completed in time, ";
-  benchmark_file << rm_fixed_vars_duration.count() << " secs " << std::endl;
-  benchmark_file << "Extracting collapsed variables completed in time, ";
-  benchmark_file << ex_collapsed_vars_duration.count() << " secs " << std::endl;
-  benchmark_file << "Shift_barrier completed in time, ";
-  benchmark_file << shift_barrier_duration.count() << " secs " << std::endl;
-  benchmark_file << "Finding Center completed in time, ";
-  benchmark_file << lewis_center_duration.count() << " secs " << std::endl;
+  stream << "Rescale completed in time, ";
+  stream << rescale_duration.count() << " secs " << std::endl;
+  stream << "Split dense columns completed in time, ";
+  stream << sparsify_duration.count() << " secs " << std::endl;
+  stream << "Reordering completed in time, ";
+  stream << reordering_duration.count() << " secs " << std::endl;
+  stream << "Removing dependent rows completed in time, ";
+  stream << rm_rows_duration.count() << " secs " << std::endl;
+  stream << "Removing fixed variables completed in time, ";
+  stream << rm_fixed_vars_duration.count() << " secs " << std::endl;
+  stream << "Extracting collapsed variables completed in time, ";
+  stream << ex_collapsed_vars_duration.count() << " secs " << std::endl;
+  stream << "Shift_barrier completed in time, ";
+  stream << shift_barrier_duration.count() << " secs " << std::endl;
+  stream << "Finding Center completed in time, ";
+  stream << lewis_center_duration.count() << " secs " << std::endl;
   #endif
 }
   // Gradient and hessian of for the analytic center
