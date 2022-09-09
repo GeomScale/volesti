@@ -563,24 +563,24 @@ public:
       exit(1);
     }
   }
-void print_preparation_time(std::ofstream bencmark_file){
+void print_preparation_time(std::ofstream benchmark_file){
   #ifdef TIME_KEEPING
-  bencmark_file << "Rescale completed in time, ";
-  bencmark_file << rescale_duration.count() << " secs " << std::endl;
-  bencmark_file << "Split dense columns completed in time, ";
-  bencmark_file << sparsify_duration.count() << " secs " << std::endl;
-  bencmark_file << "Reordering completed in time, ";
-  bencmark_file << reordering_duration.count() << " secs " << std::endl;
-  bencmark_file << "Removing dependent rows completed in time, ";
-  bencmark_file << rm_rows_duration.count() << " secs " << std::endl;
-  bencmark_file << "Removing fixed variables completed in time, ";
-  bencmark_file << rm_fixed_vars_duration.count() << " secs " << std::endl;
-  bencmark_file << "Extracting collapsed variables completed in time, ";
-  bencmark_file << ex_collapsed_vars_duration.count() << " secs " << std::endl;
-  bencmark_file << "Shift_barrier completed in time, ";
-  bencmark_file << shift_barrier_duration.count() << " secs " << std::endl;
-  bencmark_file << "Finding Center completed in time, ";
-  bencmark_file << lewis_center_duration.count() << " secs " << std::endl;
+  benchmark_file << "Rescale completed in time, ";
+  benchmark_file << rescale_duration.count() << " secs " << std::endl;
+  benchmark_file << "Split dense columns completed in time, ";
+  benchmark_file << sparsify_duration.count() << " secs " << std::endl;
+  benchmark_file << "Reordering completed in time, ";
+  benchmark_file << reordering_duration.count() << " secs " << std::endl;
+  benchmark_file << "Removing dependent rows completed in time, ";
+  benchmark_file << rm_rows_duration.count() << " secs " << std::endl;
+  benchmark_file << "Removing fixed variables completed in time, ";
+  benchmark_file << rm_fixed_vars_duration.count() << " secs " << std::endl;
+  benchmark_file << "Extracting collapsed variables completed in time, ";
+  benchmark_file << ex_collapsed_vars_duration.count() << " secs " << std::endl;
+  benchmark_file << "Shift_barrier completed in time, ";
+  benchmark_file << shift_barrier_duration.count() << " secs " << std::endl;
+  benchmark_file << "Finding Center completed in time, ";
+  benchmark_file << lewis_center_duration.count() << " secs " << std::endl;
   #endif
 }
   // Gradient and hessian of for the analytic center
