@@ -23,7 +23,7 @@
 #include "random_walks/random_walks.hpp"
 
 #include "volume/volume_sequence_of_balls.hpp"
-#include "known_polytope_generators.h"
+#include "generators/known_polytope_generators.h"
 #include "sampling/sampling.hpp"
 
 #include "diagnostics/univariate_psrf.hpp"
