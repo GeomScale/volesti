@@ -567,8 +567,9 @@ public:
     }
   }
   template <typename StreamType>
+#ifdef TIME_KEEPING
 void print_preparation_time(StreamType& stream){
-  #ifdef TIME_KEEPING
+  stream << "---Preparation Timing Informationn";
   stream << "Rescale completed in time, ";
   stream << rescale_duration.count() << " secs " << std::endl;
   stream << "Split dense columns completed in time, ";
@@ -585,8 +586,8 @@ void print_preparation_time(StreamType& stream){
   stream << shift_barrier_duration.count() << " secs " << std::endl;
   stream << "Finding Center completed in time, ";
   stream << lewis_center_duration.count() << " secs " << std::endl;
-  #endif
 }
+#endif
   // Gradient and hessian of for the analytic center
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
     MT g, h;

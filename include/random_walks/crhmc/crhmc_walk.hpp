@@ -210,7 +210,7 @@ struct CRHMCWalk {
     }
     template<typename StreamType>
     void print_timing_information(StreamType& stream) {
-      stream << "--------------Timing Information--------------\n";
+      stream << "---Sampling Timing Informationn";
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();
       double H_time = H_duration.count();
