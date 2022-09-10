@@ -34,48 +34,6 @@
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
 
-struct CustomFunctor {
-  // Custom Gaussian density
-  template <typename NT> struct parameters {
-    unsigned int order;
-    NT L;     // Lipschitz constant for gradient
-    NT m;     // Strong convexity constant
-    NT kappa; // Condition number
-    NT var = 2;
-    parameters() : L(4), m(4), kappa(1){};
-  };
-
-  template <typename Point> struct Grad {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
-    parameters<NT> &params;
-    Grad(parameters<NT> &params_) : params(params_){};
-    Point operator()(Point const &x) const {
-      Point y = -(1.0 / params.var) * x;
-      return y;
-    }
-  };
-  template <typename Point> struct Hess {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
-
-    parameters<NT> &params;
-    Hess(parameters<NT> &params_) : params(params_){};
-    Point operator()(Point const &x) const {
-      return (1.0 / params.var) * Point::all_ones(x.dimension());
-    }
-  };
-
-  template <typename Point> struct Func {
-    typedef typename Point::FT NT;
-    parameters<NT> &params;
-    Func(parameters<NT> &params_) : params(params_){};
-    NT operator()(Point const &x) const {
-      return (1.0 / params.var) * 0.5 * x.dot(x);
-    }
-  };
-};
-
 template <typename NT,int simdLen>
 void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1){
   std::cerr<<"--------------------------simdLen= "<<simdLen<<"\n";
@@ -98,7 +56,7 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   if (n_burns == -1) {
     n_burns = n_samples / 2;
   }
-  func_params params = func_params(Point(dimension), 4, 1);
+  func_params params = func_params(Point(dim), 4, 1);
   Func f(params);
   Grad g(params);
   Hess h(params);
