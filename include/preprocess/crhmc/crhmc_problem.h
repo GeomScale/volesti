@@ -566,8 +566,8 @@ public:
       exit(1);
     }
   }
-  template <typename StreamType>
 #ifdef TIME_KEEPING
+template <typename StreamType>
 void print_preparation_time(StreamType& stream){
   stream << "---Preparation Timing Informationn"<< std::endl;
   stream << "Rescale completed in time, ";
