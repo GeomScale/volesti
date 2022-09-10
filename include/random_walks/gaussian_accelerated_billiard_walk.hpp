@@ -18,28 +18,7 @@
 #include "sampling/ellipsoid.hpp"
 #include "random_walks/uniform_billiard_walk.hpp"
 
-template <typename Point>
-struct compute_diameter<OrderPolytope<Point>>
-{
-template <typename NT>
-static NT compute(OrderPolytope<Point> const& P)
-{
-    NT diameter = std::sqrt(NT(P.dimension()));
-    return diameter;
-}
-};
-
-template <typename Point>
-struct compute_diameter<BallIntersectPolytope<OrderPolytope<Point>, Ellipsoid<Point> > >
-{
-template <typename NT>
-static NT compute(BallIntersectPolytope<OrderPolytope<Point>, Ellipsoid<Point>> const& P)
-{
-    NT polytope_diameter = std::sqrt(NT(P.dimension()));
-    return std::min(polytope_diameter, (NT(2) * P.radius()));
-}
-};
-
+#include "random_walks/compute_diameter.hpp"
 
 // Billiard walk which accelarates each step for uniform distribution and also takes into account
 // the shape of the polytope for generating directions.
