@@ -97,6 +97,7 @@ public:
   const NT inf = options.max_coord + 1; // helper for barrier handling
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
+  int nnz() const { return Asp.nonZeros(); }
 
   // Remove varibles that have width under some tolerance
   int remove_fixed_variables(const NT tol = 1e-12) {
