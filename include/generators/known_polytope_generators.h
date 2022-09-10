@@ -15,7 +15,7 @@
 
 
 template <class Polytope>
-Polytope generate_cube(const unsigned int& dim, const bool& Vpoly) {
+Polytope generate_cube(const unsigned int& dim, const bool& Vpoly,const unsigned int& scale=1) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -28,7 +28,7 @@ Polytope generate_cube(const unsigned int& dim, const bool& Vpoly) {
         A.resize(2 * dim, dim);
         b.resize(2 * dim);
         for (unsigned int i = 0; i < dim; ++i) {
-            b(i) = 1.0;
+            b(i) = scale;
             for (unsigned int j = 0; j < dim; ++j) {
                 if (i == j) {
                     A(i, j) = 1.0;
@@ -38,7 +38,7 @@ Polytope generate_cube(const unsigned int& dim, const bool& Vpoly) {
             }
         }
         for (unsigned int i = 0; i < dim; ++i) {
-            b(i + dim) = 1.0;
+            b(i + dim) = scale;
             for (unsigned int j = 0; j < dim; ++j) {
                 if (i == j) {
                     A(i + dim, j) = -1.0;
