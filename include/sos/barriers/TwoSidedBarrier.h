@@ -142,14 +142,12 @@ public:
   }
 
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
-    //[~, g, h] = o.f_oracle(x);
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
     return std::make_pair(g + gradient(x), h + hessian(x));
   }
 
   std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
-    //   [~, g, h] = o.f_oracle(x);
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
     return std::make_pair(g + w.cwiseProduct(gradient(x)),

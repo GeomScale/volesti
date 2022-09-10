@@ -24,7 +24,8 @@
 #include "doctest.h"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
-
+#include "ode_solvers/oracle_functors.hpp"
+#include "generators/known_polytope_generators.h"
 #include "convex_bodies/hpolytope.h"
 #include "misc/misc.h"
 
@@ -56,7 +57,7 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   int m = 342;
   int n = 366;
   std::ifstream testdata;
-  std::string testDataFileName("../examples/crhmc_prepare/outputMatrix.txt");
+  std::string testDataFileName("../test/crhmc_polytope_test_output.txt");
   testdata.open(testDataFileName, std::ifstream::in);
   int size;
   testdata >> size;
@@ -127,9 +128,48 @@ template <typename NT> void test_crhmc_dependent_polytope() {
   input.Aeq = Aeq;
   input.beq = beq;
   Opts options = Opts();
-  options.EnableReordering = false;
+  options.EnableReordering = true;
   CrhmcProblem P = CrhmcProblem(input, options);
   CHECK(P.equations() == 2);
+}
+
+template <typename NT> void test_center_computation() {
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using Func = GaussianFunctor::FunctionFunctor<Point>;
+  using Grad = GaussianFunctor::GradientFunctor<Point>;
+  using Hess = GaussianFunctor::HessianFunctor<Point>;
+  using func_params=GaussianFunctor::parameters<NT, Point>;
+  using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
+  using PolytopeType = HPolytope<Point>;
+  using Opts = opts<NT>;
+  using PolytopeType = HPolytope<Point>;
+  unsigned dim = 2;
+  Point mean=Point(VT::Ones(dim));
+  mean=mean*0.5;
+  func_params params = func_params(mean, 0.5, 1);
+  Func f(params);
+  Grad g(params);
+  Hess h(params);
+  Opts options = Opts();
+  options.EnableReordering = true;
+  PolytopeType HP = generate_cross<PolytopeType>(2, false);
+  Input input = Input(dim, f, g, h);
+  input.Aineq = HP.get_mat();
+  input.bineq = HP.get_vec();
+  CrhmcProblem P = CrhmcProblem(input, options);
+  VT analytic_ctr=VT(P.dimension());
+  analytic_ctr<<  0.0970, 0.0970, 1.1939, 1.0000, 1.0000, 0.8061;
+  VT lewis_center=VT(P.dimension());
+  lewis_center<< -0.0585, -0.0585, -0.1171, 0, 0, 0.1171;
+  for(int i=0;i<dim;i++){
+    CHECK(std::abs(P.analytic_ctr(i) - analytic_ctr(i)) < 0.001);
+    CHECK(std::abs(P.center(i) - (lewis_center(i))) < 0.001);
+  }
+
 }
 
 template <typename NT> void call_test_crhmc_fixed_var_polytope(){
@@ -137,14 +177,17 @@ template <typename NT> void call_test_crhmc_fixed_var_polytope(){
   test_crhmc_fixed_var_polytope<NT>();
 }
 template <typename NT>void call_test_crhmc_dependent_polytope(){
-    std::cout << "--- Testing dep vars" << std::endl;
-    test_crhmc_dependent_polytope<NT>();
+  std::cout << "--- Testing dep vars" << std::endl;
+  test_crhmc_dependent_polytope<NT>();
 }
 template <typename NT> void call_test_crhmc_preprocesssing() {
   std::cout << "--- Testing CRHMC data preprocessing" << std::endl;
   test_crhmc_polytope_preprocessing<NT>();
 }
-
+template <typename NT> void call_test_center_computation(){
+  std::cout << "--- Testing CRHMC polytope-center computation" << std::endl;
+  test_center_computation<NT>();
+}
 TEST_CASE("test_preparation_crhmc") {
   call_test_crhmc_preprocesssing<double>();
 }
@@ -155,4 +198,8 @@ TEST_CASE("test_fixed_vars_crhmc") {
 
 TEST_CASE("test_dep_vars_crhmc") {
   call_test_crhmc_dependent_polytope<double>();
+}
+
+TEST_CASE("test_center_computation"){
+  call_test_center_computation<double>();
 }

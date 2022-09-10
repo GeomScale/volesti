@@ -75,6 +75,7 @@ public:
   VT Ta;                 // T x = x(Tidx) .* Ta
   bool isempty_center = true;
   VT center = VT::Zero(0, 1); // Resulting polytope Lewis or Analytic center
+  VT analytic_ctr; //analytic center vector (for testing)
   VT w_center;// weights of the lewis center
 
   VT width; // width of the varibles
@@ -142,6 +143,7 @@ public:
     } else {
       std::tie(center, Ac, bc) =
           analytic_center(Asp, b, *this, options, center);
+          analytic_ctr=center;
     }
     if (Ac.rows() == 0) {
       return 0;
@@ -481,7 +483,7 @@ public:
     /*Move lb=ub to Ax=b*/
     for (int i = 0; i < n; i++) {
       if (doubleVectorEqualityComparison(lb(i), ub(i))) {
-        VT temp = VT::Zero(1, n);
+        MT temp = MT::Zero(1, n);
         temp(i) = 1;
         A.conservativeResize(A.rows() + 1, A.cols());
         A.row(A.rows() - 1) = temp;
