@@ -569,7 +569,7 @@ public:
   template <typename StreamType>
 #ifdef TIME_KEEPING
 void print_preparation_time(StreamType& stream){
-  stream << "---Preparation Timing Informationn";
+  stream << "---Preparation Timing Informationn"<< std::endl;
   stream << "Rescale completed in time, ";
   stream << rescale_duration.count() << " secs " << std::endl;
   stream << "Split dense columns completed in time, ";
