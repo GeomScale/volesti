@@ -276,7 +276,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
   stream << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
   stream << "Average Acceptance Probability: "
             << crhmc.average_acceptance_prob << std::endl;
-  max_psrf = check_interval_psrf<NT, VT, MT>(samples,std::numeric_limits<NT>max());
+  max_psrf = check_interval_psrf<NT, VT, MT>(samples,std::numeric_limits<NT>::max());
   stream << "max_psrf: " << max_psrf << std::endl;
   stream << std::endl;
 
@@ -326,7 +326,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "100_skinny_cube";
     bool centered = false;
     double target_time=20; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, false, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, false, std::numeric_limits<double>::max());
   }
 
   {
@@ -334,7 +334,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "5_cross";
     bool centered = false;
     double target_time=10; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   {
@@ -342,7 +342,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "100_simplex";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   {
@@ -350,7 +350,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "50_prod_simplex";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   {
@@ -358,7 +358,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "10_birkhoff";
     bool centered = false;
     double target_time=15; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   if (exists_check("../test/netlib/afiro.ine")) {
@@ -366,7 +366,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "afiro";
     bool centered = true;
     double target_time=100; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
@@ -375,7 +375,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "e_coli";
     bool centered = true;
     double target_time=600; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   if (exists_check("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
@@ -384,7 +384,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "iAB_RBC_283";
     bool centered = true;
     double target_time=600; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   if (exists_check("../test/metabolic_full_dim/polytope_recon1.ine")) {
@@ -393,7 +393,7 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     std::string name = "recon1";
     bool centered = true;
     double target_time=600; //secs
-    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
+    test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>::max());
   }
 
   stream.close();
