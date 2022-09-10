@@ -85,9 +85,10 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
-  using Func = CustomFunctor::Func<Point>;
-  using Grad = CustomFunctor::Grad<Point>;
-  using Hess = CustomFunctor::Hess<Point>;
+  using Func = GaussianFunctor::FunctionFunctor<Point>;
+  using Grad = GaussianFunctor::GradientFunctor<Point>;
+  using Hess = GaussianFunctor::HessianFunctor<Point>;
+  using func_params=GaussianFunctor::parameters<NT, Point>;
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
   //using Input = crhmc_input<MT, Point>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
@@ -97,7 +98,7 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   if (n_burns == -1) {
     n_burns = n_samples / 2;
   }
-  CustomFunctor::parameters<NT> params;
+  func_params params = func_params(Point(dimension), 4, 1);
   Func f(params);
   Grad g(params);
   Hess h(params);
@@ -156,7 +157,7 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
     end = std::chrono::system_clock::now();
     std::chrono::duration<double> total_time = end - start;
     std::cerr << "Total time: " << total_time.count() << "\n";
-    crhmc.print_timing_information();
+    crhmc.print_timing_information(std::cerr);
   #endif
 
     std::cerr << "Step size (final): " << crhmc.solver->eta << std::endl;
