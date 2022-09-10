@@ -361,36 +361,36 @@ template <typename NT, int simdLen=1> void call_test_benchmark_polytope() {
     test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
   }
 
-  if (exists_check("netlib/afiro.ine")) {
-    Hpolytope P = read_polytope<Hpolytope, NT>("netlib/afiro.ine");
+  if (exists_check("../test/netlib/afiro.ine")) {
+    Hpolytope P = read_polytope<Hpolytope, NT>("../test/netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
     double target_time=100; //secs
     test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
   }
 
-  if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
+  if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
     Hpolytope P =
-        read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine");
+        read_polytope<Hpolytope, NT>("../test/metabolic_full_dim/polytope_e_coli.ine");
     std::string name = "e_coli";
     bool centered = true;
     double target_time=600; //secs
     test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
   }
 
-  if (exists_check("metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
+  if (exists_check("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
     Hpolytope P =
-        read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAB_RBC_283.ine");
-    std::string name = "e_coli";
+        read_polytope<Hpolytope, NT>("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine");
+    std::string name = "iAB_RBC_283";
     bool centered = true;
     double target_time=600; //secs
     test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
   }
 
-  if (exists_check("metabolic_full_dim/polytope_recon1.ine")) {
+  if (exists_check("../test/metabolic_full_dim/polytope_recon1.ine")) {
     Hpolytope P =
-        read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon1.ine");
-    std::string name = "e_coli";
+        read_polytope<Hpolytope, NT>("../test/metabolic_full_dim/polytope_recon1.ine");
+    std::string name = "recon1";
     bool centered = true;
     double target_time=600; //secs
     test_benchmark_polytope<NT, Point, Hpolytope,simdLen>(stream, P, name, centered, std::numeric_limits<double>max());
