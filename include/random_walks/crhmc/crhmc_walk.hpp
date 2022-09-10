@@ -137,7 +137,7 @@ struct CRHMCWalk {
     inline MT getPoints() { return (P.T * x).colwise() + P.y; }
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x.col(0) + P.y); }
-    
+
     inline MT masked_choose(MT &x,MT &x_tilde,IVT &accept){
       return accept.transpose().replicate(x.rows(), 1).select(x_tilde, x);
     }
@@ -203,7 +203,7 @@ struct CRHMCWalk {
     }
     template<typename StreamType>
     void print_timing_information(StreamType& stream) {
-      stream << "---Sampling Timing Informationn"<< std::endl;
+      stream << "---Sampling Timing Information"<< std::endl;
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();
       double H_time = H_duration.count();
