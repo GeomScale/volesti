@@ -137,16 +137,9 @@ struct CRHMCWalk {
     inline MT getPoints() { return (P.T * x).colwise() + P.y; }
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x.col(0) + P.y); }
+    
     inline MT masked_choose(MT &x,MT &x_tilde,IVT &accept){
-      MT result=MT(x.rows(),x.cols());
-      for(int i=0;i<simdLen;i++){
-        if(accept(i)==1){
-          result(Eigen::all,i)=x_tilde(Eigen::all,i);
-        }else{
-          result(Eigen::all,i)=x(Eigen::all,i);
-        }
-      }
-      return result;
+      return accept.transpose().replicate(x.rows(), 1).select(x_tilde, x);
     }
 
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
