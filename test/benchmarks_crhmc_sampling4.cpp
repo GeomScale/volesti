@@ -408,6 +408,6 @@ int main() {
       << "---------------CRHMC polytope sampling benchmarking---------------"
       << std::endl
       << std::endl;
-  call_test_benchmark_polytope<double,1>();
+  call_test_benchmark_polytope<double,4>();
   return 0;
 }

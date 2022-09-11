@@ -239,6 +239,7 @@ else ()
 
 	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
 	add_executable (benchmarks_crhmc_sampling benchmarks_crhmc_sampling.cpp )
+	add_executable (benchmarks_crhmc_sampling4 benchmarks_crhmc_sampling4.cpp )
 
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
@@ -351,6 +352,8 @@ else ()
                                 PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(benchmarks_crhmc_sampling
 																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	set_target_properties(benchmarks_crhmc_sampling4
+																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_polytope_preparation_test
 																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_sampling_test
@@ -375,6 +378,7 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
 	TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling ${LP_SOLVE} ${MKL_LINK} ${QD_LIB} coverage_config)
+	TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling4 ${LP_SOLVE} ${MKL_LINK} ${QD_LIB} coverage_config)
 	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} ${QD_LIB}  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
