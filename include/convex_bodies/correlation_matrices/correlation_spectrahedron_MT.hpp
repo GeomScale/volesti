@@ -79,13 +79,13 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
 
         // minPosLinearEigenvalue_EigenSymSolver(A,B) computes the minimal positive eigenvalue of A-t*B
 
-        return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(r.mat, (-v).mat, eigenvector);
+        return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(r.mat, (-v).mat.template triangularView<Eigen::StrictlyLower>(), eigenvector);
     }
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT, int> line_positive_intersect(PointType const &r,
-                                               PointType const &v) {
+                                               PointType const &v){
         NT pos_inter = positiveLinearIntersection(r, v);
         return std::pair<NT, int> (pos_inter, -1);
     }

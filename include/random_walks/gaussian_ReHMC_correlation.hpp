@@ -75,13 +75,13 @@ struct Walk
             _v = GetDirection<Point>::apply(n, rng, false);
             _p = p0;
             h1 = Hamiltonian(_p, _v, a);
-            
-            for(int j = 0; j < num_leaps; ++j){   
+
+            for(int j = 0; j < num_leaps; ++j){
                 _v -= _astep * _p;
 
                 while(true){
                     auto pbpair = P.line_positive_intersect(_p, _v);
-                    
+
                     if (T <= pbpair.first){
                         _p += T * _v;
                         break;
@@ -89,7 +89,7 @@ struct Walk
                     _lambda_prev = 0.995 * pbpair.first;
                     _p += _lambda_prev * _v;
                     T -= _lambda_prev;
-                    
+
                     P.compute_reflection(_v, _p, pbpair.second);
                 }
                 _v -= _astep * _p;
@@ -129,12 +129,12 @@ private :
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
         NT T = _step;
-        
-        for(int j = 0; j < num_leaps; ++j){            
+
+        for(int j = 0; j < num_leaps; ++j){
             _v -= _astep * _p;
 
             it = 0;
-            while(it <= _rho){   
+            while(it <= _rho){
                 std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v);
 
                 if (T <= pbpair.first){
@@ -142,11 +142,11 @@ private :
                     _lambda_prev = T;
                     break;
                 }
-                
+
                 _lambda_prev = 0.995 * pbpair.first;
                 _p += _lambda_prev * _v;
                 T -= _lambda_prev;
-                
+
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }

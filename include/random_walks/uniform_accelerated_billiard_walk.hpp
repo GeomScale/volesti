@@ -165,7 +165,7 @@ struct AcceleratedBilliardWalk
         <
             typename GenericPolytope
         >
-        inline void parameters_burnin(GenericPolytope &P, 
+        inline void parameters_burnin(GenericPolytope &P,
                                      Point const& center,
                                      unsigned int const& num_points,
                                      unsigned int const& walk_length,
@@ -177,7 +177,7 @@ struct AcceleratedBilliardWalk
             pointset.push_back(_p);
             NT rad = NT(0), max_dist, Lmax = get_delta(), radius = P.InnerBall().second;
 
-            for (int i = 0; i < num_points; i++) 
+            for (int i = 0; i < num_points; i++)
             {
                 Point p = GetPointInDsphere<Point>::apply(P.dimension(), radius, rng);
                 p += center;
@@ -185,7 +185,7 @@ struct AcceleratedBilliardWalk
 
                 apply(P, p, walk_length, rng);
                 max_dist = get_max_distance(pointset, p, rad);
-                if (max_dist > Lmax) 
+                if (max_dist > Lmax)
                 {
                     Lmax = max_dist;
                 }
@@ -196,7 +196,7 @@ struct AcceleratedBilliardWalk
             }
 
             if (Lmax > _L) {
-                if (P.dimension() <= 2500) 
+                if (P.dimension() <= 2500)
                 {
                     update_delta(Lmax);
                 }
@@ -207,7 +207,7 @@ struct AcceleratedBilliardWalk
             pointset.clear();
         }
 
-        
+
 
         inline void update_delta(NT L)
         {
@@ -273,11 +273,11 @@ struct AcceleratedBilliardWalk
             }
         }
 
-        inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad) 
+        inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad)
         {
             double dis = -1.0, temp_dis;
             int jj = 0;
-            for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++) 
+            for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++)
             {
                 temp_dis = (q.getCoefficients() - (*vecit).getCoefficients()).norm();
                 if (temp_dis > dis) {
