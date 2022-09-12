@@ -146,13 +146,29 @@ void exponential_correlation_sampling(  const unsigned int &n,
                                         const VT &c,
                                         const NT &T,
                                         unsigned int const& nburns = 0){
-    CorrelationSpectrahedron<PointType> P(n);
+
+    typedef CorrelationSpectrahedron<PointType> SpectrahedronType;
+    typedef typename WalkTypePolicy::template Walk<SpectrahedronType, RNGType> Walk;
+
+    PushBackWalkPolicy push_back_policy;
+
+    SpectrahedronType P(n);
     const unsigned int d = P.dimension();
-    PointType startingPoint(d);
+    PointType p(d);
     RNGType rng(d);
     PointType _c(c);
 
-    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
+    Walk walk(P, p, _c, T, rng);
+
+    for (unsigned int i = 0; i < nburns; ++i){
+        walk.template apply(P, p, walkL, rng);
+        push_back_policy.apply(randPoints, p);
+    }
+
+    for (unsigned int i = 0; i < num_points; ++i){
+        walk.template apply(P, p, walkL, rng);
+        push_back_policy.apply(randPoints, p);
+    }
 }
 
 template
@@ -173,13 +189,28 @@ void exponential_correlation_sampling_MT(   const unsigned int &n,
                                             unsigned int const& nburns = 0){
 
 
-    CorrelationSpectrahedron_MT<PointType> P(n);
+    typedef CorrelationSpectrahedron<PointType> SpectrahedronType;
+    typedef typename WalkTypePolicy::template Walk<SpectrahedronType, RNGType> Walk;
+
+    PushBackWalkPolicy push_back_policy;
+
+    SpectrahedronType P(n);
     const unsigned int d = P.dimension();
-    PointType startingPoint(n);
+    PointType p(n);
     RNGType rng(d);
     PointType _c(c);
 
-    exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
+    Walk walk(P, p, _c, T, rng);
+
+    for (unsigned int i = 0; i < nburns; ++i){
+        walk.template apply(P, p, walkL, rng);
+        push_back_policy.apply(randPoints, p);
+    }
+
+    for (unsigned int i = 0; i < num_points; ++i){
+        walk.template apply(P, p, walkL, rng);
+        push_back_policy.apply(randPoints, p);
+    }
 }
 
 #endif //VOLESTI_SAMPLING_SAMPLE_CORRELATION_MATRICES_HPP

@@ -92,17 +92,6 @@ class CorreMatrix{
         this->mat.template triangularView<Eigen::StrictlyLower>() /= k;
     }
 
-    NT dot(MT grad){
-        int i, j, n = this->mat.rows();
-        NT ret = NT(0);
-        for(i = 0; i < n ; ++i){
-            for(j = 0; j < i; ++j){
-                ret += this->mat(i,j) * grad(i,j);
-            }
-        }
-        return ret;
-    }
-
     NT dot(CorreMatrix<NT> c){
         int i, j, n = this->mat.rows();
         NT ret = NT(0);

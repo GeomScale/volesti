@@ -117,8 +117,9 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
             }
         }
         NT dot = v.dot(grad);
-        dot = 2 * dot / sum_sq;
-        v -= dot * PointType(grad);
+        dot = (2 * dot) / sum_sq;
+        grad *= dot;
+        v -= PointType(grad);
     }
 
     /// Construct the generalized eigenvalue problem \[Bt - A \] for positive_intersect.
