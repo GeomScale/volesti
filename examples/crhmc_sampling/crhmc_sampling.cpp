@@ -37,7 +37,7 @@
 template <typename NT, int simdLen = 1>
 void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
               int walk_length = 1, int burn_steps = 1) {
-  std::cerr << "Using simdLe n= " << simdLen << "\n";
+  std::cerr << "Using simdLen= " << simdLen << "\n";
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -144,13 +144,16 @@ int main(int argc, char *argv[]) {
     run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
                      atoi(argv[4]));
   } else if (argc == 6) {
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                     atoi(argv[5]));
+  } else if (argc == 7) {
     int simdLen = atoi(argv[5]);
     if (simdLen == 1) {
       run_main<double, 1>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
-                          atoi(argv[4]));
+                          atoi(argv[4]), atoi(argv[5]));
     } else if (simdLen == 4) {
       run_main<double, 4>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
-                          atoi(argv[4]));
+                          atoi(argv[4]), atoi(argv[5]));
     }
   }
   return 0;

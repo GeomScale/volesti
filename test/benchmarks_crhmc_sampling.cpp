@@ -255,15 +255,14 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
 
   ETA = (NT)std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
             .count();
-
   std::cout << std::endl;
-#ifdef TIME_KEEPING
   std::chrono::duration<double> total_time = stop - start;
   stream << "Total time: " << total_time.count() << "\n";
   assert(total_time.count() < target_time);
   stream << "Assertion (preparation_time< " << target_time
-            << " secs) passed!" << std::endl
-            << std::endl;
+  << " secs) passed!" << std::endl
+  << std::endl;
+#ifdef TIME_KEEPING
   crhmc.print_timing_information(stream);
 #endif
   print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
