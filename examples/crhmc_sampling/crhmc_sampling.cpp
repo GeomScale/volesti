@@ -56,26 +56,26 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   if (n_burns == -1) {
     n_burns = n_samples / 2;
   }
-  func_params params = func_params(Point(dim), 4, 1);
+  func_params params = func_params(Point(dimension), 4, 1);
   Func f(params);
   Grad g(params);
   Hess h(params);
   Opts options;
   options.simdLen=simdLen;
-  Input input = Input(dim, f, g, h);
-  input.lb = -VT::Ones(dim);
-  input.ub = VT::Ones(dim);
+  Input input = Input(dimension, f, g, h);
+  input.lb = -VT::Ones(dimension);
+  input.ub = VT::Ones(dimension);
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   Point x0=Point(P.center);
-  CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dim, options);
+  CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dimension, options);
   crhmc_params.eta = 0.2;
   crhmc_params.momentum = 0.8;
   CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator, Grad, Func,
                   Solver>
       crhmc(P, x0, g, f, crhmc_params);
   int max_actual_draws= n_samples-n_burns;
-  MT samples = MT(dim, max_actual_draws);
+  MT samples = MT(dimension, max_actual_draws);
   #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
     start = std::chrono::system_clock::now();
