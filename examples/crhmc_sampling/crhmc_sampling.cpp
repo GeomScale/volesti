@@ -34,9 +34,10 @@
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
 
-template <typename NT,int simdLen>
-void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1){
-  std::cerr<<"--------------------------simdLen= "<<simdLen<<"\n";
+template <typename NT,int simdLen=1>
+void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
+              int walk_length = 1, int burn_steps = 1) {
+  std::cerr<<"Using simdLe n= "<<simdLen<<"\n";
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -48,7 +49,6 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   using Hess = GaussianFunctor::HessianFunctor<Point>;
   using func_params=GaussianFunctor::parameters<NT, Point>;
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
-  //using Input = crhmc_input<MT, Point>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad,simdLen>;
   using Opts = opts<NT>;
@@ -62,13 +62,9 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   Hess h(params);
   Opts options;
   options.simdLen=simdLen;
-  //Input input =Input(dim);
   Input input = Input(dim, f, g, h);
-  MT A = MT::Ones(5, dim);
-  A << 1, 0, -0.25, -1, 2.5, 1, 0.4, -1, -0.9, 0.5;
-  VT b = 10 * VT::Ones(5, 1);
-  input.Aineq = A;
-  input.bineq = b;
+  input.lb = -VT::Ones(dim);
+  input.ub = VT::Ones(dim);
   CrhmcProblem P = CrhmcProblem(input, options);
   P.print();
   Point x0=Point(P.center);
@@ -78,18 +74,12 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
   CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator, Grad, Func,
                   Solver>
       crhmc(P, x0, g, f, crhmc_params);
-  MT samples = MT(dim, (n_samples - n_burns)*simdLen);
+  int max_actual_draws= n_samples-n_burns;
+  MT samples = MT(dim, max_actual_draws);
   #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
     start = std::chrono::system_clock::now();
   #endif
-  #ifdef TIME_KEEPING
-    std::chrono::time_point<std::chrono::high_resolution_clock> start_file,
-        end_file;
-    std::chrono::duration<double> total_time_file =
-        std::chrono::duration<double>::zero();
-  #endif
-    int j = 0;
     for (int i = 0; i < n_samples; i++) {
       if (i % 1000 == 0) {
         std::cerr << i << " out of " << n_samples << "\n";
@@ -97,18 +87,15 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
       for (int k = 0; k < burn_steps; k++) {
         crhmc.apply(rng, walk_length, true);
       }
-  #ifdef TIME_KEEPING
-      start_file = std::chrono::system_clock::now();
-  #endif
       if (i >= n_burns) {
         MT sample = crhmc.getPoints();
-        samples(Eigen::all,Eigen::seq((i-n_burns)*simdLen,(i-n_burns)*simdLen+simdLen-1)) = sample;
-        j++;
+        int j=i-n_burns;
+        if(j*simdLen+simdLen-1< max_actual_draws){
+          samples(Eigen::all,Eigen::seq(j*simdLen,j*simdLen+simdLen-1)) = sample;
+        }else{
+          samples(Eigen::all,Eigen::seq(j*simdLen,max_actual_draws-1)) = sample(Eigen::all,Eigen::seq(0,max_actual_draws-1-simdLen*j));
+        }
       }
-  #ifdef TIME_KEEPING
-      end_file = std::chrono::system_clock::now();
-      total_time_file += end_file - start_file;
-  #endif
     }
     std::cerr << "\n";
   #ifdef TIME_KEEPING
@@ -123,31 +110,43 @@ void test_simdLen_sampling(int n_samples = 100000, int n_burns = -1,int dim=2,in
     std::cerr << "Average Acceptance Probability: "
               << crhmc.average_acceptance_prob << std::endl;
     std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
-  #ifdef TIME_KEEPING
-    start_file = std::chrono::system_clock::now();
-  #endif
     std::cerr << "Writing samples in a file \n";
+  #ifdef TIME_KEEPING
+    start = std::chrono::system_clock::now();
+  #endif
     std::cout << samples.transpose() << std::endl;
   #ifdef TIME_KEEPING
-    end_file = std::chrono::system_clock::now();
-    total_time_file += end_file - start_file;
-    std::cerr << "Time for writing the file: " << total_time_file.count() << "\n";
+    end = std::chrono::system_clock::now();
+    total_time = end - start;
+    std::cerr << "Time for writing the file: " << total_time.count() << "\n";
   #endif
 }
 
-template void test_simdLen_sampling<double,4>(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
-template void test_simdLen_sampling<double,1>(int n_samples = 100000, int n_burns = -1,int dim=2,int walk_length=1,int burn_steps=1);
 int main(int argc, char *argv[]) {
+  std::cerr << "Example Usage: ./crhmc_sampling [n_samples] [initial_burns] "
+               "[dimension] [ode_steps] [steps_bettween_samples] [simdLen 1 or 4]\n";
+  std::cerr << "Example Usage: ./crhmc_sampling 10000 5000 "
+               "2 1 1 4 > samples.txt\n";
+  if (argc == 1)
+    run_main<double>();
+  else if (argc == 2)
+    run_main<double>(atoi(argv[1]));
+  else if (argc == 3)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]));
+  else if (argc == 4)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+  else if (argc == 5)
+    run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
+                     atoi(argv[4]));
+  else if (argc == 6)
+    int simdLen= atoi(argv[5]);
+    if(simdLen == 1){
+      run_main<double,1>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
+                       atoi(argv[4]));
+    }else if(simdLen == 4){
+      run_main<double,4>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
+                       atoi(argv[4]));
+    }
 
-  if(argc != 5){
-    std::cerr<< "Usage: ./crhmc_sampling [simdLen= 1 or 4] [n_samples] [n_burns] [dimension] \n";
-  }else{
-  if (atoi(argv[1])==1){
-    test_simdLen_sampling<double,1>(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
-  }
-  else if (atoi(argv[1])==4){
-    test_simdLen_sampling<double,4>(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
-  }
-  }
   return 0;
 }
