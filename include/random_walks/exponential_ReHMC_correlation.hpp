@@ -1,5 +1,5 @@
-#ifndef RANDOM_WALKS_EXPONENTIAL_REHMC_WALK_HPP
-#define RANDOM_WALKS_EXPONENTIAL_REHMC_WALK_HPP
+#ifndef RANDOM_WALKS_EXPONENTIAL_REHMC_CORRELATION_HPP
+#define RANDOM_WALKS_EXPONENTIAL_REHMC_CORRELATION_HPP
 
 #include "sampling/sphere.hpp"
 
@@ -70,14 +70,14 @@ struct Walk
         unsigned int n = P.dimension();
         NT T, h1, h2, u, diff;
         Point p0 = p;
-        
+
         for(int i = 0; i < walk_length; ++i){
             T = _step;
             _v = GetDirection<Point>::apply(n, rng, false);
             _p = p0;
             h1 = Hamiltonian(_p, _v);
 
-            for(int j = 0; j < num_leaps; ++j){            
+            for(int j = 0; j < num_leaps; ++j){
                 _v -= _Ac;
 
                 while(true){
@@ -87,11 +87,11 @@ struct Walk
                         _p += T * _v;
                         break;
                     }
-                    
+
                     _lambda_prev = 0.995 * pbpair.first;
                     _p += _lambda_prev * _v;
                     T -= _lambda_prev;
-                    
+
                     P.compute_reflection(_v, _p, pbpair.second);
                 }
                 _v -= _Ac;
@@ -133,11 +133,11 @@ private :
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
 
-        for(int j = 0; j < num_leaps; ++j){            
+        for(int j = 0; j < num_leaps; ++j){
             _v -= _Ac;
 
             it = 0;
-            while(it <= _rho){   
+            while(it <= _rho){
                 std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v);
 
                 if (T <= pbpair.first){
@@ -145,11 +145,11 @@ private :
                     _lambda_prev = T;
                     break;
                 }
-                
+
                 _lambda_prev = 0.995 * pbpair.first;
                 _p += _lambda_prev * _v;
                 T -= _lambda_prev;
-                
+
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
@@ -172,5 +172,5 @@ private :
 };
 
 
-#endif // RANDOM_WALKS_EXPONENTIAL_REHMC_WALK_HPP
+#endif // RANDOM_WALKS_EXPONENTIAL_REHMC_CORRELATION_HPP
 
