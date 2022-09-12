@@ -45,7 +45,6 @@
 #include "qd/qd_config.h"
 #include "qd/fpu.h"
 
-
 // Some compilers define isnan, isfinite, and isinf as macros, even for
 // C++ codes, which cause havoc when overloading these functions.  We undef
 // them here.
