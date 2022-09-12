@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
     run_main<double>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
                      atoi(argv[5]));
   } else if (argc == 7) {
-    int simdLen = atoi(argv[5]);
+    int simdLen = atoi(argv[6]);
     if (simdLen == 1) {
       run_main<double, 1>(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
                           atoi(argv[4]), atoi(argv[5]));

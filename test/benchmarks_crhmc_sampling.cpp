@@ -257,7 +257,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
             .count();
   std::cout << std::endl;
   std::chrono::duration<double> total_time = stop - start;
-  stream << "Total time: " << total_time.count() << "\n";
+  stream << "Total Sampling time: " << total_time.count() << "\n";
   assert(total_time.count() < target_time);
   stream << "Assertion (preparation_time< " << target_time
   << " secs) passed!" << std::endl
@@ -392,5 +392,6 @@ int main() {
       << std::endl;
   call_test_benchmark_polytope<double,1>();
   call_test_benchmark_polytope<double,4>();
+  call_test_benchmark_polytope<double,8>();
   return 0;
 }
