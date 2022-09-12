@@ -20,13 +20,13 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 if (APPLE)
 	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 elseif(UNIX)
-	set(MKLROOT $ENV{HOME}/intel/mkl)
+	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 endif()
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -227,7 +227,7 @@ else ()
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
-  add_executable (ode_solvers_test  ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
   add_test(NAME ode_solvers_test_second_order
@@ -382,8 +382,8 @@ else ()
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
 	TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
 
 
 endif()
