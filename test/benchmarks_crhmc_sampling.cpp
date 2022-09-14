@@ -32,7 +32,8 @@
 #include <fstream>
 #include "preprocess/svd_rounding.hpp"
 template <typename Polytope, typename NT>
-Polytope read_polytope(std::string filename) {
+Polytope read_polytope(std::string filename)
+{
   std::ifstream inp;
   std::vector<std::vector<NT>> Pin;
   inp.open(filename, std::ifstream::in);
@@ -40,7 +41,9 @@ Polytope read_polytope(std::string filename) {
   Polytope P(Pin);
   return P;
 }
-template <typename NT> struct SimulationStats {
+template <typename NT>
+struct SimulationStats
+{
   std::string method;
   unsigned int walk_length;
   unsigned int min_ess = 0;
@@ -51,7 +54,8 @@ template <typename NT> struct SimulationStats {
   NT step_size = NT(0);
 
   friend std::ostream &operator<<(std::ostream &out,
-                                  const SimulationStats &stats) {
+                                  const SimulationStats &stats)
+  {
     out << stats.method << "," << stats.walk_length << "," << stats.min_ess
         << "," << stats.max_psrf << "," << stats.time_per_draw << ","
         << stats.time_per_independent_sample << ","
@@ -60,10 +64,13 @@ template <typename NT> struct SimulationStats {
     return out;
   }
 };
-struct InnerBallFunctor {
+struct InnerBallFunctor
+{
 
   // Gaussian density centered at the inner ball center
-  template <typename NT, typename Point> struct parameters {
+  template <typename NT, typename Point>
+  struct parameters
+  {
     unsigned int order;
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
@@ -76,7 +83,9 @@ struct InnerBallFunctor {
         : order(2), L(1), m(1), kappa(1), x0(x0_), R0(R0_), sigma(1){};
   };
 
-  template <typename Point> struct GradientFunctor {
+  template <typename Point>
+  struct GradientFunctor
+  {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
 
@@ -85,21 +94,28 @@ struct InnerBallFunctor {
     GradientFunctor(parameters<NT, Point> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const {
-      if (i == params.order - 1) {
+    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
+    {
+      if (i == params.order - 1)
+      {
         Point y = (-1.0 / pow(params.sigma, 2)) * (xs[0] - params.x0);
         return y;
-      } else {
+      }
+      else
+      {
         return xs[i + 1]; // returns derivative
       }
     }
-    Point operator()(Point const &x) const {
+    Point operator()(Point const &x) const
+    {
       Point y = (-1.0 / pow(params.sigma, 2)) * (x - params.x0);
       return y;
     }
   };
 
-  template <typename Point> struct FunctionFunctor {
+  template <typename Point>
+  struct FunctionFunctor
+  {
     typedef typename Point::FT NT;
 
     parameters<NT, Point> &params;
@@ -107,33 +123,40 @@ struct InnerBallFunctor {
     FunctionFunctor(parameters<NT, Point> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    NT operator()(Point const &x) const {
+    NT operator()(Point const &x) const
+    {
       Point y = x - params.x0;
       return 1.0 / (2 * pow(params.sigma, 2)) * y.dot(y);
     }
   };
-  template <typename Point> struct Hess {
+  template <typename Point>
+  struct Hess
+  {
     typedef typename Point::FT NT;
 
     parameters<NT, Point> &params;
     Hess(parameters<NT, Point> &params_) : params(params_){};
 
-    Point operator()(Point const &x) const {
+    Point operator()(Point const &x) const
+    {
       return (1.0 / pow(params.sigma, 2)) * Point::all_ones(x.dimension());
     }
   };
 };
 
-inline bool exists_check(const std::string &name) {
+inline bool exists_check(const std::string &name)
+{
   std::ifstream f(name.c_str());
   return f.good();
 }
 template <typename NT, typename VT, typename MT>
-NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
+NT check_interval_psrf(MT &samples, NT target = NT(1.2))
+{
   NT max_psrf = NT(0);
   VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
   unsigned int d = intv_psrf.rows();
-  for (unsigned int i = 0; i < d; i++) {
+  for (unsigned int i = 0; i < d; i++)
+  {
     assert(intv_psrf(i) < target);
     if (intv_psrf(i) > max_psrf)
       max_psrf = intv_psrf(i);
@@ -145,7 +168,8 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
     bool centered = false, unsigned int max_draws = 80000,
-    unsigned int num_burns = 20000) {
+    unsigned int num_burns = 20000)
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using MT = typename Polytope::MT;
@@ -163,10 +187,13 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   SimulationStats<NT> crhmc_stats;
 
   std::pair<Point, NT> inner_ball;
-  if (centered) {
+  if (centered)
+  {
     inner_ball.first = Point(P.dimension());
     inner_ball.second = NT(1); // dummy radius (not correct one)
-  } else {
+  }
+  else
+  {
     inner_ball = P.ComputeInnerBall();
   }
 
@@ -178,7 +205,8 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   NT R0 = inner_ball.second;
   unsigned int dim = x0.dimension();
 
-  if (rounding) {
+  if (rounding)
+  {
     std::cout << "SVD Rounding" << std::endl;
     svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, inner_ball, walk_length,
                                                   rng);
@@ -221,7 +249,8 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::cout << "Burn-in" << std::endl;
 
-  for (unsigned int i = 0; i < num_burns; i++) {
+  for (unsigned int i = 0; i < num_burns; i++)
+  {
     if (i % 1000 == 0)
       std::cout << ".";
     crhmc.apply(rng, 1);
@@ -231,8 +260,10 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   std::cout << "Sampling" << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
-  for (unsigned int i = 0; i < max_actual_draws; i++) {
-    for (int k = 0; k < walk_length; k++) {
+  for (unsigned int i = 0; i < max_actual_draws; i++)
+  {
+    for (int k = 0; k < walk_length; k++)
+    {
       crhmc.apply(rng, 1);
     }
     samples.col(i) = crhmc.getPoint().getCoefficients();
@@ -283,7 +314,8 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 template <typename NT, typename Point, typename HPolytope>
 void test_benchmark_polytope(
     HPolytope &P, std::string &name, bool centered,
-    double target_time = std::numeric_limits<NT>::max(), int walk_length = 1) {
+    double target_time = std::numeric_limits<NT>::max(), int walk_length = 1)
+{
   std::cout << "CRHMC polytope preparation for " << name << std::endl;
   std::vector<SimulationStats<NT>> results;
   NT step_size = 0;
@@ -295,14 +327,16 @@ void test_benchmark_polytope(
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
   results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, target_time,
-                                        false, centered);
+                                                       false, centered);
   outfile << results[0];
   outfile << results[1];
 
   outfile.close();
 }
 
-template <typename NT> void call_test_benchmark_polytope() {
+template <typename NT>
+void call_test_benchmark_polytope()
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using Hpolytope = HPolytope<Point>;
@@ -310,7 +344,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
     std::string name = "100_skinny_cube";
     bool centered = false;
-    double target_time=20; //secs
+    double target_time = 20; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, false, target_time);
   }
 
@@ -318,7 +352,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_cross<Hpolytope>(5, false);
     std::string name = "5_cross";
     bool centered = false;
-    double target_time=10; //secs
+    double target_time = 10; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
@@ -326,7 +360,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
-    double target_time=15; //secs
+    double target_time = 15; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
@@ -334,7 +368,7 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
     std::string name = "50_prod_simplex";
     bool centered = false;
-    double target_time=15; //secs
+    double target_time = 15; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
@@ -342,29 +376,32 @@ template <typename NT> void call_test_benchmark_polytope() {
     Hpolytope P = generate_birkhoff<Hpolytope>(10);
     std::string name = "10_birkhoff";
     bool centered = false;
-    double target_time=15; //secs
+    double target_time = 15; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
-  if (exists_check("netlib/afiro.ine")) {
+  if (exists_check("netlib/afiro.ine"))
+  {
     Hpolytope P = read_polytope<Hpolytope, NT>("netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
-    double target_time=100; //secs
+    double target_time = 100; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 
-  if (exists_check("metabolic_full_dim/polytope_e_coli.ine")) {
+  if (exists_check("metabolic_full_dim/polytope_e_coli.ine"))
+  {
     Hpolytope P =
         read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine");
     std::string name = "e_coli";
     bool centered = true;
-    double target_time=600; //secs
+    double target_time = 600; // secs
     test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
   }
 }
 
-int main() {
+int main()
+{
 
   std::cout
       << "---------------CRHMC polytope sampling benchmarking---------------"

@@ -33,10 +33,13 @@
 #include <unistd.h>
 #include <vector>
 #include "preprocess/svd_rounding.hpp"
-struct InnerBallFunctor {
+struct InnerBallFunctor
+{
 
   // Gaussian density centered at the inner ball center
-  template <typename NT, typename Point> struct parameters {
+  template <typename NT, typename Point>
+  struct parameters
+  {
     unsigned int order;
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
@@ -49,7 +52,9 @@ struct InnerBallFunctor {
         : order(2), L(1), m(1), kappa(1), x0(x0_), R0(R0_), sigma(1){};
   };
 
-  template <typename Point> struct GradientFunctor {
+  template <typename Point>
+  struct GradientFunctor
+  {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
 
@@ -58,21 +63,28 @@ struct InnerBallFunctor {
     GradientFunctor(parameters<NT, Point> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const {
-      if (i == params.order - 1) {
+    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
+    {
+      if (i == params.order - 1)
+      {
         Point y = (-1.0 / pow(params.sigma, 2)) * (xs[0] - params.x0);
         return y;
-      } else {
+      }
+      else
+      {
         return xs[i + 1]; // returns derivative
       }
     }
-    Point operator()(Point const &x) const {
+    Point operator()(Point const &x) const
+    {
       Point y = (-1.0 / pow(params.sigma, 2)) * (x - params.x0);
       return y;
     }
   };
 
-  template <typename Point> struct FunctionFunctor {
+  template <typename Point>
+  struct FunctionFunctor
+  {
     typedef typename Point::FT NT;
 
     parameters<NT, Point> &params;
@@ -80,26 +92,33 @@ struct InnerBallFunctor {
     FunctionFunctor(parameters<NT, Point> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    NT operator()(Point const &x) const {
+    NT operator()(Point const &x) const
+    {
       Point y = x - params.x0;
       return 1.0 / (2 * pow(params.sigma, 2)) * y.dot(y);
     }
   };
-  template <typename Point> struct HessianFunctor {
+  template <typename Point>
+  struct HessianFunctor
+  {
     typedef typename Point::FT NT;
 
     parameters<NT, Point> &params;
     HessianFunctor(parameters<NT, Point> &params_) : params(params_){};
 
-    Point operator()(Point const &x) const {
+    Point operator()(Point const &x) const
+    {
       return (1.0 / pow(params.sigma, 2)) * Point::all_ones(x.dimension());
     }
   };
 };
-struct CustomFunctor {
+struct CustomFunctor
+{
 
   // Custom density with neg log prob equal to || x ||^2 + 1^T x
-  template <typename NT> struct parameters {
+  template <typename NT>
+  struct parameters
+  {
     unsigned int order;
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
@@ -110,7 +129,9 @@ struct CustomFunctor {
     parameters(unsigned int order_) : order(order), L(2), m(2), kappa(1) {}
   };
 
-  template <typename Point> struct GradientFunctor {
+  template <typename Point>
+  struct GradientFunctor
+  {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
 
@@ -119,23 +140,30 @@ struct CustomFunctor {
     GradientFunctor(){};
 
     // The index i represents the state vector index
-    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const {
-      if (i == params.order - 1) {
+    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
+    {
+      if (i == params.order - 1)
+      {
         Point y = (-1.0) * Point::all_ones(xs[0].dimension());
         y = y + (-2.0) * xs[0];
         return y;
-      } else {
+      }
+      else
+      {
         return xs[i + 1]; // returns derivative
       }
     }
-    Point operator()(Point const &x) const {
+    Point operator()(Point const &x) const
+    {
       Point y = (-1.0) * Point::all_ones(x.dimension());
       y = y + (-2.0) * x;
       return y;
     }
   };
 
-  template <typename Point> struct FunctionFunctor {
+  template <typename Point>
+  struct FunctionFunctor
+  {
     typedef typename Point::FT NT;
 
     parameters<NT> params;
@@ -145,19 +173,24 @@ struct CustomFunctor {
     // The index i represents the state vector index
     NT operator()(Point const &x) const { return x.dot(x) + x.sum(); }
   };
-  template <typename Point> struct HessianFunctor {
+  template <typename Point>
+  struct HessianFunctor
+  {
     typedef typename Point::FT NT;
-    Point operator()(Point const &x) const {
+    Point operator()(Point const &x) const
+    {
       return 2 * Point::all_ones(x.dimension());
     }
   };
 };
 template <typename NT, typename VT, typename MT>
-NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
+NT check_interval_psrf(MT &samples, NT target = NT(1.2))
+{
   NT max_psrf = NT(0);
   VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
   unsigned int d = intv_psrf.rows();
-  for (unsigned int i = 0; i < d; i++) {
+  for (unsigned int i = 0; i < d; i++)
+  {
     CHECK(intv_psrf(i) < target);
     if (intv_psrf(i) > max_psrf)
       max_psrf = intv_psrf(i);
@@ -170,13 +203,16 @@ template <typename Sampler, typename RandomNumberGenerator, typename NT,
 void check_ergodic_mean_norm(Sampler &sampler, RandomNumberGenerator &rng,
                              Point &mean, unsigned int dim,
                              int n_samples = 1500, int skip_samples = 750,
-                             NT target = NT(0), NT tol = 5e-1) {
+                             NT target = NT(0), NT tol = 5e-1)
+{
 
   auto start = std::chrono::high_resolution_clock::now();
 
-  for (int i = 0; i < n_samples; i++) {
+  for (int i = 0; i < n_samples; i++)
+  {
     sampler.apply(rng, 1);
-    if (i >= skip_samples) {
+    if (i >= skip_samples)
+    {
       Point x = sampler.getPoint();
       mean = mean + x;
     }
@@ -204,12 +240,14 @@ void check_ergodic_mean_norm(Sampler &sampler, RandomNumberGenerator &rng,
   std::cout << "Target ergodic mean norm: " << target << std::endl;
   std::cout << "Error (relative if possible) after " << n_samples
             << " samples: " << error << std::endl;
-  std::cout << "ETA (us): " << ETA << std::endl << std::endl;
+  std::cout << "ETA (us): " << ETA << std::endl
+            << std::endl;
 
   CHECK(error < tol);
 }
 template <typename Polytope, typename NT>
-Polytope read_polytope(std::string filename) {
+Polytope read_polytope(std::string filename)
+{
   std::ifstream inp;
   std::vector<std::vector<NT>> Pin;
   inp.open(filename, std::ifstream::in);
@@ -222,7 +260,8 @@ template <typename NT, typename Polytope>
 void crhmc_polytope_sampling(
     Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     bool rounding = false, bool centered = false,
-    unsigned int max_draws = 80000, unsigned int num_burns = 20000) {
+    unsigned int max_draws = 80000, unsigned int num_burns = 20000)
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
@@ -239,10 +278,13 @@ void crhmc_polytope_sampling(
                                            NegativeGradientFunctor>;
 
   std::pair<Point, NT> inner_ball;
-  if (centered) {
+  if (centered)
+  {
     inner_ball.first = Point(P.dimension());
     inner_ball.second = NT(1); // dummy radius (not correct one)
-  } else {
+  }
+  else
+  {
     inner_ball = P.ComputeInnerBall();
   }
 
@@ -254,7 +296,8 @@ void crhmc_polytope_sampling(
   NT R0 = inner_ball.second;
   unsigned int dim = x0.dimension();
 
-  if (rounding) {
+  if (rounding)
+  {
     std::cout << "SVD Rounding" << std::endl;
     svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, inner_ball, walk_length,
                                                   rng);
@@ -298,7 +341,8 @@ void crhmc_polytope_sampling(
 
   std::cout << "Burn-in" << std::endl;
 
-  for (unsigned int i = 0; i < num_burns; i++) {
+  for (unsigned int i = 0; i < num_burns; i++)
+  {
     if (i % 1000 == 0)
       std::cout << ".";
     crhmc.apply(rng, 1);
@@ -307,8 +351,10 @@ void crhmc_polytope_sampling(
   std::cout << std::endl;
   std::cout << "Sampling" << std::endl;
 
-  for (unsigned int i = 0; i < max_actual_draws; i++) {
-    for (int k = 0; k < walk_length; k++) {
+  for (unsigned int i = 0; i < max_actual_draws; i++)
+  {
+    for (int k = 0; k < walk_length; k++)
+    {
       crhmc.apply(rng, 1);
     }
     samples.col(i) = crhmc.getPoint().getCoefficients();
@@ -321,18 +367,19 @@ void crhmc_polytope_sampling(
   std::cout << "Average Acceptance Probability: "
             << crhmc.average_acceptance_prob << std::endl;
   max_psrf = check_interval_psrf<NT, VT, MT>(samples);
-  std::cout<<"max_psrf: "<<max_psrf<<std::endl;
+  std::cout << "max_psrf: " << max_psrf << std::endl;
   std::cout << std::endl;
-
 }
-inline bool exists_check(const std::string &name) {
+inline bool exists_check(const std::string &name)
+{
   std::ifstream f(name.c_str());
   return f.good();
 }
 
 template <typename NT, typename Point, typename HPolytope>
 void test_sampling_polytope(HPolytope &P, std::string &name, bool centered,
-                             int walk_length = 1) {
+                            int walk_length = 1)
+{
   NT step_size = 0;
   std::pair<Point, NT> inner_ball;
   std::cout << name << std::endl;
@@ -341,7 +388,9 @@ void test_sampling_polytope(HPolytope &P, std::string &name, bool centered,
   step_size = inner_ball.second / 10;
   crhmc_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, false, centered);
 }
-template <typename NT> void call_test_sampling_polytope() {
+template <typename NT>
+void call_test_sampling_polytope()
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using Hpolytope = HPolytope<Point>;
@@ -381,10 +430,11 @@ template <typename NT> void call_test_sampling_polytope() {
     bool centered = false;
     test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
   }
-
 }
 
-template <typename NT> void benchmark_cube_crhmc() {
+template <typename NT>
+void benchmark_cube_crhmc()
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -409,7 +459,8 @@ template <typename NT> void benchmark_cube_crhmc() {
   long ETA;
   std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
 
-  for (unsigned int dim = dim_min; dim <= dim_max; dim++) {
+  for (unsigned int dim = dim_min; dim <= dim_max; dim++)
+  {
     CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(g, dim,
                                                                     options);
     Input input = Input(dim, f, g);
@@ -432,7 +483,9 @@ template <typename NT> void benchmark_cube_crhmc() {
   }
 }
 
-template <typename NT> void test_crhmc() {
+template <typename NT>
+void test_crhmc()
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using pts = std::vector<Point>;
@@ -470,17 +523,21 @@ template <typename NT> void test_crhmc() {
   check_ergodic_mean_norm(crhmc, rng, mean, dim, 75000, 37500, NT(0));
 }
 
-template <typename NT> void call_test_crhmc() {
+template <typename NT>
+void call_test_crhmc()
+{
   std::cout << "--- Testing Constrained Riemannian Hamiltonian Monte Carlo"
             << std::endl;
   test_crhmc<NT>();
 }
-template <typename NT> void call_test_benchmark_cube_crhmc() {
+template <typename NT>
+void call_test_benchmark_cube_crhmc()
+{
   benchmark_cube_crhmc<NT>();
 }
 
-TEST_CASE("crhmc") { call_test_crhmc<double>();}
+TEST_CASE("crhmc") { call_test_crhmc<double>(); }
 
 TEST_CASE("benchmark_crhmc_cube") { call_test_benchmark_cube_crhmc<double>(); }
 
-TEST_CASE("test_polytope_sampling_crhmc") {call_test_sampling_polytope<double>();}
+TEST_CASE("test_polytope_sampling_crhmc") { call_test_sampling_polytope<double>(); }

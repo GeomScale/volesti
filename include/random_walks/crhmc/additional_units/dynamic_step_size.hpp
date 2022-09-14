@@ -16,7 +16,9 @@
 #ifndef DYNAMIC_STEP_SIZE_HPP
 #define DYNAMIC_STEP_SIZE_HPP
 /*Module for dynamically choosing the ODE step size and the velocity momentum*/
-template <typename Sampler> class dynamic_step_size {
+template <typename Sampler>
+class dynamic_step_size
+{
   using NT = typename Sampler::NT;
   using Opts = typename Sampler::Opts;
 
@@ -36,14 +38,19 @@ public:
 
   dynamic_step_size(Sampler &s)
       : options(s.params.options), eta(s.solver->eta),
-        momentum(s.params.momentum) {
-    if (options.warmUpStep > 0) {
+        momentum(s.params.momentum)
+  {
+    if (options.warmUpStep > 0)
+    {
       eta = 1e-3;
-    } else {
+    }
+    else
+    {
       warmupFinished = true;
     }
   }
-  void update_step_size(Sampler &s) {
+  void update_step_size(Sampler &s)
+  {
     acceptedStep = acceptedStep + s.prob;
     accumulatedMomentum = s.prob * momentum * accumulatedMomentum + eta;
     nEffectiveStep = nEffectiveStep + eta * accumulatedMomentum * s.accept;
@@ -54,12 +61,14 @@ public:
 
     NT warmupRatio = nEffectiveStep / options.warmUpStep;
     if (warmupRatio < 1 && !warmupFinished &&
-        consecutiveBadStep < options.maxConsecutiveBadStep) {
+        consecutiveBadStep < options.maxConsecutiveBadStep)
+    {
       eta = options.initialStep * std::min(warmupRatio + 1e-2, 1.0);
       momentum = 1 - std::min(1.0, eta / options.effectiveStepSize);
       return;
     }
-    if (!warmupFinished) {
+    if (!warmupFinished)
+    {
       acceptedStep = 0;
       nEffectiveStep = 0;
       warmupFinished = true;
@@ -73,24 +82,24 @@ public:
     NT shiftedIter = iterSinceShrink + 20 / (1 - momentum);
 
     NT targetProbability = std::pow((1.0 - momentum), (2 / 3)) / 4;
-    if (rejectSinceShrink > targetProbability * shiftedIter) {
-      std::cerr << "target prob\n";
+    if (rejectSinceShrink > targetProbability * shiftedIter)
+    {
       shrink = 1;
     }
 
-    if (consecutiveBadStep > options.maxConsecutiveBadStep) {
-      std::cerr << "bad steps\n";
+    if (consecutiveBadStep > options.maxConsecutiveBadStep)
+    {
 
       shrink = 1;
     }
 
-    if (ODEStepSinceShrink > options.targetODEStep * shiftedIter) {
-      std::cerr << "ode\n";
+    if (ODEStepSinceShrink > options.targetODEStep * shiftedIter)
+    {
       shrink = 1;
     }
 
-    if (shrink == 1) {
-      std::cerr << "shrink------------------------\n";
+    if (shrink == 1)
+    {
       iterSinceShrink = 0;
       rejectSinceShrink = 0;
       ODEStepSinceShrink = 0;
@@ -99,7 +108,8 @@ public:
       eta /= options.shrinkFactor;
       momentum = 1 - std::min(0.999, eta / options.effectiveStepSize);
 
-      if (eta < options.minStepSize) {
+      if (eta < options.minStepSize)
+      {
         std::cerr << "Algorithm fails to converge even with step size h = "
                   << eta << "\n";
         exit(1);

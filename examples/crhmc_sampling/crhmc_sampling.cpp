@@ -37,7 +37,8 @@
 
 template <typename NT>
 void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
-              int walk_length = 1, int burn_steps = 1) {
+              int walk_length = 1, int burn_steps = 1)
+{
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -46,7 +47,7 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   using Func = GaussianFunctor::FunctionFunctor<Point>;
   using Grad = GaussianFunctor::GradientFunctor<Point>;
   using Hess = GaussianFunctor::HessianFunctor<Point>;
-  using func_params=GaussianFunctor::parameters<NT, Point>;
+  using func_params = GaussianFunctor::parameters<NT, Point>;
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
@@ -57,7 +58,8 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   Func f(params);
   Grad g(params);
   Hess h(params);
-  if (n_burns == -1) {
+  if (n_burns == -1)
+  {
     n_burns = n_samples / 2;
   }
   RandomNumberGenerator rng(1);
@@ -88,17 +90,21 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
       std::chrono::duration<double>::zero();
 #endif
   int j = 0;
-  for (int i = 0; i < n_samples; i++) {
-    if (i % 1000 == 0) {
+  for (int i = 0; i < n_samples; i++)
+  {
+    if (i % 1000 == 0)
+    {
       std::cerr << i << " out of " << n_samples << "\n";
     }
-    for (int k = 0; k < burn_steps; k++) {
+    for (int k = 0; k < burn_steps; k++)
+    {
       crhmc.apply(rng, walk_length, true);
     }
 #ifdef TIME_KEEPING
     start_file = std::chrono::high_resolution_clock::now();
 #endif
-    if (i >= n_burns) {
+    if (i >= n_burns)
+    {
       VT sample = crhmc.getPoint().getCoefficients();
       samples.col(j) = VT(sample);
       j++;
@@ -133,7 +139,8 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
 #endif
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   std::cerr << "Example Usage: ./crhmc_sampling n_sample initial_burns "
                "dimension ode_steps steps_bettween_samples\n";
   std::cerr << "Example Usage: ./crhmc_sampling 10000 5000 "

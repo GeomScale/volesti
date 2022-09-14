@@ -29,7 +29,7 @@ class Hamiltonian
   using Tx = typename Polytope::Tx;
   using CholObj = typename Polytope::CholObj;
   using Opts = typename Polytope::Opts;
-  using SpMat=typename Polytope::SpMat;
+  using SpMat = typename Polytope::SpMat;
   using pts = std::vector<Point>;
   using Barrier = TwoSidedBarrier<Point>;
   using WeightedBarrier = WeightedTwoSidedBarrier<Point>;
@@ -53,7 +53,7 @@ public:
   WeightedBarrier *weighted_barrier;
   Opts &options;
   Hamiltonian(Polytope &boundaries)
-      : P(boundaries), solver(CholObj(transform_format<SpMat,NT,int>(boundaries.Asp))),
+      : P(boundaries), solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
         options(boundaries.options)
   {
     n = P.dimension();
@@ -61,7 +61,7 @@ public:
     x = VT::Zero(n);
     xs = {Point(n), Point(n)};
     lsc = VT::Zero(n);
-    solver.accuracyThreshold=options.solver_accuracy_threashold;
+    solver.accuracyThreshold = options.solver_accuracy_threashold;
     if (options.DynamicWeight)
     {
       weighted_barrier =
