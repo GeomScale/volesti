@@ -19,8 +19,7 @@
 // Module for updating the extra term we add to the barrier
 // This is nessecary for any polytope with free variables
 template <typename Sampler, typename RandomNumberGenerator>
-class dynamic_regularizer
-{
+class dynamic_regularizer {
 public:
   using NT = typename Sampler::NT;
   using Point = typename Sampler::point;
@@ -41,16 +40,14 @@ public:
     extraHessian = VT::Ones(n);
   }
 
-  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng)
-  {
+  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
     VT x = s.x.getCoefficients();
     x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
     bound = bound.cwiseMax(x);
     bool Condition =
         (2 / (bound.array() * bound.array()) < n * extraHessian.array()).any();
 
-    if (Condition)
-    {
+    if (Condition) {
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.move({s.x, s.v});
       s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);

@@ -20,11 +20,13 @@
 #include "random_walks/crhmc/additional_units/auto_tuner.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 #include <chrono>
-struct CRHMCWalk
-{
-  template <typename NT, typename OracleFunctor>
-  struct parameters
-  {
+struct CRHMCWalk {
+  template
+  <
+    typename NT,
+    typename OracleFunctor
+  >
+  struct parameters {
     using Opts = opts<NT>;
     NT epsilon;   // tolerance in mixing
     NT eta = 0.2; // step size
@@ -41,11 +43,16 @@ struct CRHMCWalk
     }
   };
 
-  template <typename Point, typename Polytope, typename RandomNumberGenerator,
-            typename NegativeGradientFunctor, typename NegativeLogprobFunctor,
-            typename Solver>
-  struct Walk
-  {
+  template
+  <
+    typename Point,
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename NegativeGradientFunctor,
+    typename NegativeLogprobFunctor,
+    typename Solver
+  >
+  struct Walk {
     using point = Point;
     using pts = std::vector<Point>;
     using NT = typename Point::FT;
@@ -104,10 +111,12 @@ struct CRHMCWalk
     std::chrono::duration<double> H_duration =
         std::chrono::duration<double>::zero();
 #endif
-    Walk(Polytope &Problem, Point &p, NegativeGradientFunctor &neg_grad_f,
-         NegativeLogprobFunctor &neg_logprob_f,
-         parameters<NT, NegativeGradientFunctor> &param)
-        : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem)
+    Walk(Polytope &Problem,
+      Point &p,
+      NegativeGradientFunctor &neg_grad_f,
+      NegativeLogprobFunctor &neg_logprob_f,
+      parameters<NT, NegativeGradientFunctor> &param)
+      : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem)
     {
 
       dim = p.dimension();
@@ -138,8 +147,7 @@ struct CRHMCWalk
     inline Point getPoint() { return Point(P.T * x.getCoefficients() + P.y); }
 
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
-                      bool metropolis_filter = true)
-    {
+                      bool metropolis_filter = true) {
 
       num_runs++;
       //  Pick a random velocity with momentum
@@ -152,8 +160,7 @@ struct CRHMCWalk
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
 
-      if (metropolis_filter)
-      {
+      if (metropolis_filter) {
 #ifdef TIME_KEEPING
         start = std::chrono::system_clock::now();
 #endif
@@ -173,14 +180,12 @@ struct CRHMCWalk
         total_acceptance_prob += prob;
 
         // Decide to switch
-        if (rng.sample_urdist() < prob)
-        {
+        if (rng.sample_urdist() < prob) {
           x = x_tilde;
           v = v_tilde;
           accepted = true;
         }
-        else
-        {
+        else {
           total_discarded_samples++;
           accepted = false;
           v = Point(dim) - v;
@@ -188,20 +193,16 @@ struct CRHMCWalk
         discard_ratio = (1.0 * total_discarded_samples) / num_runs;
         average_acceptance_prob = total_acceptance_prob / num_runs;
         accept = accepted ? 1 : 0;
-      }
-      else
-      {
+      } else {
         x = x_tilde;
         v = v_tilde;
       }
-      if (update_modules)
-      {
+      if (update_modules) {
         module_update->updateModules(*this, rng);
       }
     }
 #ifdef TIME_KEEPING
-    void print_timing_information()
-    {
+    void print_timing_information() {
       std::cerr << "--------------Timing Information--------------\n";
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();
