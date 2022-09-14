@@ -19,7 +19,8 @@
 // Module for updating the extra term we add to the barrier
 // This is nessecary for any polytope with free variables
 template <typename Sampler, typename RandomNumberGenerator>
-class dynamic_regularizer {
+class dynamic_regularizer
+{
 public:
   using NT = typename Sampler::NT;
   using Point = typename Sampler::point;
@@ -34,24 +35,27 @@ public:
       : simdLen(s.simdLen), options(s.params.options),
         extraHessian(options.DynamicWeight
                          ? s.solver->ham.weighted_barrier->extraHessian
-                         : s.solver->ham.barrier->extraHessian) {
+                         : s.solver->ham.barrier->extraHessian)
+  {
     n = s.dim;
-    bound = MT::Ones(n,simdLen);
-    extraHessian = MT::Ones(n,simdLen);
+    bound = MT::Ones(n, simdLen);
+    extraHessian = MT::Ones(n, simdLen);
   }
 
-  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
+  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng)
+  {
     MT x = s.x;
     x = (x.cwiseAbs()).cwiseMax(1);
     bound = bound.cwiseMax(x);
     bool Condition =
         (2 / (bound.array() * bound.array()) < n * extraHessian.array()).any();
 
-    if (Condition) {
+    if (Condition)
+    {
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.forceUpdate = true;
       s.solver->ham.move({s.x, s.v});
-      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n,simdLen),0, false);
+      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n, simdLen), 0, false);
     }
   }
 };

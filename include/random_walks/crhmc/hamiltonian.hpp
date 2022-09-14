@@ -25,11 +25,11 @@ template <typename Polytope, typename Point, int simdLen>
 class Hamiltonian
 {
   using VT = typename Polytope::VT;
-  using IVT =Eigen::Array<double,Eigen::Dynamic,1>;
+  using IVT = Eigen::Array<double, Eigen::Dynamic, 1>;
   using BVT = Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>;
   using NT = typename Polytope::NT;
   using MT = typename Polytope::MT;
-  using SpMat= typename Polytope::SpMat;
+  using SpMat = typename Polytope::SpMat;
   using Tx = FloatArray<double, simdLen>;
   using CholObj = PackedChol<simdLen, int>;
   using Opts = typename Polytope::Opts;
@@ -39,7 +39,7 @@ class Hamiltonian
 
 public:
   bool prepared = false;
-  bool forceUpdate = true;  //Update function oracle temporary varibles
+  bool forceUpdate = true; // Update function oracle temporary varibles
   Polytope &P;
   MT hess;
   bool dUDx_empty = true;
@@ -52,30 +52,30 @@ public:
   VT fx;
   int n;
   int m;
-  int num_runs=0;
+  int num_runs = 0;
   Barrier *barrier;
   WeightedBarrier *weighted_barrier;
   Opts &options;
   Hamiltonian(Polytope &boundaries)
-      : P(boundaries), solver(CholObj(transform_format<SpMat,NT,int>(boundaries.Asp))),
+      : P(boundaries), solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
         options(boundaries.options)
   {
     n = P.dimension();
     m = P.equations();
-    x = MT::Zero(n,simdLen);
-    xs = {x,x};
-    lsc = MT::Zero(simdLen,n);
-    solver.accuracyThreshold=options.solver_accuracy_threashold;
+    x = MT::Zero(n, simdLen);
+    xs = {x, x};
+    lsc = MT::Zero(simdLen, n);
+    solver.accuracyThreshold = options.solver_accuracy_threashold;
     if (options.DynamicWeight)
     {
       weighted_barrier =
           new WeightedBarrier(P.barrier.lb, P.barrier.ub, P.w_center);
-      weighted_barrier->extraHessian.resize(n,simdLen);
-      weighted_barrier->extraHessian=MT::Ones(n,simdLen)*options.regularization_factor;
+      weighted_barrier->extraHessian.resize(n, simdLen);
+      weighted_barrier->extraHessian = MT::Ones(n, simdLen) * options.regularization_factor;
     }
     barrier = &P.barrier;
-    barrier->extraHessian.resize(n,simdLen);
-    barrier->extraHessian=MT::Ones(n,simdLen)*options.regularization_factor;
+    barrier->extraHessian.resize(n, simdLen);
+    barrier->extraHessian = MT::Ones(n, simdLen) * options.regularization_factor;
   }
 
   // Compute H(x,v)
@@ -84,9 +84,9 @@ public:
     prepare({x, v});
     pts pd = DK({x, v});
     VT K = 0.5 * (v.cwiseProduct(pd[0])).colwise().sum();
-    NT logdet=get(solver.logdet(),0);
+    NT logdet = get(solver.logdet(), 0);
     VT U = ((hess.array()).log()).colwise().sum();
-    U = (U +logdet*VT::Ones(simdLen))*0.5 + fx;
+    U = (U + logdet * VT::Ones(simdLen)) * 0.5 + fx;
     VT E = U + K;
     return E;
   }
@@ -94,13 +94,14 @@ public:
   template <typename MatrixType>
   IVT is_not_nan(MatrixType x)
   {
-    IVT result=IVT::Ones(x.cols());
+    IVT result = IVT::Ones(x.cols());
     for (int i = 0; i < x.rows(); i++)
     {
       for (int j = 0; j < x.cols(); j++)
       {
-        if(std::isnan(x(i,j))){
-          result(j)=0;
+        if (std::isnan(x(i, j)))
+        {
+          result(j) = 0;
         }
       }
     }
@@ -118,7 +119,7 @@ public:
     {
       feasible_coordinate = barrier->feasible(x);
     }
-    VT r= feasible_coordinate.cwiseProduct((is_not_nan(x) *is_not_nan(v)).matrix());
+    VT r = feasible_coordinate.cwiseProduct((is_not_nan(x) * is_not_nan(v)).matrix());
     return r;
   }
   // prepare the solver weighted by the hessian
@@ -142,13 +143,13 @@ public:
     MT invHessV = v.cwiseQuotient(hess);
     MT input_vector = P.Asp * invHessV;
     input_vector.transposeInPlace();
-    MT out_vector = MT::Zero(simdLen,m);
+    MT out_vector = MT::Zero(simdLen, m);
     solver.solve((Tx *)input_vector.data(), (Tx *)out_vector.data());
     out_vector.transposeInPlace();
     MT dKdv =
         invHessV - (P.Asp.transpose() * out_vector).cwiseQuotient(hess);
 
-    MT dKdx = MT::Zero(n,simdLen);
+    MT dKdx = MT::Zero(n, simdLen);
     if (options.DynamicWeight)
     {
       dKdx =
@@ -158,7 +159,7 @@ public:
     else
     {
       dKdx = barrier->quadratic_form_gradient(x, dKdv) /
-                   2;
+             2;
     }
 
     return {dKdv, dKdx};
@@ -176,7 +177,7 @@ public:
     nu = nu + out_solver.transpose();
 
     MT dKdv = (v - P.Asp.transpose() * nu).cwiseQuotient(hess);
-    MT dKdx = MT::Zero(n,simdLen);
+    MT dKdx = MT::Zero(n, simdLen);
     if (options.DynamicWeight)
     {
       dKdx =
@@ -186,7 +187,7 @@ public:
     else
     {
       dKdx = barrier->quadratic_form_gradient(x, dKdv) /
-                   2;
+             2;
     }
     return {dKdv, dKdx};
   }
@@ -204,8 +205,8 @@ public:
       if (options.DynamicWeight)
       {
         last_dUdx = (weighted_barrier->tensor(x).cwiseProduct(lsc.transpose()))
-                               .cwiseQuotient(2 * hess) +
-                          dfx;
+                        .cwiseQuotient(2 * hess) +
+                    dfx;
       }
       else
       {
@@ -216,7 +217,7 @@ public:
       dUDx_empty = false;
     }
 
-    return {MT::Zero(n,simdLen), -last_dUdx};
+    return {MT::Zero(n, simdLen), -last_dUdx};
   }
   // Compute the computations involving only x iff x has been changed
   // Else they are stored
@@ -247,8 +248,8 @@ public:
     move(xs);
     MT x = xs[0];
     int m = P.Asp.rows();
-    MT out_vector = MT(simdLen,m);
-    MT in_vector = (- P.Asp * x).colwise()+ P.b;
+    MT out_vector = MT(simdLen, m);
+    MT in_vector = (-P.Asp * x).colwise() + P.b;
     in_vector.transposeInPlace();
     solver.solve((Tx *)in_vector.data(), (Tx *)out_vector.data());
     out_vector.transposeInPlace();
