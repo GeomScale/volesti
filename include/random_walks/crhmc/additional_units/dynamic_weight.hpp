@@ -17,8 +17,7 @@
 #define DYNAMIC_WEIGHT_HPP
 /*Class responsible for updating the weights of the barrier*/
 template <typename Sampler, typename RandomNumberGenerator>
-class dynamic_weight
-{
+class dynamic_weight {
   using NT = typename Sampler::NT;
   using Point = typename Sampler::point;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
@@ -40,34 +39,25 @@ public:
   }
   // If we have consecutive bad steps update the weights with
   //  the help of the leverage scores.
-  void update_weights(Sampler &s, RandomNumberGenerator &rng)
-  {
+  void update_weights(Sampler &s, RandomNumberGenerator &rng) {
     IVT bad_step = IVT::Zero(simdLen);
-    if (s.solver->num_steps == options.maxODEStep)
-    {
+    if (s.solver->num_steps == options.maxODEStep) {
       bad_step += 1;
-    }
-    else
-    {
+    } else {
       bad_step = (s.prob.array() < 0.5).select(1, IVT::Zero(simdLen));
     }
     NT threshold;
     consecutiveBadStep = bad_step * consecutiveBadStep + bad_step;
 
-    if (s.accept.sum() < simdLen)
-    {
+    if (s.accept.sum() < simdLen) {
       VT lsc = s.solver->ham.lsc.colwise().maxCoeff().transpose();
-      if (consecutiveBadStep.maxCoeff() > 2)
-      {
+      if (consecutiveBadStep.maxCoeff() > 2) {
         threshold = 4;
-      }
-      else
-      {
+      } else {
         threshold = 16;
       }
       bool changed = (lsc.array() > threshold * w.array()).any();
-      if (changed)
-      {
+      if (changed) {
         w = (lsc.array() > threshold * w.array())
                 .select((w * threshold).cwiseMin(1), w);
         s.solver->ham.forceUpdate = true;

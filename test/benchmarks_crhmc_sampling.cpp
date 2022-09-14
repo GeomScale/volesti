@@ -32,8 +32,7 @@
 #include <fstream>
 #include "preprocess/svd_rounding.hpp"
 template <typename Polytope, typename NT>
-Polytope read_polytope(std::string filename)
-{
+Polytope read_polytope(std::string filename) {
   std::ifstream inp;
   std::vector<std::vector<NT>> Pin;
   inp.open(filename, std::ifstream::in);
@@ -42,8 +41,7 @@ Polytope read_polytope(std::string filename)
   return P;
 }
 template <typename NT>
-struct SimulationStats
-{
+struct SimulationStats {
   std::string method;
   unsigned int walk_length;
   unsigned int min_ess = 0;
@@ -54,8 +52,7 @@ struct SimulationStats
   NT step_size = NT(0);
 
   friend std::ostream &operator<<(std::ostream &out,
-                                  const SimulationStats &stats)
-  {
+                                  const SimulationStats &stats) {
     out << stats.method << "," << stats.walk_length << "," << stats.min_ess
         << "," << stats.max_psrf << "," << stats.time_per_draw << ","
         << stats.time_per_independent_sample << ","
@@ -64,13 +61,11 @@ struct SimulationStats
     return out;
   }
 };
-struct InnerBallFunctor
-{
+struct InnerBallFunctor {
 
   // Gaussian density centered at the inner ball center
   template <typename NT, typename Point>
-  struct parameters
-  {
+  struct parameters {
     unsigned int order;
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
@@ -84,8 +79,7 @@ struct InnerBallFunctor
   };
 
   template <typename Point>
-  struct GradientFunctor
-  {
+  struct GradientFunctor {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
 
@@ -96,26 +90,21 @@ struct InnerBallFunctor
     // The index i represents the state vector index
     Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
     {
-      if (i == params.order - 1)
-      {
+      if (i == params.order - 1) {
         Point y = (-1.0 / pow(params.sigma, 2)) * (xs[0] - params.x0);
         return y;
-      }
-      else
-      {
+      } else {
         return xs[i + 1]; // returns derivative
       }
     }
-    Point operator()(Point const &x) const
-    {
+    Point operator()(Point const &x) const {
       Point y = (-1.0 / pow(params.sigma, 2)) * (x - params.x0);
       return y;
     }
   };
 
   template <typename Point>
-  struct FunctionFunctor
-  {
+  struct FunctionFunctor {
     typedef typename Point::FT NT;
 
     parameters<NT, Point> &params;
@@ -123,40 +112,34 @@ struct InnerBallFunctor
     FunctionFunctor(parameters<NT, Point> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    NT operator()(Point const &x) const
-    {
+    NT operator()(Point const &x) const {
       Point y = x - params.x0;
       return 1.0 / (2 * pow(params.sigma, 2)) * y.dot(y);
     }
   };
   template <typename Point>
-  struct Hess
-  {
+  struct Hess {
     typedef typename Point::FT NT;
 
     parameters<NT, Point> &params;
     Hess(parameters<NT, Point> &params_) : params(params_){};
 
-    Point operator()(Point const &x) const
-    {
+    Point operator()(Point const &x) const {
       return (1.0 / pow(params.sigma, 2)) * Point::all_ones(x.dimension());
     }
   };
 };
 
-inline bool exists_check(const std::string &name)
-{
+inline bool exists_check(const std::string &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
 template <typename NT, typename VT, typename MT>
-NT check_interval_psrf(MT &samples, NT target = NT(1.2))
-{
+NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
   NT max_psrf = NT(0);
   VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
   unsigned int d = intv_psrf.rows();
-  for (unsigned int i = 0; i < d; i++)
-  {
+  for (unsigned int i = 0; i < d; i++) {
     assert(intv_psrf(i) < target);
     if (intv_psrf(i) > max_psrf)
       max_psrf = intv_psrf(i);
@@ -168,8 +151,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
                                                              Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
                                                              double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
                                                              bool centered = false, unsigned int max_draws = 80000,
-                                                             unsigned int num_burns = 20000)
-{
+                                                             unsigned int num_burns = 20000) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using MT = typename Polytope::MT;
@@ -187,13 +169,10 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
   SimulationStats<NT> crhmc_stats;
 
   std::pair<Point, NT> inner_ball;
-  if (centered)
-  {
+  if (centered) {
     inner_ball.first = Point(P.dimension());
     inner_ball.second = NT(1); // dummy radius (not correct one)
-  }
-  else
-  {
+  } else {
     inner_ball = P.ComputeInnerBall();
   }
 
@@ -205,8 +184,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
   NT R0 = inner_ball.second;
   unsigned int dim = x0.dimension();
 
-  if (rounding)
-  {
+  if (rounding) {
     stream << "SVD Rounding" << std::endl;
     svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, inner_ball, walk_length,
                                                   rng);
@@ -254,8 +232,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
 
   std::cout << "Burn-in" << std::endl;
 
-  for (unsigned int i = 0; i < num_burns; i++)
-  {
+  for (unsigned int i = 0; i < num_burns; i++) {
     if (i % 1000 == 0)
       std::cout << ".";
     crhmc.apply(rng, 1);
@@ -267,19 +244,14 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
   crhmc.initialize_timers();
 #endif
   start = std::chrono::high_resolution_clock::now();
-  for (unsigned int i = 0; i < std::ceil(max_actual_draws / simdLen); i++)
-  {
-    for (int k = 0; k < walk_length; k++)
-    {
+  for (unsigned int i = 0; i < std::ceil(max_actual_draws / simdLen); i++) {
+    for (int k = 0; k < walk_length; k++) {
       crhmc.apply(rng, 1);
     }
     MT sample = crhmc.getPoints();
-    if (i * simdLen + simdLen - 1 < max_actual_draws)
-    {
+    if (i * simdLen + simdLen - 1 < max_actual_draws) {
       samples(Eigen::all, Eigen::seq(i * simdLen, i * simdLen + simdLen - 1)) = sample;
-    }
-    else
-    {
+    } else {
       samples(Eigen::all, Eigen::seq(i * simdLen, max_actual_draws - 1)) = sample(Eigen::all, Eigen::seq(0, max_actual_draws - 1 - simdLen * i));
     }
     if (i % 1000 == 0 && i > 0)
@@ -330,8 +302,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
 template <typename NT, typename Point, typename HPolytope, int simdLen = 1, typename StreamType>
 void test_benchmark_polytope(StreamType &stream,
                              HPolytope &P, std::string &name, bool centered,
-                             double target_time = std::numeric_limits<NT>::max(), int walk_length = 1)
-{
+                             double target_time = std::numeric_limits<NT>::max(), int walk_length = 1) {
   stream << "CRHMC polytope preparation for " << name << std::endl;
   std::cout << "CRHMC polytope preparation for " << name << std::endl;
   std::vector<SimulationStats<NT>> results;
@@ -351,8 +322,7 @@ void test_benchmark_polytope(StreamType &stream,
 }
 
 template <typename NT, int simdLen = 1>
-void call_test_benchmark_polytope()
-{
+void call_test_benchmark_polytope() {
   std::ofstream stream;
   stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + ".txt");
   stream << "---------------Using simdLen= " << simdLen << "---------------" << std::endl;
@@ -399,8 +369,7 @@ void call_test_benchmark_polytope()
     test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
   }
 
-  if (exists_check("../test/netlib/afiro.ine"))
-  {
+  if (exists_check("../test/netlib/afiro.ine")) {
     Hpolytope P = read_polytope<Hpolytope, NT>("../test/netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
@@ -408,8 +377,7 @@ void call_test_benchmark_polytope()
     test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
   }
 
-  if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine"))
-  {
+  if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
     Hpolytope P =
         read_polytope<Hpolytope, NT>("../test/metabolic_full_dim/polytope_e_coli.ine");
     std::string name = "e_coli";
@@ -421,9 +389,7 @@ void call_test_benchmark_polytope()
   stream.close();
 }
 
-int main()
-{
-
+int main() {
   std::cout
       << "---------------CRHMC polytope sampling benchmarking---------------"
       << std::endl

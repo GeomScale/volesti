@@ -25,8 +25,7 @@ inline std::vector<T> operator+(const std::vector<T> &v1,
                                 const std::vector<T> &v2)
 {
   std::vector<T> result(v1.size());
-  for (int i = 0; i < v1.size(); i++)
-  {
+  for (int i = 0; i < v1.size(); i++) {
     result[i] = v1[i] + v2[i];
   }
   return result;
@@ -35,8 +34,7 @@ template <typename T, typename Type>
 inline std::vector<T> operator*(const std::vector<T> &v, const Type alpha)
 {
   std::vector<T> result(v.size());
-  for (int i = 0; i < v.size(); i++)
-  {
+  for (int i = 0; i < v.size(); i++) {
     result[i] = v[i] * alpha;
   }
   return result;
@@ -54,8 +52,7 @@ inline std::vector<T> operator-(const std::vector<T> &v1,
   return v1 + v2 * (-1.0);
 }
 template <typename Point, typename NT, typename Polytope, typename func, int simdLen = 1>
-struct ImplicitMidpointODESolver
-{
+struct ImplicitMidpointODESolver {
   using VT = typename Polytope::VT;
   using MT = typename Polytope::MT;
   using pts = std::vector<MT>;
@@ -95,8 +92,7 @@ struct ImplicitMidpointODESolver
     dim = xs[0].rows();
   };
 
-  void step(int k, bool accepted)
-  {
+  void step(int k, bool accepted) {
     num_runs++;
     pts partialDerivatives;
 #ifdef TIME_KEEPING
@@ -111,8 +107,7 @@ struct ImplicitMidpointODESolver
     xs_prev = xs;
     done = false;
     nu = MT::Zero(P.equations(), simdLen);
-    for (int i = 0; i < options.maxODEStep; i++)
-    {
+    for (int i = 0; i < options.maxODEStep; i++) {
       pts xs_old = xs;
       pts xmid = (xs_prev + xs) / 2.0;
 #ifdef TIME_KEEPING
@@ -128,14 +123,11 @@ struct ImplicitMidpointODESolver
       xs = xs_prev + partialDerivatives * (eta);
       VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
       NT maxdist = dist.maxCoeff();
-      if (maxdist < options.implicitTol)
-      {
+      if (maxdist < options.implicitTol) {
         done = true;
         num_steps = i;
         break;
-      }
-      else if (maxdist > 1e16)
-      {
+      } else if (maxdist > 1e16) {
         xs = xs * std::nan("1");
         done = true;
         num_steps = i;
@@ -154,10 +146,8 @@ struct ImplicitMidpointODESolver
     ham.project(xs);
   }
 
-  void steps(int num_steps, bool accepted)
-  {
-    for (int i = 0; i < num_steps; i++)
-    {
+  void steps(int num_steps, bool accepted) {
+    for (int i = 0; i < num_steps; i++) {
       step(i, accepted);
     }
   }
@@ -165,13 +155,10 @@ struct ImplicitMidpointODESolver
   MT get_state(int index) { return xs[index]; }
 
   void set_state(int index, MT p) { xs[index] = p; }
-  void print_state()
-  {
-    for (int j = 0; j < xs.size(); j++)
-    {
+  void print_state() {
+    for (int j = 0; j < xs.size(); j++) {
       std::cerr << "state " << j << ": ";
-      for (unsigned int i = 0; i < xs[j].cols(); i++)
-      {
+      for (unsigned int i = 0; i < xs[j].cols(); i++) {
         std::cerr << xs[j][i] << " ";
       }
       std::cerr << '\n';

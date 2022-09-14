@@ -20,11 +20,13 @@
 #include "random_walks/crhmc/additional_units/auto_tuner.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 #include <chrono>
-struct CRHMCWalk
-{
-  template <typename NT, typename OracleFunctor>
-  struct parameters
-  {
+struct CRHMCWalk {
+  template
+  <
+    typename NT,
+    typename OracleFunctor
+  >
+  struct parameters {
     using Opts = opts<NT>;
     NT epsilon;   // tolerance in mixing
     NT eta = 0.2; // step size
@@ -41,11 +43,16 @@ struct CRHMCWalk
     }
   };
 
-  template <typename Point, typename Polytope, typename RandomNumberGenerator,
-            typename NegativeGradientFunctor, typename NegativeLogprobFunctor,
-            typename Solver>
-  struct Walk
-  {
+  template
+  <
+    typename Point,
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename NegativeGradientFunctor,
+    typename NegativeLogprobFunctor,
+    typename Solver
+  >
+  struct Walk {
     using point = Point;
     using pts = std::vector<Point>;
     using NT = typename Point::FT;
@@ -146,14 +153,12 @@ struct CRHMCWalk
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x.col(0) + P.y); }
 
-    inline MT masked_choose(MT &x, MT &x_tilde, IVT &accept)
-    {
+    inline MT masked_choose(MT &x, MT &x_tilde, IVT &accept) {
       return accept.transpose().replicate(x.rows(), 1).select(x_tilde, x);
     }
 
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
-                      bool metropolis_filter = true)
-    {
+                      bool metropolis_filter = true) {
 
       num_runs++;
       //  Pick a random velocity with momentum
@@ -165,8 +170,7 @@ struct CRHMCWalk
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
 
-      if (metropolis_filter)
-      {
+      if (metropolis_filter) {
 #ifdef TIME_KEEPING
         start = std::chrono::system_clock::now();
 #endif
@@ -185,8 +189,6 @@ struct CRHMCWalk
         prob = (1.0 < exp((H - H_tilde).array())).select(1.0, exp((H - H_tilde).array()));
         prob = (feasible.array() > 0.5).select(prob, 0);
 
-        // prob=prob.cwiseProduct(feasible);
-
         total_acceptance_prob += prob.sum();
         VT rng_vector = VT(simdLen);
         for (int i = 0; i < simdLen; i++)
@@ -201,27 +203,22 @@ struct CRHMCWalk
         total_discarded_samples += simdLen - accept.sum();
         discard_ratio = (1.0 * total_discarded_samples) / (num_runs * simdLen);
         average_acceptance_prob = total_acceptance_prob / (num_runs * simdLen);
-      }
-      else
-      {
+      } else {
         x = x_tilde;
         v = v_tilde;
       }
-      if (update_modules)
-      {
+      if (update_modules) {
         module_update->updateModules(*this, rng);
       }
     }
 #ifdef TIME_KEEPING
-    void initialize_timers()
-    {
+    void initialize_timers() {
       H_duration = std::chrono::duration<double>::zero();
       solver->DU_duration = std::chrono::duration<double>::zero();
       solver->approxDK_duration = std::chrono::duration<double>::zero();
     }
     template <typename StreamType>
-    void print_timing_information(StreamType &stream)
-    {
+    void print_timing_information(StreamType &stream) {
       stream << "---Sampling Timing Information" << std::endl;
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();

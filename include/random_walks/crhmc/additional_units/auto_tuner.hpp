@@ -23,8 +23,7 @@
 modifying the weights, ode step size and regularizer factor addaptively.
 */
 template <typename Sampler, typename RandomNumberGenerator>
-class auto_tuner
-{
+class auto_tuner {
   using weight_tuner = dynamic_weight<Sampler, RandomNumberGenerator>;
   using regularizion_tuner =
       dynamic_regularizer<Sampler, RandomNumberGenerator>;
@@ -39,31 +38,24 @@ public:
   step_size_tuner *tune_step_size;
   auto_tuner(Sampler &s) : options(s.params.options)
   {
-    if (options.DynamicWeight)
-    {
+    if (options.DynamicWeight) {
       tune_weights = new weight_tuner(s);
     }
-    if (options.DynamicRegularizer)
-    {
+    if (options.DynamicRegularizer) {
       tune_regularization = new regularizion_tuner(s);
     }
-    if (options.DynamicStepSize)
-    {
+    if (options.DynamicStepSize) {
       tune_step_size = new step_size_tuner(s);
     }
   }
-  void updateModules(Sampler &s, RandomNumberGenerator &rng)
-  {
-    if (options.DynamicWeight)
-    {
+  void updateModules(Sampler &s, RandomNumberGenerator &rng) {
+    if (options.DynamicWeight) {
       tune_weights->update_weights(s, rng);
     }
-    if (options.DynamicRegularizer)
-    {
+    if (options.DynamicRegularizer) {
       tune_regularization->update_regularization_factor(s, rng);
     }
-    if (options.DynamicStepSize)
-    {
+    if (options.DynamicStepSize) {
       tune_step_size->update_step_size(s);
     }
   }
