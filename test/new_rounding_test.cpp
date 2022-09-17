@@ -15,7 +15,6 @@
 #include <boost/random/uniform_real_distribution.hpp>
 
 #include "misc/misc.h"
-
 #include "random_walks/random_walks.hpp"
 
 #include "volume/volume_sequence_of_balls.hpp"
