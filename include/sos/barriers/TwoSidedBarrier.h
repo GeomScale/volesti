@@ -44,11 +44,13 @@ public:
   const NT inf = std::numeric_limits<NT>::infinity();
 
   void set_bound(VT const &_lb, VT const &_ub) {
-
+    n = _lb.rows();
+    extraHessian.resize(n, 1);
+    lb.resize(n);
+    ub.resize(n);
     lb = _lb;
     ub = _ub;
-    n = lb.rows();
-    extraHessian = (1e-20) * VT::Ones(n);
+    extraHessian = (1e-20) * MT::Ones(n, 1);
     int x1 = 0, x2 = 0, x3 = 0;
     for (int i = 0; i < n; i++) {
       if (lb(i) == -inf) {

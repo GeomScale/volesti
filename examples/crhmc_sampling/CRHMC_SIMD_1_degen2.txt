@@ -1,0 +1,9 @@
+---Preparation Timing Information
+Rescale completed in time, 0.00427537 secs 
+Split dense columns completed in time, 9.5126e-05 secs 
+Reordering completed in time, 3.249e-06 secs 
+Removing dependent rows completed in time, 1.17708 secs 
+Removing fixed variables completed in time, 3.67237 secs 
+Extracting collapsed variables completed in time, 3.18422 secs 
+Shift_barrier completed in time, 1.897e-05 secs 
+Finding Center completed in time, 0.175099 secs 

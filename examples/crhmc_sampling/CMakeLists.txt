@@ -123,5 +123,6 @@ else ()
 
   add_executable (crhmc_sampling crhmc_sampling.cpp)
 	TARGET_LINK_LIBRARIES(crhmc_sampling ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
-
+	add_executable (crhmc_sample_sparse crhmc_sample_sparse.cpp)
+	TARGET_LINK_LIBRARIES(crhmc_sample_sparse ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
 endif()

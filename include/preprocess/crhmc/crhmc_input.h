@@ -60,6 +60,7 @@ public:
   bool fHandle;                           // whether f is handle or not
   bool dfHandle;                          // whether df is handle or not
   bool ddfHandle;                         // whether ddf is handle or not
+  unsigned int dimension;                 // dimension of the original problem
   const Type inf = options.max_coord + 1; // helper for barrier handling
   /*Constructors for different input instances*/
   crhmc_input(int dimension, func &function, grad &g, hess &h)

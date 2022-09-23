@@ -274,7 +274,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
   print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
   stream << "Problem original size: m= " << P.num_of_hyperplanes() << ", n= " << P.dimension() << std::endl;
   stream << "Number of non Zeros: " << crhmc_problem.nnz() << std::endl;
-  stream << "min ess " << min_ess << "us" << std::endl;
+  stream << "min ess " << min_ess << std::endl;
   stream << "Average time per sample: " << ETA / max_actual_draws << "us"
          << std::endl;
   stream << "Average time per independent sample: " << ETA / min_ess << "us"

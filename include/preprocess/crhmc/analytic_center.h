@@ -65,7 +65,7 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope 
   std::vector<int> idx;
 
   CholObj solver = CholObj(transform_format<SpMat,NT,int>(A));
-
+  solver.accuracyThreshold = 0;
   for (int iter = 0; iter < options.ipmMaxIter; iter++)
   {
     std::pair<VT, VT> pair_analytic_oracle = f.analytic_center_oracle(x);
@@ -159,11 +159,10 @@ std::tuple<VT, SpMat, VT> analytic_center(SpMat const &A, VT const &b, Polytope 
     std::pair<VT, VT> pboundary = f.barrier.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
-    A_ = A_(idx);
     std::vector<Triple> sparseIdx;
     for (int i = 0; i < idx.size(); i++)
     {
-      sparseIdx.push_back(Triple(i, i, A_(i)));
+      sparseIdx.push_back(Triple(i, idx[i], A_(idx[i])));
     }
     C.setFromTriplets(sparseIdx.begin(), sparseIdx.end());
     d = b_(idx);

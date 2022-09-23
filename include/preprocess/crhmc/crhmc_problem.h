@@ -105,6 +105,7 @@ public:
     int n = Asp.cols();
     VT d = estimate_width();
     CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
+    solver.accuracyThreshold = 0;
     VT w = VT::Ones(n, 1);
     solver.decompose((Tx *)w.data());
     VT out_vector = VT(m, 1);
@@ -130,6 +131,10 @@ public:
       S.setFromTriplets(freeIndices.begin(), freeIndices.end());
       append_map(S, x);
       barrier.set_bound(barrier.lb(indices), barrier.ub(indices));
+      if (!isempty_center) {
+        center.topRows(indices.size()) = center(indices);
+        center.conservativeResize(indices.size());
+      }
       return 1;
     }
     return 0;
@@ -149,10 +154,10 @@ public:
     if (Ac.rows() == 0) {
       return 0;
     }
-    SpMat _A = Asp;
-    sparse_stack_v(Ac, _A, Asp);
-    b.resize(b.rows() + bc.rows(), 1);
-    b << bc, b;
+    SpMat _A = SpMat(Asp);
+    sparse_stack_v(_A, Ac, Asp);
+    b.conservativeResize(b.rows() + bc.rows(), 1);
+    b.bottomRows(bc.rows()) = bc;
     return 1;
   }
   // Rescale the polytope for numerical stability
@@ -287,27 +292,34 @@ public:
   }
 //Using the Cholesky decomposition remove dependent rows in the systen Asp*x=b
   int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
-    //this approach does not work with 0 collumns
-    remove_zero_rows<SpMat, NT>(Asp);
+    //this approach does not work with 0 rows
+    remove_zero_rows<SpMat, VT, NT>(Asp, b);
     int m = Asp.rows();
     int n = Asp.cols();
     VT v = VT(m);
     VT w = VT::Ones(n, 1);
     CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
+    solver.accuracyThreshold = 0;
     solver.decompose((Tx *)w.data());
     solver.diagL((Tx *)v.data());
-    std::vector<int> indices;
+    std::vector<bool> indices(m, false);
+    std::vector<int> idx;
+    bool changed = false;
     for (int i = 0; i < m; i++) {
       if ((v(i) > tolerance) && (v(i) < infinity)) {
-        indices.push_back(i);
+        indices[i] = true;
+        idx.push_back(i);
+      }else{
+        changed=true;
       }
     }
-    if (indices.size() == m) {
+    if (!changed) {
       return 0;
     }
 
-    Asp = A(indices, Eigen::all).sparseView();
-    b = b(indices);
+    remove_rows<SpMat, NT>(Asp, indices);
+    b.topRows(idx.size()) = b(idx);
+    b.conservativeResize(idx.size(), 1);
     return 1;
   }
 //Apply number of operations that simplify the problem
@@ -373,6 +385,7 @@ public:
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
     CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
+    solver.accuracyThreshold = 0;
     solver.decompose((Tx *)hess.data());
     VT w_vector(n, 1);
     solver.leverageScoreComplement((Tx *)w_vector.data());
@@ -451,6 +464,73 @@ public:
 
     myfile << center;
   }
+
+    void make_format(Input const &input, MT const &S) {
+      nP = input.Aeq.cols();
+      int nIneq = input.Aineq.rows();
+      int nEq = input.Aeq.rows();
+      A.resize(nEq + nIneq, nP + nIneq);
+      A << input.Aeq, MT::Zero(nEq, nIneq), input.Aineq,
+          MT::Identity(nIneq, nIneq);
+      b.resize(nEq + nIneq, 1);
+      b << input.beq, input.bineq;
+      lb.resize(nP + nIneq, 1);
+      ub.resize(nP + nIneq, 1);
+      lb << input.lb, MT::Zero(nIneq, 1);
+      ub << input.ub, MT::Ones(nIneq, 1) * inf;
+      Asp.resize(nEq + nIneq, nP + nIneq);
+      int n = dimension();
+      /*Move lb=ub to Ax=b*/
+      for (int i = 0; i < n; i++) {
+        if (doubleVectorEqualityComparison(lb(i), ub(i))) {
+          MT temp = MT::Zero(1, n);
+          temp(i) = 1;
+          A.conservativeResize(A.rows() + 1, A.cols());
+          A.row(A.rows() - 1) = temp;
+          b.conservativeResize(b.rows() + 1);
+          b(b.rows() - 1) = (lb(i) + ub(i)) / 2;
+          lb(i) = -inf;
+          ub(i) = inf;
+        }
+      }
+      Asp = A.sparseView();
+    }
+    void make_format(Input const &input, SpMat const &S) {
+      nP = input.Aeq.cols();
+      int nIneq = input.Aineq.rows();
+      int nEq = input.Aeq.rows();
+      Asp.resize(nEq + nIneq, nP + nIneq);
+      SpMat B = SpMat(input.Aeq);
+      SpMat C = SpMat(input.Aineq);
+      B.conservativeResize(nEq, nIneq + nP);
+      SpMat temp = SpMat(nIneq, nIneq);
+      temp.setIdentity();
+      sparse_stack_h_inplace(C, temp);
+      sparse_stack_v(B, C, Asp);
+      b.resize(nEq + nIneq, 1);
+      b << input.beq, input.bineq;
+      lb.resize(nP + nIneq, 1);
+      ub.resize(nP + nIneq, 1);
+      lb << input.lb, MT::Zero(nIneq, 1);
+      ub << input.ub, MT::Ones(nIneq, 1) * inf;
+      int n = dimension();
+      /*Move lb=ub to Ax=b*/
+      for (int i = 0; i < n; i++) {
+        if (doubleVectorEqualityComparison(lb(i), ub(i))) {
+          B.resize(Asp.rows(), Asp.cols());
+          B = SpMat(Asp);
+          MT temp = MT::Zero(1, n);
+          temp(i) = 1;
+          C = temp.sparseView();
+          sparse_stack_v(B, C, Asp);
+          b.conservativeResize(b.rows() + 1);
+          b(b.rows() - 1) = (lb(i) + ub(i)) / 2;
+          lb(i) = -inf;
+          ub(i) = inf;
+        }
+      }
+      Asp.makeCompressed();
+    }
 //Class constructor
   crhmc_problem(Input const &input, Opts _options = Opts())
       : options(_options), func(input.f), df(input.df), ddf(input.ddf),
@@ -463,41 +543,13 @@ public:
                 std::chrono::duration<double>::zero();
 #endif
 
-    nP = input.Aeq.cols();
-    int nIneq = input.Aineq.rows();
-    int nEq = input.Aeq.rows();
-    A.resize(nEq + nIneq, nP + nIneq);
-    A << input.Aeq, MT::Zero(nEq, nIneq), input.Aineq,
-        MT::Identity(nIneq, nIneq);
-    b.resize(nEq + nIneq, 1);
-    b << input.beq, input.bineq;
-    lb.resize(nP + nIneq, 1);
-    ub.resize(nP + nIneq, 1);
-    lb << input.lb, MT::Zero(nIneq, 1);
-    ub << input.ub, MT::Ones(nIneq, 1) * inf;
-    Asp.resize(nEq + nIneq, nP + nIneq);
+    make_format(input, input.Aeq);
     PreproccessProblem();
   }
   // Initialization funciton
   void PreproccessProblem() {
     int n = dimension();
-    /*Move lb=ub to Ax=b*/
-    for (int i = 0; i < n; i++) {
-      if (doubleVectorEqualityComparison(lb(i), ub(i))) {
-        MT temp = MT::Zero(1, n);
-        temp(i) = 1;
-        A.conservativeResize(A.rows() + 1, A.cols());
-        A.row(A.rows() - 1) = temp;
-        b.conservativeResize(b.rows() + 1);
-        b(b.rows() - 1) = (lb(i) + ub(i)) / 2;
-        lb(i) = -inf;
-        ub(i) = inf;
-      }
-    }
-
     barrier.set_bound(lb.cwiseMax(-1e7), ub.cwiseMin(1e7));
-
-    Asp = A.sparseView();
     NT tol = std::numeric_limits<NT>::epsilon();
     Asp.prune(tol, tol);
     /*Update the transformation Tx + y*/
@@ -549,6 +601,7 @@ public:
         lewis_center(Asp, b, *this, options, center);
     std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
     CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
+    solver.accuracyThreshold = 0;
     VT Hinv = hess.cwiseInverse();
     solver.decompose((Tx *)Hinv.data());
     VT out(equations(), 1);
@@ -616,9 +669,9 @@ void print_preparation_time(StreamType& stream){
       return std::make_tuple(f, g, h);
     }
     // Take the correpsonding point in the original space
-    MT z = MT::Zero(n,m);
+    MT z = MT::Zero(y.rows(), m);
     if (fHandle || dfHandle || ddfHandle) {
-      z(Tidx, Eigen::all) = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
+      z = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
     }
 
     // If the function is given evaluate it at the original point
@@ -656,6 +709,7 @@ void print_preparation_time(StreamType& stream){
     int n = T.cols();
     int m = T.rows();
     Ta = VT(m);
+    std::fill(Tidx.begin(), Tidx.end(), 0);
     // By construction each row of T has ar most one nonZero
     for (int k = 0; k < T.outerSize(); ++k) {
       for (SpMat::InnerIterator it(T, k); it; ++it) {

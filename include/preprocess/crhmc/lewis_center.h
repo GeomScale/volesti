@@ -173,11 +173,10 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b, Polytope
     std::pair<VT, VT> pboundary = f.barrier.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
-    A_ = A_(idx);
     std::vector<Triple> sparseIdx;
     for (int i = 0; i < idx.size(); i++)
     {
-      sparseIdx.push_back(Triple(i, i, A_(i)));
+      sparseIdx.push_back(Triple(i, idx[i], A_(idx[i])));
     }
     C.setFromTriplets(sparseIdx.begin(), sparseIdx.end());
     d = b_(idx);
