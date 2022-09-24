@@ -1,9 +1,16 @@
 ---Preparation Timing Information
-Rescale completed in time, 0.00207712 secs 
-Split dense columns completed in time, 5.6726e-05 secs 
-Reordering completed in time, 2.429e-06 secs 
-Removing dependent rows completed in time, 1.17058 secs 
-Removing fixed variables completed in time, 3.73061 secs 
-Extracting collapsed variables completed in time, 3.24738 secs 
-Shift_barrier completed in time, 1.761e-05 secs 
-Finding Center completed in time, 0.176854 secs 
+Rescale completed in time, 0.00213596 secs 
+Split dense columns completed in time, 5.4283e-05 secs 
+Reordering completed in time, 2.475e-06 secs 
+Removing dependent rows completed in time, 1.10358 secs 
+Removing fixed variables completed in time, 3.57665 secs 
+Extracting collapsed variables completed in time, 3.10385 secs 
+Shift_barrier completed in time, 2.0259e-05 secs 
+Finding Center completed in time, 0.171778 secs 
+---Sampling Timing Information
+Computing the Hamiltonian in time, 0.0212245 secs
+Computing DU partial derivatives in time, 0.073707 secs
+Computing DK partial derivatives in time, 0.00396858 secs
+H_time + DK_time + DU_time: 0.0989001
+---Total Sampling time: 0.173525
+Number of non Zeros: 3125

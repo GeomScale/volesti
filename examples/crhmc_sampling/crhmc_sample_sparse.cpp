@@ -68,7 +68,7 @@ void sample(MT &samples, Polytope &P, RandomNumberGenerator &rng,
     crhmc_walk.apply(rng, 1);
   }
   int max_actual_draws = n_samples - n_burns;
-  samples = MT(dimension, max_actual_draws);
+  samples.resize(dimension, max_actual_draws);
   std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
   std::cerr << "Sampling" << std::endl;
   start = std::chrono::system_clock::now();
@@ -138,12 +138,10 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     ub = VT(bounds.col(1));
   }
 }
-template <int simdLen> void run_main(std::string problem_name) {
+template <int simdLen> void run_main(std::string problem_name,int n_samples=80000,int n_burns=20000) {
   using Solver =
       ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad, simdLen>;
   RNG rng(1);
-  int n_samples = 80000;
-  int n_burns = 20000;
   Opts options;
   options.simdLen = simdLen;
   int dimension;
@@ -165,7 +163,7 @@ template <int simdLen> void run_main(std::string problem_name) {
   std::cerr << "Finished loading data\n";
   options.EnableReordering = false;
   CrhmcProblem P = CrhmcProblem(input, options);
-  P.print();
+  std::cerr << "Finished Preparation process\n";
   P.print_preparation_time(stream);
   MT samples;
   sample<MT, CrhmcProblem, RNG, CRHMCWalk, NT, Point, Input, Solver, Opts>(
@@ -181,20 +179,20 @@ template <int simdLen> void run_main(std::string problem_name) {
 
 }
 int main(int argc, char *argv[]) {
-  if (argc != 3) {
+  if (argc != 5) {
     std::cerr
         << "Example Usage: ./crhmc_sample_sparse [problem_name] [simdLen]\n";
     std::cerr << "i.e.: ./crhmc_sample_sparse degen2 4\n";
     exit(1);
   }
   if (atoi(argv[2]) == 1) {
-    run_main<1>(argv[1]);
+    run_main<1>(argv[1],atoi(argv[3]),atoi(argv[4]));
   } else if (atoi(argv[2]) == 4) {
-    run_main<4>(argv[1]);
+    run_main<4>(argv[1],atoi(argv[3]),atoi(argv[4]));
   } else if (atoi(argv[2]) == 8) {
-    run_main<8>(argv[1]);
+    run_main<8>(argv[1],atoi(argv[3]),atoi(argv[4]));
   } else if (atoi(argv[2]) == 16) {
-    run_main<16>(argv[1]);
+    run_main<16>(argv[1],atoi(argv[3]),atoi(argv[4]));
   }
   return 0;
 }
