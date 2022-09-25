@@ -277,6 +277,7 @@ public:
     if (!options.EnableReordering) {
       return;
     }
+    /*
     Asp.prune(0.0);
     Asp.makeCompressed();
     int m = Asp.rows();
@@ -289,6 +290,8 @@ public:
     PM perm = permed * post_perm;
     Asp = perm * Asp;
     b = perm * b;
+    */
+    fillin_reduce(Asp,b);
   }
 //Using the Cholesky decomposition remove dependent rows in the systen Asp*x=b
   int remove_dependent_rows(NT tolerance = 1e-12, NT infinity = 1e+64) {
@@ -671,7 +674,9 @@ void print_preparation_time(StreamType& stream){
     // Take the correpsonding point in the original space
     MT z = MT::Zero(y.rows(), m);
     if (fHandle || dfHandle || ddfHandle) {
-      z = Ta.cwiseProduct(x(Tidx, Eigen::all)) + y;
+      for(int k=0;k<m;k++){
+        z(Eigen::all,k) = Ta.cwiseProduct(x(Tidx, k)) + y;
+      }
     }
 
     // If the function is given evaluate it at the original point

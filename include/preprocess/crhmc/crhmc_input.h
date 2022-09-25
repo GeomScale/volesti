@@ -22,7 +22,13 @@ function. Then the uniform function is implied*/
 template <typename Point>
 struct ZeroFunctor
 {
+  using Type = typename Point::FT;
   Point operator()(Point const &x) const { return Point(x.dimension()); }
+  struct parameters {
+    Type L=1;
+    Type eta=1;
+  };
+  struct parameters params;
 };
 template <typename Point>
 struct ZeroScalarFunctor
@@ -63,35 +69,35 @@ public:
   unsigned int dimension;                 // dimension of the original problem
   const Type inf = options.max_coord + 1; // helper for barrier handling
   /*Constructors for different input instances*/
-  crhmc_input(int dimension, func &function, grad &g, hess &h)
+  crhmc_input(int dim, func &function, grad &g, hess &h)
       : f(function), df(g), ddf(h)
-  {
+  { dimension=dim;
     fZero = false;
     fHandle = true;
     dfHandle = true;
     ddfHandle = true;
     init(dimension);
   }
-  crhmc_input(int dimension, func &function)
+  crhmc_input(int dim, func &function)
       : f(function), df(zerof), ddf(zerof)
-  {
+  { dimension=dim;
     fZero = false;
     fHandle = true;
     dfHandle = false;
     ddfHandle = false;
     init(dimension);
   }
-  crhmc_input(int dimension, func &function, grad &g)
+  crhmc_input(int dim, func &function, grad &g)
       : f(function), df(g), ddf(zerof)
-  {
+  { dimension=dim;
     fZero = false;
     fHandle = true;
     dfHandle = true;
     ddfHandle = false;
     init(dimension);
   }
-  crhmc_input(int dimension) : f(zerosf), df(zerof), ddf(zerof)
-  {
+  crhmc_input(int dim) : f(zerosf), df(zerof), ddf(zerof)
+  { dimension=dim;
     fZero = true;
     fHandle = false;
     dfHandle = false;

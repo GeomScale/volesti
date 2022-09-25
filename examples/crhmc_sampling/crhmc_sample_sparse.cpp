@@ -15,8 +15,8 @@
 // Monte Carlo in a Constrained Space"
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
-#include "diagnostics/multivariate_psrf.hpp"
 #include "diagnostics/diagnostics.hpp"
+#include "diagnostics/multivariate_psrf.hpp"
 #include "generators/known_polytope_generators.h"
 #include "misc/misc.h"
 #include "ode_solvers/ode_solvers.hpp"
@@ -60,7 +60,7 @@ void sample(MT &samples, Polytope &P, RandomNumberGenerator &rng,
     params.eta = input.df.params.eta;
   }
   walk crhmc_walk = walk(P, p, input.df, input.f, params);
-  std::cerr << "Burn-in" << std::endl;
+  std::cerr << "Burn-in "<<n_burns<<" draws" << std::endl;
   for (int i = 0; i < n_burns; i++) {
     if (i % 1000 == 0) {
       std::cerr << i << " out of " << n_burns << "\n";
@@ -68,9 +68,10 @@ void sample(MT &samples, Polytope &P, RandomNumberGenerator &rng,
     crhmc_walk.apply(rng, 1);
   }
   int max_actual_draws = n_samples - n_burns;
-  samples.resize(dimension, max_actual_draws);
+  samples=MT(dimension, max_actual_draws);
   std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
-  std::cerr << "Sampling" << std::endl;
+  std::cerr << "Sampling "<<std::ceil(max_actual_draws / simdLen)<<" draws" << std::endl;
+  crhmc_walk.initialize_timers();
   start = std::chrono::system_clock::now();
   for (unsigned int i = 0; i < std::ceil(max_actual_draws / simdLen); i++) {
     if (i % 1000 == 0) {
@@ -91,14 +92,16 @@ void sample(MT &samples, Polytope &P, RandomNumberGenerator &rng,
   std::chrono::duration<double> total_time = stop - start;
   crhmc_walk.print_timing_information(stream);
   stream << "---Total Sampling time: " << total_time.count() << "\n";
+  std::cerr << "---Total Sampling time: " << total_time.count() << "\n";
   stream << "Number of non Zeros: " << P.nnz() << std::endl;
+  delete crhmc_walk.module_update;
 }
-template<typename MT, typename StreamType>
-void diagnose(MT &samples,StreamType& stream){
+template <typename MT, typename StreamType>
+void diagnose(MT &samples, StreamType &stream) {
   unsigned int min_ess = 0;
   print_diagnostics<NT, VT, MT>(samples, min_ess, stream);
   stream << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
-  stream << "min ess " << min_ess  << std::endl;
+  stream << "min ess " << min_ess << std::endl;
 }
 using NT = double;
 using Kernel = Cartesian<NT>;
@@ -138,9 +141,12 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     ub = VT(bounds.col(1));
   }
 }
-template <int simdLen> void run_main(std::string problem_name,int n_samples=80000,int n_burns=20000) {
+template <int simdLen>
+void run_main(std::string problem_name, int n_samples = 80000,
+              int n_burns = 20000) {
+  std::cerr<<"CRHMC on "<<problem_name<<"\n";
   using Solver =
-      ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad, simdLen>;
+      ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Input::Grad, simdLen>;
   RNG rng(1);
   Opts options;
   options.simdLen = simdLen;
@@ -158,11 +164,16 @@ template <int simdLen> void run_main(std::string problem_name,int n_samples=8000
   input.lb = lb;
   input.ub = ub;
   std::ofstream stream;
-  stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
-              problem_name + ".txt");
+  stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" + problem_name +
+              ".txt");
   std::cerr << "Finished loading data\n";
-  options.EnableReordering = false;
+  options.EnableReordering = true;
   CrhmcProblem P = CrhmcProblem(input, options);
+  stream<<"nnz = " <<P.Asp.nonZeros()<<"\n";
+  std::cerr<<"nnz = " <<P.Asp.nonZeros()<<"\n";
+  P.Asp.prune(1e-16);
+  stream<<"nnz = " <<P.Asp.nonZeros()<<"\n";
+  std::cerr<<"nnz = " <<P.Asp.nonZeros()<<"\n";
   std::cerr << "Finished Preparation process\n";
   P.print_preparation_time(stream);
   MT samples;
@@ -170,29 +181,28 @@ template <int simdLen> void run_main(std::string problem_name,int n_samples=8000
       samples, P, rng, n_samples, n_burns, input, options, stream);
   std::ofstream diagnostics_stream;
   diagnostics_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
-                  problem_name + "_diagnostics.txt");
-  diagnose(samples,diagnostics_stream);
+                          problem_name + "_diagnostics.txt");
+  diagnose(samples, diagnostics_stream);
   std::ofstream samples_stream;
   samples_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
-                  problem_name + "_samples.txt");
+                      problem_name + "_samples.txt");
   samples_stream << samples.transpose() << std::endl;
-
 }
 int main(int argc, char *argv[]) {
   if (argc != 5) {
     std::cerr
-        << "Example Usage: ./crhmc_sample_sparse [problem_name] [simdLen]\n";
-    std::cerr << "i.e.: ./crhmc_sample_sparse degen2 4\n";
+        << "Example Usage: ./crhmc_sample_sparse [problem_name] [simdLen] [n_samples] [n_burns]\n";
+    std::cerr << "i.e.: ./crhmc_sample_sparse degen2 4 1000 500\n";
     exit(1);
   }
   if (atoi(argv[2]) == 1) {
-    run_main<1>(argv[1],atoi(argv[3]),atoi(argv[4]));
+    run_main<1>(argv[1], atoi(argv[3]), atoi(argv[4]));
   } else if (atoi(argv[2]) == 4) {
-    run_main<4>(argv[1],atoi(argv[3]),atoi(argv[4]));
+    run_main<4>(argv[1], atoi(argv[3]), atoi(argv[4]));
   } else if (atoi(argv[2]) == 8) {
-    run_main<8>(argv[1],atoi(argv[3]),atoi(argv[4]));
+    run_main<8>(argv[1], atoi(argv[3]), atoi(argv[4]));
   } else if (atoi(argv[2]) == 16) {
-    run_main<16>(argv[1],atoi(argv[3]),atoi(argv[4]));
+    run_main<16>(argv[1], atoi(argv[3]), atoi(argv[4]));
   }
   return 0;
 }

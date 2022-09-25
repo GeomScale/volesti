@@ -328,6 +328,18 @@ PM postOrderPerm(SparseMatrixType const &A)
   return post_perm;
 }
 
+template <typename SparseMatrixType,typename VectorType>
+void fillin_reduce(SparseMatrixType &X,VectorType& b){
+  SparseMatrixType I = SparseMatrixType(Eigen::VectorXd::Ones(X.rows()).asDiagonal());
+  SparseMatrixType XX = X * X.transpose() + I;
+  XX.makeCompressed();
+  Eigen::SimplicialLDLT<SparseMatrixType, Eigen::Lower,
+                        Eigen::AMDOrdering<int>> cholesky;
+  cholesky.analyzePattern(XX);
+  std::cerr<<"norm= "<<(I- Eigen::MatrixXd(cholesky.permutationP()).sparseView()).norm()<<"\n";
+  X = cholesky.permutationP() * X;
+  b = cholesky.permutationP() *b;
+}
 template<typename SparseMatrixType,typename Type,typename IndexType>
 PackedCSparse::SparseMatrix<Type,IndexType> transform_format(SparseMatrixType const &mat) {
   PackedCSparse::SparseMatrix<Type, IndexType> A = PackedCSparse::SparseMatrix<Type, IndexType>(mat.rows(), mat.cols(), mat.nonZeros());

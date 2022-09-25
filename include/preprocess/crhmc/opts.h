@@ -45,7 +45,7 @@ public:
   int maxConsecutiveBadStep = 10;
   Type targetODEStep = 10;
   Type shrinkFactor = 1.1;
-  Type minStepSize = 0.001;
+  Type minStepSize = 1e-5;
   Type effectiveStepSize = 1;
 
   opts() {}
