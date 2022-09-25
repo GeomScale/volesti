@@ -472,13 +472,13 @@ void test_crhmc() {
   unsigned int dim = 10;
   Opts options;
   options.simdLen = simdLen;
-
+  options.EnableReordering=false;
   CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(g, dim,
                                                                   options);
   Input input = Input(dim, f, g);
   input.lb = -VT::Ones(dim);
   input.ub = VT::Ones(dim);
-  CrhmcProblem P = CrhmcProblem(input);
+  CrhmcProblem P = CrhmcProblem(input,options);
   Point x0(dim);
   CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator,
                   NegativeGradientFunctor, NegativeLogprobFunctor, Solver>

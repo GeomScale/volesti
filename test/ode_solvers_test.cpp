@@ -176,19 +176,21 @@ template <typename NT> void test_implicit_midpoint() {
   Input input = Input(d, f, F);
   input.lb = -VT::Ones(d);
   input.ub = VT::Ones(d);
-  CrhmcProblem P = CrhmcProblem(input);
+  opts.EnableReordering=false;
+  opts.DynamicWeight = false;
+  CrhmcProblem P = CrhmcProblem(input,opts);
   d = P.dimension();
   MT x0 = MT::Zero(d,1);
   MT v0 = MT::Ones(d,1);
   pts q{x0, v0};
   opts.solver_accuracy_threashold = 1e-2;
-  opts.DynamicWeight = false;
   ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>
       implicit_midpoint_solver =
           ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>(0, 0.01, q,
                                                                    F, P, opts);
   std::ifstream is("../test/test_norm_hypercube.txt");
   std::istream_iterator<NT> start(is), end;
+  std::cerr<<"fdsaf\n";
   std::vector<NT> target_norms(start, end);
   check_norm_progress(implicit_midpoint_solver, 1, target_norms);
 }
