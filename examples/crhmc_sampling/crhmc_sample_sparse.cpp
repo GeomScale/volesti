@@ -96,11 +96,14 @@ void sample(MT &samples, Polytope &P, RandomNumberGenerator &rng,
   stream << "Number of non Zeros: " << P.nnz() << std::endl;
   delete crhmc_walk.module_update;
 }
+inline bool exists_check(const std::string &name) {
+  std::ifstream f(name.c_str());
+  return f.good();
+}
 template <typename MT, typename StreamType>
 void diagnose(MT &samples, StreamType &stream) {
   unsigned int min_ess = 0;
   print_diagnostics<NT, VT, MT>(samples, min_ess, stream);
-  stream << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
   stream << "min ess " << min_ess << std::endl;
 }
 using NT = double;
@@ -120,10 +123,13 @@ using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
 /*Problem on the form X=[A|b] bounds=[lb|ub] */
 void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
                         std::string problem_name) {
-  {
+   {
     std::string fileName("./data/");
     fileName.append(problem_name);
     fileName.append(".mm");
+    if(!exists_check(filename)){
+      std::cerr<<"Problem does not exist.\n";
+      exit(1);}
     SpMat X;
     loadMarket(X, fileName);
     int m = X.rows();
@@ -135,6 +141,9 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     std::string fileName("./data/");
     fileName.append(problem_name);
     fileName.append("_bounds.mm");
+    if(!exists_check(filename)){
+      std::cerr<<"Problem does not exist.\n";
+      exit(1);}
     SpMat bounds;
     loadMarket(bounds, fileName);
     lb = VT(bounds.col(0));
