@@ -208,7 +208,7 @@ void run_main(std::string problem_name, int n_samples = 80000,
   std::ofstream diagnostics_stream;
   diagnostics_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
                           problem_name + "_diagnostics.txt");
-  diagnose(samples, diagnostics_stream);
+  diagnose<MT, VT, NT, std::ofstream>(samples, diagnostics_stream);
   std::ofstream samples_stream;
   samples_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
                       problem_name + "_samples.txt");
