@@ -144,7 +144,7 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     std::string fileName("./data/");
     fileName.append(problem_name);
     fileName.append(".mm");
-    if(!exists_check(filename)){
+    if(!exists_check(fileName)){
       std::cerr<<"Problem does not exist.\n";
       exit(1);}
     SpMat X;
@@ -158,7 +158,7 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     std::string fileName("./data/");
     fileName.append(problem_name);
     fileName.append("_bounds.mm");
-    if(!exists_check(filename)){
+    if(!exists_check(fileName)){
       std::cerr<<"Problem does not exist.\n";
       exit(1);}
     SpMat bounds;
