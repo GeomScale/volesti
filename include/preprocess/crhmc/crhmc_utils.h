@@ -336,7 +336,6 @@ void fillin_reduce(SparseMatrixType &X,VectorType& b){
   Eigen::SimplicialLDLT<SparseMatrixType, Eigen::Lower,
                         Eigen::AMDOrdering<int>> cholesky;
   cholesky.analyzePattern(XX);
-  std::cerr<<"norm= "<<(I- Eigen::MatrixXd(cholesky.permutationP()).sparseView()).norm()<<"\n";
   X = cholesky.permutationP() * X;
   b = cholesky.permutationP() *b;
 }
