@@ -119,7 +119,7 @@ template <typename MT,typename VT,typename NT, typename StreamType>
 void diagnose(MT &samples, StreamType &stream) {
   unsigned int min_ess = 0;
   print_diagnostics<NT, VT, MT>(samples, min_ess, stream);
-  max_psrf = max_interval_psrf<NT, VT, MT>(samples);
+  NT max_psrf = max_interval_psrf<NT, VT, MT>(samples);
   stream << "max_psrf: " << max_psrf << std::endl;
   stream << "min ess " << min_ess << std::endl;
 }
