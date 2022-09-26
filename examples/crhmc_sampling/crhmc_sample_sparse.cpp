@@ -94,16 +94,33 @@ void sample(MT &samples, Polytope &P, RandomNumberGenerator &rng,
   stream << "---Total Sampling time: " << total_time.count() << "\n";
   std::cerr << "---Total Sampling time: " << total_time.count() << "\n";
   stream << "Number of non Zeros: " << P.nnz() << std::endl;
+  stream << "Step size (final): " << crhmc_walk.solver->eta << std::endl;
+  stream << "Discard Ratio: " << crhmc_walk.discard_ratio << std::endl;
+  stream << "Average Acceptance Probability: "
+         << crhmc_walk.average_acceptance_prob << std::endl;
   delete crhmc_walk.module_update;
 }
 inline bool exists_check(const std::string &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
-template <typename MT, typename StreamType>
+template <typename NT, typename VT, typename MT>
+NT max_interval_psrf(MT &samples) {
+  NT max_psrf = NT(0);
+  VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
+  unsigned int d = intv_psrf.rows();
+  for (unsigned int i = 0; i < d; i++) {
+    if (intv_psrf(i) > max_psrf)
+      max_psrf = intv_psrf(i);
+  }
+  return max_psrf;
+}
+template <typename MT,typename VT,typename NT, typename StreamType>
 void diagnose(MT &samples, StreamType &stream) {
   unsigned int min_ess = 0;
   print_diagnostics<NT, VT, MT>(samples, min_ess, stream);
+  max_psrf = max_interval_psrf<NT, VT, MT>(samples);
+  stream << "max_psrf: " << max_psrf << std::endl;
   stream << "min ess " << min_ess << std::endl;
 }
 using NT = double;

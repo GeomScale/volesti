@@ -334,7 +334,7 @@ void call_test_benchmark_polytope() {
     std::string name = "100_skinny_cube";
     bool centered = false;
     double target_time = 20; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, false);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, false);
   }
 
   {
@@ -342,7 +342,7 @@ void call_test_benchmark_polytope() {
     std::string name = "5_cross";
     bool centered = false;
     double target_time = 10; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   {
@@ -350,7 +350,7 @@ void call_test_benchmark_polytope() {
     std::string name = "100_simplex";
     bool centered = false;
     double target_time = 20; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   {
@@ -358,7 +358,7 @@ void call_test_benchmark_polytope() {
     std::string name = "50_prod_simplex";
     bool centered = false;
     double target_time = 20; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   {
@@ -366,7 +366,7 @@ void call_test_benchmark_polytope() {
     std::string name = "10_birkhoff";
     bool centered = false;
     double target_time = 15; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   if (exists_check("../test/netlib/afiro.ine")) {
@@ -374,7 +374,7 @@ void call_test_benchmark_polytope() {
     std::string name = "afiro";
     bool centered = true;
     double target_time = 100; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
@@ -383,7 +383,7 @@ void call_test_benchmark_polytope() {
     std::string name = "e_coli";
     bool centered = true;
     double target_time = 600; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, centered);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   stream.close();
