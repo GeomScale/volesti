@@ -115,7 +115,7 @@ else ()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
-  add_definitions(${CMAKE_CXX_FLAGS} "-O3  -Wfatal-errors -DTIME_KEEPING"  ${ADDITIONAL_FLAGS})  # optimization of the compiler
+  add_definitions(${CMAKE_CXX_FLAGS} "-O3  -DTIME_KEEPING"  ${ADDITIONAL_FLAGS})  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
@@ -125,4 +125,7 @@ else ()
 	TARGET_LINK_LIBRARIES(crhmc_sampling ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
 	add_executable (crhmc_sample_sparse crhmc_sample_sparse.cpp)
 	TARGET_LINK_LIBRARIES(crhmc_sample_sparse ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
+	add_executable (sampling_functions sampling_functions.cpp)
+	TARGET_LINK_LIBRARIES(sampling_functions ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
+
 endif()

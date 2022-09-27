@@ -156,7 +156,9 @@ struct CRHMCWalk {
     inline MT masked_choose(MT &x, MT &x_tilde, IVT &accept) {
       return accept.transpose().replicate(x.rows(), 1).select(x_tilde, x);
     }
-
+    inline void disable_adaptive(){
+      update_modules=false;
+    }
     inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
                       bool metropolis_filter = true) {
 

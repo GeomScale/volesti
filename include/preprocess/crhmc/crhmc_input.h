@@ -17,6 +17,7 @@
 #define CRHMC_INPUT_H
 #include "Eigen/Eigen"
 #include "opts.h"
+#include "convex_bodies/hpolytope.h"
 /*0 funciton handles are given as a reference in case the user gives no
 function. Then the uniform function is implied*/
 template <typename Point>
@@ -52,6 +53,7 @@ public:
   using Func = func;
   using Grad = grad;
   using Hess = hess;
+  using point= Point;
   MatrixType Aineq;                       // Matrix of coefficients for the inequality constraints
   VT bineq;                               // Right hand side of the inequality constraints
   MatrixType Aeq;                         // Matrix of coefficients for the equality constraints
@@ -115,4 +117,13 @@ public:
     ub = VT::Ones(dimension) * inf;
   }
 };
+
+template<typename Input, typename Func,typename Grad,typename Hess>
+inline Input convert2crhmc_input(HPolytope<typename Input::point> &P,Func &f, Grad &g, Hess &h){
+int dimension=P.dimension();
+Input input=Input(dimension,f,g,h);
+input.Aineq=P.get_mat();
+input.bineq=P.get_vec();
+return input;
+}
 #endif

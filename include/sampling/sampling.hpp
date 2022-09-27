@@ -284,6 +284,78 @@ void logconcave_sampling(PointList &randPoints,
 
 }
 
+template
+        <
+        typename PointList,
+        typename Polytope,
+        typename RandomNumberGenerator,
+        typename WalkTypePolicy,
+        typename NT,
+        typename Point,
+        typename NegativeGradientFunctor,
+        typename NegativeLogprobFunctor,
+        typename HessianFunctor,
+        typename Solver
+        >
+void crhmc_sampling(PointList &randPoints,
+                    Polytope &P,
+                    RandomNumberGenerator &rng,
+                    const int walk_len,
+                    const unsigned int rnum,
+                    const unsigned int nburns,
+                    NegativeGradientFunctor &F,
+                    NegativeLogprobFunctor &f,
+                    HessianFunctor &h,
+                    int simdLen = 1) {
+  typedef  typename Polytope::MT MatrixType;
+  typedef  crhmc_input
+          <
+                  MatrixType,
+                  Point,
+                  NegativeLogprobFunctor,
+                  NegativeGradientFunctor,
+                  HessianFunctor
+          > Input;
+  Input input = convert2crhmc_input<Input, NegativeLogprobFunctor, NegativeGradientFunctor, HessianFunctor>(P, f, F, h);
+  typedef crhmc_problem<Point, Input> CrhmcProblem;
+  CrhmcProblem problem = CrhmcProblem(input);
+
+  typedef typename WalkTypePolicy::template Walk
+          <
+                  Point,
+                  CrhmcProblem,
+                  RandomNumberGenerator,
+                  NegativeGradientFunctor,
+                  NegativeLogprobFunctor,
+                  Solver
+          > walk;
+  typedef typename WalkTypePolicy::template parameters
+          <
+                  NT,
+                  NegativeGradientFunctor
+          > walk_params;
+  Point p = Point(problem.center);
+  problem.options.simdLen=simdLen;
+  walk_params params(input.df, p.dimension(), problem.options);
+
+  if (input.df.params.eta > 0) {
+    params.eta = input.df.params.eta;
+  }
+
+  PushBackWalkPolicy push_back_policy;
+
+  walk crhmc_walk = walk(problem, p, input.df, input.f, params);
+
+  typedef CrhmcRandomPointGenerator<walk> RandomPointGenerator;
+
+  RandomPointGenerator::apply(problem, p, nburns, walk_len, randPoints,
+                              push_back_policy, rng, F, f, params, crhmc_walk);
+  crhmc_walk.disable_adaptive();
+  randPoints.clear();
+  RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
+                              push_back_policy, rng, F, f, params, crhmc_walk, simdLen);
+  delete crhmc_walk.module_update;
+}
 
 template
 <
