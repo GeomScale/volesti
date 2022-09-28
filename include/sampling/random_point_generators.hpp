@@ -297,22 +297,23 @@ struct CrhmcRandomPointGenerator
                       Walk &walk,
                       int simdLen=1)
     {
-        typedef double NT;
+        typedef typename Walk::MT MT;
         for (unsigned int i = 0; i < std::ceil((float)rnum/simdLen); ++i)
         {
             // Gather one sample
             walk.apply(rng, walk_length);
+            MT x=walk.getPoints();
             if((i + 1) * simdLen > rnum){
               for(int j = 0; j < rnum-simdLen*i; j++){
-                Point x = Point(walk.x.col(j));
-                policy.apply(randPoints, x);
+                Point p = Point(x.col(j));
+                policy.apply(randPoints, p);
               }
               break;
             }
             // Use PushBackWalkPolicy
-            for(int j=0; j<walk.x.cols();j++){
-              Point x = Point(walk.x.col(j));
-              policy.apply(randPoints, x);
+            for(int j=0; j<x.cols();j++){
+              Point p = Point(x.col(j));
+              policy.apply(randPoints, p);
             }
         }
     }

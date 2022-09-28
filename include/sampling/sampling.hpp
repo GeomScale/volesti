@@ -283,7 +283,8 @@ void logconcave_sampling(PointList &randPoints,
                                 push_back_policy, rng, F, f, params, logconcave_walk);
 
 }
-
+#include "preprocess/crhmc/crhmc_input.h"
+#include "preprocess/crhmc/crhmc_problem.h"
 template
         <
         typename PointList,
