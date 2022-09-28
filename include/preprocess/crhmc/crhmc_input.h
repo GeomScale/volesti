@@ -122,22 +122,19 @@ public:
 
 template<typename Input, typename Func,typename Grad,typename Hess>
 inline Input convert2crhmc_input(HPolytope<typename Input::point> &P,Func &f, Grad &g, Hess &h){
-int dimension=P.dimension();
-Input input=Input(dimension,f,g,h);
-input.Aineq=P.get_mat();
-input.bineq=P.get_vec();
-return input;
+  int dimension=P.dimension();
+  Input input=Input(dimension,f,g,h);
+  input.Aineq=P.get_mat();
+  input.bineq=P.get_vec();
+  return input;
 }
 template<typename Input, typename Func,typename Grad,typename Hess>
 inline Input convert2crhmc_input(constraint_problem<typename Input::MT, typename Input::point> &P,Func &f, Grad &g, Hess &h){
-int dimension=P.dimension;
-Input input=Input(dimension,f,g,h);
-input.Aineq=P.Aineq;
-input.bineq=P.bineq;
-input.Aeq=P.Aeq;
-input.beq=P.beq;
-input.lb=P.lb;
-input.ub=P.ub;
-return input;
+  int dimension=P.dimension();
+  Input input=Input(dimension,f,g,h);
+  std::tie(input.Aineq, input.bineq)= P.get_inequalities();
+  std::tie(input.Aeq, input.beq)= P.get_equations();
+  std::tie(input.lb, input.ub)= P.get_bounds();
+  return input;
 }
 #endif

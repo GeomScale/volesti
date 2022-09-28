@@ -3,3 +3,4 @@ crhmc_sample_sparse
 samples.txt
 CRHMC_SIMD_*
 sampling_functions
+simplex*

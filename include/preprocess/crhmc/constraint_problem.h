@@ -23,9 +23,9 @@ public:
   using Type = typename Point::FT;
   using VT = Eigen::Matrix<Type, Eigen::Dynamic, 1>;
   using MT = MatrixType;
-
+private:
   using point = Point;
-  unsigned int dimension; // dimension of the original problem
+  unsigned int num_vars; // num_vars of the original problem
   MatrixType Aeq;         // Matrix of coefficients for the equality constraints
   VT beq;                 // Right hand side of the equality constraints
   MatrixType Aineq; // Matrix of coefficients for the inequality constraints
@@ -33,26 +33,27 @@ public:
   VT lb;            // lb on the output coordinates preset to -1e7
   VT ub;            // ub on the output coordinates preset to +1e7
   Type inf = 1e7 + 1;
+public:
   /*Constructors for different input instances*/
   constraint_problem(const int dim, MT const &Aeq_, VT const &beq_, MT const &Aineq_,
               MT const &bineq_, VT const &lb_, VT const &ub_)
-      : dimension(dim), Aeq(Aeq_), beq(beq_), Aineq(Aineq_), bineq(bineq_),
+      : num_vars(dim), Aeq(Aeq_), beq(beq_), Aineq(Aineq_), bineq(bineq_),
         lb(lb_), ub(ub_) {
         }
 
   constraint_problem(const int dim) {
-    dimension = dim;
-    init(dimension);
+    num_vars = dim;
+    init(num_vars);
   }
 
 
-  void init(int dimension) {
-    Aineq.resize(0, dimension);
-    Aeq.resize(0, dimension);
+  void init(int num_vars) {
+    Aineq.resize(0, num_vars);
+    Aeq.resize(0, num_vars);
     bineq.resize(0, 1);
     beq.resize(0, 1);
-    lb = -VT::Ones(dimension) * inf;
-    ub = VT::Ones(dimension) * inf;
+    lb = -VT::Ones(num_vars) * inf;
+    ub = VT::Ones(num_vars) * inf;
   }
   void set_equality_constraints(MT const &Aeq_, VT const &beq_){
     Aeq = Aeq_;
@@ -66,6 +67,19 @@ public:
     lb = lb_;
     ub = ub_;
   }
+  std::pair<MT,VT> get_equations(){
+    return std::make_pair(Aeq,beq);
+  }
+  std::pair<MT,VT> get_inequalities(){
+    return std::make_pair(Aineq,bineq);
+  }
+  std::pair<VT,VT> get_bounds(){
+    return std::make_pair(lb,ub);
+  }
+  unsigned int dimension(){
+    return num_vars;
+  }
+
 };
 
 #endif

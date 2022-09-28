@@ -277,20 +277,6 @@ public:
     if (!options.EnableReordering) {
       return;
     }
-    /*
-    Asp.prune(0.0);
-    Asp.makeCompressed();
-    int m = Asp.rows();
-    SpMat H;
-    H = Asp * SpMat(Asp.transpose()) + MT::Identity(m, m);
-    H.makeCompressed();
-    PM permed = permuteMatAMD(H);
-    H = permed * H * permed.transpose();
-    PM post_perm = postOrderPerm(H);
-    PM perm = permed * post_perm;
-    Asp = perm * Asp;
-    b = perm * b;
-    */
     fillin_reduce(Asp,b);
   }
 //Using the Cholesky decomposition remove dependent rows in the systen Asp*x=b
