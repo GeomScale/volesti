@@ -30,9 +30,9 @@ private:
   VT beq;                 // Right hand side of the equality constraints
   MatrixType Aineq; // Matrix of coefficients for the inequality constraints
   VT bineq;         // Right hand side of the inequality constraints
-  VT lb;            // lb on the output coordinates preset to -1e7
-  VT ub;            // ub on the output coordinates preset to +1e7
-  Type inf = 1e7 + 1;
+  VT lb;            // lb on the output coordinates preset to -1e9
+  VT ub;            // ub on the output coordinates preset to +1e9
+  Type inf = 1e9;
 public:
   /*Constructors for different input instances*/
   constraint_problem(const int dim, MT const &Aeq_, VT const &beq_, MT const &Aineq_,
