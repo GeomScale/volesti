@@ -78,7 +78,7 @@ void sample_sparse_problem(int n_samples = 80000,
   using SpMat = Eigen::SparseMatrix<NT>;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using ConstraintProblem =constraint_problem<SpMat, Point>;
-  std::string problem_name("afiro");
+  std::string problem_name("simplex3");
   std::cerr << "CRHMC on " << problem_name << "\n";
   using Input = crhmc_input<SpMat, Point, Func, Grad, Hess>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
