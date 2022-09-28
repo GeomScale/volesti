@@ -9,10 +9,6 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-// References
-// Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
-// Riemannian Hamiltonian
-// Monte Carlo in a Constrained Space"
 #ifndef CONSTRAINT_PROBLEM_H
 #define CONSTRAINT_PROBLEM_H
 #include "Eigen/Eigen"

@@ -114,7 +114,6 @@ void sample_sparse_problem(int n_samples = 80000,
   samples_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
                       problem_name + "_samples.txt");
   samples_stream << samples.transpose() << std::endl;
-
 }
 template<int simdLen>
 void run_main(int n_samples = 80000,
