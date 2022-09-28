@@ -53,7 +53,7 @@ public:
   int m;
   int num_runs = 0;
   Barrier *barrier;
-  WeightedBarrier *weighted_barrier;
+  std::unique_ptr<WeightedBarrier> weighted_barrier;
   Opts &options;
   Hamiltonian(Polytope &boundaries)
       : P(boundaries), solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
@@ -67,7 +67,7 @@ public:
     if (options.DynamicWeight)
     {
       weighted_barrier =
-          new WeightedBarrier(P.barrier.lb, P.barrier.ub, P.w_center);
+          std::unique_ptr<WeightedBarrier>(new WeightedBarrier(P.barrier.lb, P.barrier.ub, P.w_center));
       weighted_barrier->extraHessian.resize(n, simdLen);
       weighted_barrier->extraHessian = MT::Ones(n, simdLen) * options.regularization_factor;
     }

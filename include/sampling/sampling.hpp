@@ -354,7 +354,6 @@ void crhmc_sampling(PointList &randPoints,
   randPoints.clear();
   RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
                               push_back_policy, rng, F, f, params, crhmc_walk, simdLen);
-  delete crhmc_walk.module_update;
 }
 
 template

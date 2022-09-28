@@ -69,7 +69,7 @@ struct CRHMCWalk {
     parameters<NT, NegativeGradientFunctor> &params;
 
     // Numerical ODE solver
-    Solver *solver;
+    std::unique_ptr<Solver> solver;
 
     // Dimension
     unsigned int dim;
@@ -102,7 +102,7 @@ struct CRHMCWalk {
     NegativeGradientFunctor &F;
 
     // Auto tuner
-    auto_tuner<Sampler, RandomNumberGenerator> *module_update;
+    std::unique_ptr<auto_tuner<Sampler, RandomNumberGenerator>>module_update;
 
     // Helper variables
     VT H, H_tilde;
@@ -126,9 +126,9 @@ struct CRHMCWalk {
       accepted = false;
       // Initialize solver
       solver =
-          new Solver(0.0, params.eta, {x, x}, F, Problem, params.options);
+          std::unique_ptr<Solver>(new Solver(0.0, params.eta, {x, x}, F, Problem, params.options));
       v = MT::Zero(dim, simdLen);
-      module_update = new auto_tuner<Sampler, RandomNumberGenerator>(*this);
+      module_update = std::unique_ptr<auto_tuner<Sampler, RandomNumberGenerator>>(new auto_tuner<Sampler, RandomNumberGenerator>(*this));
       update_modules = params.options.DynamicWeight ||
                        params.options.DynamicRegularizer ||
                        params.options.DynamicStepSize;
