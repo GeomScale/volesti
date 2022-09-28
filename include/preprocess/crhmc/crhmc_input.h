@@ -18,6 +18,7 @@
 #include "Eigen/Eigen"
 #include "opts.h"
 #include "convex_bodies/hpolytope.h"
+#include "preprocess/crhmc/constraint_problem.h"
 /*0 funciton handles are given as a reference in case the user gives no
 function. Then the uniform function is implied*/
 template <typename Point>
@@ -50,6 +51,7 @@ class crhmc_input
   ZeroScalarFunctor<Point> zerosf;
 
 public:
+  using MT = MatrixType;
   using Func = func;
   using Grad = grad;
   using Hess = hess;
@@ -124,6 +126,18 @@ int dimension=P.dimension();
 Input input=Input(dimension,f,g,h);
 input.Aineq=P.get_mat();
 input.bineq=P.get_vec();
+return input;
+}
+template<typename Input, typename Func,typename Grad,typename Hess>
+inline Input convert2crhmc_input(constraint_problem<typename Input::MT, typename Input::point> &P,Func &f, Grad &g, Hess &h){
+int dimension=P.dimension;
+Input input=Input(dimension,f,g,h);
+input.Aineq=P.Aineq;
+input.bineq=P.bineq;
+input.Aeq=P.Aeq;
+input.beq=P.beq;
+input.lb=P.lb;
+input.ub=P.ub;
 return input;
 }
 #endif

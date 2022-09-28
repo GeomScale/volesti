@@ -27,6 +27,7 @@
 #include <vector>
 #include "random_walks/random_walks.hpp"
 #include "generators/known_polytope_generators.h"
+#include <unsupported/Eigen/SparseExtra>
 
 
 template <typename NT, typename VT, typename MT>
@@ -56,18 +57,18 @@ using Grad = GaussianFunctor::GradientFunctor<Point>;
 using Hess = GaussianFunctor::HessianFunctor<Point>;
 using PolytopeType = HPolytope<Point>;
 using MT = PolytopeType::MT;
-using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
-using CrhmcProblem = crhmc_problem<Point, Input>;
 using func_params = GaussianFunctor::parameters<NT, Point>;
 using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
 template <int simdLen>
-void run_main(std::string problem_name, int n_samples = 80000,
+void sample_hpoly(int n_samples = 80000,
               int n_burns = 20000) {
+  std::string problem_name("simplex");
   std::cerr << "CRHMC on " << problem_name << "\n";
+  using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
   using Solver =
       ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Input::Grad, simdLen>;
   RNG rng(1);
-  
   PolytopeType HP=generate_simplex<PolytopeType>(2,false);
   int dimension = HP.dimension();
   func_params params = func_params(Point(dimension), 0.5, 1);
@@ -92,21 +93,107 @@ void run_main(std::string problem_name, int n_samples = 80000,
                       problem_name + "_samples.txt");
   samples_stream << samples.transpose() << std::endl;
 }
+inline bool exists_check(const std::string &name) {
+  std::ifstream f(name.c_str());
+  return f.good();
+}
+/*Problem on the form X=[A|b] bounds=[lb|ub] */
+void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
+                        std::string problem_name) {
+   {
+    std::string fileName("./data/");
+    fileName.append(problem_name);
+    fileName.append(".mm");
+    if(!exists_check(fileName)){
+      std::cerr<<"Problem does not exist.\n";
+      exit(1);}
+    SpMat X;
+    loadMarket(X, fileName);
+    int m = X.rows();
+    dimension = X.cols() - 1;
+    A = X.leftCols(dimension);
+    b = VT(X.col(dimension));
+  }
+  {
+    std::string fileName("./data/");
+    fileName.append(problem_name);
+    fileName.append("_bounds.mm");
+    if(!exists_check(fileName)){
+      std::cerr<<"Problem does not exist.\n";
+      exit(1);}
+    SpMat bounds;
+    loadMarket(bounds, fileName);
+    lb = VT(bounds.col(0));
+    ub = VT(bounds.col(1));
+  }
+}
+template <int simdLen>
+void sample_sparse_problem(int n_samples = 80000,
+              int n_burns = 20000){
+  using SpMat = Eigen::SparseMatrix<NT>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using ConstraintProblem =constraint_problem<SpMat, Point>;
+  std::string problem_name("afiro");
+  std::cerr << "CRHMC on " << problem_name << "\n";
+  using Input = crhmc_input<SpMat, Point, Func, Grad, Hess>;
+  using CrhmcProblem = crhmc_problem<Point, Input>;
+  using Solver =
+      ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Input::Grad, simdLen>;
+
+  RNG rng(1);
+  SpMat A;
+  VT b, lb, ub;
+  int dimension;
+  load_crhmc_problem(A, b, lb, ub, dimension, problem_name);
+  ConstraintProblem problem = ConstraintProblem(dimension);
+  problem.set_equality_constraints(A, b);
+  problem.set_bounds(lb, ub);
+  func_params params = func_params(Point(dimension), 0.5, 1);
+  Func f(params);
+  Grad g(params);
+  Hess h(params);
+  std::list<Point> PointList;
+  crhmc_sampling<std::list<Point>, ConstraintProblem, RNG, CRHMCWalk, NT, Point, Grad, Func, Hess, Solver>(
+      PointList, problem, rng, 1, n_samples, n_burns, g, f, h, simdLen);
+  MT samples = MT(dimension, PointList.size());
+  int i=0;
+  for (std::list<Point>::iterator it = PointList.begin(); it != PointList.end(); ++it){
+    samples.col(i) = (*it).getCoefficients();
+    i++;
+  }
+  std::ofstream diagnostics_stream;
+  diagnostics_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
+                          problem_name + "_diagnostics.txt");
+  diagnose<MT, VT, NT, std::ofstream>(samples, diagnostics_stream);
+  std::ofstream samples_stream;
+  samples_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
+                      problem_name + "_samples.txt");
+  samples_stream << samples.transpose() << std::endl;
+
+}
+template<int simdLen>
+void run_main(int n_samples = 80000,
+              int n_burns = 20000){
+  std::cerr<<"Sampling HPolytope\n";
+  sample_hpoly<simdLen>(n_samples, n_burns);
+  std::cerr<<"Sampling Sparse Problem\n";
+  sample_sparse_problem<simdLen>(n_samples, n_burns);
+}
 int main(int argc, char *argv[]) {
-  if (argc != 5) {
-    std::cerr << "Example Usage: ./crhmc_sample_sparse [problem_name] "
+  if (argc != 4) {
+    std::cerr << "Example Usage: ./crhmc_sample_sparse "
                  "[simdLen] [n_samples] [n_burns]\n";
-    std::cerr << "i.e.: ./crhmc_sample_sparse degen2 4 1000 500\n";
+    std::cerr << "i.e.: ./crhmc_sample_ 4 1000 500\n";
     exit(1);
   }
-  if (atoi(argv[2]) == 1) {
-    run_main<1>(argv[1], atoi(argv[3]), atoi(argv[4]));
-  } else if (atoi(argv[2]) == 4) {
-    run_main<4>(argv[1], atoi(argv[3]), atoi(argv[4]));
-  } else if (atoi(argv[2]) == 8) {
-    run_main<8>(argv[1], atoi(argv[3]), atoi(argv[4]));
-  } else if (atoi(argv[2]) == 16) {
-    run_main<16>(argv[1], atoi(argv[3]), atoi(argv[4]));
+  if (atoi(argv[1]) == 1) {
+    run_main<1>(atoi(argv[2]), atoi(argv[3]));
+  } else if (atoi(argv[1]) == 4) {
+    run_main<4>(atoi(argv[2]), atoi(argv[3]));
+  } else if (atoi(argv[1]) == 8) {
+    run_main<8>(atoi(argv[2]), atoi(argv[3]));
+  } else if (atoi(argv[1]) == 16) {
+    run_main<16>(atoi(argv[2]), atoi(argv[3]));
   }
   return 0;
 }
