@@ -141,7 +141,7 @@ struct CRHMCWalk {
       MT z = MT(dim, simdLen);
       for (int i = 0; i < simdLen; i++)
       {
-        z(Eigen::all, i) = GetDirection<Point>::apply(dim, rng, normalize).getCoefficients();
+        z.col(i) = GetDirection<Point>::apply(dim, rng, normalize).getCoefficients();
       }
       solver->ham.move({x, v});
       MT sqrthess = (solver->ham.hess).cwiseSqrt();
