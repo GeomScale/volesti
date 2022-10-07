@@ -110,7 +110,7 @@ public:
 
       if (eta < options.minStepSize) {
         s.P.terminate=true;
-        s.P.terminate_message="Algorithm fails to converge even with step size h = "+std::string(eta)+"\n";
+        s.P.terminate_message="Algorithm fails to converge even with step size less than "+std::string(options.minStepSize)+"\n";
       }
     }
 
