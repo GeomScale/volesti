@@ -10,7 +10,7 @@
 An \code{Rcpp} class to represent sparse_constraint_problems, exposed to \code{R} via modules.
 }
 \description{
-A constraint problem is defined by a set of linear inequalities and equalities or equivalently a \eqn{d}-dimensional constraint problem is defined by a \eqn{mineq\times d} matrix Aineq and a \eqn{mineq}-dimensional vector bineq, s.t.: \eqn{Aineqx\leq bineq}, a \eqn{meq\times d} matrix Aeq and a \eqn{meq}-dimensional vector beq, s.t.: \eqn{Aeqx\eq beq} and two \eqn{d} vectors lb, ub such that \eqn{lb\leq x \leq ub}.}
+A constraint problem is defined by a set of linear inequalities and equalities or equivalently a \eqn{d}-dimensional constraint problem is defined by a \eqn{mineq\times d} matrix Aineq and a \eqn{mineq}-dimensional vector bineq, s.t.: \eqn{Aineqx\leq bineq}, a \eqn{meq\times d} matrix Aeq and a \eqn{meq}-dimensional vector beq, s.t.: \eqn{Aeqx= beq} and two \eqn{d} vectors lb, ub such that \eqn{lb\leq x \leq ub}.}
 \details{
 \describe{
 \item{\code{Aineq} }{\eqn{mineq\times d} sparse matrix Aineq}
