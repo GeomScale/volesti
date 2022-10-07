@@ -81,9 +81,12 @@ public:
     prepare({x, v});
     pts pd = DK({x, v});
     VT K = 0.5 * (v.cwiseProduct(pd[0])).colwise().sum();
-    NT logdet = get(solver.logdet(), 0);
+    Tx out=solver.logdet();
+    VT logdet=VT(simdLen);
+    for (int i = 0; i < simdLen; i++)
+      logdet(i) = get(out, i);
     VT U = ((hess.array()).log()).colwise().sum();
-    U = (U + logdet * VT::Ones(simdLen)) * 0.5 + fx;
+    U = (U + logdet) * 0.5 + fx;
     VT E = U + K;
     return E;
   }
@@ -117,8 +120,8 @@ public:
     if (!prepared) {
       MT Hinv = (hess.cwiseInverse()).transpose();
       solver.decompose((Tx *)Hinv.data());
+      dUDx_empty = true;
     }
-    dUDx_empty = true;
     prepared = true;
   }
   // Computation of the partial derivatives of the K term
