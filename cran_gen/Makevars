@@ -1,12 +1,17 @@
-PKG_CPPFLAGS=-Iexternal -Iexternal/lpsolve/headers/run_headers -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/convex_bodies/spectrahedra
+PKG_CPPFLAGS=-Iexternal -Iexternal/lpsolve/headers/run_headers -Iexternal/qd/include -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/convex_bodies/spectrahedra
 PKG_CXXFLAGS= -DBOOST_NO_AUTO_PTR -DDISABLE_NLP_ORACLES
 CXX_STD = CXX11
 
-PKG_LIBS=-Lexternal/lpsolve/build/lp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+PKG_LIBS=-Lexternal/lpsolve/build/lp_solve -llp_solve -Lexternal/qd/build/qd -lqd $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
-$(SHLIB): external/lpsolve/build/lp_solve/liblp_solve.a
+$(SHLIB): external/lpsolve/build/lp_solve/liblp_solve.a external/qd/build/qd/libqd.a
 
 external/lpsolve/build/lp_solve/liblp_solve.a:
 	@(cd external/lpsolve/build/lp_solve && $(MAKE) liblp_solve.a \
     CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" \
     CPICFLAGS="$(CPICFLAGS)" AR="$(AR)" RANLIB="$(RANLIB)")
+
+external/qd/build/qd/libqd.a:
+	@(cd external/qd/build/qd/ && $(MAKE) libqd.a \
+		CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" \
+		CPICFLAGS="$(CPICFLAGS)" AR="$(AR)")
