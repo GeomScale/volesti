@@ -23,7 +23,7 @@
 #include "sampling/sampling.hpp"
 #include "ode_solvers/ode_solvers.hpp"
 #include "oracle_functors_rcpp.h"
-
+#include "preprocess/crhmc/constraint_problem.h"
 enum random_walks {
   ball_walk,
   rdhr,
@@ -38,7 +38,8 @@ enum random_walks {
   hmc,
   gaussian_hmc,
   exponential_hmc,
-  uld
+  uld,
+  crhmc
 };
 
 template <
@@ -48,7 +49,8 @@ template <
         typename NT,
         typename Point,
         typename NegativeGradientFunctor,
-        typename NegativeLogprobFunctor
+        typename NegativeLogprobFunctor,
+        typename HessianFunctor
 >
 void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPoints,
                           unsigned int const& walkL, unsigned int const& numpoints,
@@ -56,7 +58,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
                           Point const& StartingPoint, unsigned int const& nburns,
                           bool const& set_L, NT const& eta, random_walks walk,
                           NegativeGradientFunctor *F=NULL, NegativeLogprobFunctor *f=NULL,
-                          ode_solvers solver_type = no_solver)
+                          HessianFunctor *h=NULL, ode_solvers solver_type = no_solver)
 {
     switch (walk)
     {
@@ -213,6 +215,10 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
       }
 
       break;
+    case crhmc:{
+      execute_crhmc<Polytope, RNGType, PointList, NegativeGradientFunctor,NegativeLogprobFunctor, HessianFunctor, CRHMCWalk, 8>(P, rng, randPoints, walkL, numpoints, nburns, F, f, h);
+      break;
+      }
     case uld:
 
       logconcave_sampling <
@@ -320,14 +326,19 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::SparseMatrix<NT> SpMat;
+    typedef constraint_problem<SpMat,Point> sparse_problem;
 
     unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"), dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
           walkL = 1, numpoints, nburns = 0;
 
     RcppFunctor::GradientFunctor<Point> *F = NULL;
     RcppFunctor::FunctionFunctor<Point> *f = NULL;
+    RcppFunctor::HessianFunctor<Point> *h = NULL;
+
     GaussianFunctor::GradientFunctor<Point> *G = NULL;
     GaussianFunctor::FunctionFunctor<Point> *g = NULL;
+    GaussianFunctor::HessianFunctor<Point> *hess_g = NULL;
     bool functor_defined = true;
 
 
@@ -439,6 +450,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             solver = leapfrog;
           } else if (solver_str == "euler") {
             solver = euler;
+          } else if (solver_str == "implicit_midpoint"){
+            solver = implicit_midpoint;
           } else {
             throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
           }
@@ -446,12 +459,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
           Rcpp::warning("Solver set to leapfrog.");
           solver = leapfrog;
         }
-
         // Create functors
         RcppFunctor::parameters<NT> rcpp_functor_params(L_, m, eta, 2);
         F = new RcppFunctor::GradientFunctor<Point>(rcpp_functor_params, negative_logprob_gradient);
         f = new RcppFunctor::FunctionFunctor<Point>(rcpp_functor_params, negative_logprob);
-
+        if(Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob_hessian")){
+          Rcpp::Function negative_logprob_hessian = Rcpp::as<Rcpp::List>(distribution)["negative_logprob_hessian"];
+          h = new RcppFunctor::HessianFunctor<Point>(rcpp_functor_params, negative_logprob_hessian);
+        }
     }
 
     else if (logconcave && !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob") &&
@@ -476,6 +491,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             solver = leapfrog;
           } else if (solver_str == "euler") {
             solver = euler;
+          } else if (solver_str == "implicit_midpoint"){
+            solver = implicit_midpoint;
           } else {
             throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
           }
@@ -483,12 +500,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
           Rcpp::warning("Solver set to leapfrog.");
           solver = leapfrog;
         }
-
         // Create functors
-        GaussianFunctor::parameters<NT, Point> gaussian_functor_params(mode, a, eta);
-        G = new GaussianFunctor::GradientFunctor<Point>(gaussian_functor_params);
-        g = new GaussianFunctor::FunctionFunctor<Point>(gaussian_functor_params);
-
+        GaussianFunctor::parameters<NT, Point>* gaussian_functor_params=new GaussianFunctor::parameters<NT, Point>(mode, a, eta);
+        G = new GaussianFunctor::GradientFunctor<Point>(*gaussian_functor_params);
+        g = new GaussianFunctor::FunctionFunctor<Point>(*gaussian_functor_params);
+        hess_g = new GaussianFunctor::HessianFunctor<Point>(*gaussian_functor_params);
     }
 
     if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
@@ -577,6 +593,16 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ULD")) == 0) {
         if (!logconcave) throw Rcpp::exception("ULD is not supported for non first-order sampling");
         walk = uld;
+    } else if(Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("CRHMC")) == 0){
+        if (!logconcave) throw Rcpp::exception("CRHMC is used for logconcave sampling");
+        if (type !=1 && type !=5 ) {
+            throw Rcpp::exception("CRHMC sampling is supported only for H-polytopes and Sparse Problems.");
+        }
+        walk =crhmc;
+        if(solver!=implicit_midpoint){
+          Rcpp::warning("Solver set to implicit midpoint.");
+        }
+        solver = implicit_midpoint;
     } else {
         throw Rcpp::exception("Unknown walk type!");
     }
@@ -627,11 +653,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             }
             if (functor_defined) {
                 sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
-                    StartingPoint, nburns, set_L, eta, walk, F, f, solver);
+                    StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
             }
             else {
                 sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
-                    StartingPoint, nburns, set_L, eta, walk, G, g, solver);
+                    StartingPoint, nburns, set_L, eta, walk, G, g, hess_g, solver);
             }
             break;
         }
@@ -653,7 +679,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 VP.shift(mode.getCoefficients());
             }
             sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
-                                 StartingPoint, nburns, set_L, eta, walk, F, f, solver);
+                                 StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
             break;
         }
         case 3: {
@@ -674,7 +700,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 ZP.shift(mode.getCoefficients());
             }
             sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
-                                 StartingPoint, nburns, set_L, eta, walk, F, f, solver);
+                                 StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
             break;
         }
         case 4: {
@@ -697,8 +723,26 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 VPcVP.shift(mode.getCoefficients());
             }
             sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
-                                 StartingPoint, nburns, set_L, eta, walk, F, f, solver);
+                                 StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
             break;
+        }
+        case 5: {
+          // Sparse constraint_problem
+          SpMat Aeq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aeq"));
+          VT beq=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("beq"));
+          SpMat Aineq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aineq"));
+          VT bineq= Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("bineq"));
+          VT lb=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("lb"));
+          VT ub=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("ub"));
+           sparse_problem problem(dim, Aeq, beq, Aineq, bineq, lb, ub);
+           if(walk!=crhmc){throw Rcpp::exception("Sparse problems are supported only by the CRHMC walk.");}
+           if (functor_defined) {
+             execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
+           }
+           else {
+             execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
+           }
+           break;
         }
     }
 
