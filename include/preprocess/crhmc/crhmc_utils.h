@@ -354,5 +354,28 @@ PackedCSparse::SparseMatrix<Type,IndexType> transform_format(SparseMatrixType co
   A.p[A.n] = nnz;
   return A;
 }
-
+template<typename MatrixType, typename IndexType>
+void copy_indicies(MatrixType& a, MatrixType& b, std::vector<IndexType>const & a_idx, std::vector<IndexType>const & b_idx){
+for(int i=0;i<b_idx.size();i++){
+  a(a_idx[i])=b(b_idx[i]);
+}
+}
+template<typename MatrixType, typename IndexType>
+void copy_indicies(MatrixType& a, MatrixType b, std::vector<IndexType>const & b_idx){
+for(int i=0;i<b_idx.size();i++){
+  a(i)=b(b_idx[i]);
+}
+}
+template<typename MatrixType, typename IndexType, typename Type>
+void set(MatrixType &a, std::vector<IndexType>const & idx, const Type c){
+  for(int i=0;i<idx.size();i++){
+    a(idx[i])=c;
+  }
+}
+template<typename MatrixType, typename IndexType>
+void saxpy(MatrixType &a,MatrixType const &b,MatrixType const& c, std::vector<IndexType>const & a_idx, std::vector<IndexType>const & b_idx){
+for(int i=0;i<b_idx.size();i++){
+  a(a_idx[i])=b(b_idx[i])+c(i);
+}
+}
 #endif
