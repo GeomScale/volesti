@@ -155,13 +155,12 @@ struct ImplicitMidpointODESolver {
   MT get_state(int index) { return xs[index]; }
 
   void set_state(int index, MT p) { xs[index] = p; }
-  void print_state() {
+  template<typename StreamType>
+  void print_state(StreamType &stream) {
     for (int j = 0; j < xs.size(); j++) {
-      std::cerr << "state " << j << ": ";
-      for (unsigned int i = 0; i < xs[j].cols(); i++) {
-        std::cerr << xs[j][i] << " ";
-      }
-      std::cerr << '\n';
+      stream << "state " << j << ": \n";
+      stream << xs[j];
+      stream << '\n';
     }
   }
 };

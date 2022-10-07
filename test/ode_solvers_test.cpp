@@ -136,7 +136,7 @@ void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
 #else
     for (int i = 0; i < num_steps; i++) {
       solver.step(i, true);
-      solver.print_state();
+      solver.print_state(std::cerr);
     }
 #endif
     NT norm = NT(0);
