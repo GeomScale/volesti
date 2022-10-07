@@ -317,7 +317,7 @@ void crhmc_sampling(PointList &randPoints,
                   NegativeGradientFunctor,
                   HessianFunctor
           > Input;
-  Input input = convert2crhmc_input<Input, NegativeLogprobFunctor, NegativeGradientFunctor, HessianFunctor>(P, f, F, h);
+  Input input = convert2crhmc_input<Input, Polytope, NegativeLogprobFunctor, NegativeGradientFunctor, HessianFunctor>(P, f, F, h);
   typedef crhmc_problem<Point, Input> CrhmcProblem;
   CrhmcProblem problem = CrhmcProblem(input);
 
@@ -351,12 +351,88 @@ void crhmc_sampling(PointList &randPoints,
 
   RandomPointGenerator::apply(problem, p, nburns, walk_len, randPoints,
                               push_back_policy, rng, F, f, params, crhmc_walk);
-  crhmc_walk.disable_adaptive();
+  //crhmc_walk.disable_adaptive();
   randPoints.clear();
   RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
                               push_back_policy, rng, F, f, params, crhmc_walk, simdLen);
 }
-
+#include "ode_solvers/ode_solvers.hpp"
+template <
+        typename Polytope,
+        typename RNGType,
+        typename PointList,
+        typename NegativeGradientFunctor,
+        typename NegativeLogprobFunctor,
+        typename HessianFunctor,
+        typename CRHMCWalk,
+        int simdLen=1
+>
+void execute_crhmc(Polytope &P, RNGType &rng, PointList &randPoints,
+                  unsigned int const& walkL, unsigned int const& numpoints,
+                  unsigned int const& nburns, NegativeGradientFunctor *F=NULL,
+                  NegativeLogprobFunctor *f=NULL, HessianFunctor *h=NULL){
+typedef typename Polytope::MT MatrixType;
+typedef typename Polytope::PointType Point;
+typedef typename Point::FT NT;
+if(h!=NULL){
+typedef  crhmc_input
+  <
+    MatrixType,
+    Point,
+    NegativeLogprobFunctor,
+    NegativeGradientFunctor,
+    HessianFunctor
+  > Input;
+typedef crhmc_problem<Point, Input> CrhmcProblem;
+crhmc_sampling <
+  PointList,
+  Polytope,
+  RNGType,
+  CRHMCWalk,
+  NT,
+  Point,
+  NegativeGradientFunctor,
+  NegativeLogprobFunctor,
+  HessianFunctor,
+  ImplicitMidpointODESolver <
+  Point,
+  NT,
+  CrhmcProblem,
+  NegativeGradientFunctor,
+  simdLen
+  >
+>(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, *h, simdLen);
+}else{
+  typedef  crhmc_input
+        <
+                MatrixType,
+                Point,
+                NegativeLogprobFunctor,
+                NegativeGradientFunctor,
+                ZeroFunctor<Point>
+        > Input;
+  typedef crhmc_problem<Point, Input> CrhmcProblem;
+  ZeroFunctor<Point> zerof;
+crhmc_sampling <
+  PointList,
+  Polytope,
+  RNGType,
+  CRHMCWalk,
+  NT,
+  Point,
+  NegativeGradientFunctor,
+  NegativeLogprobFunctor,
+  ZeroFunctor<Point>,
+  ImplicitMidpointODESolver <
+  Point,
+  NT,
+  CrhmcProblem,
+  NegativeGradientFunctor,
+  simdLen
+  >
+>(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, zerof, simdLen);
+}
+}
 template
 <
         typename WalkTypePolicy,
