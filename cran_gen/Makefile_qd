@@ -1,0 +1,17 @@
+QD_CPPFLAGS=$(CPPFLAGS) -I../../include/qd -I../../include \
+                  -I$(R_INCLUDE_DIR) \
+                  -march=native\
+
+QD_SOURCES= bits.cpp c_dd.cpp c_qd.cpp dd_const.cpp dd_real.cpp fpu.cpp \
+                 qd_const.cpp qd_real.cpp util.cpp
+
+QD_OBJECTS=$(QD_SOURCES:.cpp=.o)
+
+libqd.a: $(QD_OBJECTS)
+	$(AR) rc libqd.a $(QD_OBJECTS)
+
+.cpp.o:
+	$(CC) $(CFLAGS) $(CPICFLAGS) $(QD_CPPFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(QD_OBJECTS) libqd.a
