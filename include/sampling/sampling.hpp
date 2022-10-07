@@ -320,7 +320,7 @@ void crhmc_sampling(PointList &randPoints,
   Input input = convert2crhmc_input<Input, Polytope, NegativeLogprobFunctor, NegativeGradientFunctor, HessianFunctor>(P, f, F, h);
   typedef crhmc_problem<Point, Input> CrhmcProblem;
   CrhmcProblem problem = CrhmcProblem(input);
-
+  if(problem.terminate){return;}
   typedef typename WalkTypePolicy::template Walk
           <
                   Point,

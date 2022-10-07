@@ -109,9 +109,8 @@ public:
       momentum = 1 - std::min(0.999, eta / options.effectiveStepSize);
 
       if (eta < options.minStepSize) {
-        std::cerr << "Algorithm fails to converge even with step size h = "
-                  << eta << "\n";
-        exit(1);
+        s.P.terminate=true;
+        s.P.terminate_message="Algorithm fails to converge even with step size h = "+std::string(eta)+"\n";
       }
     }
 

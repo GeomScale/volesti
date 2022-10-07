@@ -89,6 +89,9 @@ public:
   bool fHandle;   // whether f is handle or not
   bool dfHandle;  // whether df is handle or not
   bool ddfHandle; // whether ddf is handle or not
+  /*Invalid polytope variables*/
+  bool terminate=false;
+  std::string terminate_message;
 #ifdef TIME_KEEPING
 //Timing information
   std::chrono::duration<double> rescale_duration, sparsify_duration,
@@ -551,10 +554,9 @@ public:
 
     width = estimate_width();
     if (width.maxCoeff() > 1e9) {
-      std::cerr << "Domain seems to be unbounded. Either add a Gaussian term "
-                   "via f, df, ddf or add bounds to variable via lb and ub."
-                << '\n';
-      exit(1);
+      terminate = true;
+      terminate_message = "Domain seems to be unbounded. Either add a Gaussian term via f, df, ddf or add bounds to variable via lb and ub.\n";
+      return;
     }
     //  Recenter again and make sure it is feasible
     VT hess;
@@ -578,9 +580,9 @@ public:
 #endif
     if ((center.array() > barrier.ub.array()).any() ||
         (center.array() < barrier.lb.array()).any()) {
-      std::cerr << "Polytope:Infeasible. The algorithm cannot find a feasible "
-                   "point.\n";
-      exit(1);
+      terminate = true;
+      terminate_message = "Polytope:Infeasible. The algorithm cannot find a feasible point.\n";
+      return;
     }
   }
 #ifdef TIME_KEEPING
