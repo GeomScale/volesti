@@ -159,6 +159,8 @@ void check_norm_progress(Solver &solver, int num_steps, std::vector<NT> target,
 template <typename NT> void test_implicit_midpoint() {
   typedef Cartesian<NT> Kernel;
   typedef typename Kernel::Point Point;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   typedef std::vector<MT> pts;
   typedef GaussianFunctor::GradientFunctor<Point> grad;
   typedef GaussianFunctor::FunctionFunctor<Point> func;
@@ -190,7 +192,6 @@ template <typename NT> void test_implicit_midpoint() {
                                                                    F, P, opts);
   std::ifstream is("../test/test_norm_hypercube.txt");
   std::istream_iterator<NT> start(is), end;
-  std::cerr<<"fdsaf\n";
   std::vector<NT> target_norms(start, end);
   check_norm_progress(implicit_midpoint_solver, 1, target_norms);
 }

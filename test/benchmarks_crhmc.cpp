@@ -24,12 +24,13 @@
 #include <fstream>
 #include <chrono>
 using NT = double;
+using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
 using Kernel = Cartesian<NT>;
 using Point = typename Kernel::Point;
 using Hpolytope = HPolytope<Point>;
 using Input = crhmc_input<MT, Point>;
 using CrhmcProblem = crhmc_problem<Point, Input>;
-using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 
 inline bool exists_check(const std::string &name) {
   std::ifstream f(name.c_str());
