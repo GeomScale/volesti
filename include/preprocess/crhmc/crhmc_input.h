@@ -119,22 +119,52 @@ public:
     ub = VT::Ones(dimension) * inf;
   }
 };
+#include <type_traits>
 
-template<typename Input, typename Func,typename Grad,typename Hess>
-inline Input convert2crhmc_input(HPolytope<typename Input::point> &P,Func &f, Grad &g, Hess &h){
-  int dimension=P.dimension();
-  Input input=Input(dimension,f,g,h);
-  input.Aineq=P.get_mat();
-  input.bineq=P.get_vec();
+template <
+    typename Input, typename Polytope, typename Func, typename Grad, typename Hess,
+    typename std::enable_if<std::is_same<
+        Polytope, HPolytope<typename Input::point>>::value>::type * = nullptr>
+inline Input convert2crhmc_input(Polytope &P, Func &f, Grad &g, Hess &h) {
+  int dimension = P.dimension();
+  Input input = Input(dimension, f, g, h);
+  if (std::is_same<
+      Hess, ZeroFunctor<typename Input::point>>::value){
+        input.ddfHandle=false;
+  }
+  input.Aineq = P.get_mat();
+  input.bineq = P.get_vec();
   return input;
 }
-template<typename Input, typename Func,typename Grad,typename Hess>
-inline Input convert2crhmc_input(constraint_problem<typename Input::MT, typename Input::point> &P,Func &f, Grad &g, Hess &h){
-  int dimension=P.dimension();
-  Input input=Input(dimension,f,g,h);
-  std::tie(input.Aineq, input.bineq)= P.get_inequalities();
-  std::tie(input.Aeq, input.beq)= P.get_equations();
-  std::tie(input.lb, input.ub)= P.get_bounds();
+
+template <typename Input, typename Polytope, typename Func, typename Grad, typename Hess,
+          typename std::enable_if<std::is_same<
+              Polytope, constraint_problem<typename Input::MT,
+                                           typename Input::point>>::value>::type
+              * = nullptr>
+inline Input convert2crhmc_input(Polytope &P, Func &f, Grad &g, Hess &h) {
+  int dimension = P.dimension();
+  Input input = Input(dimension, f, g, h);
+  if (std::is_same<
+      Hess, ZeroFunctor<typename Input::point>>::value){
+        input.ddfHandle=false;
+  }
+  std::tie(input.Aineq, input.bineq) = P.get_inequalities();
+  std::tie(input.Aeq, input.beq) = P.get_equations();
+  std::tie(input.lb, input.ub) = P.get_bounds();
+  return input;
+}
+template <typename Input, typename Polytope, typename Func, typename Grad, typename Hess,
+          typename std::enable_if<
+              !std::is_same<Polytope,
+                            constraint_problem<typename Input::MT,
+                                               typename Input::point>>::value &&
+              !std::is_same<Polytope, HPolytope<typename Input::point>>::value>::
+              type * = nullptr>
+inline Input convert2crhmc_input(Polytope &P, Func &f, Grad &g, Hess &h) {
+  /*CRHMC works only for H-polytopes and constraint_problems for now*/
+  int dimension = 0;
+  Input input = Input(dimension, f, g, h);
   return input;
 }
 #endif
