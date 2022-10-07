@@ -55,6 +55,7 @@ public:
   using Func = typename Input::Func;
   using Grad = typename Input::Grad;
   using Hess = typename Input::Hess;
+  using Crhmc_problem=crhmc_problem<Point, Input>;
 
   unsigned int _d; // dimension
   // Problem variables Ax=b st lb<=x<=ub
@@ -130,9 +131,14 @@ public:
       SpMat S = SpMat(n, freeIndices.size());
       S.setFromTriplets(freeIndices.begin(), freeIndices.end());
       append_map(S, x);
-      barrier.set_bound(barrier.lb(indices), barrier.ub(indices));
+      copy_indicies(barrier.lb, barrier.lb, indices);
+      copy_indicies(barrier.ub, barrier.ub, indices);
+      barrier.lb.conservativeResize(indices.size());
+      barrier.ub.conservativeResize(indices.size());
+
+      barrier.set_bound(barrier.lb, barrier.ub);
       if (!isempty_center) {
-        center.topRows(indices.size()) = center(indices);
+        copy_indicies(center, center, indices);
         center.conservativeResize(indices.size());
       }
       return 1;
@@ -144,11 +150,11 @@ public:
     SpMat Ac;
     VT bc;
     if (isempty_center) {
-      std::tie(center, Ac, bc) = analytic_center(Asp, b, *this, options);
+      std::tie(center, Ac, bc) = analytic_center<Crhmc_problem, SpMat, Opts, MT, VT, NT>(Asp, b, *this, options);
       isempty_center = false;
     } else {
       std::tie(center, Ac, bc) =
-          analytic_center(Asp, b, *this, options, center);
+          analytic_center<Crhmc_problem, SpMat, Opts, MT, VT, NT>(Asp, b, *this, options, center);
           analytic_ctr=center;
     }
     if (Ac.rows() == 0) {
@@ -307,7 +313,7 @@ public:
     }
 
     remove_rows<SpMat, NT>(Asp, indices);
-    b.topRows(idx.size()) = b(idx);
+    copy_indicies(b, b, idx);
     b.conservativeResize(idx.size(), 1);
     return 1;
   }
@@ -564,7 +570,7 @@ public:
 #endif
     if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
-          analytic_center(Asp, b, *this, options);
+          analytic_center<Crhmc_problem, SpMat, Opts, MT, VT, NT>(Asp, b, *this, options);
       isempty_center = false;
     }
     shift_barrier(center);
@@ -587,7 +593,7 @@ public:
     start = std::chrono::system_clock::now();
 #endif
     std::tie(center, std::ignore, std::ignore, w_center) =
-        lewis_center(Asp, b, *this, options, center);
+        lewis_center<Crhmc_problem, SpMat, Opts, MT, VT, NT>(Asp, b, *this, options, center);
     std::tie(std::ignore, hess) = lewis_center_oracle(center, w_center);
     CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     solver.accuracyThreshold = 0;
@@ -661,14 +667,16 @@ void print_preparation_time(StreamType& stream){
     MT z = MT::Zero(y.rows(), m);
     if (fHandle || dfHandle || ddfHandle) {
       for(int k=0;k<m;k++){
-        z(Eigen::all,k) = Ta.cwiseProduct(x(Tidx, k)) + y;
+        for(int i=0;i<Tidx.size();i++){
+          z(i,k) = Ta(i)*x(Tidx[i], k) + y(i);
+        }
       }
     }
 
     // If the function is given evaluate it at the original point
     if (fHandle) {
       for(int k=0;k<m;k++){
-        f(k) = func(Point(z(Eigen::all,k)));
+        f(k) = func(Point(z.col(k)));
       }
     } else {
       f = VT::Zero(m);
@@ -677,7 +685,10 @@ void print_preparation_time(StreamType& stream){
     if (dfHandle) {
       g = MT::Zero(n, m);
       for(int k=0;k<m;k++){
-        g(Tidx, k) += Ta.cwiseProduct(df(Point(z(Eigen::all,k))).getCoefficients());
+        VT dfz=df(Point(z.col(k))).getCoefficients();
+        for(int i=0;i<Tidx.size();i++){
+        g(Tidx[i], k) += Ta(i)*dfz(i);
+      }
       }
     } else {
       g = MT::Zero(n, m);
@@ -686,8 +697,10 @@ void print_preparation_time(StreamType& stream){
     if (ddfHandle) {
       h = MT::Zero(n, m);
       for(int k=0;k<m;k++){
-        h(Tidx, k) +=
-        (Ta.cwiseProduct(Ta)).cwiseProduct(ddf(Point(z(Eigen::all,k))).getCoefficients());
+        VT ddfz=ddf(Point(z.col(k))).getCoefficients();
+        for(int i=0;i<Tidx.size();i++){
+        h(Tidx[i], k) +=Ta(i)*Ta(i)*ddfz(i);
+      }
       }
     } else {
       h = MT::Zero(n,m);
