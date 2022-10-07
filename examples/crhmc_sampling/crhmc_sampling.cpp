@@ -67,7 +67,6 @@ void run_main(int n_samples = 10000, int n_burns = -1, int dimension = 2,
   input.lb = -VT::Ones(dimension);
   input.ub = VT::Ones(dimension);
   CrhmcProblem P = CrhmcProblem(input, options);
-  P.print();
   Point x0 = Point(P.center);
   CRHMCWalk::parameters<NT, Grad> crhmc_params(g, dimension, options);
   crhmc_params.eta = 0.2;

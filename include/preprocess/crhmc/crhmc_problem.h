@@ -390,74 +390,43 @@ public:
     return tau;
   }
 
-  void print(std::string const message = "Printing Sparse problem") {
-    std::cerr << "----------------" << message << "--------------" << '\n';
-    std::cerr << "(m,n) = " << equations() << " , " << dimension()
+  template <typename StreamType>
+  void print(StreamType &stream, std::string const message = "Printing Sparse problem") {
+    stream << "----------------" << message << "--------------" << '\n';
+    stream << "(m,n) = " << equations() << " , " << dimension()
               << " nnz= " << Asp.nonZeros() << "\n";
     if (equations() > 20 || dimension() > 20) {
-      std::cerr << "too big for complete visulization\n";
+      stream << "too big for complete visulization\n";
       return;
     }
-    std::cerr << "A=\n";
+    stream << "A=\n";
 
-    std::cerr << MT(Asp);
-    std::cerr << "\n";
+    stream << MT(Asp);
+    stream << "\n";
 
-    std::cerr << "b=\n";
-    std::cerr << b;
-    std::cerr << "\n";
+    stream << "b=\n";
+    stream << b;
+    stream << "\n";
 
-    std::cerr << "lb=\n";
-    std::cerr << barrier.lb;
-    std::cerr << "\n";
+    stream << "lb=\n";
+    stream << barrier.lb;
+    stream << "\n";
 
-    std::cerr << "ub=\n";
-    std::cerr << barrier.ub;
-    std::cerr << "\n";
+    stream << "ub=\n";
+    stream << barrier.ub;
+    stream << "\n";
 
-    std::cerr << "T=\n";
-    std::cerr << MT(T);
-    std::cerr << "\n";
+    stream << "T=\n";
+    stream << MT(T);
+    stream << "\n";
 
-    std::cerr << "y=\n";
-    std::cerr << y;
-    std::cerr << "\n";
+    stream << "y=\n";
+    stream << y;
+    stream << "\n";
 
-    std::cerr << "center=\n";
-    std::cerr << center;
-    std::cerr << "\n";
-  }
-
-  void print(const char *fileName) {
-    std::ofstream myfile;
-    myfile.open(fileName);
-    myfile << Asp.rows() << "  " << Asp.cols() << "\n";
-
-    myfile << MT(Asp);
-    myfile << "\n";
-    myfile << "\n";
-
-    myfile << b;
-    myfile << "\n";
-    myfile << "\n";
-
-    myfile << barrier.lb;
-    myfile << "\n";
-    myfile << "\n";
-
-    myfile << barrier.ub;
-    myfile << "\n";
-    myfile << "\n";
-
-    myfile << MT(T);
-    myfile << "\n";
-    myfile << "\n";
-
-    myfile << y;
-    myfile << "\n";
-    myfile << "\n";
-
-    myfile << center;
+    stream << "center=\n";
+    stream << center;
+    stream << "\n";
   }
 
     void make_format(Input const &input, MT const &S) {
