@@ -1,7 +1,6 @@
 \docType{class}
 \name{Rcpp_sparse_constraint_problem}
 \alias{Rcpp_sparse_constraint_problem-class}
-\alias{sparse_constraint_problem}
 \alias{[,Rcpp_sparse_constraint_problem-method}
 \alias{[,Rcpp_sparse_constraint_problem,ANY,ANY,ANY-method}
 \alias{$<-,Rcpp_sparse_constraint_problem-method}
