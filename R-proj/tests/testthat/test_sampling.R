@@ -17,7 +17,7 @@ runsample <- function(P, name_string, dist){
   
 }
 
-logconcave_sample<- function(P,distribution, n_samples ,nburns){
+logconcave_sample<- function(P,distribution, n_samples ,n_burns){
 if(distribution=="uniform"){
 f <- function(x) (0)
 grad_f <- function(x) (0)
