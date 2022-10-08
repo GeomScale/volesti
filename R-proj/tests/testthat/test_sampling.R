@@ -17,6 +17,21 @@ runsample <- function(P, name_string, dist){
   
 }
 
+logconcave_sample<- function(P,distribution, n_samples ,nburns){
+if(distribution=="uniform"){
+f <- function(x) (0)
+grad_f <- function(x) (0)
+L=1
+m=1
+pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+return(psrf_univariate(pts))
+}
+else if(distribution== "gaussian"){
+pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "variance"=8))
+return(psrf_univariate(pts))
+}
+}
+
 for (i in 1:2) {
   
   if (i==1) {
@@ -73,4 +88,11 @@ for (i in 1:2) {
     expect_equal(res, 1)
   })
   
+
+  test_that("Sampling test", {
+    P = gen_simplex(10, 'H')
+    psrf = logconcave_sample(P,distribution,5000,2000)
+    expect_lte(max(psrf), 1.1)
+  })
+
 }
