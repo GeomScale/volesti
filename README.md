@@ -1,4 +1,4 @@
-This is an R package based on [VolEsti](https://github.com/GeomScale/volume_approximation) library that serves as supplementary code for the paper [*"Geometric algorithms for sampling the flux space of metabolic networks"*](https://arxiv.org/abs/2012.05503).
+This is an R package based on [volesti](https://github.com/GeomScale/volume_approximation) library that serves as supplementary code to sample uniformly distributed portfolios
 
 ###  Dependencies
 
@@ -19,12 +19,42 @@ devtools::install()
 library(volesti)  
 ```
 
-### Sample steady states
+### Sample uniformly distributed portfolios  
 
-First you have to download the mat file of the model you wish to sample from [Bigg](http://bigg.ucsd.edu/models) or the Recon2D_v04, Recon_d_301 from [VMH](https://www.vmh.life/) and save it to the folder `root/R-proj/metabolic_mat_files`.  
+Request effective sample size ess = 1000
 
-Then follow the script `root/R-proj/example.R`. In that script we sample from the simplest model of the Escherichia Coli (the mat file is already saved in `root/R-proj/metabolic_mat_files`).  
+```r
+result_list = samples_uniform_portfolios(A=A, b=b, Aeq=Aeq, beq=beq, ess = 1000)
+```
 
-If you execute it you shall get the following histogram that approximates the flux distribution of the reaction `Acetate kinase`.  
+### Results  
 
-![histogram](doc/histograms/acetate_kinase.png)
+result_list$HP_rounded : The full dimensional polytope of the last phase in MMCS method (use this to sample more portfolios).  
+result_list$samples : The samples in the full dimensional space.  
+result_list$random_portfolios : The uniformly distributed portfolios generated.  
+result_list$N : The matrix of the null space.  
+result_list$N_shift : Shift for the full dimensional polytope.  
+result_list$T : The transformation matrix to map samples from the last phase to the initial phase.  
+result_list$T_shift : The shift of the previous transformation.  
+result_list$minWeights : The minimum value of each weight.  
+result_list$maxWeights : The maximum value of each weight.  
+result_list$run_time : The total run-time.  
+
+To sample more portfolios, that is how you can use the last phase,  
+
+```r
+N = 5000 # sample 5000 more portfolios
+inner_ball = get_max_inner_ball(result_list$HP_rounded$A, result_list$HP_rounded$b)
+more_samples = sample_points(result_list$HP_rounded, n = N, 
+                             random_walk = list("walk" = "aBiW", "walk_length" = 1,
+                                                "starting_point"=inner_ball$center, 
+                                                "L" = 6*sqrt(result_list$HP_rounded$dimension)*inner_ball$radius))
+
+## map the points back to P0
+samples_in_P0 = result_list$T %*% more_samples + 
+  kronecker(matrix(1, 1, N), matrix(result_list$T_shift, ncol = 1))
+
+## compute the portfolios
+more_random_portfolios = result_list$N %*% samples_in_P0 + 
+  kronecker(matrix(1, 1, N), matrix(result_list$N_shift, ncol = 1))
+```

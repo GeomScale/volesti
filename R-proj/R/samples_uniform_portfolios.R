@@ -1,10 +1,11 @@
-generate_steady_states <- function(path, n = 1000, Recon2D_v04 = FALSE, Recon3D_301 = FALSE) {
+samples_uniform_portfolios <- function(A, b, Aeq, beq, ess = 1000) {
+
+  P = Hpolytope$new(A = as.matrix(A), b = c(b), Aeq = as.matrix(Aeq), beq = c(beq))
   
-  P = metabolic_net_2_polytope(path, Recon2D_v04, Recon3D_301)
-  print("computing min and max Fluxes")
+  print("Preprocessing...")
   pre_proc_list = fast_preprocess_with_mosek(P)
   
-  print("Computing the null space of the Stoichiometric matrix")
+  print("Computing the full dimensional polytope...")
   rr = null_space_and_shift(pre_proc_list$row_ind, pre_proc_list$col_ind, pre_proc_list$values, pre_proc_list$Aeq, pre_proc_list$beq)
   
   A = P$A 
@@ -26,19 +27,20 @@ generate_steady_states <- function(path, n = 1000, Recon2D_v04 = FALSE, Recon3D_
   }
   print('Full dimensional polytope computed!')
   
-  print("Computing the Chebychev ball of the full dimensional polytipe")
+  print("Computing the Chebychev ball of the full dimensional polytope...")
   max_ball = get_max_inner_ball(A, b)
+  print("Chebychev ball computed!")
   
   d = dim(A)[2]
   m = dim(A)[1]
   
-  print("Call MMCS method")
+  print("Sampling with MMCS method...")
   tim = system.time({ samples_list = mmc_sampling(A = A, b = b, 
-                                                         max_ball = max_ball, n = n,
-                                                         num_rounding_samples = 20*d, 
-                                                         max_num_samples = 100*d, 
-                                                         rounding = TRUE) })
-  print('Steady states computed!')
+                                                  max_ball = max_ball, n = ess,
+                                                  num_rounding_samples = 20*d, 
+                                                  max_num_samples = 100*d, 
+                                                  rounding = TRUE) })
+  print('Sampling completed!')
   
   N = dim(samples_list$samples)[2]
   samples = samples_list$samples
@@ -51,13 +53,14 @@ generate_steady_states <- function(path, n = 1000, Recon2D_v04 = FALSE, Recon3D_
   result_list = list()
   result_list$HP_rounded = HP
   result_list$samples = samples
-  result_list$steady_states = steady_states
+  result_list$random_portfolios = steady_states
   result_list$N = rr$N
   result_list$N_shift = rr$N_shift
   result_list$T = samples_list$T
   result_list$T_shift = samples_list$T_shift
-  result_list$minFluxes = pre_proc_list$minFluxes
-  result_list$maxFluxes = pre_proc_list$maxFluxes
+  result_list$minWeights = pre_proc_list$minWeights
+  result_list$maxWeights = pre_proc_list$maxWeights
+  result_list$run_time = tim[3]
   
   return(result_list)
 }

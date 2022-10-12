@@ -9,8 +9,8 @@ fast_preprocess_with_mosek <- function(P) {
   
   m = dim(Aeq)[1]
   
-  minFluxes = c()
-  maxFluxes = c()
+  minWeights = c()
+  maxWeights = c()
   
   row_ind = c()
   col_ind = c()
@@ -54,8 +54,8 @@ fast_preprocess_with_mosek <- function(P) {
     #print(paste0("mix_dist = ", max_dist))
     #print(" ")
     
-    minFluxes = c(minFluxes, min_dist)
-    maxFluxes = c(maxFluxes, max_dist)
+    minWeights = c(minWeights, min_dist)
+    maxWeights = c(maxWeights, max_dist)
     
     width = abs(max_dist - min_dist)
     
@@ -68,8 +68,8 @@ fast_preprocess_with_mosek <- function(P) {
   ret_list = list()
   ret_list$Aeq = Aeq
   ret_list$beq = beq
-  ret_list$minFluxes = minFluxes
-  ret_list$maxFluxes = maxFluxes
+  ret_list$minWeights = minWeights
+  ret_list$maxWeights = maxWeights
   ret_list$row_ind = row_ind
   ret_list$col_ind = col_ind
   ret_list$values = values
