@@ -18,7 +18,7 @@ Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a
 to a SDPA format file.
 }
 \examples{
-\dontrun{
+\donttest{
 A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)

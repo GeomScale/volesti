@@ -39,4 +39,6 @@
 
 - Remove `loadSdpaFormatFile()` and `readSdpaFormatFile()` functions.
 
+# volesti 1.1.2-3
 
+- Remove unneeded-internal-declaration warning in clang-15

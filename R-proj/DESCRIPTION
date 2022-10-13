@@ -6,13 +6,14 @@ Author: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com> [aut, cph, cre
   Apostolos Chalkis <tolis.chal@gmail.com> [cph, aut],
   contributors in file inst/AUTHORS
 Copyright: file inst/COPYRIGHTS
-Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes estimations of volume 
-             of polytopes given by (i) a set of points, (ii) linear inequalities or (iii) Minkowski sum of segments 
-             (a.k.a. zonotopes). There are three algorithms for volume estimation as well as algorithms 
-             for sampling, rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
-             estimating copulas useful in computational finance.
-Version: 1.1.2-2
-Date: 2021-07-14
+Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes estimations of volume
+             of polytopes given by (i) a set of points, (ii) linear inequalities or (iii) Minkowski sum of segments
+             (a.k.a. zonotopes). There are three algorithms for volume estimation as well as algorithms
+             for sampling, rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for
+             estimating copulas useful in computational finance. Methods implemented in 'volesti' are described
+             in A. Chalkis and V. Fisikopoulos (2022) <doi:10.32614/RJ-2021-077> and references therein.
+Version: 1.1.2-3
+Date: 2022-10-12
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods, stats
@@ -20,4 +21,4 @@ LinkingTo: Rcpp, RcppEigen, BH
 Suggests: testthat
 Encoding: UTF-8
 RoxygenNote: 7.1.1
-BugReports: https://github.com/GeomScale/volume_approximation/issues
+BugReports: https://github.com/GeomScale/volesti/issues

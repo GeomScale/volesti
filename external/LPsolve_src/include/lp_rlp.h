@@ -1655,9 +1655,9 @@ static int lp_yy_get_next_buffer (lp_yyscan_t lp_yyscanner)
 
 #ifndef YY_NO_INPUT
 #ifdef __cplusplus
-    static int lp_yyinput (lp_yyscan_t lp_yyscanner)
+    static inline int lp_yyinput (lp_yyscan_t lp_yyscanner)
 #else
-    static int input  (lp_yyscan_t lp_yyscanner)
+    static inline int input  (lp_yyscan_t lp_yyscanner)
 #endif
 
 {
