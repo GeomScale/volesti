@@ -15,8 +15,8 @@
 // Monte Carlo in a Constrained Space"
 #ifndef HAMILTONIAN_HPP
 #define HAMILTONIAN_HPP
-#include "sos/barriers/TwoSidedBarrier.h"
-#include "sos/barriers/WeightedTwoSidedBarrier.h"
+#include "preprocess/crhmc/two_sided_barrier.h"
+#include "preprocess/crhmc/weighted_two_sided_barrier.h"
 #include "preprocess/crhmc/crhmc_utils.h"
 #include <utility>
 
@@ -30,8 +30,8 @@ class Hamiltonian {
   using Opts = typename Polytope::Opts;
   using SpMat = typename Polytope::SpMat;
   using pts = std::vector<Point>;
-  using Barrier = TwoSidedBarrier<Point>;
-  using WeightedBarrier = WeightedTwoSidedBarrier<Point>;
+  using Barrier = two_sided_barrier<Point>;
+  using WeightedBarrier = weighted_two_sided_barrier<Point>;
 
 public:
   bool prepared = false;
@@ -60,7 +60,7 @@ public:
     x = VT::Zero(n);
     xs = {Point(n), Point(n)};
     lsc = VT::Zero(n);
-    solver.accuracyThreshold = options.solver_accuracy_threashold;
+    solver.accuracyThreshold = options.solver_accuracy_threshold;
     if (options.DynamicWeight) {
       weighted_barrier =
           new WeightedBarrier(P.barrier.lb, P.barrier.ub, P.w_center);

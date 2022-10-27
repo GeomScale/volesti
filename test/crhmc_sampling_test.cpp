@@ -52,8 +52,8 @@ struct InnerBallFunctor {
 
   template <typename Point>
   struct GradientFunctor {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
+    using NT = typename Point::FT;
+    using pts = std::vector<Point>;
 
     parameters<NT, Point> &params;
 
@@ -76,7 +76,7 @@ struct InnerBallFunctor {
 
   template <typename Point>
   struct FunctionFunctor {
-    typedef typename Point::FT NT;
+    using NT = typename Point::FT;
 
     parameters<NT, Point> &params;
 
@@ -90,7 +90,7 @@ struct InnerBallFunctor {
   };
   template <typename Point>
   struct HessianFunctor {
-    typedef typename Point::FT NT;
+    using NT = typename Point::FT;
 
     parameters<NT, Point> &params;
     HessianFunctor(parameters<NT, Point> &params_) : params(params_){};
@@ -117,8 +117,8 @@ struct CustomFunctor {
 
   template <typename Point>
   struct GradientFunctor {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
+    using NT = typename Point::FT;
+    using pts = std::vector<Point>;
 
     parameters<NT> params;
 
@@ -143,7 +143,7 @@ struct CustomFunctor {
 
   template <typename Point>
   struct FunctionFunctor {
-    typedef typename Point::FT NT;
+    using NT = typename Point::FT;
 
     parameters<NT> params;
 
@@ -154,7 +154,7 @@ struct CustomFunctor {
   };
   template <typename Point>
   struct HessianFunctor {
-    typedef typename Point::FT NT;
+    using NT = typename Point::FT;
     Point operator()(Point const &x) const {
       return 2 * Point::all_ones(x.dimension());
     }

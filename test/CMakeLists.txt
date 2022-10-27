@@ -237,8 +237,8 @@ else ()
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
 
-	add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
-	add_executable (benchmarks_crhmc_sampling benchmarks_crhmc_sampling.cpp )
+	#add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
+	#add_executable (benchmarks_crhmc_sampling benchmarks_crhmc_sampling.cpp )
 
 	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_polytope_test_preparation
@@ -346,10 +346,10 @@ else ()
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
-	set_target_properties(benchmarks_crhmc
-                                PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
-	set_target_properties(benchmarks_crhmc_sampling
-															  PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	#set_target_properties(benchmarks_crhmc
+  #                              PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	#set_target_properties(benchmarks_crhmc_sampling
+	#														  PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_polytope_preparation_test
 																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_sampling_test
@@ -372,8 +372,8 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling ${LP_SOLVE} ${MKL_LINK} ${QD_LIB} coverage_config)
-	TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} ${QD_LIB}  coverage_config)
+	#TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling ${LP_SOLVE} ${MKL_LINK} ${QD_LIB} coverage_config)
+	#TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} ${QD_LIB}  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)

@@ -18,7 +18,9 @@
 #define IMPLICIT_MIDPOINT_HPP
 #include "preprocess/crhmc/opts.h"
 #include "random_walks/crhmc/hamiltonian.hpp"
+#ifdef TIME_KEEPING
 #include <chrono>
+#endif
 
 template <typename T>
 inline std::vector<T> operator+(const std::vector<T> &v1,
@@ -114,7 +116,6 @@ struct ImplicitMidpointODESolver {
 #ifdef TIME_KEEPING
       start = std::chrono::system_clock::now();
 #endif
-      // partialDerivatives = ham.DK(xmid);
       partialDerivatives = ham.approxDK(xmid, nu);
 #ifdef TIME_KEEPING
       end = std::chrono::system_clock::now();

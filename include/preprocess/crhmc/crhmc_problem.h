@@ -24,7 +24,7 @@
 #include "preprocess/crhmc/crhmc_utils.h"
 #include "preprocess/crhmc/lewis_center.h"
 #include "preprocess/crhmc/opts.h"
-#include "sos/barriers/TwoSidedBarrier.h"
+#include "preprocess/crhmc/two_sided_barrier.h"
 #include <algorithm>
 #include <chrono>
 #include <fstream>
@@ -48,7 +48,7 @@ public:
   using IndexVector = Eigen::Matrix<int, Eigen::Dynamic, 1>;
   using CholObj = PackedChol<chol_k, int>;
   using Triple = Eigen::Triplet<NT>;
-  using Barrier = TwoSidedBarrier<Point>;
+  using Barrier = two_sided_barrier<Point>;
   using Tx = FloatArray<double, chol_k>;
   using Opts = opts<NT>;
   using Diagonal_MT = Eigen::DiagonalMatrix<NT, Eigen::Dynamic>;

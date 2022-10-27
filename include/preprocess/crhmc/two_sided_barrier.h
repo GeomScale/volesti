@@ -16,14 +16,14 @@
 
 // The log barrier for the domain {lu <= x <= ub}:
 //	phi(x) = - sum log(x - lb) - sum log(ub - x).
-#ifndef WEIGHTEDTWOSIDEDBARIER_H
-#define WEIGHTEDTWOSIDEDBARIER_H
+#ifndef TWO_SIDED_BARIER_H
+#define TWO_SIDED_BARIER_H
 
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include <vector>
 
-template <class Point> class WeightedTwoSidedBarrier {
+template <typename Point> class two_sided_barrier {
 
   using NT = typename Point::FT;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -39,35 +39,62 @@ public:
   std::vector<int> freeIdx;
   VT center;
   const NT max_step = 1e16; // largest step size
-  VT extraHessian;
+  VT extraHessian;  //Regularization factor
 
   const NT inf = std::numeric_limits<NT>::infinity();
+  //initialization function
+  void set_bound(VT const &_lb, VT const &_ub) {
 
-  VT w;
+    lb = _lb;
+    ub = _ub;
+    n = lb.rows();
+    extraHessian = (1e-20) * VT::Ones(n);
+    int x1 = 0, x2 = 0, x3 = 0;
+    for (int i = 0; i < n; i++) {
+      if (lb(i) == -inf) {
+        upperIdx.push_back(i);
+        x1++;
+      }
+      if (ub(i) == inf) {
+        lowerIdx.push_back(i);
+        x2++;
+      }
+      if (ub(i) == inf && lb(i) == -inf) {
+        freeIdx.push_back(i);
+        x3++;
+      }
+    }
 
-  WeightedTwoSidedBarrier(VT const &_lb, VT const &_ub, VT const &_w,
-                          int _vdim = 1) {
+    VT c = (ub + lb) / 2;
+
+    c(lowerIdx) = lb(lowerIdx) + VT::Ones(x2, 1) * 1e6;
+    c(upperIdx) = ub(upperIdx) - VT::Ones(x1, 1) * 1e6;
+    c(freeIdx) *= 0.0;
+
+    center = c;
+  }
+  two_sided_barrier(VT const &_lb, VT const &_ub, int _vdim = 1) {
     set_bound(_lb, _ub);
-    w = _w;
     vdim = _vdim;
     extraHessian = (1e-20) * VT::Ones(n);
   }
-  WeightedTwoSidedBarrier() { vdim = 1; }
-
+  two_sided_barrier() { vdim = 1; }
+  //barrier function gradient
   VT gradient(VT const &x) {
-    return w.cwiseQuotient(ub - x) - w.cwiseQuotient(x - lb);
+    return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();
   }
-
+  //Return the barrier hessian with the extra Regularization
   VT hessian(VT const &x) {
-    VT d = w.cwiseQuotient((ub - x).cwiseProduct((ub - x))) +
-           w.cwiseQuotient((x - lb).cwiseProduct((x - lb)));
+    VT d = ((ub - x).cwiseProduct((ub - x))).cwiseInverse() +
+           ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d + extraHessian;
   }
+  //third derivative of the barrier
   VT tensor(VT const &x) {
-    VT d = 2 * w.cwiseQuotient(
-                   ((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
-           2 * w.cwiseQuotient(
-                   ((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
+    VT d = 2 * (((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x)))
+                   .cwiseInverse() -
+           2 * (((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)))
+                   .cwiseInverse();
     return d;
   }
   VT quadratic_form_gradient(VT const &x, VT const &u) {
@@ -99,35 +126,17 @@ public:
     return (x.array() > lb.array() && x.array() < ub.array()).all();
   }
 
-  void set_bound(VT const &_lb, VT const &_ub) {
+  std::pair<VT, VT> analytic_center_oracle(VT const &x) {
+    VT g = VT::Zero(n, 1);
+    VT h = VT::Zero(n, 1);
+    return std::make_pair(g + gradient(x), h + hessian(x));
+  }
 
-    lb = _lb;
-    ub = _ub;
-    n = lb.rows();
-    extraHessian = (1e-20) * VT::Ones(n);
-    int x1 = 0, x2 = 0, x3 = 0;
-    for (int i = 0; i < n; i++) {
-      if (lb(i) == -inf) {
-        upperIdx.push_back(i);
-        x1++;
-      }
-      if (ub(i) == inf) {
-        lowerIdx.push_back(i);
-        x2++;
-      }
-      if (ub(i) == inf && lb(i) == -inf) {
-        freeIdx.push_back(i);
-        x3++;
-      }
-    }
-
-    VT c = (ub + lb) / 2;
-
-    c(lowerIdx) = lb(lowerIdx) + VT::Ones(x2, 1) * 1e6;
-    c(upperIdx) = ub(upperIdx) - VT::Ones(x1, 1) * 1e6;
-    c(freeIdx) *= 0.0;
-
-    center = c;
+  std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
+    VT g = VT::Zero(n, 1);
+    VT h = VT::Zero(n, 1);
+    return std::make_pair(g + w.cwiseProduct(gradient(x)),
+                          h + w.cwiseProduct(hessian(x)));
   }
 
   std::pair<VT, VT> boundary(VT const &x) {
