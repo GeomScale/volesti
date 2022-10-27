@@ -16,15 +16,15 @@
 
 // The log barrier for the domain {lu <= x <= ub}:
 //	phi(x) = - sum log(x - lb) - sum log(ub - x).
-#ifndef TWOSIDEDBARIER_H
-#define TWOSIDEDBARIER_H
+#ifndef TWO_SIDED_BARIER_H
+#define TWO_SIDED_BARIER_H
 
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "preprocess/crhmc/crhmc_utils.h"
 #include <vector>
 
-template <typename Point> class TwoSidedBarrier {
+template <typename Point> class two_sided_barrier {
 
   using NT = typename Point::FT;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -77,12 +77,12 @@ public:
 
     center = c;
   }
-  TwoSidedBarrier(VT const &_lb, VT const &_ub, int _vdim = 1) {
+  two_sided_barrier(VT const &_lb, VT const &_ub, int _vdim = 1) {
     set_bound(_lb, _ub);
     vdim = _vdim;
     extraHessian = (1e-20) * MT::Ones(n,1);
   }
-  TwoSidedBarrier() { vdim = 1; }
+  two_sided_barrier() { vdim = 1; }
 
   VT gradient(VT const &x) {
     return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();

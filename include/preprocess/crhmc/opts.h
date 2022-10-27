@@ -32,7 +32,7 @@ public:
   Type initialStep = 0.2;
 
   /*PackedCS Solver Options*/
-  Type solver_accuracy_threashold=1e-2;
+  Type solver_accuracy_threshold=1e-2;
   int simdLen=1;
 
   /*Sampler options*/

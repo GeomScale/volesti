@@ -50,9 +50,7 @@ void check_norm(Solver &solver, int num_steps, NT target, NT tol = 1e-4) {
 
   auto stop = std::chrono::high_resolution_clock::now();
 
-  long ETA =
-      (long)std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
-          .count();
+  long ETA = (long)std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 
   NT norm = NT(0);
 
@@ -98,9 +96,7 @@ void check_index_norm_ub(Solver &solver, int num_steps, int index, NT target,
   }
   auto stop = std::chrono::high_resolution_clock::now();
 
-  long ETA =
-      (long)std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
-          .count();
+  long ETA = (long)std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
   std::cout << "ETA (us): " << ETA << std::endl << std::endl;
 }
 
@@ -169,7 +165,7 @@ template <typename NT> void test_implicit_midpoint() {
   typedef crhmc_input<MT, Point, func, grad> Input;
   typedef crhmc_problem<Point, Input> CrhmcProblem;
   typedef HPolytope<Point> Hpolytope;
-  unsigned d = 100;
+  unsigned d = 1;
   Opts opts;
   Point mean = Point(d);
   func_params params = func_params(mean, 0.5, 1);
@@ -185,7 +181,7 @@ template <typename NT> void test_implicit_midpoint() {
   MT x0 = MT::Zero(d,1);
   MT v0 = MT::Ones(d,1);
   pts q{x0, v0};
-  opts.solver_accuracy_threashold = 1e-2;
+  opts.solver_accuracy_threshold = 1e-2;
   ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>
       implicit_midpoint_solver =
           ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>(0, 0.01, q,

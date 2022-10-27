@@ -16,15 +16,15 @@
 
 // The log barrier for the domain {lu <= x <= ub}:
 //	phi(x) = - sum log(x - lb) - sum log(ub - x).
-#ifndef WEIGHTEDTWOSIDEDBARIER_H
-#define WEIGHTEDTWOSIDEDBARIER_H
+#ifndef WEIGHTED_TWO_SIDED_BARIER_H
+#define WEIGHTED_TWO_SIDED_BARIER_H
 
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "preprocess/crhmc/crhmc_utils.h"
 #include <vector>
 
-template <class Point> class WeightedTwoSidedBarrier {
+template <class Point> class weighted_two_sided_barrier {
 
   using NT = typename Point::FT;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -46,14 +46,14 @@ public:
 
   VT w;
 
-  WeightedTwoSidedBarrier(VT const &_lb, VT const &_ub, VT const &_w,
+  weighted_two_sided_barrier(VT const &_lb, VT const &_ub, VT const &_w,
                           int _vdim = 1) {
     set_bound(_lb, _ub);
     w = _w;
     vdim = _vdim;
     extraHessian = (1e-20) * VT::Ones(n,1);
   }
-  WeightedTwoSidedBarrier() { vdim = 1; }
+  weighted_two_sided_barrier() { vdim = 1; }
 
   VT gradient(VT const &x) {
     return w.cwiseQuotient(ub - x) - w.cwiseQuotient(x - lb);
