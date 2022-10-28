@@ -35,6 +35,7 @@ using Grad = GaussianFunctor::GradientFunctor<Point>;
 using Hess = GaussianFunctor::HessianFunctor<Point>;
 using PolytopeType = HPolytope<Point>;
 using MT = PolytopeType::MT;
+using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 using func_params = GaussianFunctor::parameters<NT, Point>;
 using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
 template <int simdLen>
@@ -76,7 +77,6 @@ template <int simdLen>
 void sample_sparse_problem(int n_samples = 80000,
               int n_burns = 20000){
   using SpMat = Eigen::SparseMatrix<NT>;
-  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using ConstraintProblem =constraint_problem<SpMat, Point>;
   std::string problem_name("simplex3");
   std::cerr << "CRHMC on " << problem_name << "\n";
