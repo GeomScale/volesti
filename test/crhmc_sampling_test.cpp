@@ -507,7 +507,7 @@ void call_test_benchmark_cube_crhmc() {
 }
 
 template <typename ConstraintProblem, typename SpMat, typename Point, int simdLen=1>
-void test_polytope_sampling_sparse_problem(ConstraintProblem problem, int n_samples = 80000, int n_burns = 20000){
+void test_polytope_sampling_sparse_problem(ConstraintProblem &problem, int n_samples = 80000, int n_burns = 20000){
   using NT = typename Point::FT;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -529,7 +529,8 @@ void test_polytope_sampling_sparse_problem(ConstraintProblem problem, int n_samp
     samples.col(i) = (*it).getCoefficients();
     i++;
   }
-  check_interval_psrf<NT, VT, MT>(samples);
+  NT max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+  std::cout<<"PSRF: "<<max_psrf<<std::endl;
 }
 template <typename NT, int simdLen = 1>
 void call_test_polytope_sampling_sparse_problem(){
