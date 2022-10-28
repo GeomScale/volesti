@@ -378,4 +378,38 @@ for(int i=0;i<b_idx.size();i++){
   a(a_idx[i])=b(b_idx[i])+c(i);
 }
 }
+/*Problem on the form X=[A|b] bounds=[lb|ub] */
+template< typename SpMat, typename VT>
+void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
+                        std::string problem_name) {
+   {
+    std::string fileName(problem_name);
+    fileName.append(".mm");
+    SpMat X;
+    loadMarket(X, fileName);
+    int m = X.rows();
+    dimension = X.cols() - 1;
+    A = X.leftCols(dimension);
+    b = VT(X.col(dimension));
+  }
+  {
+    std::string fileName(problem_name);
+    fileName.append("_bounds.mm");
+    SpMat bounds;
+    loadMarket(bounds, fileName);
+    lb = VT(bounds.col(0));
+    ub = VT(bounds.col(1));
+  }
+}
+template<ConstraintProblem, VT>
+ConstraintProblem load_constraint_problem(std::string problem_name){
+  SpMat A;
+  VT b, lb, ub;
+  int dimension;
+  load_problem(A, b, lb, ub, dimension, problem_name);
+  ConstraintProblem problem = ConstraintProblem(dimension);
+  problem.set_equality_constraints(A, b);
+  problem.set_bounds(lb, ub);
+  return problem;
+}
 #endif

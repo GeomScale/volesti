@@ -307,7 +307,8 @@ void crhmc_sampling(PointList &randPoints,
                     NegativeGradientFunctor &F,
                     NegativeLogprobFunctor &f,
                     HessianFunctor &h,
-                    int simdLen = 1) {
+                    int simdLen = 1,
+                    bool raw_output=false) {
   typedef  typename Polytope::MT MatrixType;
   typedef  crhmc_input
           <
@@ -354,7 +355,7 @@ void crhmc_sampling(PointList &randPoints,
   //crhmc_walk.disable_adaptive();
   randPoints.clear();
   RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
-                              push_back_policy, rng, F, f, params, crhmc_walk, simdLen);
+                              push_back_policy, rng, F, f, params, crhmc_walk, simdLen, raw_output);
 }
 #include "ode_solvers/ode_solvers.hpp"
 template <
@@ -370,7 +371,7 @@ template <
 void execute_crhmc(Polytope &P, RNGType &rng, PointList &randPoints,
                   unsigned int const& walkL, unsigned int const& numpoints,
                   unsigned int const& nburns, NegativeGradientFunctor *F=NULL,
-                  NegativeLogprobFunctor *f=NULL, HessianFunctor *h=NULL){
+                  NegativeLogprobFunctor *f=NULL, HessianFunctor *h=NULL, bool raw_output= false){
 typedef typename Polytope::MT MatrixType;
 typedef typename Polytope::PointType Point;
 typedef typename Point::FT NT;
@@ -401,7 +402,7 @@ crhmc_sampling <
   NegativeGradientFunctor,
   simdLen
   >
->(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, *h, simdLen);
+>(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, *h, simdLen, raw_output);
 }else{
   typedef  crhmc_input
         <
@@ -430,7 +431,7 @@ crhmc_sampling <
   NegativeGradientFunctor,
   simdLen
   >
->(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, zerof, simdLen);
+>(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, zerof, simdLen, raw_output);
 }
 }
 template

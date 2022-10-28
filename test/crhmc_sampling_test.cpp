@@ -16,6 +16,8 @@
 #include "ode_solvers.hpp"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
+#include "preprocess/crhmc/crhmc_problem.h"
+#include "preprocess/crhmc/crhmc_utils.h"
 #include "random.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_int.hpp"
@@ -33,6 +35,7 @@
 #include <unistd.h>
 #include <vector>
 #include "preprocess/svd_rounding.hpp"
+#include "sampling/sampling.hpp"
 struct InnerBallFunctor {
 
   // Gaussian density centered at the inner ball center
@@ -503,6 +506,44 @@ void call_test_benchmark_cube_crhmc() {
   benchmark_cube_crhmc<NT>();
 }
 
+template <typename ConstraintProblem, typename SpMat, typename Point, int simdLen=1>
+void test_polytope_sampling_sparse_problem(ConstraintProblem problem, int n_samples = 80000, int n_burns = 20000){
+  using NT = typename Point::FT;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using Func = GaussianFunctor::FunctionFunctor<Point>;
+  using Grad = GaussianFunctor::GradientFunctor<Point>;
+  using Hess = GaussianFunctor::HessianFunctor<Point>;
+  using func_params = GaussianFunctor::parameters<NT, Point>;
+  using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
+  func_params params = func_params(Point(problem.dimension()), 0.5, 1);
+  Func f(params);
+  Grad g(params);
+  Hess h(params);
+  RNG rng(1);
+  std::list<Point> PointList;
+  execute_crhmc<ConstraintProblem, RNG, std::List<Point>, Func, Grad, Hess, CRHMCWalk, simdLen>(problem, rng, PointList, 1, n_samples, n_burns, &f, &g, &h, simdLen, true);
+  MT samples = MT(PointList[0].dimension(), PointList.size());
+  int i=0;
+  for (std::list<Point>::iterator it = PointList.begin(); it != PointList.end(); ++it){
+    samples.col(i) = (*it).getCoefficients();
+    i++;
+  }
+  check_interval_psrf<NT, VT, MT>(samples);
+}
+template <typename NT, int simdLen = 1>
+void call_test_polytope_sampling_sparse_problem(){
+  std::cout << " ---Sampling sparse problems " << std::endl;
+  using SpMat = Eigen::SparseMatrix<NT>;
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using ConstraintProblem =constraint_problem<SpMat, Point>;
+  if(exists_check("../test/netlib/degen2.mm")){
+    ConstraintProblem problem = load_constraint_problem<ConstraintProblem, VT>("../test/netlib/degen2");
+    test_polytope_sampling_sparse_problem<ConstraintProblem, SpMat, Point, simdLen>(problem);
+  }
+}
 TEST_CASE("crhmc") {
   call_test_crhmc<double>();
 }
@@ -518,4 +559,13 @@ TEST_CASE("test_polytope_sampling_crhmc") {
   std::cout << "------------SIMDLEN=4-------------------\n"
             << std::endl;
   call_test_sampling_polytope<double, 4>();
+}
+
+TEST_CASE("test_polytope_sampling_sparse_problem") {
+  std::cout << "------------SIMDLEN=1-------------------\n"
+            << std::endl;
+  call_test_polytope_sampling_sparse_problem<double, 1>();
+  std::cout << "------------SIMDLEN=4-------------------\n"
+            << std::endl;
+  call_test_polytope_sampling_sparse_problem<double, 4>();
 }

@@ -295,7 +295,8 @@ struct CrhmcRandomPointGenerator
                       NegativeLogprobFunctor &f,
                       Parameters &parameters,
                       Walk &walk,
-                      int simdLen=1)
+                      int simdLen=1,
+                      bool raw_output= false)
     {
         typedef typename Walk::MT MT;
         for (unsigned int i = 0; i < std::ceil((float)rnum/simdLen); ++i)
@@ -303,7 +304,11 @@ struct CrhmcRandomPointGenerator
             // Gather one sample
             walk.apply(rng, walk_length);
             if(walk.P.terminate){return;}
-            MT x=walk.getPoints();
+            if(raw_output){
+              MT x.walk.x;
+            }else{
+              MT x=walk.getPoints();
+            }
             if((i + 1) * simdLen > rnum){
               for(int j = 0; j < rnum-simdLen*i; j++){
                 Point p = Point(x.col(j));
