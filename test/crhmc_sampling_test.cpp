@@ -540,7 +540,14 @@ void call_test_polytope_sampling_sparse_problem(){
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using ConstraintProblem =constraint_problem<SpMat, Point>;
   if(exists_check("../test/netlib/degen2.mm")){
-    ConstraintProblem problem = load_constraint_problem<ConstraintProblem>("../test/netlib/degen2");
+    std::cout<<"Problem name: degen2" << std::endl;
+    SpMat A;
+    VT b, lb, ub;
+    int dimension;
+    load_problem(A, b, lb, ub, dimension, "../test/netlib/degen2");
+    ConstraintProblem problem = ConstraintProblem(dimension);
+    problem.set_equality_constraints(A, b);
+    problem.set_bounds(lb, ub);
     test_polytope_sampling_sparse_problem<ConstraintProblem, SpMat, Point, simdLen>(problem);
   }
 }

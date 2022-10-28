@@ -403,17 +403,4 @@ void load_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     ub = VT(bounds.col(1));
   }
 }
-template<typename ConstraintProblem>
-ConstraintProblem load_constraint_problem(std::string problem_name){
-  using SparseMatrix= typename ConstraintProblem::MT;
-  using VectorType= typename ConstraintProblem::VT;
-  SparseMatrix A;
-  VectorType b, lb, ub;
-  int dimension;
-  load_problem(A, b, lb, ub, dimension, problem_name);
-  ConstraintProblem problem = ConstraintProblem(dimension);
-  problem.set_equality_constraints(A, b);
-  problem.set_bounds(lb, ub);
-  return problem;
-}
 #endif
