@@ -522,7 +522,7 @@ void test_polytope_sampling_sparse_problem(ConstraintProblem problem, int n_samp
   Hess h(params);
   RNG rng(1);
   std::list<Point> PointList;
-  execute_crhmc<ConstraintProblem, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(problem, rng, PointList, 1, n_samples, n_burns, &f, &g, &h, true);
+  execute_crhmc<ConstraintProblem, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(problem, rng, PointList, 1, n_samples, n_burns, &g, &f, &h, true);
   MT samples = MT(PointList.front().dimension(), PointList.size());
   int i=0;
   for (typename std::list<Point>::iterator it = PointList.begin(); it != PointList.end(); ++it){
