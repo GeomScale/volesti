@@ -380,7 +380,7 @@ for(int i=0;i<b_idx.size();i++){
 }
 /*Problem on the form X=[A|b] bounds=[lb|ub] */
 template< typename SpMat, typename VT>
-void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
+void load_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
                         std::string problem_name) {
    {
     std::string fileName(problem_name);
