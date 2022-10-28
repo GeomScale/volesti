@@ -401,7 +401,7 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     ub = VT(bounds.col(1));
   }
 }
-template<ConstraintProblem, VT>
+template<typename ConstraintProblem,typename VT>
 ConstraintProblem load_constraint_problem(std::string problem_name){
   SpMat A;
   VT b, lb, ub;

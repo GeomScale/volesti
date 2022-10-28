@@ -304,10 +304,11 @@ struct CrhmcRandomPointGenerator
             // Gather one sample
             walk.apply(rng, walk_length);
             if(walk.P.terminate){return;}
+            MT x;
             if(raw_output){
-              MT x.walk.x;
+              x=walk.x;
             }else{
-              MT x=walk.getPoints();
+              x=walk.getPoints();
             }
             if((i + 1) * simdLen > rnum){
               for(int j = 0; j < rnum-simdLen*i; j++){
