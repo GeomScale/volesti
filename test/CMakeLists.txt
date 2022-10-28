@@ -325,7 +325,8 @@ else ()
 					COMMAND crhmc_sampling_test -tc=crhmc)
 	add_test(NAME crhmc_test_polytope_sampling
 					COMMAND crhmc_sampling_test -tc=test_polytope_sampling_crhmc)
-
+	add_test(NAME crhmc_test_sparse_sampling
+					COMMAND crhmc_sampling_test -tc=test_sampling_sparse_problem)
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)

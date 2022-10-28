@@ -561,7 +561,7 @@ TEST_CASE("test_polytope_sampling_crhmc") {
   call_test_sampling_polytope<double, 4>();
 }
 
-TEST_CASE("test_polytope_sampling_sparse_problem") {
+TEST_CASE("test_sampling_sparse_problem") {
   std::cout << "------------SIMDLEN=1-------------------\n"
             << std::endl;
   call_test_polytope_sampling_sparse_problem<double, 1>();
