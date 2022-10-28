@@ -11,6 +11,7 @@
 #ifndef CRHMC_UTILS_H
 #define CRHMC_UTILS_H
 #include "Eigen/Eigen"
+#include <unsupported/Eigen/SparseExtra>
 #include "PackedCSparse/SparseMatrix.h"
 #include <algorithm>
 #include <vector>
@@ -93,6 +94,7 @@ void sparse_stack_h(const SparseMatrixType &left, const SparseMatrixType &right,
                  [&](int i)
                  { return i + left.nonZeros(); });
 }
+#include <unsupported/Eigen/SparseExtra>
 
 template <typename SparseMatrixType>
 void sparse_stack_h_inplace(SparseMatrixType &left,
