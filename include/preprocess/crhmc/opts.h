@@ -22,7 +22,7 @@ public:
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
-  Type max_coord = 1e7;
+  Type max_coord = 1e9;
   bool EnableReordering = true;
   const int min_convergence_steps=8;
 
