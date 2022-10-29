@@ -475,7 +475,9 @@ void test_crhmc() {
   unsigned int dim = 10;
   Opts options;
   options.simdLen = simdLen;
-  options.EnableReordering=false;
+  options.DynamicWeight=false;
+  options.DynamicStepSize=false;
+  options.DynamicRegularizer=false;
   CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(g, dim,
                                                                   options);
   Input input = Input(dim, f, g);
