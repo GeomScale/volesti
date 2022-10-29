@@ -117,6 +117,8 @@ template <typename NT> void test_crhmc_dependent_polytope() {
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using Input = crhmc_input<MT, Point>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
+  using SpMat = typename CrhmcProblem::SpMat;
+  using InputSparse = crhmc_input<SpMat, Point>;
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
   unsigned d = 3;
@@ -131,6 +133,13 @@ template <typename NT> void test_crhmc_dependent_polytope() {
   options.EnableReordering = true;
   CrhmcProblem P = CrhmcProblem(input, options);
   CHECK(P.equations() == 2);
+
+  SpMat A = Aeq.sparseView();
+  InputSparse input_sparse = InputSparse(d);
+  input_sparse.Aeq = A;
+  input_sparse.beq = beq;
+  crhmc_problem<Point, InputSparse> Q = crhmc_problem<Point, InputSparse>(input_sparse,options);
+  CHECK(Q.equations() == 2);
 }
 
 template <typename NT> void test_center_computation() {
