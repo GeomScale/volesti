@@ -283,7 +283,7 @@ public:
   // Reorder the polytope accordint to the AMD Reordering for better sparsity
   // pattern in the Cholesky decomposition
   void reorder() {
-    if (!options.EnableReordering) {
+    if (!options.EnableReordering || Asp.rows()*Asp.cols() < options.maxNZ) {
       return;
     }
     fillin_reduce(Asp,b);
@@ -379,9 +379,12 @@ public:
     }
   }
 
-  VT estimate_width() {
+  VT estimate_width(bool use_center=false) {
     int n = Asp.cols();
     VT hess = VT::Ones(n, 1);
+    if(use_center){
+      std::tie(std::ignore, hess)=analytic_center_oracle(center);
+    }
     CholObj solver = CholObj(transform_format<SpMat,NT,int>(Asp));
     solver.accuracyThreshold = 0;
     solver.decompose((Tx *)hess.data());
@@ -516,7 +519,7 @@ public:
   // Initialization funciton
   void PreproccessProblem() {
     int n = dimension();
-    barrier.set_bound(lb.cwiseMax(-1e7), ub.cwiseMin(1e7));
+    barrier.set_bound(lb.cwiseMax(-options.max_coord), ub.cwiseMin(options.max_coord));
     NT tol = std::numeric_limits<NT>::epsilon();
     Asp.prune(tol, tol);
     /*Update the transformation Tx + y*/
@@ -552,8 +555,8 @@ public:
 #endif
     reorder();
 
-    width = estimate_width();
-    if (width.maxCoeff() > 1e9) {
+    width = estimate_width(true);
+    if (width.maxCoeff() >= 1e7) {
       terminate = true;
       terminate_message = "Domain seems to be unbounded. Either add a Gaussian term via f, df, ddf or add bounds to variable via lb and ub.\n";
       return;
