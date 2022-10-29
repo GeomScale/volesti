@@ -556,7 +556,7 @@ public:
     reorder();
 
     width = estimate_width(true);
-    if (width.maxCoeff() >= 1e7) {
+    if (width.maxCoeff() >= 1e6) {
       terminate = true;
       terminate_message = "Domain seems to be unbounded. Either add a Gaussian term via f, df, ddf or add bounds to variable via lb and ub.\n";
       return;
