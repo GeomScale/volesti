@@ -20,7 +20,7 @@ jobs:
               - {os: ubuntu-22.04, compiler_pkg: clang-12, compiler: clang++-12}
               - {os: ubuntu-22.04, compiler_pkg: clang-13, compiler: clang++-13}
               - {os: ubuntu-22.04, compiler_pkg: clang-14, compiler: clang++-14}
-              - {os: ubuntu-22.04, compiler_pkg: clang-15, compiler: clang++-15}
+              #- {os: ubuntu-22.04, compiler_pkg: clang-15, compiler: clang++-15}
               - {os: ubuntu-20.04, compiler_pkg: clang-8, compiler: clang++-8}
               - {os: ubuntu-20.04, compiler_pkg: clang-9, compiler: clang++-9}
               - {os: ubuntu-20.04, compiler_pkg: clang-10, compiler: clang++-10}

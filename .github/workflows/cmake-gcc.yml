@@ -20,7 +20,7 @@ jobs:
               - {os: ubuntu-22.04, compiler: g++-10}
               - {os: ubuntu-22.04, compiler: g++-11}
               - {os: ubuntu-22.04, compiler: g++-12}
-              - {os: ubuntu-22.04, compiler: g++-13}
+              #- {os: ubuntu-22.04, compiler: g++-13}
               - {os: ubuntu-20.04, compiler: g++-7}
               - {os: ubuntu-20.04, compiler: g++-8}
               - {os: ubuntu-20.04, compiler: g++-9}
