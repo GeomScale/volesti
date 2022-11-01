@@ -99,7 +99,7 @@ public:
       ex_collapsed_vars_duration, shift_barrier_duration, lewis_center_duration;
 #endif
   const NT inf = options.max_coord; // helper for barrier handling
-  const NT barrier_bound = 1e7
+  const NT barrier_bound = 1e7;
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
   int nnz() const { return Asp.nonZeros(); }
