@@ -40,8 +40,9 @@ public:
   std::vector<int> freeIdx;
   VT center;
   const NT max_step = 1e16; // largest step size
+  const NT regularization_constant = 1e-20; // small regularization to not have a large inverse
+  const NT unbounded_center_coord = 1e6;
   MT extraHessian;
-
   const NT inf = std::numeric_limits<NT>::infinity();
 
   VT w;
@@ -51,7 +52,7 @@ public:
     set_bound(_lb, _ub);
     w = _w;
     vdim = _vdim;
-    extraHessian = (1e-20) * VT::Ones(n,1);
+    extraHessian = regularization_constant * VT::Ones(n,1);
   }
   weighted_two_sided_barrier() { vdim = 1; }
 
@@ -70,17 +71,13 @@ public:
     return w.asDiagonal()*d + extraHessian;
   }
   VT tensor(VT const &x) {
-    VT d = 2 * w.cwiseQuotient(
-                   ((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
-           2 * w.cwiseQuotient(
-                   ((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
+    VT d = 2 * w.cwiseQuotient(((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
+           2 * w.cwiseQuotient(((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
     return d;
   }
   MT tensor(MT const &x) {
-    MT d = 2 * ((((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseProduct(((-x).colwise()+ub)))
-                   .cwiseInverse() -
-           2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb)))
-                   .cwiseInverse();
+    MT d = 2 * ((((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseProduct(((-x).colwise()+ub))).cwiseInverse() -
+           2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb))).cwiseInverse();
     return w.asDiagonal()*d;
   }
   MT quadratic_form_gradient(MT const &x, MT const &u) {
@@ -93,7 +90,7 @@ public:
     return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
   }
   NT step_size(VT const &x, VT const &v) {
-    // Output the maximum step size from x with direction v.
+    // Output the maximum step size from x with direction v or -v.
 
     // check positive direction
     VT temp = (v.array() > 0).select((ub - x).cwiseQuotient(v), max_step);
@@ -126,7 +123,7 @@ public:
     lb = _lb;
     ub = _ub;
     n = lb.rows();
-    extraHessian = (1e-20) * VT::Ones(n);
+    extraHessian = regularization_constant * VT::Ones(n);
     int x1 = 0, x2 = 0, x3 = 0;
     for (int i = 0; i < n; i++) {
       if (lb(i) == -inf) {
@@ -139,14 +136,13 @@ public:
       }
       if (ub(i) == inf && lb(i) == -inf) {
         freeIdx.push_back(i);
-        x3++;
       }
     }
 
     VT c = (ub + lb) / 2;
-    VT bias1=VT::Ones(x2, 1) * 1e6;
+    VT bias1=VT::Ones(x2, 1) * unbounded_center_coord;
     saxpy(c,lb,bias1,lowerIdx,lowerIdx);
-    VT bias2=-VT::Ones(x1, 1) * 1e6;
+    VT bias2=-VT::Ones(x1, 1) * unbounded_center_coord;
     saxpy(c,ub,bias2,upperIdx,upperIdx);
     set(c, freeIdx, 0.0);
 
@@ -156,13 +152,10 @@ public:
   std::pair<VT, VT> boundary(VT const &x) {
     // Output the normal at the boundary around x for each barrier.
     // Assume: only 1 vector is given
-
     VT A = VT::Ones(x.rows(), 1);
-
     VT b = ub;
 
     b = (x.array() < center.array()).select(-lb, b);
-
     A = (x.array() < center.array()).select(-A, A);
 
     return std::make_pair(A, b);

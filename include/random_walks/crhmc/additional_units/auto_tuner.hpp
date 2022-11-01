@@ -36,7 +36,8 @@ public:
   std::unique_ptr<weight_tuner> tune_weights;
   std::unique_ptr<regularizion_tuner> tune_regularization;
   std::unique_ptr<step_size_tuner> tune_step_size;
-  auto_tuner(Sampler &s) : options(s.params.options)
+  auto_tuner(Sampler &s) :
+    options(s.params.options)
   {
     if (options.DynamicWeight) {
       tune_weights = std::unique_ptr<weight_tuner>(new weight_tuner(s));

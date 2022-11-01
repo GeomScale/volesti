@@ -30,6 +30,7 @@ public:
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
+  Type convergence_bound = 1e16;
 
   /*PackedCS Solver Options*/
   Type solver_accuracy_threshold=1e-2;

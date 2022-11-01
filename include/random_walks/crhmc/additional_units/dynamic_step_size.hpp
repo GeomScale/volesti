@@ -37,9 +37,11 @@ public:
   VT acceptedStep;
   VT nEffectiveStep; // number of effective steps
   NT accumulatedMomentum = 0;
-  dynamic_step_size(Sampler &s)
-      : simdLen(s.simdLen), options(s.params.options), eta(s.solver->eta),
-        momentum(s.params.momentum)
+  dynamic_step_size(Sampler &s) :
+    simdLen(s.simdLen),
+    options(s.params.options),
+    eta(s.solver->eta),
+    momentum(s.params.momentum)
   {
     nEffectiveStep = VT::Zero(simdLen);
     acceptedStep = VT::Zero(simdLen);
@@ -87,15 +89,9 @@ public:
     NT shiftedIter = iterSinceShrink + 20 / (1 - momentum);
 
     NT targetProbability = std::pow((1.0 - momentum), (2 / 3)) / 4;
-    if (rejectSinceShrink.maxCoeff() > targetProbability * shiftedIter) {
-      shrink = 1;
-    }
-
-    if (consecutiveBadStep.maxCoeff() > options.maxConsecutiveBadStep) {
-      shrink = 1;
-    }
-
-    if (ODEStepSinceShrink > options.targetODEStep * shiftedIter) {
+    if (rejectSinceShrink.maxCoeff() > targetProbability * shiftedIter||
+        consecutiveBadStep.maxCoeff() > options.maxConsecutiveBadStep ||
+        ODEStepSinceShrink > options.targetODEStep * shiftedIter) {
       shrink = 1;
     }
 

@@ -39,7 +39,8 @@ public:
   }
   // If we have consecutive bad steps update the weights with
   //  the help of the leverage scores.
-  void update_weights(Sampler &s, RandomNumberGenerator &rng) {
+  void update_weights(Sampler &s, RandomNumberGenerator &rng)
+  {
     IVT bad_step = IVT::Zero(simdLen);
     if (s.solver->num_steps == options.maxODEStep) {
       bad_step += 1;
@@ -51,6 +52,10 @@ public:
 
     if (s.accept.sum() < simdLen) {
       VT lsc = s.solver->ham.lsc.colwise().maxCoeff().transpose();
+      /*The more bad steps in a row we have the higher we want the threshold to be
+      In order to change w more drasticaly according to the leverage scores.
+      So if we have more than 2 bad steps in a row we elect to set the threshold to 4
+      else to 16. Not many changes will be possible as the w should be upperbounded by 1*/
       if (consecutiveBadStep.maxCoeff() > 2) {
         threshold = 4;
       } else {
@@ -58,11 +63,10 @@ public:
       }
       bool changed = (lsc.array() > threshold * w.array()).any();
       if (changed) {
-        w = (lsc.array() > threshold * w.array())
-                .select((w * threshold).cwiseMin(1), w);
+        w = (lsc.array() > threshold * w.array()).select((w * threshold).cwiseMin(1), w);
         s.solver->ham.forceUpdate = true;
         s.solver->ham.move({s.x, s.v});
-        s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n, simdLen), false);
+        s.v = s.get_direction_with_momentum(n, rng, s.x, MT::Zero(n, simdLen), false);
       }
     }
   }

@@ -30,11 +30,12 @@ public:
   MT bound;
   Opts &options;
   MT &extraHessian;
-  dynamic_regularizer(Sampler &s)
-      : simdLen(s.simdLen), options(s.params.options),
-        extraHessian(options.DynamicWeight
-                         ? s.solver->ham.weighted_barrier->extraHessian
-                         : s.solver->ham.barrier->extraHessian)
+  dynamic_regularizer(Sampler &s) :
+    simdLen(s.simdLen),
+    options(s.params.options),
+    extraHessian(options.DynamicWeight
+      ? s.solver->ham.weighted_barrier->extraHessian
+      : s.solver->ham.barrier->extraHessian)
   {
     n = s.dim;
     bound = MT::Ones(n, simdLen);
@@ -45,14 +46,11 @@ public:
     MT x = s.x;
     x = (x.cwiseAbs()).cwiseMax(1);
     bound = bound.cwiseMax(x);
-    bool Condition =
-        (2 / (bound.array() * bound.array()) < n * extraHessian.array()).any();
-
-    if (Condition) {
+    if ((2 / (bound.array() * bound.array()) < n * extraHessian.array()).any()) {
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.forceUpdate = true;
       s.solver->ham.move({s.x, s.v});
-      s.v = s.GetDirectionWithMomentum(n, rng, s.x, MT::Zero(n, simdLen), 0, false);
+      s.v = s.get_direction_with_momentum(n, rng, s.x, MT::Zero(n, simdLen), 0, false);
     }
   }
 };

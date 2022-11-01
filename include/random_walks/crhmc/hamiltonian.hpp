@@ -55,9 +55,11 @@ public:
   Barrier *barrier;
   std::unique_ptr<WeightedBarrier> weighted_barrier;
   Opts &options;
-  Hamiltonian(Polytope &boundaries)
-      : P(boundaries), solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
-        options(boundaries.options) {
+  Hamiltonian(Polytope &boundaries) :
+    P(boundaries),
+    solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
+    options(boundaries.options)
+  {
     n = P.dimension();
     m = P.equations();
     x = MT::Zero(n, simdLen);
@@ -77,7 +79,8 @@ public:
   }
 
   // Compute H(x,v)
-  VT hamiltonian(MT x, MT v) {
+  VT hamiltonian(MT x, MT v)
+  {
     prepare({x, v});
     pts pd = DK({x, v});
     VT K = 0.5 * (v.cwiseProduct(pd[0])).colwise().sum();
@@ -92,7 +95,8 @@ public:
   }
   // Helper is nan function for vectors
   template <typename MatrixType>
-  IVT is_not_nan(MatrixType x) {
+  IVT is_not_nan(MatrixType x)
+  {
     IVT result = IVT::Ones(x.cols());
     for (int i = 0; i < x.rows(); i++) {
       for (int j = 0; j < x.cols(); j++) {
@@ -104,7 +108,8 @@ public:
     return result;
   }
   // Test if the values of x and v are valid and if x is feasible
-  VT feasible(MT x, MT v) {
+  VT feasible(MT x, MT v)
+  {
     VT feasible_coordinate = VT::Ones(x.cols());
     if (options.DynamicWeight) {
       feasible_coordinate = weighted_barrier->feasible(x);
@@ -115,7 +120,8 @@ public:
     return r;
   }
   // prepare the solver weighted by the hessian
-  void prepare(pts const &xs) {
+  void prepare(pts const &xs)
+  {
     move(xs);
     if (!prepared) {
       MT Hinv = (hess.cwiseInverse()).transpose();
@@ -125,7 +131,8 @@ public:
     prepared = true;
   }
   // Computation of the partial derivatives of the K term
-  pts DK(pts const &x_bar) {
+  pts DK(pts const &x_bar)
+  {
     MT x = x_bar[0];
     MT v = x_bar[1];
     move(x_bar);
@@ -151,7 +158,8 @@ public:
     return {dKdv, dKdx};
   }
   // Approximate computation of the partial derivatives of the K term
-  pts approxDK(pts const &x_bar, MT &nu) {
+  pts approxDK(pts const &x_bar, MT &nu)
+  {
     MT x = x_bar[0];
     MT v = x_bar[1];
     move(x_bar);
@@ -175,7 +183,8 @@ public:
   }
   // Compute the partial derivatives of one term
   // This is only dependent on x and so DU/Dv=0
-  pts DU(pts const &x_bar) {
+  pts DU(pts const &x_bar)
+  {
     MT x = x_bar[0];
     move(x_bar);
     if (!prepared || dUDx_empty) {
@@ -198,7 +207,8 @@ public:
   }
   // Compute the computations involving only x iff x has been changed
   // Else they are stored
-  void move(pts const &y) {
+  void move(pts const &y)
+  {
     if (y[0] == xs[0] && !forceUpdate) {
       return;
     }
@@ -228,7 +238,8 @@ public:
     xs[0] = xs[0] + (out_vector).cwiseQuotient(hess);
   }
   // Get the inner product of x and ds weighted by the hessian
-  VT x_norm(pts const &xs, pts const &dx) {
+  VT x_norm(pts const &xs, pts const &dx)
+  {
     move(xs);
     MT dx_x = dx[0];
     MT r = (dx_x.cwiseProduct(dx_x)).cwiseProduct(hess);
