@@ -65,7 +65,7 @@ public:
            w.cwiseQuotient((x - lb).cwiseProduct((x - lb)));
     return d + extraHessian;
   }
-  VT tensor(VT const &x) {machine learn
+  VT tensor(VT const &x) {
     VT d = 2 * w.cwiseQuotient(((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
            2 * w.cwiseQuotient(((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
     return d;
