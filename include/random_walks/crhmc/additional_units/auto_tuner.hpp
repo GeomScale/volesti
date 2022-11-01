@@ -36,7 +36,8 @@ public:
   weight_tuner *tune_weights;
   regularizion_tuner *tune_regularization;
   step_size_tuner *tune_step_size;
-  auto_tuner(Sampler &s) : options(s.params.options)
+  auto_tuner(Sampler &s) :
+    options(s.params.options)
   {
     if (options.DynamicWeight) {
       tune_weights = new weight_tuner(s);

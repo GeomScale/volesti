@@ -29,18 +29,19 @@ public:
   VT bound;
   Opts &options;
   VT &extraHessian;
-  dynamic_regularizer(Sampler &s)
-      : options(s.params.options),
-        extraHessian(options.DynamicWeight
-                         ? s.solver->ham.weighted_barrier->extraHessian
-                         : s.solver->ham.barrier->extraHessian)
+  dynamic_regularizer(Sampler &s) :
+    options(s.params.options),
+    extraHessian(options.DynamicWeight
+      ? s.solver->ham.weighted_barrier->extraHessian
+      : s.solver->ham.barrier->extraHessian)
   {
     n = s.dim;
     bound = VT::Ones(n);
     extraHessian = VT::Ones(n);
   }
 
-  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
+  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng)
+  {
     VT x = s.x.getCoefficients();
     x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
     bound = bound.cwiseMax(x);
@@ -50,7 +51,7 @@ public:
     if (Condition) {
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.move({s.x, s.v});
-      s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
+      s.v = s.get_direction_with_momentum(n, rng, s.x, Point(n), false);
     }
   }
 };

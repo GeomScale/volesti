@@ -35,9 +35,10 @@ public:
   NT accumulatedMomentum = 0;
   NT nEffectiveStep = 0; // number of effective steps
 
-  dynamic_step_size(Sampler &s)
-      : options(s.params.options), eta(s.solver->eta),
-        momentum(s.params.momentum)
+  dynamic_step_size(Sampler &s) :
+    options(s.params.options),
+    eta(s.solver->eta),
+    momentum(s.params.momentum)
   {
     if (options.warmUpStep > 0) {
       eta = 1e-3;

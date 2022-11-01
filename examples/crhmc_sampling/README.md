@@ -17,5 +17,5 @@ For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 ## Running:
 ```bash
  ./crhmc_sampling >samples.txt
- python3 plot_crhmc.py <samples.txt
+ python3 ../python_utilities/plot_samples.py <samples.txt
 ```

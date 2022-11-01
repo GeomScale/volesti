@@ -33,9 +33,11 @@ struct CRHMCWalk {
     NT momentum;
     NT effectiveStepSize = 1;
     Opts &options;
-    parameters(OracleFunctor const &F, unsigned int dim, Opts &user_options,
-               NT epsilon_ = 2)
-        : options(user_options)
+    parameters(OracleFunctor const &F,
+      unsigned int dim,
+      Opts &user_options,
+      NT epsilon_ = 2) :
+      options(user_options)
     {
       epsilon = epsilon_;
       eta = 1.0 / (dim * sqrt(F.params.L));
@@ -108,15 +110,17 @@ struct CRHMCWalk {
     NegativeLogprobFunctor &f;
 #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-    std::chrono::duration<double> H_duration =
-        std::chrono::duration<double>::zero();
+    std::chrono::duration<double> H_duration = std::chrono::duration<double>::zero();
 #endif
     Walk(Polytope &Problem,
       Point &p,
       NegativeGradientFunctor &neg_grad_f,
       NegativeLogprobFunctor &neg_logprob_f,
-      parameters<NT, NegativeGradientFunctor> &param)
-      : params(param), F(neg_grad_f), f(neg_logprob_f), P(Problem)
+      parameters<NT, NegativeGradientFunctor> &param) :
+      params(param),
+      F(neg_grad_f),
+      f(neg_logprob_f),
+      P(Problem)
     {
 
       dim = p.dimension();
@@ -133,9 +137,12 @@ struct CRHMCWalk {
                        params.options.DynamicRegularizer ||
                        params.options.DynamicStepSize;
     };
-    Point GetDirectionWithMomentum(unsigned int const &dim,
-                                   RandomNumberGenerator &rng, Point x, Point v,
-                                   NT momentum = 0, bool normalize = true)
+    Point get_direction_with_momentum(unsigned int const &dim,
+      RandomNumberGenerator &rng,
+      Point x,
+      Point v,
+      NT momentum = 0,
+      bool normalize = true)
     {
       Point z = GetDirection<Point>::apply(dim, rng, normalize);
       solver->ham.move({x, v});
@@ -146,12 +153,13 @@ struct CRHMCWalk {
     // Returns the current point in the tranformed in the original space
     inline Point getPoint() { return Point(P.T * x.getCoefficients() + P.y); }
 
-    inline void apply(RandomNumberGenerator &rng, int walk_length = 1,
-                      bool metropolis_filter = true) {
-
+    inline void apply(RandomNumberGenerator &rng,
+      int walk_length = 1,
+      bool metropolis_filter = true)
+    {
       num_runs++;
       //  Pick a random velocity with momentum
-      v = GetDirectionWithMomentum(dim, rng, x, v, params.momentum, false);
+      v = get_direction_with_momentum(dim, rng, x, v, params.momentum, false);
 
       solver->set_state(0, x);
       solver->set_state(1, v);

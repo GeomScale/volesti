@@ -51,9 +51,10 @@ public:
   Barrier *barrier;
   WeightedBarrier *weighted_barrier;
   Opts &options;
-  Hamiltonian(Polytope &boundaries)
-      : P(boundaries), solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
-        options(boundaries.options)
+  Hamiltonian(Polytope &boundaries) :
+    P(boundaries),
+    solver(CholObj(transform_format<SpMat, NT, int>(boundaries.Asp))),
+    options(boundaries.options)
   {
     n = P.dimension();
     m = P.equations();
@@ -69,7 +70,8 @@ public:
   }
 
   // Compute H(x,v)
-  NT hamiltonian(Point x, Point v) {
+  NT hamiltonian(Point x, Point v)
+  {
     prepare({x, v});
     pts pd = DK({x, v});
     NT K = 0.5 * v.dot(pd[0]);
@@ -80,7 +82,8 @@ public:
   }
   // Helper is nan function for vectors
   template <typename MatrixType>
-  bool isnan(MatrixType x) {
+  bool isnan(MatrixType x)
+  {
     for (int i = 0; i < x.rows(); i++) {
       for (int j = 0; j < x.cols(); j++) {
         if (std::isnan(x(i, j))) {
@@ -91,7 +94,8 @@ public:
     return false;
   }
   // Test if the values of x and v are valid and if x is feasible
-  NT feasible(VT x, VT v) {
+  NT feasible(VT x, VT v)
+  {
     bool feasible_coordinate = true;
     if (options.DynamicWeight) {
       feasible_coordinate = weighted_barrier->feasible(x);
@@ -105,7 +109,8 @@ public:
     return 0;
   }
   // prepare the solver weighted by the hessian
-  void prepare(pts const &xs) {
+  void prepare(pts const &xs)
+  {
     move(xs);
     if (!prepared) {
       VT Hinv = hess.cwiseInverse();
@@ -115,7 +120,8 @@ public:
     prepared = true;
   }
   // Computation of the partial derivatives of the K term
-  pts DK(pts const &x_bar) {
+  pts DK(pts const &x_bar)
+  {
     VT x = x_bar[0].getCoefficients();
     VT v = x_bar[1].getCoefficients();
     move(x_bar);
@@ -139,7 +145,8 @@ public:
     return {dKdv, dKdx};
   }
   // Approximate computation of the partial derivatives of the K term
-  pts approxDK(pts const &x_bar, VT &nu) {
+  pts approxDK(pts const &x_bar, VT &nu)
+  {
     VT x = x_bar[0].getCoefficients();
     VT v = x_bar[1].getCoefficients();
     move(x_bar);
@@ -161,7 +168,8 @@ public:
   }
   // Compute the partial derivatives of one term
   // This is only dependent on x and so DU/Dv=0
-  pts DU(pts const &x_bar) {
+  pts DU(pts const &x_bar)
+  {
     VT x = x_bar[0].getCoefficients();
     move(x_bar);
     if (!prepared || dUDx_empty) {
@@ -183,7 +191,8 @@ public:
   }
   // Compute the computations involving only x iff x has been changed
   // Else they are stored
-  void move(pts const &y) {
+  void move(pts const &y)
+  {
     if (y[0] == xs[0] && !forceUpdate) {
       return;
     }
@@ -201,7 +210,8 @@ public:
     prepared = false;
   }
   // Project x to the polytope
-  void project(pts &xs) {
+  void project(pts &xs)
+  {
     move(xs);
     VT x = xs[0].getCoefficients();
     int m = P.Asp.rows();
@@ -212,7 +222,8 @@ public:
     xs[0] = xs[0] + Point((out_vector).cwiseQuotient(hess));
   }
   // Get the inner product of x and ds weighted by the hessian
-  NT x_norm(pts const &xs, pts const &dx) {
+  NT x_norm(pts const &xs, pts const &dx)
+  {
     move(xs);
     VT dx_x = dx[0].getCoefficients();
     VT r = (dx_x.cwiseProduct(dx_x)).cwiseProduct(hess);

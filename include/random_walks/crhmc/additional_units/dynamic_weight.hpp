@@ -28,14 +28,16 @@ public:
   int n;
   VT &w;
   Opts options;
-  dynamic_weight(Sampler &s)
-      : w(s.solver->ham.weighted_barrier->w), options(s.params.options)
+  dynamic_weight(Sampler &s)  :
+    w(s.solver->ham.weighted_barrier->w),
+    options(s.params.options)
   {
     n = s.dim;
   }
   // If we have consecutive bad steps update the weights with
   //  the help of the leverage scores.
-  void update_weights(Sampler &s, RandomNumberGenerator &rng) {
+  void update_weights(Sampler &s, RandomNumberGenerator &rng)
+  {
     int bad_step = 0;
     NT threshold;
     if (s.prob < 0.5 || s.solver->num_steps == options.maxODEStep) {
@@ -56,7 +58,7 @@ public:
       if (changed) {
         s.solver->ham.forceUpdate = true;
         s.solver->ham.move({s.x, s.v});
-        s.v = s.GetDirectionWithMomentum(n, rng, s.x, Point(n), false);
+        s.v = s.get_direction_with_momentum(n, rng, s.x, Point(n), false);
       }
     }
   }
