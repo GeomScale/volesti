@@ -17,22 +17,22 @@ file.copy(dir_lp, lp_dist, recursive=TRUE)
 # fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
 library(xfun)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "struct timeb buf;", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "struct timeb buf;", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "ftime(&buf);", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "ftime(&buf);", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "return((double)buf.time+((double) buf.millitm)/1000.0);", 
-    "return((double)0);", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "return((double)buf.time+((double) buf.millitm)/1000.0);",
+    "return((double)0);",
     fixed=TRUE)
 
 # add lpsolve header files in external
 library(downloader)
-download("https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz", dest="lpSolve.tar.gz", mode="wb")
+download("https://cran.r-project.org/src/contrib/Archive/lpSolve/lpSolve_5.6.15.tar.gz", dest="lpSolve.tar.gz", mode="wb")
 untar("lpSolve.tar.gz", exdir = path)
 unlink("lpSolve.tar.gz")
 dir.create(paste0(path,"/external/LPsolve_src"))
