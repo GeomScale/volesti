@@ -87,11 +87,19 @@ struct ImplicitMidpointODESolver {
   std::chrono::duration<double> approxDK_duration =
       std::chrono::duration<double>::zero();
 #endif
-  ImplicitMidpointODESolver(NT initial_time, NT step, pts initial_state,
-                            func oracle, Polytope &boundaries,
-                            Opts &user_options)
-      : eta(step), t(initial_time), xs(initial_state), F(oracle), P(boundaries),
-        options(user_options), ham(hamiltonian(boundaries))
+  ImplicitMidpointODESolver(NT initial_time,
+                            NT step,
+                            pts initial_state,
+                            func oracle,
+                            Polytope &boundaries,
+                            Opts &user_options) :
+                            eta(step),
+                            t(initial_time),
+                            xs(initial_state),
+                            F(oracle),
+                            P(boundaries),
+                            options(user_options),
+                            ham(hamiltonian(boundaries))
   {
     dim = xs[0].dimension();
   };
@@ -124,11 +132,13 @@ struct ImplicitMidpointODESolver {
       xs = xs_prev + partialDerivatives * (eta);
       NT dist = ham.x_norm(xmid, xs - xs_old) / eta;
       NT maxdist = dist;
+      //If the estimate does not change terminate
       if (maxdist < options.implicitTol) {
         done = true;
         num_steps = i;
         break;
-      } else if (maxdist > 1e16) {
+      //If the estimate is very bad sample another velocity
+      } else if (maxdist > options.convergence_limit) {
         xs = xs * std::nan("1");
         done = true;
         num_steps = i;

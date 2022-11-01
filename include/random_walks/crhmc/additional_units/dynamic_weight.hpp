@@ -47,6 +47,10 @@ public:
 
     if (!s.accepted) {
       VT lsc = s.solver->ham.lsc;
+      /*The more bad steps in a row we have the higher we want the threshold to be
+      In order to change w more drasticaly according to the leverage scores.
+      So if we have more than 2 bad steps in a row we elect to set the threshold to 4
+      else to 16. Not many changes will be possible as the w should be upperbounded by 1*/
       if (consecutiveBadStep > 2) {
         threshold = 4;
       } else {

@@ -45,10 +45,8 @@ public:
     VT x = s.x.getCoefficients();
     x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
     bound = bound.cwiseMax(x);
-    bool Condition =
-        (2 / (bound.array() * bound.array()) < n * extraHessian.array()).any();
 
-    if (Condition) {
+    if ((2 / (bound.array() * bound.array()) < n * extraHessian.array()).any()) {
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
       s.solver->ham.move({s.x, s.v});
       s.v = s.get_direction_with_momentum(n, rng, s.x, Point(n), false);

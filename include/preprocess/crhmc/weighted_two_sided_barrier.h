@@ -39,6 +39,8 @@ public:
   std::vector<int> freeIdx;
   VT center;
   const NT max_step = 1e16; // largest step size
+  const NT regularization_constant = 1e-20; // small regularization to not have a large inverse
+  const NT unbounded_center_coord = 1e6;
   VT extraHessian;
 
   const NT inf = std::numeric_limits<NT>::infinity();
@@ -50,7 +52,7 @@ public:
     set_bound(_lb, _ub);
     w = _w;
     vdim = _vdim;
-    extraHessian = (1e-20) * VT::Ones(n);
+    extraHessian = regularization_constant * VT::Ones(n);
   }
   weighted_two_sided_barrier() { vdim = 1; }
 
@@ -63,11 +65,9 @@ public:
            w.cwiseQuotient((x - lb).cwiseProduct((x - lb)));
     return d + extraHessian;
   }
-  VT tensor(VT const &x) {
-    VT d = 2 * w.cwiseQuotient(
-                   ((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
-           2 * w.cwiseQuotient(
-                   ((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
+  VT tensor(VT const &x) {machine learn
+    VT d = 2 * w.cwiseQuotient(((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
+           2 * w.cwiseQuotient(((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
     return d;
   }
   VT quadratic_form_gradient(VT const &x, VT const &u) {
@@ -76,7 +76,7 @@ public:
     return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
   }
   NT step_size(VT const &x, VT const &v) {
-    // Output the maximum step size from x with direction v.
+    // Output the maximum step size from x with direction v or -v.
 
     // check positive direction
     VT temp = (v.array() > 0).select((ub - x).cwiseQuotient(v), max_step);
@@ -91,7 +91,6 @@ public:
   VT boundary_distance(VT const &x) {
     // Output the distance of x with its closest boundary for each
     // coordinate
-
     return ((x - lb).cwiseMin(ub - x)).cwiseAbs();
   }
 
@@ -104,7 +103,7 @@ public:
     lb = _lb;
     ub = _ub;
     n = lb.rows();
-    extraHessian = (1e-20) * VT::Ones(n);
+    extraHessian = regularization_constant * VT::Ones(n);
     int x1 = 0, x2 = 0, x3 = 0;
     for (int i = 0; i < n; i++) {
       if (lb(i) == -inf) {
@@ -117,14 +116,13 @@ public:
       }
       if (ub(i) == inf && lb(i) == -inf) {
         freeIdx.push_back(i);
-        x3++;
       }
     }
 
     VT c = (ub + lb) / 2;
 
-    c(lowerIdx) = lb(lowerIdx) + VT::Ones(x2, 1) * 1e6;
-    c(upperIdx) = ub(upperIdx) - VT::Ones(x1, 1) * 1e6;
+    c(lowerIdx) = lb(lowerIdx) + VT::Ones(x2, 1) * unbounded_center_coord;
+    c(upperIdx) = ub(upperIdx) - VT::Ones(x1, 1) * unbounded_center_coord;
     c(freeIdx) *= 0.0;
 
     center = c;

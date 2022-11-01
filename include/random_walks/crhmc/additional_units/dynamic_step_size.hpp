@@ -51,8 +51,7 @@ public:
     accumulatedMomentum = s.prob * momentum * accumulatedMomentum + eta;
     nEffectiveStep = nEffectiveStep + eta * accumulatedMomentum * s.accept;
 
-    int bad_step =
-        s.prob < 0.5 || s.solver->num_steps == options.maxODEStep ? 1 : 0;
+    int bad_step = s.prob < 0.5 || s.solver->num_steps == options.maxODEStep ? 1 : 0;
     consecutiveBadStep = bad_step * consecutiveBadStep + bad_step;
 
     NT warmupRatio = nEffectiveStep / options.warmUpStep;
@@ -76,15 +75,9 @@ public:
     NT shiftedIter = iterSinceShrink + 20 / (1 - momentum);
 
     NT targetProbability = std::pow((1.0 - momentum), (2 / 3)) / 4;
-    if (rejectSinceShrink > targetProbability * shiftedIter) {
-      shrink = 1;
-    }
-
-    if (consecutiveBadStep > options.maxConsecutiveBadStep) {
-      shrink = 1;
-    }
-
-    if (ODEStepSinceShrink > options.targetODEStep * shiftedIter) {
+    if (rejectSinceShrink > targetProbability * shiftedIter ||
+        consecutiveBadStep > options.maxConsecutiveBadStep  ||
+        ODEStepSinceShrink > options.targetODEStep * shiftedIter) {
       shrink = 1;
     }
 
