@@ -249,9 +249,7 @@ else ()
 					COMMAND crhmc_polytope_preparation_test -tc=test_dep_vars_crhmc)
 	add_test(NAME crhmc_test_center_computation
 					COMMAND crhmc_polytope_preparation_test -tc=test_center_computation)
-	add_test(NAME crhmc_test_invalid_polytopes
-					COMMAND crhmc_polytope_preparation_test -tc=test_invalid_polytopes)
-					
+
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
     COMMAND boundary_oracles_test -tc=h_poly_oracles)

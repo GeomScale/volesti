@@ -181,20 +181,6 @@ template <typename NT> void test_center_computation() {
 
 }
 
-template <typename NT> void test_unbounded() {
-  using Kernel = Cartesian<NT>;
-  using Point = typename Kernel::Point;
-  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-  using Input = crhmc_input<MT, Point>;
-  using CrhmcProblem = crhmc_problem<Point, Input>;
-  using Opts = opts<NT>;
-  Input input= Input(1);
-  Opts options = Opts();
-  CrhmcProblem P = CrhmcProblem(input,options);
-  CHECK(P.terminate);
-
-}
 template <typename NT> void call_test_crhmc_fixed_var_polytope(){
   std::cout << "--- Testing fixed vars" << std::endl;
   test_crhmc_fixed_var_polytope<NT>();
@@ -212,11 +198,6 @@ template <typename NT> void call_test_center_computation(){
   test_center_computation<NT>();
 }
 
-template <typename NT> void call_test_invalid_polytopes(){
-  std::cout << "--- Testing CRHMC on Unbounded" << std::endl;
-  test_unbounded<NT>();
-}
-
 TEST_CASE("test_preparation_crhmc") {
   call_test_crhmc_preprocesssing<double>();
 }
@@ -231,8 +212,4 @@ TEST_CASE("test_dep_vars_crhmc") {
 
 TEST_CASE("test_center_computation"){
   call_test_center_computation<double>();
-}
-
-TEST_CASE("test_invalid_polytopes"){
-  call_test_invalid_polytopes<double>();
 }

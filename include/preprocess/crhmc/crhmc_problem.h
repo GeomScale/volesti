@@ -98,7 +98,8 @@ public:
       reordering_duration, rm_rows_duration, rm_fixed_vars_duration,
       ex_collapsed_vars_duration, shift_barrier_duration, lewis_center_duration;
 #endif
-  const NT inf = options.max_coord + 1; // helper for barrier handling
+  const NT inf = options.max_coord; // helper for barrier handling
+  const NT barrier_bound = 1e7
   int equations() const { return Asp.rows(); }
   int dimension() const { return Asp.cols(); }
   int nnz() const { return Asp.nonZeros(); }
@@ -440,8 +441,7 @@ public:
       int nIneq = input.Aineq.rows();
       int nEq = input.Aeq.rows();
       A.resize(nEq + nIneq, nP + nIneq);
-      A << input.Aeq, MT::Zero(nEq, nIneq), input.Aineq,
-          MT::Identity(nIneq, nIneq);
+      A << input.Aeq, MT::Zero(nEq, nIneq), input.Aineq, MT::Identity(nIneq, nIneq);
       b.resize(nEq + nIneq, 1);
       b << input.beq, input.bineq;
       lb.resize(nP + nIneq, 1);
@@ -519,7 +519,7 @@ public:
   // Initialization funciton
   void PreproccessProblem() {
     int n = dimension();
-    barrier.set_bound(lb.cwiseMax(-options.max_coord), ub.cwiseMin(options.max_coord));
+    barrier.set_bound(lb.cwiseMax(-barrier_bound), ub.cwiseMin(barrier_bound));
     NT tol = std::numeric_limits<NT>::epsilon();
     Asp.prune(tol, tol);
     /*Update the transformation Tx + y*/
@@ -556,11 +556,6 @@ public:
     reorder();
 
     width = estimate_width(true);
-    if (width.maxCoeff() >= 1e6) {
-      terminate = true;
-      terminate_message = "Domain seems to be unbounded. Either add a Gaussian term via f, df, ddf or add bounds to variable via lb and ub.\n";
-      return;
-    }
     //  Recenter again and make sure it is feasible
     VT hess;
 #ifdef TIME_KEEPING
