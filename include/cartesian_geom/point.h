@@ -116,7 +116,17 @@ public:
 
     void operator+= (const Coeff& coeffs)
     {
-        this->coeffs = coeffs + this->coeffs;
+        this->coeffs += coeffs;
+    }
+
+    void operator-= (const point& p)
+    {
+        coeffs -= p.getCoefficients();
+    }
+
+    void operator-= (const Coeff& coeffs)
+    {
+        this->coeffs -= coeffs;
     }
 
     void operator= (const Coeff& coeffs)

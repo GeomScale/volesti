@@ -51,6 +51,28 @@ struct compute_diameter<Spectrahedron<Point>>
     }
 };
 
+template <typename Point>
+struct compute_diameter<CorrelationSpectrahedron<Point>>
+{
+    template <typename NT>
+    static NT compute(CorrelationSpectrahedron<Point> &P)
+    {
+        std::pair<Point, NT> inner_ball = P.getInnerBall();
+        return NT(P.dimension()) * inner_ball.second;
+    }
+};
+
+template <typename Point>
+struct compute_diameter<CorrelationSpectrahedron_MT<Point>>
+{
+    template <typename NT>
+    static NT compute(CorrelationSpectrahedron_MT<Point> &P)
+    {
+        std::pair<Point, NT> inner_ball = P.getInnerBall();
+        return NT(P.dimension()) * inner_ball.second;
+    }
+};
+
 #ifndef DISABLE_LPSOLVE
 template <typename Point>
 struct compute_diameter<VPolytope<Point>>
