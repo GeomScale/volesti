@@ -20,6 +20,7 @@ jobs:
 
       - name: Build the docs
         run: |
+          cd docs
           python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
 
       - uses: actions/upload-artifact@v2
