@@ -30,7 +30,8 @@ public:
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
-  Type solver_accuracy_threashold=1e-2;
+  Type convergence_limit = 1e16;
+  Type solver_accuracy_threshold=1e-2;
 
   /*Sampler options*/
   bool DynamicWeight = true; //Enable the use of dynamic weights for each variable when sampling
