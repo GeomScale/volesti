@@ -351,7 +351,6 @@ struct GaussianFunctor {
       Point y = (-2.0 * params.a) * (x - params.x0);
       return y;
     }
-
   };
 
   template

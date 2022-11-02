@@ -247,8 +247,7 @@ void crhmc_polytope_sampling(
                             NegativeGradientFunctor, HessianFunctor>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Opts = opts<NT>;
-  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem,
-                                           NegativeGradientFunctor, simdLen>;
+  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem,NegativeGradientFunctor, simdLen>;
 
   std::pair<Point, NT> inner_ball;
   if (centered) {
@@ -288,8 +287,7 @@ void crhmc_polytope_sampling(
 
   Opts options;
   options.simdLen = simdLen;
-  CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,
-                                                                  options);
+  CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,options);
   Input input = Input(P.dimension(), f, F, H);
   input.Aineq = P.get_mat();
   input.bineq = P.get_vec();

@@ -51,8 +51,8 @@ struct SimulationStats {
   NT average_acceptance_prob = NT(0);
   NT step_size = NT(0);
 
-  friend std::ostream &operator<<(std::ostream &out,
-                                  const SimulationStats &stats) {
+  friend std::ostream &operator<<(std::ostream &out, const SimulationStats &stats)
+  {
     out << stats.method << "," << stats.walk_length << "," << stats.min_ess
         << "," << stats.max_psrf << "," << stats.time_per_draw << ","
         << stats.time_per_independent_sample << ","
