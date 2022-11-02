@@ -4,6 +4,7 @@
 # Copyright (c) 2021 Vaibhav Thakkar
 
 # Contributed and/or modified by Vaibhav Thakkar
+# Contributed and/or modified by Ioannis Iakovidis
 # Licensed under GNU LGPL.3, see LICENCE file
 
 project( VolEsti )
@@ -19,13 +20,13 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 if (APPLE)
 	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 elseif(UNIX)
-	set(MKLROOT $ENV{HOME}/intel/mkl)
+	set(MKLROOT /opt/intel/oneapi/mkl/latest)
 endif()
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -114,6 +115,9 @@ GetBoost()
 include("../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../external/cmake-files/QD.cmake")
+GetQD()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -191,6 +195,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+  add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
@@ -208,7 +213,7 @@ else ()
   add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
   add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
   add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
-  
+
   add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
   add_test(NAME test_john COMMAND sampling_test -tc=john)
@@ -218,7 +223,7 @@ else ()
   add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
   add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
   add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-  
+
   add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
@@ -232,6 +237,19 @@ else ()
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
 
+	#add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
+	#add_executable (benchmarks_crhmc_sampling benchmarks_crhmc_sampling.cpp )
+
+	add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
+	add_test(NAME crhmc_polytope_test_preparation
+					COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
+	add_test(NAME crhmc_test_fixed_vars
+					COMMAND crhmc_polytope_preparation_test -tc=test_fixed_vars_crhmc)
+	add_test(NAME crhmc_test_dep_vars
+					COMMAND crhmc_polytope_preparation_test -tc=test_dep_vars_crhmc)
+	add_test(NAME crhmc_test_center_computation
+					COMMAND crhmc_polytope_preparation_test -tc=test_center_computation)
+
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
     COMMAND boundary_oracles_test -tc=h_poly_oracles)
@@ -243,6 +261,8 @@ else ()
   add_test(NAME volume_sob_hpolytope_prod_simplex COMMAND volume_sob_hpolytope -tc=prod_simplex)
   add_test(NAME volume_sob_hpolytope_simplex COMMAND volume_sob_hpolytope -tc=simplex)
   add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=skinny_cube)
+  add_test(NAME volume_sob_hpolytope_cube_overflow COMMAND volume_sob_hpolytope -tc=cube_overflow)
+  set_property(TEST volume_sob_hpolytope_cube_overflow PROPERTY TIMEOUT 1)
 
   add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
@@ -299,6 +319,12 @@ else ()
   add_test(NAME logconcave_sampling_test_exponential_biomass_sampling
           COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
 
+	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+	add_test(NAME crhmc_sampling_test_crhmc
+					COMMAND crhmc_sampling_test -tc=crhmc)
+	add_test(NAME crhmc_test_polytope_sampling
+					COMMAND crhmc_sampling_test -tc=test_polytope_sampling_crhmc)
+
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)
@@ -319,6 +345,27 @@ else ()
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
+  add_executable (matrix_sampling_test sampling_correlation_matrices_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME test_corre_spectra_classes COMMAND matrix_sampling_test -tc=corre_spectra)
+  add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
+  add_test(NAME test_new_billiard_uniform COMMAND matrix_sampling_test -tc=new_billiard_uniform)
+  add_test(NAME test_new_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform)
+  add_test(NAME test_new_ball_uniform_MT COMMAND matrix_sampling_test -tc=new_ball_uniform_MT)
+  add_test(NAME test_new_rdhr_uniform_MT COMMAND matrix_sampling_test -tc=new_rdhr_uniform_MT)
+  add_test(NAME test_new_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_billiard_uniform_MT)
+  add_test(NAME test_new_accelerated_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform_MT)
+
+	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
+
+	#set_target_properties(benchmarks_crhmc
+  #                              PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	#set_target_properties(benchmarks_crhmc_sampling
+	#														  PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	set_target_properties(crhmc_polytope_preparation_test
+																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	set_target_properties(crhmc_sampling_test
+																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
@@ -337,12 +384,16 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
+	#TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling ${LP_SOLVE} ${MKL_LINK} ${QD_LIB} coverage_config)
+	#TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} ${QD_LIB}  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
-
+  TARGET_LINK_LIBRARIES(matrix_sampling_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
 
 endif()

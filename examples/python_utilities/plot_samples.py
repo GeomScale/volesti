@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import seaborn as sns
+import math
 sns.set_style("white")
 from io import StringIO
 
@@ -22,7 +23,7 @@ if __name__ == '__main__':
         Script to plot samples from logconcave density
         Example usage:
 
-        ./simple_hmc | python3 plot_hmc.py
+        ./crhmc_sampling | python3 plot_crhmc.py
 
     '''
 
@@ -45,13 +46,15 @@ if __name__ == '__main__':
         dims = data.shape[-1]
 
     print('Number of dimensions: {}'.format(dims))
-
+    print('Number of samples: {}'.format(len(data[:,1])))
+    if dims>4:
+        dims=2
+        print('Due to the large number of dimensions  you will get plots for only {} dimensions'.format(dims))
     print('Plotting histograms of marginal densities')
     fig, ax2d = plt.subplots(ncols=dims, nrows=1, squeeze=False)
     axli = ax2d.flatten()
 
     plt.suptitle('{}: Marginals'.format(args.name))
-
     for i in range(1, 1 + dims):
         sns.histplot(data[:, i-1], bins=50, color="orange", ax=axli[i-1], stat='probability', kde=True)
         axli[i-1].set_xlabel('$x_{}$'.format(i))
@@ -65,7 +68,6 @@ if __name__ == '__main__':
     axli = ax2d.flatten()
 
     plt.suptitle('{}: Samples'.format(args.name))
-
     for i in range(1, 1 + dims):
         axli[i-1].plot(data[:, i-1])
         axli[i-1].set_xlabel('Number of samples (t)')
@@ -73,7 +75,14 @@ if __name__ == '__main__':
 
     if args.save:
         plt.savefig('{}_samples.png'.format(args.name))
-
+    if dims==2:
+        print('Printing 2 dimensional histogram')
+        fig2 = plt.figure()
+        plt.hist2d(data[:, 0], data[:, 1],100)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        cbar = plt.colorbar()
+        cbar.ax.set_ylabel('Counts')
     if dims in [2, 3]:
         print('Plotting scatterplot')
         fig = plt.figure()

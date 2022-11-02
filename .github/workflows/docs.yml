@@ -15,12 +15,13 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get install doxygen
           python -m pip install -U pip
           python -m pip install -r docs/requirements.txt
 
       - name: Build the docs
         run: |
           python -m pip install -U setuptools
-          python -m pip install -U pillow mock alabaster commonmark recommonmark sphinx sphinx-rtd-theme readthedocs-sphinx-ext 
+          python -m pip install -U pillow mock alabaster commonmark recommonmark sphinx sphinx-rtd-theme readthedocs-sphinx-ext
           cd docs
           python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
