@@ -19,7 +19,7 @@
 #include "PackedCSparse/PackedChol.h"
 #include "preprocess/crhmc/crhmc_utils.h"
 #include "preprocess/crhmc/opts.h"
-#include "sos/barriers/TwoSidedBarrier.h"
+#include "preprocess/crhmc/two_sided_barrier.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
