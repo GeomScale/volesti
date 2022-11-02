@@ -1,0 +1,35 @@
+name: Docs
+on: [push, release]
+
+jobs:
+  notebooks:
+    name: "Build the docs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install -r docs/requirements.txt
+
+      - name: Build the docs
+        run: |
+          python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docs-for-${{ github.sha }}
+          path: docs/
+
+      - name: Trigger RTDs build
+        uses: dfm/rtds-action@v1
+        with:
+          webhook_url: ${{ secrets.RTDS_WEBHOOK_URL }}
+          webhook_token: ${{ secrets.RTDS_WEBHOOK_TOKEN }}
+          commit_ref: ${{ github.ref }}
