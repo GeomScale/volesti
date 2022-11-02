@@ -47,8 +47,22 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'breathe',
     'myst_parser',
-    'sphinx_math_dollar'
+    'sphinx_math_dollar',
+    'rtds_action'
 ]
+
+# The name of your GitHub repository
+rtds_action_github_repo = "GeomScale/volesti"
+
+# The path where the artifact should be extracted
+# Note: this is relative to the conf.py file!
+rtds_action_path = "."
+
+# The "prefix" used in the `upload-artifact` step of the action
+rtds_action_artifact_prefix = "docs-for-"
+
+# A GitHub personal access token is required, more info below
+rtds_action_github_token = os.environ["GITHUB_TOKEN"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
