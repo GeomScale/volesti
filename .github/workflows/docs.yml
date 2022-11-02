@@ -24,15 +24,3 @@ jobs:
           python -m pip install -U pillow mock alabaster commonmark recommonmark sphinx sphinx-rtd-theme readthedocs-sphinx-ext 
           cd docs
           python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: docs-for-${{ github.sha }}
-          path: docs/
-
-      - name: Trigger RTDs build
-        uses: dfm/rtds-action@v1
-        with:
-          webhook_url: ${{ secrets.RTDS_WEBHOOK_URL }}
-          webhook_token: ${{ secrets.RTDS_WEBHOOK_TOKEN }}
-          commit_ref: ${{ github.ref }}
