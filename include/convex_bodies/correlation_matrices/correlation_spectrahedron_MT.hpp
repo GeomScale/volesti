@@ -13,7 +13,7 @@
 #include "convex_bodies/correlation_matrices/corre_matrix.hpp"
 //
 /// This class handles the spectrahedra of correlation matrices
-/// @tparam Point
+
 template<typename CorreMatrix>
 class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     public:
@@ -30,7 +30,7 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     VT eigenvector;
 
     /// Constructor of correlation matrix spectrahedra
-    /// \param[in] : matrix size
+
     CorrelationSpectrahedron_MT(unsigned int n){
         int i,j;
         this->n = n;
