@@ -33,4 +33,5 @@
 #include "random_walks/exponential_ReHMC_correlation.hpp"
 #include "random_walks/gaussian_ReHMC_correlation.hpp"
 
+#include "random_walks/crhmc/crhmc_walk.hpp"
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP

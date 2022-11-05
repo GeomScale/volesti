@@ -230,6 +230,8 @@ int main(int argc, char const *argv[]){
     ///////////////////////////////////////////////////////////
     //          Uniform sampling
 
+    old_uniform_sampling<BilliardWalk>(n, num_points);
+
     correlation_matrix_uniform_sampling<BallWalk>(n, num_points, "BallWalk");
 
     correlation_matrix_uniform_sampling<RDHRWalk>(n, num_points, "RDHRWalk");

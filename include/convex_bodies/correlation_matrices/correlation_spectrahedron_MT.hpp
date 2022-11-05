@@ -13,7 +13,11 @@
 #include "convex_bodies/correlation_matrices/corre_matrix.hpp"
 //
 /// This class handles the spectrahedra of correlation matrices
+<<<<<<< HEAD
 /// @tparam Point
+=======
+
+>>>>>>> develop
 template<typename CorreMatrix>
 class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     public:
@@ -30,7 +34,11 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     VT eigenvector;
 
     /// Constructor of correlation matrix spectrahedra
+<<<<<<< HEAD
     /// \param[in] : matrix size
+=======
+
+>>>>>>> develop
     CorrelationSpectrahedron_MT(unsigned int n){
         int i,j;
         this->n = n;
@@ -79,13 +87,21 @@ class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
 
         // minPosLinearEigenvalue_EigenSymSolver(A,B) computes the minimal positive eigenvalue of A-t*B
 
+<<<<<<< HEAD
         return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(r.mat, (-v).mat.template triangularView<Eigen::StrictlyLower>(), eigenvector);
+=======
+        return this->EigenvaluesProblem.minPosLinearEigenvalue_EigenSymSolver(r.mat, (-v).mat, eigenvector);
+>>>>>>> develop
     }
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT, int> line_positive_intersect(PointType const &r,
+<<<<<<< HEAD
                                                PointType const &v){
+=======
+                                               PointType const &v) {
+>>>>>>> develop
         NT pos_inter = positiveLinearIntersection(r, v);
         return std::pair<NT, int> (pos_inter, -1);
     }

@@ -43,7 +43,6 @@ struct Precompute{
 /// The PointType here is stored as vector.
 /// For the matrix PointType class, refer to CorrelationSpectrahedron_MT
 
-/// @tparam Point
 template<typename Point>
 class CorrelationSpectrahedron : public Spectrahedron<Point>{
     public:
@@ -61,7 +60,6 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
     PrecomputationOfValues _precomputedValues;
 
     /// Constructor of correlation matrix spectrahedra
-    /// \param[in] : matrix size
     CorrelationSpectrahedron(unsigned int n){
         int i,j;
         this->n = n;

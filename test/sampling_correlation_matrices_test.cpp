@@ -303,6 +303,7 @@ TEST_CASE("new_accelerated_billiard_uniform") {
     test_new_uniform<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
 
+<<<<<<< HEAD
 TEST_CASE("new_ReHMC_gaussian") {
     std::cout << "Gaussian ReHMC Walk :: ";
     test_new_gaussian<double, GaussianReHMCWalk>(n, a, num_points_ReHMCWalk);
@@ -313,6 +314,8 @@ TEST_CASE("new_ReHMC_exponential") {
     test_new_exponential<double, ExponentialReHMCWalk>(n, c, T, num_points_ReHMCWalk);
 }
 
+=======
+>>>>>>> develop
 ///////////////////////////////////////////////////////////////////
 //      New implementation : CorrelationSpectrahedron Matrix PointType
 //
@@ -336,6 +339,7 @@ TEST_CASE("new_accelerated_billiard_uniform_MT") {
     std::cout << "Accelerated Billiard Walk MT :: ";
     test_new_uniform_MT<double, AcceleratedBilliardWalk>(n, num_points_BilliardWalk);
 }
+<<<<<<< HEAD
 
 TEST_CASE("new_ReHMC_gaussian_MT") {
     std::cout << "Gaussian ReHMC Walk MT :: ";
@@ -346,3 +350,5 @@ TEST_CASE("new_ReHMC_exponential_MT") {
     std::cout << "ExponentialReHMC Walk MT :: ";
     test_new_exponential_MT<double, ExponentialReHMCWalk>(n, c, T, num_points_ReHMCWalk);
 }
+=======
+>>>>>>> develop
