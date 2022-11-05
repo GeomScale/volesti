@@ -234,15 +234,11 @@ int main(int argc, char const *argv[]){
 
     correlation_matrix_uniform_sampling<BallWalk>(n, num_points, "BallWalk");
 
-    correlation_matrix_uniform_sampling<RDHRWalk>(n, num_points, "RDHRWalk");
-
     correlation_matrix_uniform_sampling<BilliardWalk>(n, num_points, "BilliardWalk");
 
     correlation_matrix_uniform_sampling<AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
 
     correlation_matrix_uniform_sampling_MT<BallWalk>(n, num_points, "BallWalk");
-
-    correlation_matrix_uniform_sampling_MT<RDHRWalk>(n, num_points, "RDHRWalk");
 
     correlation_matrix_uniform_sampling_MT<BilliardWalk>(n, num_points, "BilliardWalk");
 
