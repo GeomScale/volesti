@@ -245,7 +245,7 @@ NT simple_mc_integrate (Functor Fx,
         Hpolytope P(dim, mt, vt);
         // P.print();
 
-        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, rng, P, N, voltype, walk_length, e);
+        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, P, rng, N, voltype, walk_length, e);
         return integration_value;
 
     } else {
