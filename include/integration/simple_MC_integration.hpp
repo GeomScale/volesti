@@ -107,7 +107,8 @@ template
     typename Functor
 >
 NT simple_mc_polytope_integrate(Functor Fx, 
-                                Polytope &P, 
+                                Polytope &P,
+                                RNG &rng,
                                 int N = 10000, 
                                 volumetype voltype = SOB, 
                                 int walk_length = 1, 
@@ -134,14 +135,14 @@ NT simple_mc_polytope_integrate(Functor Fx,
     NT volume;
     
     switch (voltype) {
-    case CB:     
-        volume = volume_cooling_balls <VolumeWalkType, RNG, Polytope> (P, e, walk_length).second; 
+    case CB:
+        volume = volume_cooling_balls <VolumeWalkType, Polytope, RNG> (P, rng, e, walk_length).second;
         break;
     case CG: 
-        volume = volume_cooling_gaussians <GaussianBallWalk, RNG, Polytope> (P, e, walk_length);
+        volume = volume_cooling_gaussians <GaussianBallWalk, Polytope, RNG> (P, rng, e, walk_length);
         break;
     case SOB: 
-        volume = volume_sequence_of_balls <VolumeWalkType, RNG, Polytope> (P, e, walk_length);
+        volume = volume_sequence_of_balls <VolumeWalkType, Polytope, RNG> (P, rng, e, walk_length);
         break;
     default:
         std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
@@ -151,7 +152,6 @@ NT simple_mc_polytope_integrate(Functor Fx,
     // std::cout << "Volume of the convex body = " << volume << std::endl;
 
     // For implementing Uniform Walks
-    RNG rng(1);
     std::pair <Point, NT> inner_ball = P.ComputeInnerBall();
     Point x0 = inner_ball.first;
     typename WalkType::template Walk<Polytope, RNG> walk(P, x0, rng);
@@ -171,6 +171,28 @@ NT simple_mc_polytope_integrate(Functor Fx,
     return integration_value;
 }
 
+template
+        <
+                typename WalkType = BallWalk,
+                typename Polytope = Hpolytope,
+                typename VolumeWalkType = BallWalk,
+                typename RNG = RandomNumberGenerator,
+                typename NT = NT,
+                typename Functor
+        >
+NT simple_mc_polytope_integrate(Functor Fx,
+                                Polytope &P,
+                                int N = 10000,
+                                volumetype voltype = SOB,
+                                int walk_length = 1,
+                                NT e = 0.1,
+                                Point Origin = pt)
+{
+    RNG rng(P.dimension());
+    return simple_mc_polytope_integrate<WalkType, Polytope, VolumeWalkType, RNG, NT, Functor>(Fx, P, rng, N, voltype,
+                                                                                              walk_length, e, Origin);
+}
+
 // Simple MC Integration over Hyper-Rectangles
 template
 <
@@ -179,7 +201,8 @@ template
     typename NT = NT,
     typename Functor
 >
-NT simple_mc_integrate (Functor Fx, 
+NT simple_mc_integrate (Functor Fx,
+                        RNG &rng,
                         int dim, 
                         int N = 10000, 
                         volumetype voltype = SOB, 
@@ -222,7 +245,7 @@ NT simple_mc_integrate (Functor Fx,
         Hpolytope P(dim, mt, vt);
         // P.print();
 
-        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, P, N, voltype, walk_length, e);
+        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, rng, P, N, voltype, walk_length, e);
         return integration_value;
 
     } else {
@@ -231,4 +254,23 @@ NT simple_mc_integrate (Functor Fx,
     }
 }
 
+template
+        <
+                typename WalkType = BallWalk,
+                typename RNG = RandomNumberGenerator,
+                typename NT = NT,
+                typename Functor
+        >
+NT simple_mc_integrate (Functor Fx,
+                        int dim,
+                        int N = 10000,
+                        volumetype voltype = SOB,
+                        Limit LowLimit = lt,
+                        Limit UpLimit = lt,
+                        int walk_length = 10,
+                        NT e = 0.1)
+{
+    RNG rng(dim);
+    return simple_mc_integrate<WalkType, RNG, NT, Functor>(Fx, rng, dim, N, voltype, LowLimit, UpLimit, walk_length, e);
+}
 #endif
