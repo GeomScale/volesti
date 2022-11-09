@@ -202,8 +202,8 @@ template
     typename Functor
 >
 NT simple_mc_integrate(Functor Fx,
-                       RNG &rng,
                        int dim,
+                       RNG &rng,
                        int N = 10000,
                        volumetype voltype = SOB,
                        Limit LowLimit = lt,
@@ -271,6 +271,6 @@ NT simple_mc_integrate(Functor Fx,
                        NT e = 0.1)
 {
     RNG rng(dim);
-    return simple_mc_integrate<WalkType, RNG, NT, Functor>(Fx, rng, dim, N, voltype, LowLimit, UpLimit, walk_length, e);
+    return simple_mc_integrate<WalkType, RNG, NT, Functor>(Fx, dim, rng, N, voltype, LowLimit, UpLimit, walk_length, e);
 }
 #endif
