@@ -66,33 +66,41 @@ void  call_test_simple_mc_integration_over_rectangles() {
 	typedef HPolytope<Point> HPOLYTOPE;
 	typedef VPolytope<Point> VPOLYTOPE;
 	typedef boost::mt19937 RNGType;
-	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-	
-	NT integration_value;
+	typedef BoostRandomNumberGenerator<RNGType, NT, 0> RandomNumberGenerator;
+
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER RECTANGLES USING UNIFORM RANDOM WALKS\n";
+
+    NT integration_value;
+    RandomNumberGenerator rng;
 
 	Limit LL{-1};
 	Limit UL{6};
-	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (simple_polynomial_1D<NT>, 1, 100000, CB, LL, UL);
+    rng = RandomNumberGenerator(1);
+	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (simple_polynomial_1D<NT>, 1, rng, 100000, CB, LL, UL);
 	test_values(integration_value, 39.7, 40.25);
 
 	Limit LL1{0.5};
 	Limit UL1{10};
-	integration_value = simple_mc_integrate <BilliardWalk> (logx_natural_1D<NT>, 1, 1000, CB, LL1, UL1);
+    rng = RandomNumberGenerator(1);
+	integration_value = simple_mc_integrate <BilliardWalk> (logx_natural_1D<NT>, 1, rng, 1000, CB, LL1, UL1);
 	test_values(integration_value, 13.65, 13.872);
 
 	Limit LL2{-1, -1};
 	Limit UL2{1, 1};
-	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (rooted_squaresum<NT>, 2, 1000, SOB, LL2, UL2);
+    rng = RandomNumberGenerator(2);
+	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (rooted_squaresum<NT>, 2, rng, 1000, SOB, LL2, UL2);
 	test_values(integration_value, 2.99, 3.0607);
 
-	integration_value = simple_mc_integrate <BilliardWalk> (exp_normsq<NT>, 5, 1000, SOB);
+    rng = RandomNumberGenerator(5);
+	integration_value = simple_mc_integrate <BilliardWalk> (exp_normsq<NT>, 5, rng, 1000, SOB);
 	test_values(integration_value, 7.49, 7.46);
 
-	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (exp_normsq<NT>, 8, 1000, SOB);
+    rng = RandomNumberGenerator(8);
+	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (exp_normsq<NT>, 8, rng, 1000, SOB);
 	test_values(integration_value, 24.8, 24.76);
 
-	integration_value = simple_mc_integrate <BilliardWalk> (exp_normsq<NT>, 10, 10000, SOB);
+    rng = RandomNumberGenerator(10);
+	integration_value = simple_mc_integrate <BilliardWalk> (exp_normsq<NT>, 10, rng, 10000, SOB);
 	test_values(integration_value, 54.8, 55.25);
 
 }
@@ -105,33 +113,38 @@ void call_test_simple_mc_integration_over_cubes() {
 	typedef HPolytope<Point> HPOLYTOPE;
 	typedef VPolytope<Point> VPOLYTOPE;
 	typedef boost::mt19937 RNGType;
-	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+	typedef BoostRandomNumberGenerator<RNGType, NT, 0> RandomNumberGenerator;
 
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER CUBES USING UNIFORM RANDOM WALKS\n";
 
 	NT integration_value;
 	HPOLYTOPE HP;
+    RandomNumberGenerator rng;
 
 	HP = generate_cube <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, 1000, SOB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, rng, 1000, SOB, 10, 0.01);
 	test_values(integration_value, 2.20, 2.230);
 
 	// For 2D Polytope shifted to (1,1) from origin
 	std::vector<NT> Origin{1, 1};
 	Point newOrigin(2, Origin);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, 1000, SOB, 1, 0.01, newOrigin);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, rng, 1000, SOB, 1, 0.01, newOrigin);
 	test_values(integration_value, 0.78, 0.777);
 
 	HP = generate_cube <HPOLYTOPE> (10, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 54.7, 55.25);
 
 	HP = generate_cube <HPOLYTOPE> (15, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 405.9, 410.690);
 
 	HP = generate_cube <HPOLYTOPE> (20, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 3050.0, 3052.71);
 
 	// Reading a H-Polytope from *.ine file for 20 Dimensions
@@ -141,7 +154,7 @@ void call_test_simple_mc_integration_over_cubes() {
 	// inp.open(fileName, std::ifstream::in);
 	// read_pointset(inp,Pin);
 	// HPOLYTOPE HP(Pin);
-	// integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, 2, HP, 1000, SOB);
+	// integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq<NT>, 2, HP, rng, 1000, SOB);
 	// std::cout << "Integration value: " << integration_value << std::endl;
 	// test_values(integration_value, expected, exact);
 	// inp.close();
@@ -155,31 +168,37 @@ void call_test_simple_mc_integration_over_simplices() {
 	typedef HPolytope<Point> HPOLYTOPE;
 	typedef VPolytope<Point> VPOLYTOPE;
 	typedef boost::mt19937 RNGType;
-	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+	typedef BoostRandomNumberGenerator<RNGType, NT, 0> RandomNumberGenerator;
 
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER SIMPLICES USING UNIFORM RANDOM WALKS\n";
 
 	NT integration_value;
 	HPOLYTOPE HP;
+    RandomNumberGenerator rng;
 
 	HP = generate_simplex <HPOLYTOPE> (1, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, CB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, CB, 10, 0.01);
 	test_values(integration_value, 0.67, 0.666);
 	
 	HP = generate_simplex <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB, 10, 0.01);
 	test_values(integration_value, 0.34, 0.333);
 
 	HP = generate_simplex <HPOLYTOPE> (3, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.116, 0.1166);
 
 	HP = generate_simplex <HPOLYTOPE> (5, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.00656, 0.0063492);
 
 	HP = generate_simplex <HPOLYTOPE> (7, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 0.000159, 0.000159832);
 
 }
@@ -192,31 +211,37 @@ void call_test_simple_mc_integration_over_product_simplices() {
 	typedef HPolytope<Point> HPOLYTOPE;
 	typedef VPolytope<Point> VPOLYTOPE;
 	typedef boost::mt19937 RNGType;
-	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+	typedef BoostRandomNumberGenerator<RNGType, NT, 0> RandomNumberGenerator;
 
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER PRODUCT SIMPLICES USING UNIFORM RANDOM WALKS\n";
 
 	NT integration_value;
 	HPOLYTOPE HP;
+    RandomNumberGenerator rng;
 
 	HP = generate_prod_simplex <HPOLYTOPE> (1, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, CB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, CB, 10, 0.01);
 	test_values(integration_value, 0.334, 0.333);
 	
 	HP = generate_prod_simplex <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.0834, 0.0833);
 
 	HP = generate_prod_simplex <HPOLYTOPE> (3, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.0110, 0.01111);
 
 	HP = generate_prod_simplex <HPOLYTOPE> (5, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 0.36e-4, 0.36375e-4);
 
 	HP = generate_prod_simplex <HPOLYTOPE> (7, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>,  HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>,  HP, rng, 10000, SOB);
 	test_values(integration_value, 0.235e-7, 0.24079e-7);
 
 }
@@ -229,31 +254,37 @@ void call_test_simple_mc_integration_over_cross_polytopes() {
 	typedef HPolytope<Point> HPOLYTOPE;
 	typedef VPolytope<Point> VPOLYTOPE;
 	typedef boost::mt19937 RNGType;
-	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+	typedef BoostRandomNumberGenerator<RNGType, NT, 0> RandomNumberGenerator;
 
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER CROSS POLYTOPES USING UNIFORM RANDOM WALKS\n";
 
 	NT integration_value;
 	HPOLYTOPE HP;
+    RandomNumberGenerator rng;
 
 	HP = generate_cross <HPOLYTOPE> (1, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, CB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, CB, 10, 0.01);
 	test_values(integration_value, 1.334, 1.333333);
 	
 	HP = generate_cross <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB, 10, 0.01);
 	test_values(integration_value, 1.334, 1.33333);
 
 	HP = generate_cross <HPOLYTOPE> (3, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.935000, 0.933333);
 
 	HP = generate_cross <HPOLYTOPE> (5, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.200000, 0.203174);
 
 	HP = generate_cross <HPOLYTOPE> (7, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 0.020000, 0.020458);
 
 }
@@ -266,23 +297,27 @@ void call_test_simple_mc_integration_over_birkhoff_polytopes() {
 	typedef HPolytope<Point> HPOLYTOPE;
 	typedef VPolytope<Point> VPOLYTOPE;
 	typedef boost::mt19937 RNGType;
-	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+	typedef BoostRandomNumberGenerator<RNGType, NT, 0> RandomNumberGenerator;
 
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER BIRKHOFF POLYTOPES USING UNIFORM RANDOM WALKS\n";
 
 	NT integration_value;
 	HPOLYTOPE HP;
+    RandomNumberGenerator rng;
 
 	HP = generate_birkhoff <HPOLYTOPE> (2);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, CB, 10, 0.01);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, CB, 10, 0.01);
 	test_values(integration_value, 0.67, 0.6666);
 
 	HP = generate_birkhoff <HPOLYTOPE> (3);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 1000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 1000, SOB);
 	test_values(integration_value, 0.0470, 0.04722);
 	
 	HP = generate_birkhoff <HPOLYTOPE> (4);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, 10000, SOB);
+    rng = RandomNumberGenerator(HP.dimension());
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum<NT>, HP, rng, 10000, SOB);
 	test_values(integration_value, 0.000150, 0.000164);
 
 }
