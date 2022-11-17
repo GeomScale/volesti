@@ -9,8 +9,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-// The implemented random walk is presented in the paper of 
-// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu, 
+// The implemented random walk is presented in the paper of
+// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
 // "Fast MCMC Sampling Algorithms on Polytopes",
 // Journal of Machine Learning Research, 2018.
 
@@ -22,6 +22,8 @@
 #include "math_functions.h"
 
 
+/// @brief Class that defines the John walk sampler
+/// @tparam Dtype Number Type
 template <typename Dtype>
 class JohnWalker {
 public:
@@ -75,7 +77,7 @@ public:
         sample_gaussian<Dtype>(this->nb_dim_, 0., 1., gaussian_step);
 
         // get hessian
-        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess = 
+        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess =
                            Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
                            this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess);
@@ -85,21 +87,21 @@ public:
 
     bool acceptRejectReverse(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &new_sample) {
         // get hessian on y
-        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y = 
+        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y =
                 Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
                 this->nb_dim_, this->nb_dim_);
 
         sqrtInvHessBarrier(new_sample, new_sqrt_inv_hess_y);
         // get hessian on x
-        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x = 
+        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x =
                 Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
                 this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess_x);
 
         Dtype scale = r_ / std::sqrt(Dtype(this->nb_dim_));
-        Dtype p_y_to_x = gaussian_density<Dtype>(this->curr_sample_, new_sample, 
+        Dtype p_y_to_x = gaussian_density<Dtype>(this->curr_sample_, new_sample,
                          new_sqrt_inv_hess_y.inverse() / scale);
-        Dtype p_x_to_y = gaussian_density<Dtype>(new_sample, this->curr_sample_, 
+        Dtype p_x_to_y = gaussian_density<Dtype>(new_sample, this->curr_sample_,
                          new_sqrt_inv_hess_x.inverse() / scale);
 
         Dtype ar_ratio = std::min<Dtype>(1., p_y_to_x / p_x_to_y);
@@ -194,7 +196,7 @@ private:
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> cons_b_;
     // Current vector
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> curr_sample_;
-    
+
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> curr_weight_;
 };
 

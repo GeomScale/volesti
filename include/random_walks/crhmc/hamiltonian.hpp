@@ -20,6 +20,9 @@
 #include "preprocess/crhmc/crhmc_utils.h"
 #include <utility>
 
+/// @brief Class for the hamiltonian used in crhmc sampler
+/// @tparam Polytope Polytope Type
+/// @tparam Point Point Type
 template <typename Polytope, typename Point>
 class Hamiltonian {
   using VT = typename Polytope::VT;

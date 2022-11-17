@@ -22,7 +22,7 @@
 #define CONSTANT_1 20
 
 /// Holds parameters of the algorithm
-/// \tparam Point Class point
+/// \tparam Point Point Type
 template<class Point>
 struct SimulatedAnnealingSettings {
     /// The numeric type

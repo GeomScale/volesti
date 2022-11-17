@@ -23,6 +23,8 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include <vector>
 
+/// @brief A weighted two sided barrier used by crhmc sampler
+/// @tparam Point Point Type
 template <class Point> class weighted_two_sided_barrier {
 
   using NT = typename Point::FT;

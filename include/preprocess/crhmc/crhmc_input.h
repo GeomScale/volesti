@@ -30,7 +30,9 @@ struct ZeroScalarFunctor
   using Type = typename Point::FT;
   Type operator()(Point const &x) const { return 0; }
 };
-/*Input structure: With this the user can define a polytope sampling problem*/
+
+///
+/// Input structure: With this the user can define the input for a crhmc polytope sampling problem
 template <typename MatrixType, typename Point,
           typename func = ZeroScalarFunctor<Point>,
           typename grad = ZeroFunctor<Point>,

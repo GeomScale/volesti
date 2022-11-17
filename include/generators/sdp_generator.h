@@ -10,7 +10,8 @@
 
 typedef boost::mt19937 RNGType;
 
-
+/// Generates a random matrix
+/// @tparam NT Number type
 template <class NT>
 void randomMatrixGOE(Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>& M) {
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -28,7 +29,8 @@ void randomMatrixGOE(Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>& M) {
     }
 }
 
-// m must be even
+/// Generates a random spectahedron S(n, m)
+/// @tparam NT Number type
 template<typename NT>
 Spectrahedron<NT, Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<NT, Eigen::Dynamic, 1> >  generateSDP(int n, int m) {
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -83,7 +85,8 @@ Spectrahedron<NT, Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matr
     //return optimization::sdp_problem<Point>(spectrahedron, obj);
 }
 
-
+/// Generates a random spectahedron S(n, m)
+/// @tparam NT Number type
 template<typename NT>
 Spectrahedron<NT, Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<NT, Eigen::Dynamic, 1> >  generateSDP2(int n, int m) {
 

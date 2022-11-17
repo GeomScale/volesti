@@ -16,6 +16,8 @@
   using std::isnan;
 #endif
 
+/// This function generates a unit ball of given dimension
+/// @tparam ConvexBody Type of returned Convex Body
 template <class ConvexBody>
 ConvexBody generate_unit_ball(unsigned int dim) {
 
@@ -40,6 +42,8 @@ ConvexBody generate_unit_ball(unsigned int dim) {
     return ConvexBody(unit_ball_funcs, unit_ball_grads, dim);
 }
 
+/// This function generates a unit ball of given dimension intersected by a hyperplane
+/// @tparam ConvexBody Type of returned Convex Body
 template <class ConvexBody>
 ConvexBody generate_unit_ball_intersect_hyperplane(unsigned int dim) {
 
@@ -74,6 +78,8 @@ ConvexBody generate_unit_ball_intersect_hyperplane(unsigned int dim) {
     return ConvexBody(unit_ball_funcs, unit_ball_grads, dim);
 }
 
+/// This function generates a unit ball of given dimension intersected by a logsum exponential function
+/// @tparam ConvexBody Type of returned Convex Body
 template <class ConvexBody>
 ConvexBody generate_unit_ball_intersect_logsumexp(unsigned int dim) {
 
