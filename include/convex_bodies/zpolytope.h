@@ -19,6 +19,8 @@
 #include "lp_oracles/vpolyoracles.h"
 #include "lp_oracles/zpolyoracles.h"
 
+/// This class describes a zonotope i.e. the Minkowski sum of a set of line segments
+/// \tparam Point Point type
 template <typename Point>
 class Zonotope {
 public:
@@ -74,7 +76,7 @@ public:
         //row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
         //colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
         //row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
-        
+
         compute_eigenvectors(V.transpose());
     }*/
 
@@ -482,7 +484,7 @@ public:
     {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
-    
+
 
     //------------------------------oracles for exponential sampling---------------//////
 
@@ -582,7 +584,7 @@ public:
         a *= (-2.0 * v.dot(a));
         v += a;
     }
-    
+
     void resetFlags() {}
 
     void update_position_internal(NT&){}

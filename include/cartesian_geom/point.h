@@ -13,6 +13,8 @@
 #include <iostream>
 #include <Eigen/Eigen>
 
+/// This class manipulates a point parameterized by a number type e.g. double
+/// \tparam K Numerical Type
 template <typename K>
 class point
 {

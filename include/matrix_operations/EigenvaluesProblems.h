@@ -37,7 +37,7 @@ class EigenvaluesProblems {
 
 
 /// A specialization of the template class EigenvaluesProblems for dense Eigen matrices and vectors.
-/// \tparam NT
+/// \tparam NT Numer Type
 template<typename NT>
 class EigenvaluesProblems<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,Eigen::Dynamic,1> > {
 public:

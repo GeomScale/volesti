@@ -15,7 +15,7 @@
 #include <vector>
 #include <queue>
 
-
+/// A class to represent a partial order set aka Poset
 class Poset {
 public:
     typedef std::pair<unsigned int, unsigned int> RT; // relation type

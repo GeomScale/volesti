@@ -12,8 +12,7 @@
 
 /// This class handles the PointType used by CorreSpectra_MT class.
 /// Every point is a correlation matrix and only the lower triangular part is stored.
-
-/// @tparam NT
+/// @tparam NT Number Type
 template<typename NT>
 class CorreMatrix{
     public:

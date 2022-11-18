@@ -57,10 +57,8 @@ struct PrecomputationOfValues {
 };
 
 
-/// This class manipulates a spectrahedron, described by a LMI
-/// \tparam NT Numeric Type
-/// \tparam MT Matrix Type
-/// \tparam VT Vector Type
+/// This class manipulates a spectrahedron, described by a Linear Matrix Inequality i.e. LMI
+/// \tparam Point Point Type
 template<typename Point>
 class Spectrahedron {
 public:

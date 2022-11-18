@@ -15,7 +15,9 @@
 // Monte Carlo in a Constrained Space"
 #ifndef DYNAMIC_WEIGHT_HPP
 #define DYNAMIC_WEIGHT_HPP
-/*Class responsible for updating the weights of the barrier*/
+
+/// Class responsible for updating the weights of the barrier
+/// Part of crhmc sampler
 template <typename Sampler, typename RandomNumberGenerator>
 class dynamic_weight {
   using NT = typename Sampler::NT;

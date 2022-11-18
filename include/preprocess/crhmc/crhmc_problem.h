@@ -35,6 +35,11 @@
 #define SIMD_LEN 0
 #endif
 const size_t chol_k = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
+
+///
+/// Crhmc sampling problem: With this the user can define a crhmc polytope sampling problem
+/// @tparam Point Point type
+/// @tparam Input Input format
 template <typename Point, typename Input>
 class crhmc_problem {
 public:

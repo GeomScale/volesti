@@ -15,7 +15,9 @@
 // Monte Carlo in a Constrained Space"
 #ifndef DYNAMIC_STEP_SIZE_HPP
 #define DYNAMIC_STEP_SIZE_HPP
-/*Module for dynamically choosing the ODE step size and the velocity momentum*/
+
+/// Module for dynamically choosing the ODE step size and the velocity momentum
+/// Part of crhmc sampler
 template <typename Sampler>
 class dynamic_step_size {
   using NT = typename Sampler::NT;

@@ -19,9 +19,9 @@
 #include "random_walks/crhmc/additional_units/dynamic_step_size.hpp"
 #include "random_walks/crhmc/additional_units/dynamic_weight.hpp"
 
-/*This class is responsible for calling the additional modules for:
-modifying the weights, ode step size and regularizer factor addaptively.
-*/
+// This class is responsible for calling the additional crhmc modules for:
+// modifying the weights, ode step size and regularizer factor addaptively.
+
 template <typename Sampler, typename RandomNumberGenerator>
 class auto_tuner {
   using weight_tuner = dynamic_weight<Sampler, RandomNumberGenerator>;

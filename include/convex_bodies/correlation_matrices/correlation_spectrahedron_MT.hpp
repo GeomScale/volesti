@@ -11,9 +11,9 @@
 #define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_MT_HPP
 
 #include "convex_bodies/correlation_matrices/corre_matrix.hpp"
-//
-/// This class handles the spectrahedra of correlation matrices
 
+/// This class handles the spectrahedra of correlation matrices
+/// @tparam CorreMatrix The Correlation Matrix
 template<typename CorreMatrix>
 class CorrelationSpectrahedron_MT : public Spectrahedron<CorreMatrix>{
     public:

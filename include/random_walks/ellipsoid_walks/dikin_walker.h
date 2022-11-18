@@ -9,8 +9,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-// The implemented random walk is presented in the paper of 
-// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu, 
+// The implemented random walk is presented in the paper of
+// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
 // "Fast MCMC Sampling Algorithms on Polytopes",
 // Journal of Machine Learning Research, 2018.
 
@@ -20,7 +20,8 @@
 #include <Eigen/Dense>
 #include "math_functions.h"
 
-
+/// @brief Class that defines the Dikin walk sampler
+/// @tparam Dtype Number Type
 template <typename Dtype>
 class DikinWalker {
 public:
@@ -70,7 +71,7 @@ public:
         sample_gaussian<Dtype>(this->nb_dim_, 0., 1., gaussian_step);
 
         // get hessian
-        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess = 
+        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess =
                         Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess);
 
@@ -79,11 +80,11 @@ public:
 
     bool acceptRejectReverse(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& new_sample){
         // get hessian on x
-        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x = 
+        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x =
                         Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess_x);
         // get hessian on y
-        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y = 
+        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y =
                         Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(new_sample, new_sqrt_inv_hess_y);
 
