@@ -42,7 +42,7 @@ struct Precompute{
 /// This class handles the spectrahedra of correlation matrices
 /// The PointType here is stored as vector.
 /// For the matrix PointType class, refer to CorrelationSpectrahedron_MT
-
+/// @tparam Point Point Type
 template<typename Point>
 class CorrelationSpectrahedron : public Spectrahedron<Point>{
     public:

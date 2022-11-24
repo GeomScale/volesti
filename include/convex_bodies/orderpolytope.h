@@ -19,7 +19,8 @@
     #include "lp_oracles/solve_lp.h"
 #endif
 
-
+/// This class represents an order polytope parameterized by a point type
+/// \tparam Point Point type
 template <typename Point>
 class OrderPolytope {
 public:

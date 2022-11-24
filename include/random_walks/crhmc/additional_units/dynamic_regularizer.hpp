@@ -16,8 +16,10 @@
 #ifndef DYNAMIC_REGULARIZER_HPP
 #define DYNAMIC_REGULARIZER_HPP
 #include "Eigen/Eigen"
-// Module for updating the extra term we add to the barrier
-// This is nessecary for any polytope with free variables
+
+/// Module for updating the extra term we add to the barrier
+/// This is nessecary for any polytope with free variables
+/// Part of crhmc sampler
 template <typename Sampler, typename RandomNumberGenerator>
 class dynamic_regularizer {
 public:

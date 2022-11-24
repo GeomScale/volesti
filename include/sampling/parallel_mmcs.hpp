@@ -14,11 +14,11 @@
 #include "diagnostics/ess_window_updater.hpp"
 
 /**
-   The class implements a single step of the Parallel Multiphase Monte Carlo Sampling algorithm
-   given in,
-
-   A. Chalkis, V. Fisikopoulos, E. Tsigaridas, H. Zafeiropoulos, Geometric algorithms for sampling the flux space of metabolic networks, SoCG 21.
-
+ *  The class implements a single step of the Parallel Multiphase Monte Carlo Sampling algorithm
+ *  given in,
+ *
+ *  A. Chalkis, V. Fisikopoulos, E. Tsigaridas, H. Zafeiropoulos, Geometric algorithms for sampling the flux space of metabolic networks, SoCG 21.
+ *
  * @tparam WalkTypePolicy random walk type
  * @tparam Polytope convex polytope type
  * @tparam RandomNumberGenerator random number generator type
@@ -26,7 +26,7 @@
  * @tparam Point cartensian point type
  * @tparam NT number type
 */
-template 
+template
 <
     typename WalkTypePolicy,
     typename Polytope,
@@ -71,7 +71,7 @@ bool perform_parallel_mmcs_step(Polytope &P,
     unsigned int jj = 0, d = P.dimension(), m = P.num_of_hyperplanes();
     bool complete = false;
 
-    while (jj < nburns) 
+    while (jj < nburns)
     {
         for (unsigned int i = 0; i < num_threads; i++)
         {
@@ -97,17 +97,17 @@ bool perform_parallel_mmcs_step(Polytope &P,
         TotalRandPoints_per_thread[i].setZero(bound_on_num_points_per_thread[i], d);
     }
     unsigned int upper_bound_on_total_num_of_samples;
-    if (request_rounding) 
+    if (request_rounding)
     {
         upper_bound_on_total_num_of_samples = num_rounding_steps;
-    } 
-    else 
+    }
+    else
     {
         upper_bound_on_total_num_of_samples = max_num_samples;
     }
     TotalRandPoints.resize(0, 0);
     Walk walk(P, L);
-    
+
     _thread_parameters random_walk_parameters(d, m);
     walk.template parameters_burnin(P, pp, 10 + int(std::log(NT(d))), 10, rng, random_walk_parameters);
     Point const p = pp;
@@ -117,7 +117,7 @@ bool perform_parallel_mmcs_step(Polytope &P,
         int thread_index = omp_get_thread_num();
         _thread_parameters thread_random_walk_parameters(d, m);
 
-        for (unsigned int it = 0; it < num_starting_points_per_thread[thread_index]; it++)    
+        for (unsigned int it = 0; it < num_starting_points_per_thread[thread_index]; it++)
         {
             if (done_all)
             {
@@ -134,7 +134,7 @@ bool perform_parallel_mmcs_step(Polytope &P,
             {
                 estimator.update_estimator(winPoints_per_thread[thread_index]);
             }
-            
+
             num_generated_points_per_thread[thread_index] += window;
 
             #pragma omp critical
@@ -152,25 +152,25 @@ bool perform_parallel_mmcs_step(Polytope &P,
             #pragma omp single
             {
                 if (done || (total_samples >= points_to_sample))
-                {                
+                {
                     estimator.estimate_effective_sample_size();
-                
+
                     min_eff_samples = int(estimator.get_effective_sample_size().minCoeff());
-                    if (done && min_eff_samples < target_ess) 
+                    if (done && min_eff_samples < target_ess)
                     {
                         Neff_sampled = min_eff_samples;
                         done_all = true;
                     }
-                    if (min_eff_samples >= target_ess) 
+                    if (min_eff_samples >= target_ess)
                     {
                         complete = true;
                         Neff_sampled = min_eff_samples;
                         done_all = true;
                     }
-                    if (min_eff_samples > 0 && !done_all) 
+                    if (min_eff_samples > 0 && !done_all)
                     {
                         points_to_sample += (total_samples / min_eff_samples) * (target_ess - min_eff_samples) + 100;
-                    } 
+                    }
                     else if (!done_all)
                     {
                         points_to_sample = total_samples + 100;
@@ -180,10 +180,10 @@ bool perform_parallel_mmcs_step(Polytope &P,
         }
     }
 
-    estimator.estimate_effective_sample_size();                       
+    estimator.estimate_effective_sample_size();
     min_eff_samples = int(estimator.get_effective_sample_size().minCoeff());
     Neff_sampled = min_eff_samples;
-    if (min_eff_samples >= target_ess) 
+    if (min_eff_samples >= target_ess)
     {
         complete = true;
     }
