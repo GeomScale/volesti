@@ -17,10 +17,12 @@
 #include <Eigen/Eigen>
 
 #include "lp_oracles/vpolyoracles.h"
-#include <khach.h>
+#include <minimum_ellipsoid/khach.h>
 
 
-// V-Polytope class
+/// This class describes a polytope in V-representation or an V-polytope
+/// i.e. a polytope defined as a convex combination of points
+/// \tparam Point Point type
 template<typename Point>
 class VPolytope {
 public:
@@ -49,7 +51,7 @@ public:
             conv_mem{new REAL[V.rows()]},
             row{new REAL[V.rows() + 1]},
             colno{new int[V.rows() + 1]},
-            colno_mem{new int[V.rows()]} 
+            colno_mem{new int[V.rows()]}
     {
     }
 
@@ -345,7 +347,7 @@ public:
 
 
     std::pair<Point,NT> ComputeInnerBall() {
-        
+
         NT radius =  std::numeric_limits<NT>::max(), min_plus;
         Point center(_d);
 
@@ -369,7 +371,7 @@ public:
             MT Q(_d, _d);
             VT c2(_d);
             size_t w=1000;
-            
+
             KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
             //Get ellipsoid matrix and center as Eigen objects
@@ -636,7 +638,7 @@ public:
         NonLinearOracle &intersection_oracle,
         int ignore_facet=-1)
     {
-        return intersection_oracle.apply(t_prev, t0, eta, V, *this, 
+        return intersection_oracle.apply(t_prev, t0, eta, V, *this,
                                          coeffs, phi, grad_phi, ignore_facet);
     }
 

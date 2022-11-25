@@ -10,7 +10,9 @@
 #ifndef ZONOINTERSECTHPOLY_H
 #define ZONOINTERSECTHPOLY_H
 
-
+/// This class represents the intersection of a Zonotope with an H-polytope
+/// \tparam Zonotope Zonotope Type
+/// \tparam HPolytope HPolytope Type
 template <typename Zonotope, typename HPolytope>
 class ZonoIntersectHPoly {
 private:

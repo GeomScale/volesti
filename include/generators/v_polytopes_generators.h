@@ -26,6 +26,9 @@ void removeRow(MT &matrix, unsigned int rowToRemove)
     matrix.conservativeResize(numRows,numCols);
 }
 
+/// Generates a random V-polytope
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
@@ -74,7 +77,9 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
     return Polytope(dim, V, b);
 }
 
-
+/// Generates a random V-polytope inside a cube
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::numeric_limits<double>::signaling_NaN()) {
 

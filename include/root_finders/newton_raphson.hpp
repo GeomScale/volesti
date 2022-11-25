@@ -11,6 +11,9 @@
 #ifndef NEWTON_RAPHSON_HPP
 #define NEWTON_RAPHSON_HPP
 
+/// @brief Function implementing the Newton-Raphson numerical method
+/// @tparam NT Number type
+/// @tparam func Function type
 template <typename NT, class func>
 std::pair<NT,bool> newton_raphson(NT t0, func f, func grad_f, const NT rtol,
   const NT reg=0, const unsigned int max_tries=1000000) {

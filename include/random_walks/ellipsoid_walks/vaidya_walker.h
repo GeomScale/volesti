@@ -9,8 +9,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-// The implemented random walk is presented in the paper of 
-// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu, 
+// The implemented random walk is presented in the paper of
+// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
 // "Fast MCMC Sampling Algorithms on Polytopes",
 // Journal of Machine Learning Research, 2018.
 
@@ -21,6 +21,8 @@
 #include "math_functions.h"
 
 
+/// @brief Class that defines the Vaidya walk sampler
+/// @tparam Dtype Number Type
 template <typename Dtype>
 class VaidyaWalker {
 public:

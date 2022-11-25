@@ -4,6 +4,7 @@
 // Copyright (c) 2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -18,12 +19,12 @@
 /// ARPACK++ standard eigenvalues solver
 //#define ARPACK_EIGENVALUES_SOLVER
 
-#include <../../external/Spectra/include/Spectra/SymEigsSolver.h>
+#include <Spectra/include/Spectra/SymEigsSolver.h>
 #include "DenseProductMatrix.h"
 #include "EigenDenseMatrix.h"
 
-#include "../../external/Spectra/include/Spectra/SymGEigsSolver.h"
-#include "../../external/Spectra/include/Spectra/GenEigsSolver.h"
+#include "Spectra/include/Spectra/SymGEigsSolver.h"
+#include "Spectra/include/Spectra/GenEigsSolver.h"
 
 /// Solve eigenvalues problems
 /// \tparam NT Numeric Type
@@ -36,7 +37,7 @@ class EigenvaluesProblems {
 
 
 /// A specialization of the template class EigenvaluesProblems for dense Eigen matrices and vectors.
-/// \tparam NT
+/// \tparam NT Numer Type
 template<typename NT>
 class EigenvaluesProblems<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,Eigen::Dynamic,1> > {
 public:
@@ -122,7 +123,7 @@ public:
     /// \param[in] A Input matrix
     /// \param[in] B Input matrix
     /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NTpair symGeneralizedProblem(MT const & A, MT const & B) {
+    NTpair symGeneralizedProblem(MT const & A, MT const & B) const {
 
         int matrixDim = A.rows();
 
@@ -159,8 +160,7 @@ public:
         return {lambdaMinPositive, lambdaMaxNegative};
     }
 
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) 
-    {
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) {
         int matrixDim = A.rows();
         double lambdaMinPositive;
 
@@ -168,7 +168,7 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
             geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
 
         // Initialize and compute
@@ -317,8 +317,7 @@ public:
     /// \param[in] A Input matrix
     /// \param[in] B Input matrix
     /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const
-    {
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const {
         int matrixDim = A.rows();
         double lambdaMinPositive;
 
@@ -326,7 +325,7 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
             geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
 
         // Initialize and compute
@@ -395,8 +394,7 @@ public:
     /// \param[out] eigenvector The eigenvector corresponding to the minimum positive eigenvalue
     /// \param[in, out] updateOnly True if X,Y were previously computed and only B,C changed
     /// \return Minimum positive eigenvalue
-    NT
-    minPosQuadraticEigenvalue(MT const & A, MT const &B, MT const &C, MT &X, MT &Y, VT &eigenvector, bool &updateOnly) {
+    NT minPosQuadraticEigenvalue(MT const & A, MT const &B, MT const &C, MT &X, MT &Y, VT &eigenvector, bool &updateOnly) {
         // perform linearization and create generalized eigenvalue problem X+lY
         linearization(A, B, C, X, Y, updateOnly);
 
@@ -422,6 +420,29 @@ public:
             eigenvector(i) =  eivector(matrixDim + i);
 #endif
 
+        return lambdaMinPositive;
+    }
+
+    // Using LDLT decomposition to check membership
+    // Faster than computing the largest eigenvalue with Spectra
+    // more numerically stable for singular matrices
+    bool isPositiveSemidefinite(MT const &A) const {
+        Eigen::LDLT<MT> A_ldlt(A);
+        if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
+            return true;
+        return false;
+    }
+
+    /// Minimum positive eigenvalue of the generalized eigenvalue problem A - lB
+    /// Use Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A) (faster)
+    /// \param[in] A: symmetric positive definite matrix
+    /// \param[in] B: symmetric matrix
+    /// \return The minimum positive eigenvalue and the corresponding eigenvector
+    NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) const {
+        NT lambdaMinPositive = NT(0);
+        Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A);
+        lambdaMinPositive = 1/ges.eigenvalues().reverse()[0];
+        eigvec = ges.eigenvectors().reverse().col(0).reverse();
         return lambdaMinPositive;
     }
 };

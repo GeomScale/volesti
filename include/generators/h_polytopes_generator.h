@@ -15,6 +15,9 @@
   using std::isnan;
 #endif
 
+/// This function generates a random H-polytope of given dimension and number of hyperplanes $m$
+/// @tparam Polytope Type of returned polytope
+/// @tparam RNGType RNGType Type
 template <class Polytope, class RNGType>
 Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 

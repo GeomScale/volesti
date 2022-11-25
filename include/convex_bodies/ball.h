@@ -14,9 +14,10 @@
 
 #include <Eigen/Eigen>
 
-// ball type
+/// This class represents a ball parameterized by a point type
+/// \tparam Point Point Type
 template <typename Point>
-struct Ball{
+class Ball{
 public:
     typedef Point PointType;
     typedef typename Point::FT NT;
