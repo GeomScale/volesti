@@ -10,7 +10,7 @@
 
 ### 🧪 Test results
 
-[![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
+[![CRAN check](https://badges.cranchecks.info/worst/dplyr.svg)](https://cran.r-project.org/web/checks/check_results_volesti.html)
 [![CircleCI master](https://circleci.com/gh/GeomScale/volesti/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volesti/tree/master)
 [![CircleCI develop](https://circleci.com/gh/GeomScale/volesti/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volesti/tree/develop)
 [![gcc-test](https://github.com/GeomScale/volesti/actions/workflows/cmake-gcc.yml/badge.svg)](https://github.com/GeomScale/volesti/actions/workflows/cmake-gcc.yml?query=branch%3Adevelop)
