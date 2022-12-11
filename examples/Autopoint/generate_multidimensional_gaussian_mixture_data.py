@@ -1,6 +1,6 @@
 import numpy as np
 import random
-d=20 # dimention of the data
+d=2 # dimension of the data
 n=4000
 mean1_=[random.random() for i in range(d) ]
 #the two mean are directly opposite for maximum sampling efficiency

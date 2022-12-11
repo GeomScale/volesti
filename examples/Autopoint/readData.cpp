@@ -28,12 +28,12 @@ Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> readMatrix(const char * filename)
         rows++;
     }
     infile.close();
-    rows--;
     Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> result(rows,cols);
     for(int i =0;i<rows;i++)
     {
         for (int j=0;j<cols;j++)
-        result(i,j)=buff[cols*i+j];
+        {result(i,j)=(buff[cols*i+j]);
+        }
     }
     return result;
     

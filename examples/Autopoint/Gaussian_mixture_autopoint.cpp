@@ -1,4 +1,4 @@
-// Use back-mode automatic differentiation using Autodiff Library
+// Use forward-mode automatic differentiation using Autodiff Library
 
 // VolEsti (volume computation and sampling library)
 
@@ -35,81 +35,9 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
-#include <autodiff/reverse/var.hpp>
-#include <autodiff/reverse/var/eigen.hpp>
 #include "readData.h"
 #include "diagnostics/diagnostics.hpp"
-
-struct autoDiffFunctor
-{
-    template <
-        typename NT>
-    struct parameters
-    {
-        unsigned int order;
-        NT L;
-        // Lipschitz constant for gradient
-        NT m;
-        // Strong convexity constant
-        NT kappa; // Condition number
-        Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> data;
-        parameters() : order(2), L(4), m(4), kappa(1)
-        {
-            data = readMatrix<NT>("bankNote.txt");
-        };
-    };
-
-    template <typename NT>
-    static autodiff::detail::Variable<NT> userDefinedFunction(const Eigen::Matrix<autodiff::detail::Variable<NT>, Eigen::Dynamic, 1> &x, Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>& data_)
-    { //  there is a difference between using Eigen::Matrix
-        int n = data_.rows();
-        int k = data_.cols();
-        auto y = (data_.rightCols(1).array() - 1).matrix();
-        auto data = data_.block(0, 0, n, k - 1);
-
-        auto result = ((x.transpose()) * data.transpose() * y)(0, 0) - (((data * x).array() * -1).exp() + 1).log().sum() - x.dot(x) / 2000;
-        return -result;
-    }
-    template <
-        typename Point>
-    struct GradientFunctor
-    {
-        typedef typename Point::FT NT;
-        typedef std::vector<Point> pts;
-        parameters<NT> &params;
-        GradientFunctor(parameters<NT> &params_) : params(params_){};
-        // The index i represents the state vector index
-        Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
-        {
-            if (i == params.order - 1)
-            {
-
-                Eigen::Matrix<autodiff::detail::Variable<NT>, Eigen::Dynamic, 1> temp = xs[0].getCoefficients();
-                Eigen::Matrix<NT, Eigen::Dynamic, 1> result = autodiff::gradient(autoDiffFunctor::userDefinedFunction<NT>(temp, params.data), temp);
-                Point y(result * -1);
-                return y;
-            }
-            else
-            {
-                return xs[i + 1]; // returns derivative
-            }
-        }
-    };
-    template <
-        typename Point>
-    struct FunctionFunctor
-    {
-        typedef typename Point::FT NT;
-        parameters<NT> &params;
-        FunctionFunctor(parameters<NT> &params_) : params(params_){};
-        // The index i represents the state vector index
-        NT operator()(Point const &x) const
-        {
-            auto result = autoDiffFunctor::userDefinedFunction<NT>(x.getCoefficients(), params.data);
-            return autodiff::val(result);
-        }
-    };
-};
+#include "cartesian_geom/autopoint.h"
 
 template <typename NT>
 void run_main()
@@ -119,28 +47,27 @@ void run_main()
     typedef std::vector<Point> pts;
     typedef HPolytope<Point> Hpolytope;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RandomNumberGenerator;
-    typedef autoDiffFunctor::GradientFunctor<Point> NegativeGradientFunctor;
-    typedef autoDiffFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef AutoDiffFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef AutoDiffFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
     typedef LeapfrogODESolver<Point, NT, Hpolytope, NegativeGradientFunctor> Solver;
-    typedef typename Hpolytope::MT MT;
-    typedef typename Hpolytope::VT VT;
-
-    autoDiffFunctor::parameters<NT> params;
+    typedef typename Hpolytope::MT    MT;
+    typedef typename Hpolytope::VT    VT;
+    AutoDiffFunctor::parameters<NT> params;
+    params.data = readMatrix<NT>("data.txt");
     NegativeGradientFunctor F(params);
     NegativeLogprobFunctor f(params);
-    RandomNumberGenerator rng(2);
-    unsigned int dim = 11;
+    RandomNumberGenerator rng(1);
+    unsigned int dim = 40;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+    std::chrono::time_point<std::chrono::high_resolution_clock> start,stop;
 
-    Hpolytope P = generate_cube<Hpolytope>(dim, false, 4);
+    Hpolytope P = generate_cube<Hpolytope>(dim, false);
 
-    Point x0 = -0.1 * Point::all_ones(dim);
-    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+    Point x0 = -0.25 * Point::all_ones(dim);
 
     // In the first argument put in the address of an H-Polytope
     // for truncated sampling and NULL for untruncated
-
     HamiltonianMonteCarloWalk::Walk<Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
         hmc(&P, x0, F, f, hmc_params);
     int n_samples = 50000; // Half will be burned
@@ -151,14 +78,13 @@ void run_main()
 
     for (int i = 0; i < n_samples - max_actual_draws; i++)
     {
-        hmc.apply(rng, 20);
+        hmc.apply(rng, 3);
     }
     start = std::chrono::high_resolution_clock::now();
     std::cerr << (long)std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count();
     for (int i = 0; i < max_actual_draws; i++)
-    {
-        std::cout << hmc.x.getCoefficients().transpose() << std::endl;
-        hmc.apply(rng, 20);
+    {  std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+        hmc.apply(rng, 3);
         samples.col(i) = hmc.x.getCoefficients();
     }
     stop = std::chrono::high_resolution_clock::now();
@@ -176,6 +102,19 @@ void run_main()
     std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
     std::cerr << std::endl;
 }
+using TT=double;
+typename autopoint<TT>::FT pdf_(const  autopoint<TT>& x,const Eigen::Matrix<TT,Eigen::Dynamic,1>& data_)
+{
+    // define your function here,
+    //auto temp=x.array();   //  elementwise operation requires array type
+    autopoint<TT> data_auto=autopoint(data_);
+    autopoint<TT> result=(((-0.5*100*(data_auto -x.getCoefficients()[0]).pow(2)).exp()+ (-0.5*100*(data_auto -x.getCoefficients()[1]).pow(2)).exp())).log();
+    return (result*-1.0).sum();  
+}
+
+
+template <> std::function<typename autopoint<TT>::FT(const autopoint<TT>&,const Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic>&)>  AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf=pdf_;
+
 
 int main()
 {

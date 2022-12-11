@@ -139,7 +139,7 @@ endif()
 
 
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++1y")  # enable C++14 standard
+  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++14 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   add_definitions(${CMAKE_CXX_FLAGS} "-pthread")  # optimization of the compiler
   
@@ -154,45 +154,19 @@ endif()
 
   add_executable (userDefinedFunction_manual_gradient userDefinedFunction_manual_gradient.cpp)
   TARGET_LINK_LIBRARIES(userDefinedFunction_manual_gradient ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  add_executable (userDefinedFunction_Autodiff_forward userDefinedFunction_Autodiff_forward.cpp)
-  TARGET_LINK_LIBRARIES(userDefinedFunction_Autodiff_forward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  add_executable (userDefinedFunction_autopoint userDefinedFunction_autopoint.cpp)
+  TARGET_LINK_LIBRARIES(userDefinedFunction_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   
 
-  add_executable (Gaussian_mixture_Autodiff_forward Gaussian_mixture_Autodiff_forward.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Gaussian_mixture_Autodiff_forward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-  add_executable (Gaussian_mixture_Autodiff_backward Gaussian_mixture_Autodiff_backward.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Gaussian_mixture_Autodiff_backward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-
-  add_executable (userDefinedFunction_Autodiff_backward userDefinedFunction_Autodiff_backward.cpp)
-  TARGET_LINK_LIBRARIES(userDefinedFunction_Autodiff_backward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  add_executable (Gaussian_mixture_autopoint Gaussian_mixture_autopoint.cpp readData.cpp)
+  TARGET_LINK_LIBRARIES(Gaussian_mixture_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   
   
-  add_executable (Logistic_regression_Autodiff_forward Logistic_regression_Autodiff_forward.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Logistic_regression_Autodiff_forward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  add_executable (Logistic_regression_autopoint Logistic_regression_autopoint.cpp readData.cpp)
+  TARGET_LINK_LIBRARIES(Logistic_regression_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   
-  add_executable (Logistic_regression_Autodiff_backward Logistic_regression_Autodiff_backward.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Logistic_regression_Autodiff_backward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-  add_executable (userDefinedFunction_Stanmath userDefinedFunction_Stanmath.cpp)
-  TARGET_LINK_LIBRARIES(userDefinedFunction_Stanmath ${CMAKE_CXX_FLAGS} ${LP_SOLVE} ${BLAS} ${MATH}/lib/sundials_6.1.1/lib/libsundials_nvecserial.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_cvodes.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_idas.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_kinsol.a ${MATH}/lib/tbb/libtbb.so.2 "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl" )
-  
-  add_executable (Logistic_regression_stanmath Logistic_regression_stanmath.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Logistic_regression_stanmath ${CMAKE_CXX_FLAGS} ${LP_SOLVE} ${BLAS} ${MATH}/lib/sundials_6.1.1/lib/libsundials_nvecserial.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_cvodes.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_idas.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_kinsol.a ${MATH}/lib/tbb/libtbb.so.2 "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl" )
-  
-  add_executable (Gaussian_mixture_Stanmath Gaussian_mixture_Stanmath.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Gaussian_mixture_Stanmath ${CMAKE_CXX_FLAGS} ${MATH}/lib/tbb ${LP_SOLVE} ${BLAS} ${MATH}/lib/sundials_6.1.1/lib/libsundials_nvecserial.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_cvodes.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_idas.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_kinsol.a ${MATH}/lib/tbb/libtbb.so.2 "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl" )
-  
-  add_executable (MultidimensionalGaussian_mixture_Autodiff_forward MultidimensionalGaussian_mixture_Autodiff_forward.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_Autodiff_forward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-  add_executable (MultidimensionalGaussian_mixture_Autodiff_backward MultidimensionalGaussian_mixture_Autodiff_backward.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_Autodiff_backward ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-  add_executable (MultidimensionalGaussian_mixture_stanmath MultidimensionalGaussian_mixture_stanmath.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_stanmath ${CMAKE_CXX_FLAGS} ${MATH}/lib/tbb ${LP_SOLVE} ${BLAS} ${MATH}/lib/sundials_6.1.1/lib/libsundials_nvecserial.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_cvodes.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_idas.a ${MATH}/lib/sundials_6.1.1/lib/libsundials_kinsol.a ${MATH}/lib/tbb/libtbb.so.2 "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl" )
-  
+  add_executable (MultidimensionalGaussian_mixture_autopoint MultidimensionalGaussian_mixture_autopoint.cpp readData.cpp)
+  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   
   
 
