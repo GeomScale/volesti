@@ -100,10 +100,7 @@ using TT=double;
 typename autopoint<TT>::FT pdf_(const  autopoint<TT>& x,const Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic>& data_)
 {
     // define your function here,
-    Eigen::Matrix<TT,Eigen::Dynamic,1> data_oneDimentional=data_;
-    autopoint<TT> data_auto=autopoint(data_oneDimentional);
-    autopoint<TT> result=(((-0.5*100*(data_auto -x.getCoefficients()[0]).pow(2)).exp()+ (-0.5*100*(data_auto -x.getCoefficients()[1]).pow(2)).exp())).log();
-    return (result*-1.0).sum();  
+    return  x.pow(4).sum() - 2 * x.pow(2).sum() + (autopoint<TT>::FT)(2 * 0.795);
 }
 
 template <> std::function<typename autopoint<TT>::FT(const autopoint<TT>&,const Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic>&)>  AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf=pdf_;

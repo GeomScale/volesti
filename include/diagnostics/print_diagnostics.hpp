@@ -49,7 +49,7 @@ void print_diagnostics(MT const& samples, unsigned int &min_ess, StreamType &str
     }
 
     vt.print(stream);
-    std::cout << "interval_psrf =  " << intv_psrf.maxCoeff() << "us" << std::endl;
+    stream << "interval_psrf =  " << intv_psrf.maxCoeff() << "us" << std::endl;
 }
 
 

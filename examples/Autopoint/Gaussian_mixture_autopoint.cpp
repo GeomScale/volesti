@@ -50,17 +50,17 @@ void run_main()
     typedef AutoDiffFunctor::GradientFunctor<Point> NegativeGradientFunctor;
     typedef AutoDiffFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
     typedef LeapfrogODESolver<Point, NT, Hpolytope, NegativeGradientFunctor> Solver;
-    typedef typename Hpolytope::MT    MT;
-    typedef typename Hpolytope::VT    VT;
+    typedef typename Hpolytope::MT MT;
+    typedef typename Hpolytope::VT VT;
     AutoDiffFunctor::parameters<NT> params;
     params.data = readMatrix<NT>("data.txt");
     NegativeGradientFunctor F(params);
     NegativeLogprobFunctor f(params);
     RandomNumberGenerator rng(1);
-    unsigned int dim = 40;
+    unsigned int dim = 2;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
-    std::chrono::time_point<std::chrono::high_resolution_clock> start,stop;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
 
     Hpolytope P = generate_cube<Hpolytope>(dim, false);
 
@@ -83,7 +83,8 @@ void run_main()
     start = std::chrono::high_resolution_clock::now();
     std::cerr << (long)std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count();
     for (int i = 0; i < max_actual_draws; i++)
-    {  std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+    {
+        std::cout << hmc.x.getCoefficients().transpose() << std::endl;
         hmc.apply(rng, 3);
         samples.col(i) = hmc.x.getCoefficients();
     }
@@ -102,19 +103,20 @@ void run_main()
     std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
     std::cerr << std::endl;
 }
-using TT=double;
-typename autopoint<TT>::FT pdf_(const  autopoint<TT>& x,const Eigen::Matrix<TT,Eigen::Dynamic,1>& data_)
+using TT = double;
+typename autopoint<TT>::FT pdf_(const autopoint<TT> &x, const Eigen::Matrix<TT, Eigen::Dynamic, 1> &data_)
 {
     // define your function here,
-    //auto temp=x.array();   //  elementwise operation requires array type
-    autopoint<TT> data_auto=autopoint(data_);
-    autopoint<TT> result=(((-0.5*100*(data_auto -x.getCoefficients()[0]).pow(2)).exp()+ (-0.5*100*(data_auto -x.getCoefficients()[1]).pow(2)).exp())).log();
-    return (result*-1.0).sum();  
+    // auto temp=x.array();   //  elementwise operation requires array type
+    autopoint<TT> data_auto = autopoint(data_);
+    autopoint<TT> result = (((-0.5 * 100 * (data_auto - x.getCoefficients()[0]).pow(2)).exp() + (-0.5 * 100 * (data_auto - x.getCoefficients()[1]).pow(2)).exp())).log();
+
+    auto y = (result * -1.0).sum();
+    return y;
 }
 
-
-template <> std::function<typename autopoint<TT>::FT(const autopoint<TT>&,const Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic>&)>  AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf=pdf_;
-
+template <>
+std::function<typename autopoint<TT>::FT(const autopoint<TT> &, const Eigen::Matrix<TT, Eigen::Dynamic, Eigen::Dynamic> &)> AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf = pdf_;
 
 int main()
 {
