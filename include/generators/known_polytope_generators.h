@@ -13,7 +13,9 @@
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/vpolytope.h"
 
-
+/// This function generates a hypercube of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <class Polytope>
 Polytope generate_cube(const unsigned int& dim, const bool& Vpoly,const unsigned int& scale=1) {
 
@@ -75,6 +77,9 @@ Polytope generate_cube(const unsigned int& dim, const bool& Vpoly,const unsigned
 }
 
 
+/// This function generates a crosspolytope of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
 Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 
@@ -135,6 +140,9 @@ Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 }
 
 
+/// This function generates a simplex of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
 Polytope generate_simplex(const unsigned int &dim, const bool &Vpoly){
     typedef typename Polytope::MT    MT;
@@ -172,6 +180,9 @@ Polytope generate_simplex(const unsigned int &dim, const bool &Vpoly){
 }
 
 
+/// This function generates a product of simplices of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
 Polytope generate_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
@@ -245,6 +256,9 @@ Polytope generate_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 }
 
 
+/// This function generates a skinny cube of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
 Polytope generate_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
@@ -299,6 +313,9 @@ Polytope generate_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
     return Polytope(dim, A, b);
 }
 
+/// This function generates the Birkhoff polytope of given type n
+/// The Birkhoff polytope also called the assignment polytope or the polytope of doubly stochastic matrices.
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
 Polytope generate_birkhoff(unsigned int const& n) {
 
