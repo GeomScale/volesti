@@ -1,7 +1,5 @@
 #ifndef AB9D4FD9_C418_44AC_8276_CC42540EF027
 #define AB9D4FD9_C418_44AC_8276_CC42540EF027
-#ifndef BB9A06AF_FB2E_45A2_BB7E_E0FE4749E09F
-#define BB9A06AF_FB2E_45A2_BB7E_E0FE4749E09F
 #include <iostream>
 #include <Eigen/Eigen>
 
@@ -308,7 +306,6 @@ autopoint<K> operator* (  Eigen::Matrix<K, Eigen::Dynamic,Eigen::Dynamic> matrix
     return autopoint(temp);
 }
 
-#endif /* BB9A06AF_FB2E_45A2_BB7E_E0FE4749E09F */
 
 
 #endif /* AB9D4FD9_C418_44AC_8276_CC42540EF027 */
