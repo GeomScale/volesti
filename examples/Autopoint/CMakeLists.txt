@@ -162,9 +162,6 @@ endif()
   TARGET_LINK_LIBRARIES(Gaussian_mixture_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   
   
-  add_executable (Logistic_regression_autopoint Logistic_regression_autopoint.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Logistic_regression_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
   add_executable (MultidimensionalGaussian_mixture_autopoint MultidimensionalGaussian_mixture_autopoint.cpp readData.cpp)
   TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   

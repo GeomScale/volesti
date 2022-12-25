@@ -212,12 +212,17 @@ autopoint& operator=(const autopoint& coeffs)
          return temp_auto;
     }
 
-    autopoint operator* (const FT k) const
+    autopoint operator* (const FT k)
     {
         return autopoint(coeffs * k);
     }
 
     autopoint operator* (T k) const
+    {
+        return autopoint((Coeff)(coeffs * ((FT)k)));
+    }
+    
+    autopoint operator* (T k)
     {
         return autopoint((Coeff)(coeffs * ((FT)k)));
     }
