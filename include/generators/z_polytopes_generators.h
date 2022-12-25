@@ -14,6 +14,9 @@
   using std::isnan;
 #endif
 
+/// Generates a random Zonotope with generators draw from Gaussian distribution
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
@@ -56,6 +59,9 @@ Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits
 }
 
 
+/// Generates a random Zonotope with generators draw from uniform distribution
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope gen_zonotope_uniform(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
@@ -88,10 +94,13 @@ Polytope gen_zonotope_uniform(int dim, int m, double seed = std::numeric_limits<
 
     Polytope P(dim, A, b);
     return P;
-    
+
 }
 
 
+/// Generates a random Zonotope with generators draw from exponential distribution
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope gen_zonotope_exponential(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 

@@ -38,8 +38,9 @@ static const std::unordered_map<std::string, std::string> instances =
 
 };
 
-// generates an Order Polytope from the instance name provided among the
-// possible instances in the map above.
+// generates an Order Polytope from an instance name
+// Instances taken from: https://github.com/ttalvitie/le-counting-practice
+/// @tparam Polytope Type of returned polytope
 template <class Polytope>
 Polytope generate_orderpoly(std::string& instance_name) {
     std::stringstream in_ss(instances.at(instance_name));
@@ -47,7 +48,8 @@ Polytope generate_orderpoly(std::string& instance_name) {
     return Polytope(poset);
 }
 
-// generates a cube as an Order Polytope
+// Generates a cube as an Order Polytope
+/// @tparam Polytope Type of returned polytope
 template <class Polytope>
 Polytope generate_cube_orderpoly(unsigned int dim) {
     typedef typename Poset::RV RV;

@@ -5,7 +5,7 @@ function(GetLPSolve)
         include(FetchContent)
         FetchContent_Declare(
             lpsolve
-            URL https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz
+            URL https://cran.r-project.org/src/contrib/Archive/lpSolve/lpSolve_5.6.15.tar.gz
             URL_HASH MD5=3b8d780f703e0da2e4863939add164bc
         )
 

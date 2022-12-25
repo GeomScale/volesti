@@ -13,8 +13,12 @@
 // Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
 // Riemannian Hamiltonian
 // Monte Carlo in a Constrained Space"
+
 #ifndef OPTS_H
 #define OPTS_H
+
+/// @brief Crhmc options
+/// @tparam Type Numer type
 template <typename Type> class opts {
 public:
   /*Preprocess options*/
@@ -30,7 +34,8 @@ public:
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
-  Type solver_accuracy_threashold=1e-2;
+  Type convergence_limit = 1e16;
+  Type solver_accuracy_threshold=1e-2;
 
   /*Sampler options*/
   bool DynamicWeight = true; //Enable the use of dynamic weights for each variable when sampling

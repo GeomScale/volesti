@@ -44,7 +44,9 @@
 
 using namespace ifopt;
 
-// Define the variable t we use in the optimization
+/// Define the variable t we use in the optimization
+/// \tparam VT Vector Type
+/// \tparam MT Matrix Type
 template <typename VT, typename NT>
 class VPolyOracleVariableT : public VariableSet {
 public:
@@ -73,7 +75,9 @@ public:
 };
 
 
-// Define the variable t we use in the optimization
+/// Define the variable t we use in the optimization
+/// \tparam VT Vector Type
+/// \tparam MT Matrix Type
 template <typename VT, typename NT>
 class VPolyOracleVariableLambdas : public VariableSet {
 public:
@@ -102,7 +106,9 @@ public:
 
 };
 
-// Define the cost function f(t) = t (ipopt takes minimization so it is -t)
+/// Define the cost function f(t) = t (ipopt takes minimization so it is -t)
+/// \tparam VT Vector Type
+/// \tparam MT Matrix Type
 template <typename VT, typename NT>
 class VPolyOracleCost : public CostTerm {
 public:
@@ -127,6 +133,9 @@ public:
 
 };
 
+/// Define the feasibility lambdas
+/// \tparam VT Vector Type
+/// \tparam MT Matrix Type
 template <typename VT, typename NT>
 class VPolyoracleFeasibilityLambdas : public ConstraintSet {
 public:
@@ -232,7 +241,9 @@ public:
 
 };
 
-
+/// Oracle for V-polytopes
+/// \tparam Polytope Polytope Type
+/// \tparam bfunc feasibility constraint type
 template <typename Polytope, class bfunc>
 struct IpoptVPolyoracle {
   typedef typename Polytope::MT MT;

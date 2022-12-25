@@ -20,7 +20,9 @@
 #include <minimum_ellipsoid/khach.h>
 
 
-// V-Polytope class
+/// This class describes a polytope in V-representation or an V-polytope
+/// i.e. a polytope defined as a convex combination of points
+/// \tparam Point Point type
 template<typename Point>
 class VPolytope {
 public:

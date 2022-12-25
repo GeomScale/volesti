@@ -11,19 +11,28 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.compilers }}
+    name: ${{ matrix.config.os }} - ${{ matrix.config.compiler }}
     strategy:
           fail-fast: false
           matrix:
-            compilers: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10]
-    runs-on: ubuntu-18.04
+            config:
+              - {os: ubuntu-22.04, compiler: g++-9}
+              - {os: ubuntu-22.04, compiler: g++-10}
+              - {os: ubuntu-22.04, compiler: g++-11}
+              - {os: ubuntu-22.04, compiler: g++-12}
+              #- {os: ubuntu-22.04, compiler: g++-13}
+              - {os: ubuntu-20.04, compiler: g++-7}
+              - {os: ubuntu-20.04, compiler: g++-8}
+              - {os: ubuntu-20.04, compiler: g++-9}
+              - {os: ubuntu-20.04, compiler: g++-10}
+    runs-on: ${{ matrix.config.os }}
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get update || true;
-             sudo apt-get install ${{ matrix.compilers }} lp-solve;
+             sudo apt-get install ${{ matrix.config.compiler }} lp-solve;
              rm -rf build;
              mkdir build;
              cd build;
-             cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D DISABLE_NLP_ORACLES=ON -D USE_MKL=OFF ../test;
+             cmake -D CMAKE_CXX_COMPILER=${{ matrix.config.compiler }} -D DISABLE_NLP_ORACLES=ON -D USE_MKL=OFF ../test;
              make;
              ctest --verbose;
