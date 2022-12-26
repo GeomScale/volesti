@@ -1,34 +1,21 @@
 samples_uniform_portfolios <- function(A, b, Aeq, beq, ess = 1000) {
-
-  P = Hpolytope$new(A = as.matrix(A), b = c(b), Aeq = as.matrix(Aeq), beq = c(beq))
   
   print("Preprocessing...")
-  pre_proc_list = fast_preprocess_with_mosek(P)
+  pre_proc_list = preprocess_with_quadprog(A, b, Aeq, beq)
   
   print("Computing the full dimensional polytope...")
-  rr = null_space_and_shift(pre_proc_list$row_ind, pre_proc_list$col_ind, pre_proc_list$values, pre_proc_list$Aeq, pre_proc_list$beq)
+  rr = null_space_and_shift(pre_proc_list$Aeq, pre_proc_list$beq)
   
-  A = P$A 
-  b = P$b
   b = b - A %*% rr$N_shift
   A = A %*% rr$N
   
   m = dim(A)[1]
   d = dim(A)[2]
-  rows_to_del = c()
-  for (i in 1:m) {
-    if (sqrt(sum(A[i,]^2)) < 1e-06) {
-      rows_to_del = c(rows_to_del, i)
-    }
-  }
-  if (length(rows_to_del) > 0) {
-    A = A[-rows_to_del, ]
-    b = b[-rows_to_del]
-  }
+
   print('Full dimensional polytope computed!')
   
   print("Computing the Chebychev ball of the full dimensional polytope...")
-  max_ball = get_max_inner_ball(A, b)
+  max_ball = get_max_inner_ball_2(A, b)
   print("Chebychev ball computed!")
   
   d = dim(A)[2]

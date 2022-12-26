@@ -44,7 +44,7 @@ mmc_sampling <- function(A, b, max_ball, n, num_rounding_samples,
       if (do_update) {
         T_curr = parameters$T
         T_shift_curr = parameters$T_shift
-        max_ball = get_max_inner_ball(parameters$A, parameters$b)
+        max_ball = get_max_inner_ball_2(parameters$A, parameters$b)
       }
       if (parameters$rounding_completed) { 
         do_update = FALSE

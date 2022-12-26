@@ -1,12 +1,14 @@
 library(volesti)
 
-## Get Ax<b and Aeq x = beq from a metabolic model just to illustrate an example 
-path = 'metabolic_mat_files/e_coli_core.mat'
-
-P = metabolic_net_2_polytope(path, FALSE, FALSE)
+# build the 100-dimensional coanonical simplex
+d=100
+A = -diag(d)
+b = rep(0,d)
+Aeq = matrix(1, 1, d)
+beq = c(1)
 
 ## request effective sample size ess = 1000 and sample
-result_list = samples_uniform_portfolios(A=P$A, b=P$b, Aeq=P$Aeq, beq=P$beq, ess = 1000)
+result_list = samples_uniform_portfolios(A=A, b=b, Aeq=Aeq, beq=beq, ess = 1000)
 
 ## compute the PSRF of all marginals in the full dimensional space
 psrfs = psrf_univariate(result_list$samples)
