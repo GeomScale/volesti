@@ -8,7 +8,6 @@ To run the code you need `R >= 3.6.3` and you have to install the following `R` 
 2. `quadprog` 
 3. `pracma`
 4. `Matrix`
-5. `R.matlab`
 
 ###  Installation
 
