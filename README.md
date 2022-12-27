@@ -44,17 +44,5 @@ To sample more portfolios, that is how you can use the last phase,
 
 ```r
 N = 5000 # sample 5000 more portfolios
-inner_ball = get_max_inner_ball(result_list$HP_rounded$A, result_list$HP_rounded$b)
-more_samples = sample_points(result_list$HP_rounded, n = N, 
-                             random_walk = list("walk" = "aBiW", "walk_length" = 1,
-                                                "starting_point"=inner_ball$center, 
-                                                "L" = 6*sqrt(result_list$HP_rounded$dimension)*inner_ball$radius))
-
-## map the points back to P0
-samples_in_P0 = result_list$T %*% more_samples + 
-  kronecker(matrix(1, 1, N), matrix(result_list$T_shift, ncol = 1))
-
-## compute the portfolios
-more_random_portfolios = result_list$N %*% samples_in_P0 + 
-  kronecker(matrix(1, 1, N), matrix(result_list$N_shift, ncol = 1))
+more_random_portfolios = sample_from_last_polytope(result_list, N)
 ```
