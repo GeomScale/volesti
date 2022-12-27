@@ -15,7 +15,7 @@ samples_uniform_portfolios <- function(A, b, Aeq, beq, ess = 1000) {
   print('Full dimensional polytope computed!')
   
   print("Computing the Chebychev ball of the full dimensional polytope...")
-  max_ball = get_max_inner_ball_2(A, b)
+  max_ball = get_max_inner_ball(A, b)
   print("Chebychev ball computed!")
   
   d = dim(A)[2]

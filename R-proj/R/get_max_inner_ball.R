@@ -1,10 +1,9 @@
-get_max_inner_ball_2 <- function(A, b) {
+get_max_inner_ball <- function(A, b) {
   
-  m = dim(A)[1]
   d = dim(A)[2]
 
   A = -t(cbind(A, sqrt(rowSums(A^2))))
-  b=-b
+  b = -b
 
   dvec = t(rep(0,d+1))
   dvec[d+1] = 1

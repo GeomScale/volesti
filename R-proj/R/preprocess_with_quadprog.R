@@ -7,7 +7,7 @@ preprocess_with_quadprog <- function(A, b, Aeq, beq) {
   maxWeights = c()
   
   A = rbind(Aeq,A)
-  b= c(beq,b)
+  b = c(beq,b)
 
   A = -t(A)
   b = -b
@@ -30,7 +30,7 @@ preprocess_with_quadprog <- function(A, b, Aeq, beq) {
     width = abs(max_dist - min_dist)
     
     if (width < 1e-07) {
-      Aeq = rbind(Aeq, A[j,])
+      Aeq = rbind(Aeq, A_store[j,])
       beq = c(beq, min_dist)
     }
   }
