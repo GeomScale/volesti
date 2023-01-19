@@ -38,16 +38,18 @@ void sample_hpoly(int n_samples = 80000,
   using Grad = ZeroFunctor<Point>;
   using Hess = ZeroFunctor<Point>;
   using PolytopeType = HPolytope<Point>;
+  using MT = PolytopeType::MT;
+  using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
   std::string problem_name("simplex");
   std::cerr << "CRHMC on " << problem_name << "\n";
   RNG rng(1);
   PolytopeType HP=generate_simplex<PolytopeType>(2,false);
   int dimension = HP.dimension();
-  Func f();
-  Grad g();
+  Func * f = new Func;
+  Grad * g = new Grad;
   std::list<Point> PointList;
   execute_crhmc< PolytopeType, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(
-      HP, rng, PointList, 1, n_samples, n_burns, &g, &f);
+      HP, rng, PointList, 1, n_samples, n_burns, g, f);
   MT samples = MT(dimension, PointList.size());
   int i=0;
   for (std::list<Point>::iterator it = PointList.begin(); it != PointList.end(); ++it){
