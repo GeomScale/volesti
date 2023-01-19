@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "i.e.: ./crhmc_sample_ 4 1000 500\n";
     exit(1);
   }
+  std::cerr << "To plot: python3 ../python_utilities/plot_samples.py <CRHMC_SIMD_4_simplex_samples.txt --save"<<"\n";
   if (atoi(argv[1]) == 1) {
     run_main<1>(atoi(argv[2]), atoi(argv[3]));
   } else if (atoi(argv[1]) == 4) {
