@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   if (argc != 4) {
     std::cerr << "Example Usage: ./simple_crhmc "
                  "[simdLen] [n_samples] [n_burns]\n";
-    std::cerr << "i.e.: ./crhmc_sample_ 4 1000 500\n";
+    std::cerr << "i.e.: ./simple_crhmc 4 1000 500\n";
     exit(1);
   }
   std::cerr << "To plot: python3 ../python_utilities/plot_samples.py <CRHMC_SIMD_4_simplex_samples.txt --save"<<"\n";
