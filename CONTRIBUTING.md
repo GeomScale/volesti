@@ -94,7 +94,6 @@ clone your repository and checkout develop branch
     git fetch upstream
     git checkout upstream/develop
     git branch -vv
-    git pull
 
 see commits
 
