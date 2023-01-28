@@ -104,6 +104,7 @@ void run_main()
     std::cerr << std::endl;
 }
 using TT = double;
+typedef Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic> EigenMatrix;
 typename autopoint<TT>::FT pdf_(const autopoint<TT> &x, const Eigen::Matrix<TT, Eigen::Dynamic, 1> &data_)
 {
     // define your function here,
@@ -116,7 +117,7 @@ typename autopoint<TT>::FT pdf_(const autopoint<TT> &x, const Eigen::Matrix<TT, 
 }
 
 template <>
-std::function<typename autopoint<TT>::FT(const autopoint<TT> &, const Eigen::Matrix<TT, Eigen::Dynamic, Eigen::Dynamic> &)> AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf = pdf_;
+std::function<typename autopoint<TT>::FT(const autopoint<TT> &, const EigenMatrix&)> AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf = pdf_;
 
 int main()
 {

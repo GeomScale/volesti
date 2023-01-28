@@ -11,13 +11,12 @@ project( VolEsti )
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(BUILTIN_AUTODIFF "Use eigen from ../external" OFF)
 option(USE_MKL "Use MKL library to build eigen" ON)
-find_package(autodiff)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.17)
 
 set(MKLROOT /opt/intel/oneapi/mkl/latest)
-set(MATH /home/username/math)
 message( "MKLROOT" ${MKLROOT})
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
@@ -62,6 +61,8 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
+include("../../external/cmake-files/Autodiff.cmake")
+GetAutodiff()
 include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
@@ -76,6 +77,11 @@ if (BUILTIN_EIGEN)
 else ()
     include_directories(BEFORE /usr/include/eigen3)
 endif(BUILTIN_EIGEN)
+if (BUILTIN_AUTODIFF)
+    include_directories (BEFORE ../../external/_deps/Autodiff)
+else ()
+    include_directories(BEFORE /usr/local/include)
+endif(BUILTIN_AUTODIFF)
 
 if (USE_MKL)
 find_library(BLAS
@@ -115,14 +121,6 @@ else ()
   include_directories (BEFORE ../../include/misc)
   include_directories (BEFORE ../../include/optimization)
 
-
-
-  include_directories(${MATH}/lib/tbb_2020.3/include) 
-  include_directories(${MATH}) 
-  include_directories(${MATH}/lib/eigen_3.3.9) 
-  include_directories(${MATH}/lib/boost_1.75.0) 
-  include_directories(${MATH}/lib/sundials_6.1.1/include)
-
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
     add_compile_options(-D "EIGEN_NO_DEBUG")
@@ -155,17 +153,12 @@ endif()
   add_executable (userDefinedFunction_manual_gradient userDefinedFunction_manual_gradient.cpp)
   TARGET_LINK_LIBRARIES(userDefinedFunction_manual_gradient ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   add_executable (userDefinedFunction_autopoint userDefinedFunction_autopoint.cpp)
-  TARGET_LINK_LIBRARIES(userDefinedFunction_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-
+  TARGET_LINK_LIBRARIES(userDefinedFunction_autopoint ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   add_executable (Gaussian_mixture_autopoint Gaussian_mixture_autopoint.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Gaussian_mixture_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-  
+  TARGET_LINK_LIBRARIES(Gaussian_mixture_autopoint ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   add_executable (MultidimensionalGaussian_mixture_autopoint MultidimensionalGaussian_mixture_autopoint.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_autopoint ${LP_SOLVE} ${BLAS} autodiff::autodiff "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  
-  
+  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_autopoint ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
 
 
-endif()
+  endif()
+

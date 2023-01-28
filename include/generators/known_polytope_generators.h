@@ -17,7 +17,7 @@
 /// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
 /// @tparam Polytope Type of returned polytope
 template <class Polytope>
-Polytope generate_cube(const unsigned int& dim, const bool& Vpoly,const unsigned int& scale=1) {
+Polytope generate_cube(const unsigned int& dim, const bool& Vpoly,typename Polytope::NT  scale=1) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
