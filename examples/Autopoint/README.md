@@ -50,8 +50,9 @@ python ../python_utilities/plot_samples.py < Gaussian_mixture.txt
 ### 3.The pdf is defined using a mixture of multi-dimensional gaussian distribution with multi-dimensional data. 
 
 1. Generate data points from mixture of multi-dimensional gaussian distribution
+d can be change to any integer number, but it should be the same as unsigned int dim variable in MultidimensionalGaussian_mixture_autopoint.cpp
 ```
-python python3 generate_multidimensional_gaussian_mixture_data.py -d=4 > data.txt 
+python generate_multidimensional_gaussian_mixture_data.py -d=4 > data.txt 
 ```
 2. Conduct hmc sampling
 
