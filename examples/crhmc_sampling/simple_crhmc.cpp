@@ -30,7 +30,7 @@
 
 template <int simdLen>
 void sample_hpoly(int n_samples = 80000,
-              int n_burns = 20000) {
+              int n_burns = 20000, int dim = 2) {
   using NT = double;
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
@@ -38,12 +38,13 @@ void sample_hpoly(int n_samples = 80000,
   using Grad = ZeroFunctor<Point>;
   using Hess = ZeroFunctor<Point>;
   using PolytopeType = HPolytope<Point>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using MT = PolytopeType::MT;
   using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
   std::string problem_name("simplex");
   std::cerr << "CRHMC on " << problem_name << "\n";
   RNG rng(1);
-  PolytopeType HP=generate_simplex<PolytopeType>(2,false);
+  PolytopeType HP=generate_simplex<PolytopeType>(dim,false);
   int dimension = HP.dimension();
   Func * f = new Func;
   Grad * g = new Grad;
@@ -56,6 +57,7 @@ void sample_hpoly(int n_samples = 80000,
     samples.col(i) = (*it).getCoefficients();
     i++;
   }
+  std::cerr<<"max_psrf: "<< max_interval_psrf<NT,VT,MT>(samples)<<"\n";
   std::ofstream samples_stream;
   samples_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_" +
                       problem_name + "_samples.txt");
@@ -64,26 +66,27 @@ void sample_hpoly(int n_samples = 80000,
 
 template<int simdLen>
 void run_main(int n_samples = 80000,
-              int n_burns = 20000){
+              int n_burns = 20000,
+              int dimension = 2){
   std::cerr<<"Sampling HPolytope\n";
-  sample_hpoly<simdLen>(n_samples, n_burns);
+  sample_hpoly<simdLen>(n_samples, n_burns, dimension);
 }
 int main(int argc, char *argv[]) {
-  if (argc != 4) {
+  if (argc != 5) {
     std::cerr << "Example Usage: ./simple_crhmc "
-                 "[simdLen] [n_samples] [n_burns]\n";
-    std::cerr << "i.e.: ./simple_crhmc 4 1000 500\n";
+                 "[simdLen] [n_samples] [n_burns] [dimension]\n";
+    std::cerr << "i.e.: ./simple_crhmc 4 1000 500 2\n";
     exit(1);
   }
   std::cerr << "To plot: python3 ../python_utilities/plot_samples.py <CRHMC_SIMD_4_simplex_samples.txt --save"<<"\n";
   if (atoi(argv[1]) == 1) {
-    run_main<1>(atoi(argv[2]), atoi(argv[3]));
+    run_main<1>(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
   } else if (atoi(argv[1]) == 4) {
-    run_main<4>(atoi(argv[2]), atoi(argv[3]));
+    run_main<4>(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
   } else if (atoi(argv[1]) == 8) {
-    run_main<8>(atoi(argv[2]), atoi(argv[3]));
+    run_main<8>(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
   } else if (atoi(argv[1]) == 16) {
-    run_main<16>(atoi(argv[2]), atoi(argv[3]));
+    run_main<16>(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
   }
   return 0;
 }
