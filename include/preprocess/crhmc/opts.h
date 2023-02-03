@@ -13,8 +13,12 @@
 // Yunbum Kook, Yin Tat Lee, Ruoqi Shen, Santosh S. Vempala. "Sampling with
 // Riemannian Hamiltonian
 // Monte Carlo in a Constrained Space"
+
 #ifndef OPTS_H
 #define OPTS_H
+
+/// @brief Crhmc options
+/// @tparam Type Numer type
 template <typename Type> class opts {
 public:
   /*Preprocess options*/

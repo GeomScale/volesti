@@ -18,7 +18,8 @@
 #include <Eigen/Eigen>
 #include "volume/math_helpers.hpp"
 
-
+/// This class represents an ellipsoid parameterized by a point type
+/// \tparam Point Point type
 template <class Point>
 class Ellipsoid{
 public:

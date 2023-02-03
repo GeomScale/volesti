@@ -17,7 +17,9 @@
 #include <vector>
 #include "sampling/sphere.hpp"
 
-
+/// This class represents the intersection of two V-polytopes
+/// \tparam VPolytope VPolytope Type
+/// \tparam RNGType RNGType Type
 template <typename VPolytope, typename RNGType>
 class IntersectionOfVpoly {
 public:
@@ -399,7 +401,7 @@ public:
     void resetFlags() {}
 
     void update_position_internal(NT&){}
-    
+
     void compute_reflection (Point &v, const Point &p, const int &facet) const {
 
         if (facet == 1) {

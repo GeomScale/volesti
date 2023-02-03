@@ -34,7 +34,7 @@ typedef HPolytope<Point> Hpolytope;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 typedef typename HPolytope<Point>::MT MT;
-typedef typename HPolytope<Point>::VT VT; 
+typedef typename HPolytope<Point>::VT VT;
 
 enum volumetype {CB ,CG ,SOB}; // Volume type for polytope
 typedef typename std::vector<NT> Limit; // Standard way for user to use limits 
@@ -97,7 +97,7 @@ void initiate_unit_limits(Point& LL, Point& UL, int dim) {
 }
 
 // Simple MC Integration Over Polytopes
-template 
+template
 <
     typename WalkType = BallWalk,
     typename Polytope = Hpolytope,
@@ -106,13 +106,14 @@ template
     typename NT = NT,
     typename Functor
 >
-NT simple_mc_polytope_integrate(Functor Fx, 
-                                Polytope &P, 
-                                int N = 10000, 
-                                volumetype voltype = SOB, 
-                                int walk_length = 1, 
-                                NT e = 0.1, 
-                                Point Origin = pt) 
+NT simple_mc_polytope_integrate(Functor Fx,
+                                Polytope &P,
+                                RNG &rng,
+                                int N = 10000,
+                                volumetype voltype = SOB,
+                                int walk_length = 1,
+                                NT e = 0.1,
+                                Point Origin = pt)
 {
 
     int dim = P.dimension();
@@ -120,7 +121,7 @@ NT simple_mc_polytope_integrate(Functor Fx,
 
     // Check if ShiftPoint is shifted with accurate dimensions
     if (Origin.dimension() == 0 && dim > 0) {
-        Origin.set_dimension(dim); 
+        Origin.set_dimension(dim);
         Origin.set_to_origin();
     } else if (Origin.dimension() != dim && dim > 0) {
         std::cerr << "Polytope Dimension != Shiftpoint Dimension" << std::endl;
@@ -132,16 +133,16 @@ NT simple_mc_polytope_integrate(Functor Fx,
 
     // Volume calculation for HPolytope
     NT volume;
-    
+
     switch (voltype) {
-    case CB:     
-        volume = volume_cooling_balls <VolumeWalkType, RNG, Polytope> (P, e, walk_length).second; 
+    case CB:
+        volume = volume_cooling_balls <VolumeWalkType, Polytope, RNG> (P, rng, e, walk_length).second;
         break;
-    case CG: 
-        volume = volume_cooling_gaussians <GaussianBallWalk, RNG, Polytope> (P, e, walk_length);
+    case CG:
+        volume = volume_cooling_gaussians <GaussianBallWalk, Polytope, RNG> (P, rng, e, walk_length);
         break;
-    case SOB: 
-        volume = volume_sequence_of_balls <VolumeWalkType, RNG, Polytope> (P, e, walk_length);
+    case SOB:
+        volume = volume_sequence_of_balls <VolumeWalkType, Polytope, RNG> (P, rng, e, walk_length);
         break;
     default:
         std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
@@ -151,7 +152,6 @@ NT simple_mc_polytope_integrate(Functor Fx,
     // std::cout << "Volume of the convex body = " << volume << std::endl;
 
     // For implementing Uniform Walks
-    RNG rng(1);
     std::pair <Point, NT> inner_ball = P.ComputeInnerBall();
     Point x0 = inner_ball.first;
     typename WalkType::template Walk<Polytope, RNG> walk(P, x0, rng);
@@ -162,13 +162,35 @@ NT simple_mc_polytope_integrate(Functor Fx,
     for (int i = 0; i < N; i++) {
         walk.apply(P, x0, walk_length, rng);
         sum += Fx(x0 + Origin);
-        
+
         // (x0 + Origin).print();
-    } 
+    }
 
     // Integration Value
     NT integration_value = volume * sum / N ;
     return integration_value;
+}
+
+template
+<
+    typename WalkType = BallWalk,
+    typename Polytope = Hpolytope,
+    typename VolumeWalkType = BallWalk,
+    typename RNG = RandomNumberGenerator,
+    typename NT = NT,
+    typename Functor
+>
+NT simple_mc_polytope_integrate(Functor Fx,
+                                Polytope &P,
+                                int N = 10000,
+                                volumetype voltype = SOB,
+                                int walk_length = 1,
+                                NT e = 0.1,
+                                Point Origin = pt)
+{
+    RNG rng(P.dimension());
+    return simple_mc_polytope_integrate<WalkType, Polytope, VolumeWalkType, RNG, NT, Functor>(Fx, P, rng, N, voltype,
+                                                                                              walk_length, e, Origin);
 }
 
 // Simple MC Integration over Hyper-Rectangles
@@ -179,36 +201,37 @@ template
     typename NT = NT,
     typename Functor
 >
-NT simple_mc_integrate (Functor Fx, 
-                        int dim, 
-                        int N = 10000, 
-                        volumetype voltype = SOB, 
-                        Limit LowLimit = lt, 
-                        Limit UpLimit = lt, 
-                        int walk_length = 10, 
-                        NT e = 0.1) 
+NT simple_mc_integrate(Functor Fx,
+                       int dim,
+                       RNG &rng,
+                       int N = 10000,
+                       volumetype voltype = SOB,
+                       Limit LowLimit = lt,
+                       Limit UpLimit = lt,
+                       int walk_length = 10,
+                       NT e = 0.1)
 {
 
     // Setting up integration limits
     Point LL, UL;
-    if (LowLimit.size() == 1 && UpLimit.size() == 1 && LowLimit[0] == 0 && UpLimit[0] == 0) { 
-        initiate_unit_limits(LL, UL, dim); 
-    } else if (LowLimit.size() == UpLimit.size() && LowLimit.size() == dim) { 
-        LL = init_limit <Point, NT> (LowLimit, dim); 
-        UL = init_limit <Point, NT> (UpLimit, dim); 
-    } else { 
-        std::cerr << "Invalid limits entered"; 
-        return -1; 
+    if (LowLimit.size() == 1 && UpLimit.size() == 1 && LowLimit[0] == 0 && UpLimit[0] == 0) {
+        initiate_unit_limits(LL, UL, dim);
+    } else if (LowLimit.size() == UpLimit.size() && LowLimit.size() == dim) {
+        LL = init_limit <Point, NT> (LowLimit, dim);
+        UL = init_limit <Point, NT> (UpLimit, dim);
+    } else {
+        std::cerr << "Invalid limits entered";
+        return -1;
     }
- 
+
     NT sum = 0;
 
     if (valid_limits(LL, UL)) {
 
         // Creating an MT & VT for HPolytope(Hyper-Rectangle) for integration limits using LL & UL
-        MT mt(dim*2, dim); 
+        MT mt(dim*2, dim);
         mt.setZero();
-        VT vt(dim*2); 
+        VT vt(dim*2);
         vt.setZero();
 
         for (int i=0; i<dim; i++) {
@@ -222,7 +245,7 @@ NT simple_mc_integrate (Functor Fx,
         Hpolytope P(dim, mt, vt);
         // P.print();
 
-        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, P, N, voltype, walk_length, e);
+        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, P, rng, N, voltype, walk_length, e);
         return integration_value;
 
     } else {
@@ -231,4 +254,23 @@ NT simple_mc_integrate (Functor Fx,
     }
 }
 
+template
+<
+    typename WalkType = BallWalk,
+    typename RNG = RandomNumberGenerator,
+    typename NT = NT,
+    typename Functor
+>
+NT simple_mc_integrate(Functor Fx,
+                       int dim,
+                       int N = 10000,
+                       volumetype voltype = SOB,
+                       Limit LowLimit = lt,
+                       Limit UpLimit = lt,
+                       int walk_length = 10,
+                       NT e = 0.1)
+{
+    RNG rng(dim);
+    return simple_mc_integrate<WalkType, RNG, NT, Functor>(Fx, dim, rng, N, voltype, LowLimit, UpLimit, walk_length, e);
+}
 #endif

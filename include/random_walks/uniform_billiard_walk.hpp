@@ -4,6 +4,7 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 // Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2019 program.
+// Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -16,6 +17,8 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
+#include "convex_bodies/correlation_matrices/correlation_spectrahedron.hpp"
+#include "convex_bodies/correlation_matrices/correlation_spectrahedron_MT.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
@@ -28,7 +31,6 @@
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"
 #include "random_walks/compute_diameter.hpp"
-
 
 // Billiard walk for uniform distribution
 
@@ -99,21 +101,26 @@ struct Walk
         {
             T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng);
+
             Point p0 = _p;
             int it = 0;
             while (it < 50*n)
             {
                 auto pbpair = P.line_positive_intersect(_p, _v, _lambdas,
                                                         _Av, _lambda_prev);
+
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
                 }
+
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
+
                 P.compute_reflection(_v, _p, pbpair.second);
+
                 it++;
             }
             if (it == 50*n){
@@ -148,7 +155,6 @@ private :
         NT T = rng.sample_urdist() * _Len;
         Point p0 = _p;
         int it = 0;
-
         std::pair<NT, int> pbpair
                 = P.line_positive_intersect(_p, _v, _lambdas, _Av);
         if (T <= pbpair.first) {
@@ -160,7 +166,6 @@ private :
         _p += (_lambda_prev * _v);
         T -= _lambda_prev;
         P.compute_reflection(_v, _p, pbpair.second);
-
         while (it <= 50*n)
         {
             std::pair<NT, int> pbpair
@@ -191,12 +196,5 @@ private :
 };
 
 };
-
-
-
-
-
-
-
 
 #endif // RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP

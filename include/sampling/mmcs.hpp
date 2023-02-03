@@ -11,18 +11,18 @@
 #include "diagnostics/ess_window_updater.hpp"
 
 /**
-   The class implements a single step of the Multiphase Monte Carlo Sampling algorithm
-   given in,
-
-   A. Chalkis, V. Fisikopoulos, E. Tsigaridas, H. Zafeiropoulos, Geometric algorithms for sampling the flux space of metabolic networks, SoCG 21.
-
+ *  The class implements a single step of the Multiphase Monte Carlo Sampling algorithm
+ *  given in,
+ *
+ *  A. Chalkis, V. Fisikopoulos, E. Tsigaridas, H. Zafeiropoulos, Geometric algorithms for sampling the flux space of metabolic networks, SoCG 21.
+ *
  * @tparam Polytope convex polytope type
  * @tparam RandomNumberGenerator random number generator type
  * @tparam MT matrix type
  * @tparam Point cartensian point type
  * @tparam WalkTypePolicy random walk type
 */
-template 
+template
 <
     typename Polytope,
     typename RandomNumberGenerator,
@@ -62,21 +62,21 @@ bool perform_mmcs_step(Polytope &P,
 
     Point p = starting_point;
 
-    if (request_rounding) 
+    if (request_rounding)
     {
         TotalRandPoints.setZero(num_rounding_steps, P.dimension());
-    } 
-    else 
+    }
+    else
     {
         TotalRandPoints.setZero(max_num_samples, P.dimension());
     }
-        
+
     Walk walk(P, p, rng, WalkType.param);
     ESSestimator<NT, VT, MT> estimator(window, P.dimension());
 
-    walk.template parameters_burnin(P, p, 10 + int(std::log(NT(P.dimension()))), 10, rng);    
+    walk.template parameters_burnin(P, p, 10 + int(std::log(NT(P.dimension()))), 10, rng);
 
-    while (!done) 
+    while (!done)
     {
         walk.template get_starting_point(P, p, q, 10, rng);
         for (int i = 0; i < window; i++)
@@ -86,37 +86,37 @@ bool perform_mmcs_step(Polytope &P,
         }
         estimator.update_estimator(winPoints);
         total_samples += window;
-        if (total_samples >= TotalRandPoints.rows()) 
+        if (total_samples >= TotalRandPoints.rows())
         {
-            if (total_samples > TotalRandPoints.rows()) 
+            if (total_samples > TotalRandPoints.rows())
             {
                 TotalRandPoints.conservativeResize(total_samples, P.dimension());
             }
             if (request_rounding || total_samples >= max_num_samples)
-            { 
+            {
                 done = true;
             }
         }
         TotalRandPoints.block(total_samples - window, 0, window, P.dimension()) = winPoints.transpose();
-        if (done || total_samples >= points_to_sample) 
+        if (done || total_samples >= points_to_sample)
         {
-            estimator.estimate_effective_sample_size();                       
+            estimator.estimate_effective_sample_size();
             min_eff_samples = int(estimator.get_effective_sample_size().minCoeff());
-            if (done && min_eff_samples < target_ess) 
+            if (done && min_eff_samples < target_ess)
             {
                 Neff_sampled = min_eff_samples;
                 return false;
             }
-            if (min_eff_samples >= target_ess) 
+            if (min_eff_samples >= target_ess)
             {
                 Neff_sampled = min_eff_samples;
                 return true;
             }
-            if (min_eff_samples > 0) 
+            if (min_eff_samples > 0)
             {
                 points_to_sample += (total_samples / min_eff_samples) * (target_ess - min_eff_samples) + 100;
-            } 
-            else 
+            }
+            else
             {
                 points_to_sample = total_samples + 100;
             }

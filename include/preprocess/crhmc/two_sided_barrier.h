@@ -24,6 +24,8 @@
 #include "preprocess/crhmc/crhmc_utils.h"
 #include <vector>
 
+/// @brief A two sided barrier used by crhmc sampler
+/// @tparam Point Point Type
 template <typename Point> class two_sided_barrier {
 
   using NT = typename Point::FT;
