@@ -396,7 +396,6 @@ else ()
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
-	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
   TARGET_LINK_LIBRARIES(matrix_sampling_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
 
 endif()
