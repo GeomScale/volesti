@@ -26,6 +26,7 @@ endif()
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(BUILTIN_AUTODIFF "Use eigen from ../external" ON)
 option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
@@ -106,6 +107,9 @@ if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+include("../external/cmake-files/Autodiff.cmake")
+GetAutodiff()
+
 include("../external/cmake-files/Eigen.cmake")
 GetEigen()
 
@@ -137,6 +141,12 @@ if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
+
+if (BUILTIN_AUTODIFF)
+    include_directories (BEFORE ../../external/_deps/Autodiff)
+else ()
+    include_directories(BEFORE /usr/local/include)
+endif(BUILTIN_AUTODIFF)
 
 if (NOT LP_SOLVE)
 
@@ -185,7 +195,7 @@ else ()
     add_compile_definitions("EIGEN_NO_DEBUG")
   endif ()
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wall")

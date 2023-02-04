@@ -1,12 +1,15 @@
 
-## Installation of the required libraries
-C++ 17 is required
-
-### Background information
+## Background information
 Autopoint is implemented using [Autodiff Library](
 https://github.com/autodiff/autodiff/), after experiments of comparing various automatic differentiating libraries.Read [here](https://gist.github.com/zhanggiene/8471601fa25ba9db90303661b0e2237b) to find out more!
 
-### Steps to run the three examples
+## Compilation
+```
+cmake .
+build
+```
+
+## Running the examples
 
 For plotting the results:
  * `examples/python_utilities/plot_samples.py` for plotting the outputs of the HMC sampler
@@ -26,14 +29,14 @@ You can also use the `--limits` argument to set {x, y, z}-limits for the joint p
 
 python ../python_utilities/plot_samples.py < userDefinedFunction_autopoint.txt
 ```
-Here is the histogram of samples from user defined distribution.It is the same as the real pdf of the distribution when -1<x<1 since sampling is done is in truncated space.
+The histogram of samples from user defined distribution.It is the same as the real pdf of the distribution when -1<x<1 since sampling is done is in truncated space.
 ![pdf](./1_2.png)
 
-here is the density plot of the real distribution.
+Density plot of the real distribution.
 ![1.2](./true_pdf_userdefined_func.png)
 
 ### 2. The pdf is defined using a mixture of gaussian distribution with data
-1. generate data from the mixture of gaussian distribution with mean of dimension 1. 
+1. Generate data from the mixture of gaussian distribution with mean of dimension 1. 
 ```
 python3 generate_multidimensional_gaussian_mixture_data.py -d=1 > data.txt
 ```
@@ -49,8 +52,7 @@ python ../python_utilities/plot_samples.py < Gaussian_mixture.txt
 
 ### 3.The pdf is defined using a mixture of multi-dimensional gaussian distribution with multi-dimensional data. 
 
-1. Generate data points from mixture of multi-dimensional gaussian distribution
-d can be change to any integer number, but it should be the same as unsigned int dim variable in MultidimensionalGaussian_mixture_autopoint.cpp
+1. Generating data points from a mixture of multi-dimensional gaussian distribution with mean of dimension d. The variable d can be changed to be any integer number, but it should be the same as unsigned int dim variable in MultidimensionalGaussian_mixture_autopoint.cpp
 ```
 python generate_multidimensional_gaussian_mixture_data.py -d=4 > data.txt 
 ```

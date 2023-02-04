@@ -12,7 +12,7 @@ project( VolEsti )
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
 option(BUILTIN_AUTODIFF "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.17)
 
@@ -92,6 +92,7 @@ PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib64/atlas /usr/li
 message("Found MKL: ${MKLROOT}")
   include_directories (BEFORE ${MKLROOT}/include)
   set(PROJECT_LIBS ${BLAS_LIBRARIES})
+  set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
   add_definitions(-DEIGEN_USE_MKL_ALL)
 endif(USE_MKL)
 
@@ -151,13 +152,13 @@ endif()
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
   add_executable (userDefinedFunction_manual_gradient userDefinedFunction_manual_gradient.cpp)
-  TARGET_LINK_LIBRARIES(userDefinedFunction_manual_gradient ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  TARGET_LINK_LIBRARIES(userDefinedFunction_manual_gradient ${LP_SOLVE} ${BLAS}  ${MKL_LINK})
   add_executable (userDefinedFunction_autopoint userDefinedFunction_autopoint.cpp)
-  TARGET_LINK_LIBRARIES(userDefinedFunction_autopoint ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  TARGET_LINK_LIBRARIES(userDefinedFunction_autopoint ${LP_SOLVE} ${BLAS}  ${MKL_LINK})
   add_executable (Gaussian_mixture_autopoint Gaussian_mixture_autopoint.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(Gaussian_mixture_autopoint ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  TARGET_LINK_LIBRARIES(Gaussian_mixture_autopoint ${LP_SOLVE} ${BLAS}  ${MKL_LINK})
   add_executable (MultidimensionalGaussian_mixture_autopoint MultidimensionalGaussian_mixture_autopoint.cpp readData.cpp)
-  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_autopoint ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  TARGET_LINK_LIBRARIES(MultidimensionalGaussian_mixture_autopoint ${LP_SOLVE} ${BLAS}  ${MKL_LINK})
 
 
   endif()
