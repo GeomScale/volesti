@@ -23,4 +23,4 @@ For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 ## Example Output
 |2D Simplex Uniform|2D Cube Gaussian|
 |:-:|:-:|
-|![First Image](./images/simplex2d.png)|![Second Image](./images/cube2d.png)|
+|![First Image](./data/simplex2d.jpg)|![Second Image](./data/cube2d.jpg)|
