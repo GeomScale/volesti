@@ -13,6 +13,7 @@
 #define SAMPLERS_SPHERE_HPP
 
 #include "convex_bodies/correlation_matrices/corre_matrix.hpp"
+#include<cmath>
 
 template <typename Point>
 struct GetDirection

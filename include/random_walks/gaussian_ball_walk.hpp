@@ -10,7 +10,7 @@
 
 #include "sampling/sphere.hpp"
 #include "random_walks/gaussian_helpers.hpp"
-
+#include<cmath>
 // Ball walk with spherical Gaussian target distribution
 
 struct GaussianBallWalk

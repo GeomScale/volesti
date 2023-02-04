@@ -7,7 +7,7 @@
 
 #ifndef RANDOM_WALKS_RANDOM_WALKS_HPP
 #define RANDOM_WALKS_RANDOM_WALKS_HPP
-
+#include<cmath>
 #include<Eigen/Eigen>
 
 #include "random_walks/boundary_cdhr_walk.hpp"
