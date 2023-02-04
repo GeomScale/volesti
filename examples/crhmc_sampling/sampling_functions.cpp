@@ -26,7 +26,7 @@
 #include <vector>
 #include "random_walks/random_walks.hpp"
 #include "generators/known_polytope_generators.h"
-#include "common.hpp"
+#include "helper_functions.hpp"
 using NT = double;
 using Kernel = Cartesian<NT>;
 using Point = typename Kernel::Point;

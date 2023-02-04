@@ -1,5 +1,5 @@
-#ifndef COMMON_HPP
-#define COMMON_HPP
+#ifndef HELPER_FUNCTIONS_HPP
+#define HELPER_FUNCTIONS_HPP
 #include "diagnostics/diagnostics.hpp"
 #include <unsupported/Eigen/SparseExtra>
 

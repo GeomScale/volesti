@@ -26,7 +26,7 @@
 #include <vector>
 #include "random_walks/random_walks.hpp"
 #include "generators/known_polytope_generators.h"
-#include "common.hpp"
+#include "helper_functions.hpp"
 
 template <int simdLen>
 void sample_hpoly(int n_samples = 80000,
