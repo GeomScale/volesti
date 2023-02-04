@@ -11,11 +11,16 @@ Build the example by running the following commands in this directory.
 cmake . -DLP_SOLVE=_PATH_TO_LIB_FILE
 make
 ```  
-You have to specify the path to liblpsolve55.so/dll/dylib.  
+You have to specify the path to liblpsolve55.so.  
 For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 
 ## Running:
 ```bash
- ./simple_crhmc 4 1000 500
+ ./simple_crhmc 4 1000 500 2
   python3 ../python_utilities/plot_samples.py <CRHMC_SIMD_4_simplex_samples.txt --save
 ```
+
+## Example Output
+|2D Simplex Uniform|2D Cube Gaussian|
+|:-:|:-:|
+|![First Image](./images/simplex2d.png)|![Second Image](./images/cube2d.png)|
