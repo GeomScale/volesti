@@ -18,18 +18,18 @@ runsample <- function(P, name_string, dist){
 }
 
 logconcave_sample<- function(P,distribution, n_samples ,n_burns){
-if(distribution=="uniform"){
-f <- function(x) (0)
-grad_f <- function(x) (0)
-L=1
-m=1
-pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
-return(max(psrf_univariate(pts, "interval")))
-}
-else if(distribution== "gaussian"){
-pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "variance"=8))
-return(max(psrf_univariate(pts, "interval")))
-}
+  if (distribution == "uniform"){
+    f <- function(x) (0)
+    grad_f <- function(x) (0)
+    L=1
+    m=1
+    pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+    return(max(psrf_univariate(pts, "interval")))
+  }
+  else if(distribution == "gaussian"){
+    pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "variance"=8))
+    return(max(psrf_univariate(pts, "interval")))
+  }
 }
 
 for (i in 1:2) {
