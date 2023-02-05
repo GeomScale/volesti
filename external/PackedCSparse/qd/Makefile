@@ -5,7 +5,7 @@ QD_CPPFLAGS=$(CPPFLAGS) -I../../include/qd -I../../include \
 QD_SOURCES= bits.cc c_dd.cc c_qd.cc dd_const.cc dd_real.cc fpu.cc \
                  qd_const.cc qd_real.cc util.cc
 
-QD_OBJECTS=$(QD_SOURCES:.cpp=.o)
+QD_OBJECTS=$(QD_SOURCES:.cc=.o)
 
 libqd.a: $(QD_OBJECTS)
 	$(AR) rc libqd.a $(QD_OBJECTS)
