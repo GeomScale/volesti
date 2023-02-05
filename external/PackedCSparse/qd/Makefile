@@ -2,8 +2,8 @@ QD_CPPFLAGS=$(CPPFLAGS) -I../../include/qd -I../../include \
                   -I$(R_INCLUDE_DIR) \
                   -march=native\
 
-QD_SOURCES= bits.cpp c_dd.cpp c_qd.cpp dd_const.cpp dd_real.cpp fpu.cpp \
-                 qd_const.cpp qd_real.cpp util.cpp
+QD_SOURCES= bits.cc c_dd.cc c_qd.cc dd_const.cc dd_real.cc fpu.cc \
+                 qd_const.cc qd_real.cc util.cc
 
 QD_OBJECTS=$(QD_SOURCES:.cpp=.o)
 

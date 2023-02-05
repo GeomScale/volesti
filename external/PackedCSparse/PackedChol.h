@@ -14,7 +14,7 @@
 #include "leverage.h"
 #include "leverageJL.h"
 #include "multiply.h"
-#include "dd_real.h"
+#include "qd/dd_real.h"
 #include <random>
 #include <vector>
 using namespace PackedCSparse;

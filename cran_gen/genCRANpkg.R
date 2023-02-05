@@ -17,17 +17,17 @@ file.copy(dir_lp, lp_dist, recursive=TRUE)
 # fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
 library(xfun)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "struct timeb buf;", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "struct timeb buf;", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "ftime(&buf);", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "ftime(&buf);", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "return((double)buf.time+((double) buf.millitm)/1000.0);", 
-    "return((double)0);", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "return((double)buf.time+((double) buf.millitm)/1000.0);",
+    "return((double)0);",
     fixed=TRUE)
 
 # add lpsolve header files in external
@@ -48,35 +48,6 @@ lp_dist = paste0(path,"/external/LPsolve_src/run_headers")
 file.copy(file.path(dir_lp, h_files), lp_dist, recursive=TRUE)
 unlink(paste0(path,"/lpSolveAPI"), recursive=TRUE)
 unlink(paste0(path,"/lpSolve"), recursive=TRUE)
-
-# add qdsolve header files in external
-library(downloader)
-download("https://www.davidhbailey.com/dhbsoftware/qd-2.3.23.tar.gz", dest="qd.tar.gz", mode="wb")
-untar("qd.tar.gz", exdir = path)
-unlink("qd.tar.gz")
-setwd(paste0(path,"/qd-2.3.23"))
-system('./configure',ignore.stdout = TRUE)
-setwd(paste0(path,'/cran_gen'))
-dir.create(paste0(path,"/external/qd_src"))
-dir.create(paste0(path,"/external/qd_src/include"))
-dir.create(paste0(path,"/external/qd_src/include/qd"))
-dir.create(paste0(path,"/external/qd_src/run_headers"))
-dir.create(paste0(path,"/external/qd_src/run_headers/build"))
-dir_qd = paste0(path,"/qd-2.3.23/include/qd")
-h_files = dir(dir_qd, "*.h", ignore.case = TRUE, all.files = TRUE)
-qd_dist = paste0(path,"/external/qd_src/include/qd")
-file.copy(file.path(dir_qd, h_files), qd_dist, recursive=TRUE, overwrite=TRUE)
-dir_qd = paste0(path,"/qd-2.3.23/src")
-h_files = dir(dir_qd, "*.h", ignore.case = TRUE, all.files = TRUE)
-qd_dist = paste0(path,"/external/qd_src/run_headers/build")
-file.copy(file.path(dir_qd, h_files), qd_dist, recursive=TRUE)
-cpp_files = dir(dir_qd, "*.cpp", ignore.case = TRUE, all.files = TRUE)
-file.copy(file.path(dir_qd, cpp_files), qd_dist, recursive=TRUE)
-dir_qd = paste0(path,"/qd-2.3.23/")
-h_files = 'config.h'
-qd_dist = paste0(path,"/external/qd_src/include/qd")
-file.copy(file.path(dir_qd, h_files), qd_dist, recursive=TRUE)
-unlink(paste0(path,"/qd-2.3.23"), recursive=TRUE)
 
 # copy paste the src folder
 src_dir = paste0(path,'/R-proj/src')
@@ -188,41 +159,12 @@ unlink(dir_lpsolve_heds, recursive = TRUE)
 dir_lpsolve_heds = paste0(path,"/cran_gen/cran_package/src/Rproj_externals")
 unlink(dir_lpsolve_heds, recursive = TRUE)
 
-# create qd folder
-dir.create(paste0(path,"/cran_gen/cran_package/src/external/qd"))
-dir.create(paste0(path,"/cran_gen/cran_package/src/external/qd/include"))
-dir.create(paste0(path,"/cran_gen/cran_package/src/external/qd/include/qd"))
-dir.create(paste0(path,"/cran_gen/cran_package/src/external/qd/build/"))
-dir.create(paste0(path,"/cran_gen/cran_package/src/external/qd/build/qd"))
-dir_qd = paste0(path,"/cran_gen/cran_package/src/external/qd_src/include/qd")
-files= list.files(dir_qd)
-qd_dist = (paste0(path,"/cran_gen/cran_package/src/external/qd/include/qd"))
-file.copy(file.path(dir_qd,files), qd_dist)
-dir_qd = paste0(path,"/cran_gen/cran_package/src/external/qd_src/run_headers/build")
-files= list.files(dir_qd)
-qd_dist = (paste0(path,"/cran_gen/cran_package/src/external/qd/build/qd"))
-file.copy(file.path(dir_qd,files), qd_dist)
-dir_qd_heds = paste0(path,"/cran_gen/cran_package/src/external/qd_src")
-unlink(dir_qd_heds, recursive = TRUE)
-
 # replace the Makefile
 makefile_dir = paste0(path,'/cran_gen/Makefile')
 makefile_dist = paste0(path, '/cran_gen/cran_package/src/external/lpsolve/build/lp_solve')
 file.copy(makefile_dir, makefile_dist, recursive=TRUE)
 
 
-# replace the Makefile
-makefile_dir = paste0(path,'/cran_gen/Makefile_qd')
-makefile_dist = paste0(path, '/cran_gen/cran_package/src/external/qd/build/qd')
-file.copy(makefile_dir, makefile_dist, recursive=TRUE)
-setwd(makefile_dist)
-file.rename('Makefile_qd', 'Makefile')
-setwd(paste0(path,'/cran_gen'))
-makefile_dist = paste0(path, '/external/qd_src/run_headers/build')
-file.copy(makefile_dir, makefile_dist, recursive=TRUE)
-setwd(makefile_dist)
-file.rename('Makefile_qd', 'Makefile')
-setwd(paste0(path,'/cran_gen'))
 
 # set new cran package folder as wrking directory
 setwd(paste0(path,'/cran_gen/cran_package'))
