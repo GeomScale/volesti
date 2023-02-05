@@ -17,28 +17,33 @@ library(volesti)
 # Sampling from uniform density example
 
 logconcave_sample<- function(P,distribution, n_samples ,n_burns){
-if(distribution=="uniform"){
-f <- function(x) (0)
-grad_f <- function(x) (0)
-L=1
-m=1
-pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
-return(psrf_univariate(pts))
-}
-else if(distribution== "gaussian"){
-pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "variance"=8))
-return(psrf_univariate(pts))
-}
+  if (distribution == "uniform"){
+    f <- function(x) (0)
+    grad_f <- function(x) (0)
+    L=1
+    m=1
+    pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+    return(max(psrf_univariate(pts, "interval")))
+  }
+  else if(distribution == "gaussian"){
+    pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "CRHMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "implicit_midpoint"), distribution = list("density" = "logconcave", "variance"=8))
+    return(max(psrf_univariate(pts, "interval")))
+  }
 }
 
 for (i in 1:2) {
 
   if (i==1) {
     distribution = 'gaussian'
-    } else {
+    cat("Gaussian ")
+  } else {
     distribution = 'uniform'
-    }
+    cat("Uniform ")
+  }
 
-    P = gen_simplex(10, 'H')
-    psrf = logconcave_sample(P,distribution,5000,2000)
+  P = gen_simplex(10, 'H')
+  psrf = logconcave_sample(P,distribution,5000,2000)
+  cat("psrf = ")
+  cat(psrf)
+  cat("\n")
 }
