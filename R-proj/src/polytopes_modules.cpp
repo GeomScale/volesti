@@ -11,11 +11,11 @@ public:
     Hpolytope() {}
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b) : A(_A), b(_b), Aeq(Rcpp::NumericMatrix(0,0)),
                 beq(Rcpp::NumericVector(0)), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
-    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq) : 
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq) :
                 A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, double volume) : A(_A), b(_b),
                 Aeq(Rcpp::NumericMatrix(0,0)), beq(Rcpp::NumericVector(0)), vol(volume), dimension(_A.ncol()), type(1) {}
-    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq, 
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq,
                 double volume) : A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(volume), dimension(_A.ncol()), type(1) {}
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
@@ -69,7 +69,7 @@ public:
     sparse_constraint_problem(SpMat _Aineq, Rcpp::NumericVector _bineq, SpMat _Aeq, Rcpp::NumericVector _beq,
                         Rcpp::NumericVector _lb, Rcpp::NumericVector _ub) : Aineq(_Aineq), bineq(_bineq), Aeq(_Aeq), beq(_beq),
                         lb(_lb), ub(_ub), dimension(_Aineq.cols()), type(5) {}
-    sparse_constraint_problem(SpMat _Aeq, Rcpp::NumericVector _beq) : Aeq(_Aeq), beq(_beq), Aineq(SpMat(0, _Aeq.cols())), bineq(Rcpp::NumericVector(0)),
+    sparse_constraint_problem(SpMat _Aeq, Rcpp::NumericVector _beq) : Aineq(SpMat(0, _Aeq.cols())), bineq(Rcpp::NumericVector(0)), Aeq(_Aeq), beq(_beq),
                         lb(Rcpp::NumericVector(_Aeq.cols(),-1e9)), ub(Rcpp::NumericMatrix(_Aeq.cols(),1e9)), dimension(_Aeq.cols()), type(5) {}
     SpMat Aineq;
     Rcpp::NumericVector bineq;
