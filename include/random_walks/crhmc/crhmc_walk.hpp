@@ -120,9 +120,9 @@ struct CRHMCWalk {
       NegativeLogprobFunctor &neg_logprob_f,
       parameters<NT, NegativeGradientFunctor> &param) :
       params(param),
+      P(Problem),
       F(neg_grad_f),
-      f(neg_logprob_f),
-      P(Problem)
+      f(neg_logprob_f)
     {
 
       dim = p.dimension();
