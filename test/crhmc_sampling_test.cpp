@@ -517,12 +517,13 @@ void test_polytope_sampling_sparse_problem(ConstraintProblem &problem, int n_sam
   using func_params = GaussianFunctor::parameters<NT, Point>;
   using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
   func_params params = func_params(Point(problem.dimension()), 0.5, 1);
-  Func f(params);
-  Grad g(params);
-  Hess h(params);
+  Func* f= new Func(params);
+  Grad* g= new Grad(params);
+  Hess* h= new Hess(params);
   RNG rng(1);
   std::list<Point> PointList;
-  execute_crhmc<ConstraintProblem, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(problem, rng, PointList, 1, n_samples, n_burns, &g, &f, &h, true);
+  execute_crhmc<ConstraintProblem, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(problem, rng, PointList, 1, n_samples, n_burns, g, f, h, true);
+  std::cout<<"Here--------------------------\n";
   MT samples = MT(PointList.front().dimension(), PointList.size());
   int i=0;
   for (typename std::list<Point>::iterator it = PointList.begin(); it != PointList.end(); ++it){
@@ -531,6 +532,9 @@ void test_polytope_sampling_sparse_problem(ConstraintProblem &problem, int n_sam
   }
   NT max_psrf = check_interval_psrf<NT, VT, MT>(samples);
   std::cout<<"PSRF: "<<max_psrf<<std::endl;
+  delete f;
+  delete g;
+  delete h;
 }
 template <typename NT, int simdLen = 1>
 void call_test_polytope_sampling_sparse_problem(){
