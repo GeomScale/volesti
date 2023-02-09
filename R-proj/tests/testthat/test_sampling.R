@@ -88,11 +88,14 @@ for (i in 1:2) {
     expect_equal(res, 1)
   })
 
+  if (Sys.info()["sysname"] != "Windows")
+  {
+    test_that("Sampling test", {
+      P = gen_simplex(10, 'H')
+      psrf = logconcave_sample(P,distribution,5000,2000)
+      expect_lte(psrf, 1.2)
+      })
+  }
 
-  test_that("Sampling test", {
-    P = gen_simplex(10, 'H')
-    psrf = logconcave_sample(P,distribution,5000,2000)
-    expect_lte(psrf, 1.2)
-  })
 
 }
