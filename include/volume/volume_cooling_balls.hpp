@@ -694,7 +694,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b,
                                                                 double>
 >
-std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
+std::pair<double, double> volume_cooling_balls(Polytope& Pin,
                                                RandomNumberGenerator &rng,
                                                double const& error = 0.1,
                                                unsigned int const& walk_length = 1,

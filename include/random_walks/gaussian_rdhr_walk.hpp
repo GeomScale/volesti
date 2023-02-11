@@ -80,10 +80,10 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk(Polytope const&, Point const&, NT const&, RandomNumberGenerator&)
+    Walk(Polytope&, Point const&, NT const&, RandomNumberGenerator&)
     {}
 
-    Walk(Polytope const&, Point const&, NT const&, RandomNumberGenerator&,
+    Walk(Polytope&, Point const&, NT const&, RandomNumberGenerator&,
          parameters&)
     {}
 

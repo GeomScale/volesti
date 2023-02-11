@@ -1,5 +1,5 @@
 ##############################################################################
-# GitHub Actions Workflow for volesti to build tests with GCC
+# GitHub Actions Workflow for volesti to build tests with Clang
 #
 # Copyright (c) 2020-2022 Vissarion Fisikopoulos
 #

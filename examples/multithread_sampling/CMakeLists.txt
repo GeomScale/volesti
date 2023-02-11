@@ -97,7 +97,7 @@ else ()
   endif ()
 
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+  #add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
@@ -105,11 +105,11 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
-  
+
   find_package(OpenMP REQUIRED)
 
   add_executable (sampling_multithread_walks sampling_multithread_walks.cpp)
-  
+
   TARGET_LINK_LIBRARIES(sampling_multithread_walks ${LP_SOLVE} OpenMP::OpenMP_CXX)
 
 
