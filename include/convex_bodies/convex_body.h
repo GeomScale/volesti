@@ -7,6 +7,8 @@
 #include <Eigen/Eigen>
 #include <functional>
 
+/// This class represents a general convex body parameterized by a point type
+/// \tparam Point Point type
 template <typename Point>
 class ConvexBody {
 public:

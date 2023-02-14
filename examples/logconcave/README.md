@@ -1,4 +1,18 @@
 # Running the Examples
+
+You have to install the latest mkl
+[MKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html)
+For example, it is installed in the directory "/opt/intel/oneapi/mkl/2022.1.0".
+
+Change the environment variable:
+```bash
+export LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/latest/lib/intel64
+```
+Change the variable in CMakeLists.txt
+```
+set(MKLROOT /opt/intel/oneapi/mkl/latest)
+```
+
 Build the example by running the following commands in this directory.
 
 ```bash
@@ -15,8 +29,8 @@ Now, you can the HMC and ODE examples and generate their outputs
 ```
 
 For plotting the results there are two scripts
- * `plot_hmc.py` for plotting the outputs of the HMC sampler
- * `plot_ode.py` for plotting the outputs of the ODE solver
+ * `examples/python_utilities/plot_samples.py` for plotting the outputs of the HMC sampler
+ * `examples/python_utilities/plot_ode.py` for plotting the outputs of the ODE solver
 
 These scripts have requirements listed in `requirements.txt`. Install via
 ```
@@ -25,8 +39,8 @@ pip install -r requirements.txt
 
 Plot the results as
 ```
-  python plot_hmc.py <hmc_samples.txt
-  python plot_ode.py <ode_points.txt
+  python ../python_utilities/plot_samples.py <hmc_samples.txt
+  python ../python_utilities/plot_ode.py <ode_points.txt
 ```
 
 You can also use the `--limits` argument to set {x, y, z}-limits for the joint plots.

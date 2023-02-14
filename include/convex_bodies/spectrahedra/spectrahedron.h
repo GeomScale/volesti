@@ -3,7 +3,8 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2020 Apostolos Chalkis
 
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -42,7 +43,7 @@ struct PrecomputationOfValues {
         computed_XY = computed_C = computed_A = false;
     }
 
-    void set_mat_size(int const& m) 
+    void set_mat_size(int const& m)
     {
         A.setZero(m, m);
         B.setZero(m, m);
@@ -56,10 +57,8 @@ struct PrecomputationOfValues {
 };
 
 
-/// This class manipulates a spectrahedron, described by a LMI
-/// \tparam NT Numeric Type
-/// \tparam MT Matrix Type
-/// \tparam VT Vector Type
+/// This class manipulates a spectrahedron, described by a Linear Matrix Inequality i.e. LMI
+/// \tparam Point Point Type
 template<typename Point>
 class Spectrahedron {
 public:
@@ -78,7 +77,7 @@ public:
     typedef PrecomputationOfValues<NT, MT, VT> _PrecomputationOfValues;
 
     _PrecomputationOfValues precomputedValues;
-    
+
     EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
 
     /// The dimension of the spectrahedron
@@ -106,7 +105,6 @@ public:
     }
 
     std::pair<PointType, NT> ComputeInnerBall() {
-
         NT radius = maxDouble;
 
         for (unsigned int i = 0; i < dimension(); ++i) {
@@ -121,6 +119,11 @@ public:
         _inner_ball.second = radius;
 
         return std::pair<PointType, NT>(_inner_ball.first, radius);
+    }
+
+    std::pair<Point,NT> InnerBall() const
+    {
+        return _inner_ball;
     }
 
     /// Construct the quadratic eigenvalue problem \[At^2 + Bt + C \] for positive_intersect.
@@ -162,9 +165,9 @@ public:
 
 
      void createMatricesForPositiveIntersection(const VT& p, const VT& v) {
-        
+
         // check if matrices B, C are ready if not compute them
-        if (!precomputedValues.computed_C) 
+        if (!precomputedValues.computed_C)
         {
             lmi.evaluate(p, precomputedValues.C);
         }
@@ -198,7 +201,7 @@ public:
     }
 
 
-    NT positiveLinearIntersection(VT const & p, VT const & v) 
+    NT positiveLinearIntersection(VT const & p, VT const & v)
     {
         createMatricesForPositiveLinearIntersection(p, v);
         NT distance = EigenvaluesProblem.minPosLinearEigenvalue(precomputedValues.C, precomputedValues.B,
@@ -250,6 +253,14 @@ public:
         return std::pair<NT, int> (pos_inter, -1);
     }
 
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT&,
+                                               VT& ,
+                                               NT const&) {
+        return line_positive_intersect(r, v);
+    }
+
     template <typename update_parameters>
     std::pair<NT, int> line_positive_intersect(PointType const& r,
                                                PointType const& v,
@@ -298,7 +309,7 @@ public:
     std::pair<NT,NT> line_intersect(PointType const& r, PointType const& v)
     {
         NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
-        NT neg_inter = positiveLinearIntersection(r.getCoefficients(), NT(-1)*v.getCoefficients());
+        NT neg_inter = -positiveLinearIntersection(r.getCoefficients(), NT(-1)*v.getCoefficients());
 
         return std::make_pair(pos_inter, neg_inter);
     }
@@ -379,7 +390,7 @@ public:
     /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
-    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const 
+    void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const
     {
         VT grad(d);
         lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
@@ -455,25 +466,25 @@ public:
         return maxDistance;
     }
 
-    int is_in(PointType const& p, NT tol=NT(0))
+    int is_in(PointType const& p, NT tol=NT(0)) const
     {
         if (isExterior(p.getCoefficients())) {
             return 0;
         }
         return -1;
     }
-    
+
     /// Find out is lmi(current position) = mat is in the exterior of the spectrahedron
     /// \param mat a matrix where mat = lmi(current position)
     /// \return true if position is outside the spectrahedron
-    bool isExterior(MT const & mat) {
+    bool isExterior(MT const & mat) const {
         return !lmi.isNegativeSemidefinite(mat);
     }
 
     /// Find out is pos is in the exterior of the spectrahedron
     /// \param pos a vector
     /// \return true if pos is outside the spectrahedron
-    bool isExterior(VT const & pos) {
+    bool isExterior(VT const & pos) const {
         return !lmi.isNegativeSemidefinite(pos);
     }
 };
