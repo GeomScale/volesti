@@ -1,0 +1,33 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+// Define a function to compute the volume of a 3D Z-polytope
+double zPolytopeVolume(vector<vector<int>> generators) {
+  // Define the dimension of the polytope
+  int n = generators[0].size();
+  // Compute the determinant of the generator matrix
+  double determinant = 0;
+  for (int j = 0; j < n; j++) {
+    double prod = 1;
+    for (int i = 0; i < generators.size(); i++) {
+      prod *= generators[i][j];
+    }
+    determinant += prod;
+  }
+  // Compute the volume of the polytope as 2^(n-1) times the absolute value of the determinant of the generator matrix
+  double volume = pow(2, n - 1) * abs(determinant);
+  return volume;
+}
+
+int main() {
+  // Define the generators of the 3D Z-polytope
+  vector<vector<int>> generators = {{1, 0, 0}, {0, 1, 0}, {1, 1, 1}, {2, 2, 2}};
+  // Compute the volume of the polytope
+  double volume = zPolytopeVolume(generators);
+  // Print the volume of the polytope
+  cout << "The volume of the 3D Z-polytope is " << volume << endl;
+  return 0;
+}
