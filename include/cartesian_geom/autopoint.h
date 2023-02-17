@@ -168,17 +168,15 @@ class autopoint
     }
 
     // copy assignment
-autopoint& operator=(const autopoint& coeffs)
-{
+    autopoint& operator=(const autopoint& coeffs)
+    {
     // Guard self assignment
-    if (this == &coeffs)
+        if (this == &coeffs)
+            return *this;
+        this->coeffs = coeffs;
+        d = coeffs.rows();
         return *this;
- 
-    
-    this->coeffs = coeffs;
-    d = coeffs.rows();
-    return *this;
-}
+    }
     autopoint transpose() const
     {
         return autopoint((Coeff)coeffs.transpose());
@@ -253,7 +251,8 @@ autopoint& operator=(const autopoint& coeffs)
     }
 
 
-    FT distance(autopoint const & p) {
+    FT distance(const autopoint& p) const
+    {
         return (this->coeffs - p.coeffs).norm();
     }
 
@@ -284,7 +283,8 @@ autopoint& operator=(const autopoint& coeffs)
         std::cout<<"\n";
     }
 
-    static autopoint all_ones(int dim) {
+    static autopoint all_ones(int dim) 
+    {
       autopoint p(dim);
       for (int i = 0; i < dim; i++) p.set_coord(i, 1.0);
       return p;

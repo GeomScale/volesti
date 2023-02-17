@@ -12,11 +12,11 @@ project( VolEsti )
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
 option(BUILTIN_AUTODIFF "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.17)
 
-set(MKLROOT /opt/intel/oneapi/mkl/latest)
+set(MKLROOT /opt/intel/oneapi/mkl/2023.0.0)
 message( "MKLROOT" ${MKLROOT})
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 

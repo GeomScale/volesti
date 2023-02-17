@@ -32,13 +32,11 @@
 #include "generators/known_polytope_generators.h"
 #include "diagnostics/diagnostics.hpp"
 
-struct CustomFunctor
-{
+struct CustomFunctor {
 
   template <
       typename NT>
-  struct parameters
-  {
+  struct parameters {
     unsigned int order;
     NT L;     // Lipschitz constant for gradient
     NT m;     // Strong convexity constant
@@ -49,8 +47,7 @@ struct CustomFunctor
 
   template <
       typename Point>
-  struct GradientFunctor
-  {
+  struct GradientFunctor {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
 
@@ -59,17 +56,14 @@ struct CustomFunctor
     GradientFunctor(parameters<NT> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
-    {
-      if (i == params.order - 1)
-      {
+    Point operator()(unsigned int const &i, pts const &xs, NT const &t) const {
+      if (i == params.order - 1) {
         auto temp = xs[0].getCoefficients().array();
         auto result = -4 * temp.pow(3) + 4 * temp;
         Point y(result);
         return y;
       }
-      else
-      {
+      else {
         return xs[i + 1]; // returns derivative
       }
     }
@@ -77,8 +71,7 @@ struct CustomFunctor
 
   template <
       typename Point>
-  struct FunctionFunctor
-  {
+  struct FunctionFunctor {
     typedef typename Point::FT NT;
 
     parameters<NT> &params;
@@ -86,9 +79,7 @@ struct CustomFunctor
     FunctionFunctor(parameters<NT> &params_) : params(params_){};
 
     // The index i represents the state vector index
-    NT operator()(Point const &x) const
-    {
-
+    NT operator()(Point const &x) const {
       auto temp = x.getCoefficients().array();
       NT y = temp.pow(4).sum() - 2 * temp.pow(2).sum() + 2 * 0.795;
       return y;
@@ -97,8 +88,7 @@ struct CustomFunctor
 };
 
 template <typename NT>
-void run_main()
-{
+void run_main() {
   typedef Cartesian<NT> Kernel;
   typedef typename Kernel::Point Point;
   typedef std::vector<Point> pts;
@@ -136,13 +126,12 @@ void run_main()
   MT samples;
   samples.resize(dim, max_actual_draws);
 
-  for (int i = 0; i < n_samples - max_actual_draws; i++)
-  {
+  for (int i = 0; i < n_samples - max_actual_draws; i++) {
     hmc.apply(rng, 3);
   }
   start = std::chrono::high_resolution_clock::now();
-  for (int i = 0; i < max_actual_draws; i++)
-  { std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+  for (int i = 0; i < max_actual_draws; i++) { 
+    std::cout << hmc.x.getCoefficients().transpose() << std::endl;
     hmc.apply(rng, 3);
     samples.col(i) = hmc.x.getCoefficients();
   }
@@ -159,8 +148,7 @@ void run_main()
   std::cerr << "PSRF: " << multivariate_psrf<NT, VT, MT>(samples) << std::endl;
 }
 
-int main()
-{
+int main() {
   run_main<double>();
   return 0;
 }

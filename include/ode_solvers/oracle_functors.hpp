@@ -398,12 +398,10 @@ struct HessianFunctor {
 
 };
 
-struct AutoDiffFunctor
-{
+struct AutoDiffFunctor {
 template <
     typename NT>
-struct parameters
-{
+struct parameters {
   unsigned int order;
   NT L;
   // Lipschitz constant for gradient
@@ -416,22 +414,19 @@ struct parameters
 
 template <
     typename NT>
-struct FunctionFunctor_internal
-{
-  typedef autopoint<NT> Autopoint;
-  typedef typename autopoint<NT>::Coeff Coeff;
-  typedef typename autopoint<NT>::FT FT;
-  typedef Cartesian<NT> Kernel;
-  typedef typename Kernel::Point Point;
+struct FunctionFunctor_internal {
+  using Autopoint =autopoint<NT>;
+  using Coeff=typename autopoint<NT>::Coeff;
+  using FT =typename autopoint<NT>::FT;
+  using Kernel=Cartesian<NT>;
+  using Point=typename Kernel::Point;
   static std::function<FT(const Autopoint &, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &)> pdf;
   // static std::function<FT(NT,NT)> f;
-  FT static result_internal(const Coeff &x, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &data)
-  {
+  FT static result_internal(const Coeff &x, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &data){
     return pdf(x, data); //
   }
   // external interface
-  Point static differentiate(Point const &x0, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &data)
-  {
+  Point static differentiate(Point const &x0, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &data) {
     Autopoint x = Autopoint(x0.getCoefficients()); // cast into autopoint
     auto x1 = x.getCoefficients();
     Coeff y = autodiff::gradient(result_internal, autodiff::wrt(x1), autodiff::at(x1, data));
@@ -439,8 +434,7 @@ struct FunctionFunctor_internal
     return -1 * Point(result);
   }
 
-  NT static result(Point const &x0, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &data)
-  {
+  NT static result(Point const &x0, const Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> &data) {
     Autopoint x = Autopoint(x0.getCoefficients()); // cast to autopoint
     auto x1 = x.getCoefficients();
     return result_internal(x1, data).val();
@@ -449,8 +443,7 @@ struct FunctionFunctor_internal
 
 template <
     typename Point>
-struct GradientFunctor
-{
+struct GradientFunctor {
   typedef typename Point::FT NT;
   typedef std::vector<Point> pts;
   typedef FunctionFunctor_internal<NT> NegativeLogprobFunctor;
@@ -458,31 +451,26 @@ struct GradientFunctor
   parameters<NT> &params;
   GradientFunctor(parameters<NT> &params_) : params(params_){};
   // The index i represents the state vector index
-  Point operator()(unsigned int const &i, pts const &xs, NT const &t) const
-  {
+  Point operator()(unsigned int const &i, pts const &xs, NT const &t) const {
     // std::cout<<"calling gradient functor"<<std::flush;
-    if (i == params.order - 1)
-    {
+    if (i == params.order - 1) {
         return F.differentiate(xs[0], params.data);
     }
-    else
-    {
+    else {
         return xs[i + 1]; // returns derivative
     }
   }
 };
 template <
     typename Point>
-struct FunctionFunctor
-{
+struct FunctionFunctor {
   typedef typename Point::FT NT;
   parameters<NT> &params;
   FunctionFunctor(parameters<NT> &params_) : params(params_){};
   // The index i represents the state vector index
   typedef FunctionFunctor_internal<NT> NegativeLogprobFunctor;
   NegativeLogprobFunctor F;
-  NT operator()(Point const &x) const
-  {
+  NT operator()(Point const &x) const {
     NT temp = F.result(x, params.data);
     // std::cout<<temp<<std::endl<<std::flush;
     return temp;

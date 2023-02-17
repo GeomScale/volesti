@@ -74,14 +74,13 @@ void run_main()
     MT samples;
     samples.resize(dim, max_actual_draws);
 
-    for (int i = 0; i < n_samples - max_actual_draws; i++)
-    {
+    for (int i = 0; i < n_samples - max_actual_draws; i++) {
         hmc.apply(rng, 3);
     }
     start = std::chrono::high_resolution_clock::now();
     std::cerr << (long)std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count();
-    for (int i = 0; i < max_actual_draws; i++)
-    {  std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+    for (int i = 0; i < max_actual_draws; i++) {  
+        std::cout << hmc.x.getCoefficients().transpose() << std::endl;
         hmc.apply(rng, 3);
         samples.col(i) = hmc.x.getCoefficients();
     }
@@ -102,18 +101,13 @@ void run_main()
 }
 using TT=double;
 typedef Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic> EigenMatrix;
-typename autopoint<TT>::FT pdf_(const  autopoint<TT>& x,const EigenMatrix& data_)
-{
-
-
+typename autopoint<TT>::FT pdf_(const  autopoint<TT>& x,const EigenMatrix& data_) {
     int d=x.getCoefficients().rows();
     autopoint<TT> firstX=x.head(d/2);
     autopoint<TT> secondX=x.tail(d/2);
-
     typename autopoint<TT>::FT SUM=0;
     auto I=Eigen::Matrix<TT,Eigen::Dynamic,Eigen::Dynamic>::Identity(d,d);
-    for(int i=0;i<data_.rows();i++)
-    {
+    for(int i=0;i<data_.rows();i++) {
         Eigen::Matrix<TT,Eigen::Dynamic,1> datavector=data_.row(i).transpose();
         autopoint<TT> data_autopoint= autopoint<TT>(datavector);
         autopoint<TT> x_mu_first= data_autopoint - firstX;
@@ -121,14 +115,12 @@ typename autopoint<TT>::FT pdf_(const  autopoint<TT>& x,const EigenMatrix& data_
         SUM +=(-log(exp(-0.5*x_mu_first.pow(2).sum()) + exp(-0.5*x_mu_second.pow(2).sum() ) ));
     }
     return SUM;
-
 }
 template <> std::function<typename autopoint<TT>::FT(const autopoint<TT>&,const EigenMatrix&)>  AutoDiffFunctor::FunctionFunctor_internal<TT>::pdf=pdf_;
 
 
 
-int main()
-{
+int main() {
     run_main<double>();
     return 0;
 }

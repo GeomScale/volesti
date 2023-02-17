@@ -26,7 +26,7 @@ endif()
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(BUILTIN_AUTODIFF "Use eigen from ../external" ON)
+option(BUILTIN_AUTODIFF "Use autodiff from ../external" ON)
 option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
