@@ -17,10 +17,12 @@ make
 ```
 For example:  `-DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so`
 
-To install few dependencies before `make` command, run the following,
+In WSL (Windows Subsystem Linux), you can run the following command to install libc6-dev-i386. This will be required for `ieeefp.h` which is used under `qd` library,
 
     sudo apt-get install libc6-dev-i386
-    
+
+Also, to get the `mkl` support, run the following,
+
     wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
     sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
     sudo sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
@@ -29,8 +31,6 @@ To install few dependencies before `make` command, run the following,
     sudo sh -c "echo /opt/intel/mkl/lib/intel64 > /etc/ld.so.conf.d/intel-mkl.conf"
     sudo ldconfig
     export CPLUS_INCLUDE_PATH="/opt/intel/mkl/include:$CPLUS_INCLUDE_PATH"
-
-where `sudo apt-get install libc6-dev-i386` is for `ieeefp.h`, used in the code. And the remaining commands are for `mkl`.
 
 You can run the tests by `cmake test` or `ctest -jK` where `K` the number of `CPU` threads. By adding the option `--verbose` to `ctest` you get more information about the tests, *e.g.* time per test, volume computed and the name of the polytope or convex body.
 
