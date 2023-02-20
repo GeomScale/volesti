@@ -52,20 +52,7 @@ To compile the `C++` code you have to specify the path to external library `libl
     # e.g. on linux: cmake -DLP_SOLVE=/usr/lib/lp_solve/liblpsolve55.so ..
     make
 
-To install few dependencies before `make` command, run the following,
-
-    sudo apt-get install libc6-dev-i386
-    
-    wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
-    sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
-    sudo sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
-    sudo apt-get update
-    sudo apt-get install intel-mkl-2020.4-912
-    sudo sh -c "echo /opt/intel/mkl/lib/intel64 > /etc/ld.so.conf.d/intel-mkl.conf"
-    sudo ldconfig
-    export CPLUS_INCLUDE_PATH="/opt/intel/mkl/include:$CPLUS_INCLUDE_PATH"
-
-where `sudo apt-get install libc6-dev-i386` is for `ieeefp.h`, used in the code. And the remaining commands are for `mkl`.
+You can check [here](/docs/getting_started/install.md) to see more installation guide.
 
 Run the tests,
 
