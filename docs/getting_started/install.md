@@ -21,7 +21,7 @@ In WSL (Windows Subsystem Linux), you can run the following command to install l
 
     sudo apt-get install libc6-dev-i386
 
-Also, to get the `mkl` support, run the following,
+Also to install `mkl` related dependencies, run the following,
 
     wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
     sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
