@@ -17,7 +17,7 @@ make
 ```
 For example:  `-DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so`
 
-In WSL (Windows Subsystem Linux), you can run the following command to install libc6-dev-i386. This will be required for `ieeefp.h` which is used under `qd` library,
+In WSL (Windows Subsystem Linux), you can run the following command to install libc6-dev-i386. This will be required for `ieeefp.h` which is used by `qd` library,
 
     sudo apt-get install libc6-dev-i386
 
