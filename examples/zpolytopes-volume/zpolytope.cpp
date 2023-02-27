@@ -4,7 +4,7 @@
 // Copyright (c) 2023 Apostolos Chalkis
 
 // Conributed and/or modified by Sarthak Bhandari
-// Licensed under GNU LGPL.3, see LICENCE file
+// Licensed under GNU LGPL.3, see LICENCE files
 
 
 #include "Eigen/Eigen"
