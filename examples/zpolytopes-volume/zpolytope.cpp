@@ -10,14 +10,10 @@
 #include "Eigen/Eigen"
 #include <vector>
 #include "cartesian_geom/cartesian_kernel.h"
-#include "known_polytope_generators.h"
+#include "zpolytope/zpolytope.h"
+#include "known_zpolytope_generators.h"
 #include "random_walks/random_walks.hpp"
-
-#include "vpolytope.h"
-#include <iostream>
-#include <fstream>
 #include "misc.h"
-#include <limits>
 
 #include "volume_cooling_gaussians.hpp"
 #include "volume_cooling_balls.hpp"
@@ -26,37 +22,41 @@ typedef double NT;
 typedef Cartesian <NT> Kernel;
 typedef typename Kernel::Point Point;
 typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-typedef VPolytope <Point> VPOLYTOPE;
 
-void calculateVolumes(const VPOLYTOPE &VP) {
-	// Setup parameters for calculating volume
-	int walk_len = 10 + VP.dimension()/10;
-	NT e=0.1;
+void calculateVolumes(const ZPolytope<Kernel> &ZP) {
+    // Setup parameters for calculating volume
+    int walk_len = 10 + ZP.dimension()/10;
+    NT e = 0.1;
 
-	// Calculating volume of the passed polytope
-	NT volume1 = volume_cooling_balls<BallWalk, RNGType, VPOLYTOPE>(VP, e, walk_len).second;
-	NT volume2 = volume_cooling_gaussians<GaussianBallWalk, RNGType>(VP, e, walk_len);
+    // Calculating volume of the passed polytope
+    NT volume1 = volume_cooling_balls<BallWalk, RNGType, ZPolytope<Kernel>>(ZP, e, walk_len).second;
+    NT volume2 = volume_cooling_gaussians<GaussianBallWalk, RNGType, ZPolytope<Kernel>>(ZP, e, walk_len);
 
-	std::cout<<"\t Using Cooling Balls method: "<<volume1<<"\n";
-	std::cout<<"\t Using Cooling Gaussians method: "<<volume2<<"\n";
+    std::cout << "\t Using Cooling Balls method: " << volume1 << "\n";
+    std::cout << "\t Using Cooling Gaussians method: " << volume2 << "\n";
 }
 
 int main(int argc, char* argv[]) {
-	// Reading a VPolytope from ext file
-	std::string fileName("data/zpolytope_5d_10.ext");
-	std::cout<<"Reading input from file..."<<std::endl;
-	std::ifstream inp;
-	std::vector<std::vector<NT> > Pin;
-	inp.open(fileName, std::ifstream::in);
-	read_pointset(inp,Pin);
+    // Generating a 4-dimensional ZPolytope centered at origin
+    ZPolytope<Kernel> ZP1 = generate_hypercube<ZPolytope<Kernel>>(4);
+    std::cout << "ZPolytope ZP1: \n";
+    ZP1.print();
+    std::cout << "\n";
 
-	VPOLYTOPE VP(Pin);
-	std::cout<<"Polytope VP: \n";
-	VP.print();
-	std::cout<<"\n";
+    std::cout << "Volume of ZP1: \n";
+    calculateVolumes(ZP1);
 
-	std::cout<<"Volume of VP: \n";
-	calculateVolumes(VP);
+    // Generating a 3-dimensional ZPolytope with random generator matrix
+    int dim = 3;
+    Eigen::MatrixXd M(dim, dim);
+    M.setRandom();
+    ZPolytope<Kernel> ZP2(M);
+    std::cout << "ZPolytope ZP2: \n";
+    ZP2.print();
+    std::cout << "\n";
 
-	return 0;
+    std::cout << "Volume of ZP2: \n";
+    calculateVolumes(ZP2);
+
+    return 0;
 }
