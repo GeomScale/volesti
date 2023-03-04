@@ -60,6 +60,7 @@ void run_main()
     unsigned int dim = 2;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+    hmc_params.eta=0.00005;// working learning rate for this specific example
     std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
 
     Hpolytope P = generate_cube<Hpolytope>(dim, false);
