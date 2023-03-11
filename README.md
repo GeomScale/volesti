@@ -37,8 +37,8 @@
 
 ### © Copyright and Licensing
 
-Copyright (c) 2012-2022 Vissarion Fisikopoulos\
-Copyright (c) 2018-2022 Apostolos Chalkis\
-Copyright (c) 2020-2022 Elias Tsigaridas
+Copyright (c) 2012-2023 Vissarion Fisikopoulos\
+Copyright (c) 2018-2023 Apostolos Chalkis\
+Copyright (c) 2020-2023 Elias Tsigaridas
 
 You may redistribute or modify the software under the [GNU Lesser General Public License](/LICENSE) as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
