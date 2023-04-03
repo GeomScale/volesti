@@ -47,16 +47,54 @@ docker run -it -v $PWD:/volesti -w /volesti --name=volesti-dev volesti:dev /bin/
 ### Install Rcpp package
 ---
 
-1. Install package-dependencies: ``Rcpp``, ``RcppEigen``, ``BH``.
+1.Install package-dependencies: ``Rcpp``, ``RcppEigen``, ``BH``.
 
-2. Then use ``devtools`` package to install ``volesti`` Rcpp package. From terminal go to folder ``/root/R-proj`` and run in terminal:
+2.Then use ``devtools`` package to install ``volesti`` Rcpp package. From terminal go to folder ``/root/R-proj`` and run in terminal:
 
 ```bash
     Rscript -e 'Rcpp::compileAttributes()'
     R CMD INSTALL --no-multiarch --with-keep.source .
 ```
+To run the code in RStudio, you need the [lp_solve](http://lpsolve.sourceforge.net/5.5/) library. You can download the library from the official website at http://lpsolve.sourceforge.net/5.5/.
 
-3. You can use Rstudio as well to open ``volesti.Rproj`` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.
+After downloading and extracting the archive, you can copy the ``lp_lib.h`` header file to the appropriate location in your system include path.
+
+Alternatively, you can try installing the lpSolve R package, which provides an R interface to the lp_solve library. To install the package, you can run the following command in R:
+
+```bash
+    install.packages("lpSolve")
+```
+
+After installing the ``lp_solve`` library or the ``lpSolve`` package, you may need to rebuild the ``volesti`` package in order to link against the new dependencies.
+
+If the issue still remains, even after installing the library, you can set the path to the ``lp_solve`` library in the ``Makevars`` file of the volesti package:
+
+1. Locate the Makevars.win file for the volesti package. You can find this file by running the following command in R: 
+
+```bash
+    system.file("Makevars.win", package = "volesti")
+```
+
+2. Open the Makevars.win file in a text editor.
+
+3. Add the following line to the file:
+
+```bash
+    PKG_LIBS = -L"C:/Program Files/lp_solve_5.5/" -llpsolve55
+```
+
+4. Replace ``C:/Program Files/lp_solve_5.5`` with the path to the directory where the ``lp_solve`` library is installed on your system.
+
+5. Save the file and try installing the volesti package again using the command:
+
+```bash
+    devtools::install_github("mariogeiger/volesti", build_vignettes = TRUE)
+```
+
+
+This should compile the ``volesti`` package with the path to the ``lp_solve`` library specified in the Makevars file.
+
+3.You can use Rstudio as well to open ``volesti.Rproj`` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.
 
 ### Generate CRAN version
 ---
