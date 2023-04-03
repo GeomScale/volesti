@@ -48,12 +48,12 @@ MT get_uniform_samples(Polytope &P,
     std::list<Point> randPoints;
 
     typedef RandomPointGeneratorMultiThread <walk> _RandomPointGeneratorMultiThread;
-    
+
     _RandomPointGeneratorMultiThread::apply(P, p, N, walk_len, num_threads, randPoints,
                                             push_back_policy, rng);
 
     unsigned int d = P.dimension();
-    
+
     MT samples(d, N);
     unsigned int jj = 0;
 
@@ -92,7 +92,7 @@ MT get_gaussian_samples(Polytope &P,
     std::list<Point> randPoints;
 
     typedef GaussianPointGeneratorMultiThread <walk> _GaussianPointGeneratorMultiThread;
-    
+
     _GaussianPointGeneratorMultiThread::apply(P, p, a_i, N, walk_len, num_threads, randPoints,
                                               push_back_policy, rng);
 
@@ -118,11 +118,10 @@ void test_uniform_random_walk(std::string random_walk, unsigned int const& num_t
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-    Hpolytope P;
     unsigned int d = 10, walk_len = 5, N = 5000;
 
     std::cout << "--- Sampling with " + random_walk + " walk from H-cube10" << std::endl;
-    P = generate_cube<Hpolytope>(d, false);
+    Hpolytope P = generate_cube<Hpolytope>(d, false);
     RNGType rng(P.dimension());
 
     MT samples = get_uniform_samples<MT, WalkType, Point>(P, rng, walk_len, N, num_threads);
@@ -155,7 +154,7 @@ void test_gaussian_random_walk(std::string random_walk, unsigned int const& num_
 
 
 int main() {
-    
+
     unsigned int num_threads = 2;
 
     test_uniform_random_walk<double, BRDHRWalk_multithread>("BRDHR", num_threads);

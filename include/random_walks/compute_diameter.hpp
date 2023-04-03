@@ -205,7 +205,7 @@ template <typename Point>
 struct compute_diameter<OrderPolytope<Point>>
 {
     template <typename NT>
-    static NT compute(OrderPolytope<Point> const& P)
+    static NT compute(OrderPolytope<Point>& P)
     {
         return std::sqrt(NT(P.dimension()));
     }
@@ -215,7 +215,7 @@ template <typename Point>
 struct compute_diameter<BallIntersectPolytope<OrderPolytope<Point>, Ellipsoid<Point> > >
 {
     template <typename NT>
-    static NT compute(BallIntersectPolytope<OrderPolytope<Point>, Ellipsoid<Point>> const& P)
+    static NT compute(BallIntersectPolytope<OrderPolytope<Point>, Ellipsoid<Point>>& P)
     {
         NT polytope_diameter = std::sqrt(NT(P.dimension()));
         return std::min(polytope_diameter, (NT(2) * P.radius()));

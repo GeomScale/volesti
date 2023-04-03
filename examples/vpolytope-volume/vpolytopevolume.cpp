@@ -28,7 +28,7 @@ typedef typename Kernel::Point Point;
 typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 typedef VPolytope <Point> VPOLYTOPE;
 
-void calculateVolumes(const VPOLYTOPE &VP) {
+void calculateVolumes(VPOLYTOPE &VP) {
 	// Setup parameters for calculating volume
 	int walk_len = 10 + VP.dimension()/10;
 	NT e=0.1;
