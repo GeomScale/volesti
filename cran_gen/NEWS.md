@@ -42,3 +42,7 @@
 # volesti 1.1.2-3
 
 - Remove unneeded-internal-declaration warning in clang-15
+
+# volesti 1.1.2-4
+
+- Remove uninitialized warning in clang-16 (lp_presolve)
