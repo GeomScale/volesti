@@ -46,3 +46,7 @@
 # volesti 1.1.2-4
 
 - Remove uninitialized warning in clang-16 (lp_presolve)
+
+# volesti 1.1.2-6
+
+- Fix UBSAN issues (lp_presolve)
