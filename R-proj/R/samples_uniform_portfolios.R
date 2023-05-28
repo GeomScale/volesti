@@ -1,7 +1,15 @@
-samples_uniform_portfolios <- function(A, b, Aeq, beq, ess = 1000) {
+samples_uniform_portfolios <- function(A, b, Aeq, beq, ess = 1000, preprocess = FALSE) {
   
-  print("Preprocessing...")
-  pre_proc_list = preprocess_with_quadprog(A, b, Aeq, beq)
+  if (preprocess) {
+    print("Preprocessing...")
+    pre_proc_list = preprocess_with_quadprog(A, b, Aeq, beq)
+  } else {
+    pre_proc_list = list()
+    pre_proc_list$Aeq = Aeq
+    pre_proc_list$beq = beq
+    pre_proc_list$minWeights = c()
+    pre_proc_list$maxWeights = c()
+  }
   
   print("Computing the full dimensional polytope...")
   rr = null_space_and_shift(pre_proc_list$Aeq, pre_proc_list$beq)

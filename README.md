@@ -23,8 +23,10 @@ library(volesti)
 Request effective sample size ess = 1000
 
 ```r
-result_list = samples_uniform_portfolios(A=A, b=b, Aeq=Aeq, beq=beq, ess = 1000)
+result_list = samples_uniform_portfolios(A=A, b=b, Aeq=Aeq, beq=beq, ess = 1000, preprocess = FALSE)
 ```
+
+The option of `preprocess` is only to compute the min/max value of each weight.  
 
 ### Results  
 
@@ -35,8 +37,8 @@ result_list$N : The matrix of the null space.
 result_list$N_shift : Shift for the full dimensional polytope.  
 result_list$T : The transformation matrix to map samples from the last phase to the initial phase.  
 result_list$T_shift : The shift of the previous transformation.  
-result_list$minWeights : The minimum value of each weight.  
-result_list$maxWeights : The maximum value of each weight.  
+result_list$minWeights : The minimum value of each weight (only when preprocess is TRUE).  
+result_list$maxWeights : The maximum value of each weight (only when preprocess is TRUE).  
 result_list$run_time : The total run-time.  
 
 To sample more portfolios, that is how you can use the last phase,  
