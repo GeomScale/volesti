@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -18,31 +19,174 @@
 #include "lp_oracles/vpolyoracles.h"
 #include "lp_oracles/zpolyoracles.h"
 
+/// This class describes a zonotope i.e. the Minkowski sum of a set of line segments
+/// \tparam Point Point type
 template <typename Point>
 class Zonotope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT V;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    unsigned int _d;  //dimension
-    std::pair<Point,NT> _inner_ball;
-    NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::lowest();
+    unsigned int         _d;  //dimension
+    MT                   V;  //matrix V. Each row contains a vertex
+    VT                   b;  // vector b that contains first column of ine file
+    MT                   T;
+    std::pair<Point, NT> _inner_ball;
+    NT                   maxNT = std::numeric_limits<NT>::max();
+    NT                   minNT = std::numeric_limits<NT>::lowest();
 
-    REAL *conv_comb, *row, *row_mem;
-    int *colno, *colno_mem;
-    MT sigma;
-    MT Q0;
-    MT T;
+    REAL *conv_comb, *row_mem, *row;
+    int                  *colno, *colno_mem;
+    MT                   sigma;
+    MT                   Q0;
+
 
 public:
 
     Zonotope() {}
+
+    Zonotope(const unsigned int &dim, const MT &_V, const VT &_b):
+            _d{dim}, V{_V}, b{_b},
+            conv_comb{new REAL[V.rows() + 1]},
+            row_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+        compute_eigenvectors(V.transpose());
+    }
+
+    /*Zonotope(unsigned int const dim, MT const& _V, VT const& _b)
+    {
+        _d = dim;
+        V = _V;
+        b = _b;
+
+        conv_comb = new REAL[V.rows()+1];
+        row_mem = new REAL[V.rows()];
+        row = new REAL[V.rows() + 1];
+        colno = new int[V.rows() + 1];
+        colno_mem = new int[V.rows()];
+
+        //conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        //colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        //row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        //colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        //row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+
+        compute_eigenvectors(V.transpose());
+    }*/
+
+    Zonotope(std::vector<std::vector<NT> > const& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        V.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++)
+        {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++)
+            {
+                V(i - 1, j - 1) = Pin[i][j];
+            }
+        }
+
+        conv_comb = new REAL[Pin.size()];
+        row_mem = new REAL[V.rows()];
+        row = new REAL[V.rows() + 1];
+        colno = new int[V.rows() + 1];
+        colno_mem = new int[V.rows()];
+
+        compute_eigenvectors(V.transpose());
+    }
+
+    template <typename T>
+    void copy_array(T* source, T* result, size_t count)
+    {
+        T* tarray;
+        tarray = new T[count];
+        std::copy_n(source, count, tarray);
+        delete [] result;
+        result = tarray;
+    }
+
+    Zonotope& operator=(const Zonotope& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+            T = other.T;
+
+            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
+            copy_array(other.row_mem, row_mem, V.rows());
+            copy_array(other.row, row, V.rows() + 1);
+            copy_array(other.colno, colno, V.rows() + 1);
+            copy_array(other.colno_mem, colno_mem, V.rows());
+        }
+        return *this;
+    }
+
+    Zonotope& operator=(Zonotope&& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+            T = other.T;
+
+            conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+            row_mem = other.row_mem;  other.row_mem = nullptr;
+            row = other.row; other.row = nullptr;
+            colno = other.colno; colno = nullptr;
+            colno_mem = other.colno_mem; colno_mem = nullptr;
+        }
+        return *this;
+    }
+
+
+    Zonotope(const Zonotope& other) :
+            _d{other._d}, V{other.V}, b{other.b}, T{other.T},
+            conv_comb{new REAL[V.rows() + 1]},
+            row_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+        std::copy_n(other.conv_comb, V.rows() + 1, conv_comb);
+        std::copy_n(other.row_mem, V.rows(), row_mem);
+        std::copy_n(other.row, V.rows() + 1, row);
+        std::copy_n(other.colno, V.rows() + 1, colno);
+        std::copy_n(other.colno_mem, V.rows(), colno_mem);
+    }
+
+    Zonotope(Zonotope&& other) :
+            _d{other._d}, V{other.V}, b{other.b}, T{other.T},
+            conv_comb{nullptr}, row_mem{nullptr}, row{nullptr},
+            colno{nullptr}, colno_mem{nullptr}
+    {
+        conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+        row_mem = other.row_mem;  other.row_mem = nullptr;
+        row = other.row; other.row = nullptr;
+        colno = other.colno; colno = nullptr;
+        colno_mem = other.colno_mem; colno_mem = nullptr;
+    }
+
+    ~Zonotope() {
+        delete [] conv_comb;
+        delete [] colno;
+        delete [] colno_mem;
+        delete [] row;
+        delete [] row_mem;
+    }
+
+    void set_interior_point(Point const& r)
+    {
+        _inner_ball.first = r;
+    }
 
     // return the dimension
     unsigned int dimension() const
@@ -132,12 +276,16 @@ public:
         return _inner_ball;
     }
 
+    void set_InnerBall(std::pair<Point,NT> const& innerball) //const
+    {
+        _inner_ball = innerball;
+    }
+
     // return the number of generators
     int num_of_generators() const
     {
         return V.rows();
     }
-
 
     // return the matrix V
     MT get_mat() const
@@ -145,20 +293,17 @@ public:
         return V;
     }
 
-
     // return the vector b
     VT get_vec() const
     {
         return b;
     }
 
-
     // change the matrix V
     void set_mat(MT const& V2)
     {
         V = V2;
     }
-
 
     // change the vector b
     void set_vec(VT const& b2)
@@ -175,44 +320,6 @@ public:
     NT get_max_vert_norm() const
     {
         return 0.0;
-    }
-
-    // define zonotope using Eigen matrix V. Vector b is neded in order
-    // the code to compatible with Hpolytope class
-    void init(unsigned int const dim, MT const& _V, VT const& _b)
-    {
-        _d = dim;
-        V = _V;
-        b = _b;
-        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
-        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
-        compute_eigenvectors(V.transpose());
-    }
-
-
-    // Construct matrix V which contains the vertices row-wise
-    void init(std::vector<std::vector<NT> > const& Pin)
-    {
-        _d = Pin[0][1] - 1;
-        V.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++)
-        {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++)
-            {
-                V(i - 1, j - 1) = Pin[i][j];
-            }
-        }
-        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
-        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
-        compute_eigenvectors(V.transpose());
     }
 
 
@@ -236,7 +343,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(Point const& p) const
+    int is_in(Point const& p, NT tol=NT(0)) const
     {
         if(memLP_Zonotope(V, p, row_mem, colno_mem))
         {
@@ -316,6 +423,40 @@ public:
         return line_positive_intersect(r, v, Ar, Av);
     }
 
+    //---------------------------accelarated billiard-----------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters& params) const
+    {
+        return line_positive_intersect(r, v, Ar, Av);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v, Ar, Av);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v, Ar, Av);
+    }
+    //------------------------------------------------------------------------------//
 
     // Compute the intersection of a coordinate ray
     // with the Zonotope
@@ -344,6 +485,41 @@ public:
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
+
+    //------------------------------oracles for exponential sampling---------------//////
+
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    int& facet_prev) const
+    {
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
+    }
+
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    NT const& lambda_prev,
+                                    int& facet_prev) const
+    {
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
+    }
+
+
+    //------------oracle for exact hmc spherical gaussian sampling---------------//
+    std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
+                                                      NT const& omega, int &facet_prev) const
+    {
+        return std::make_pair(0, 0);
+    }
 
     // shift polytope by a point c
     // vector c has to be always the zero vector
@@ -381,6 +557,8 @@ public:
 
     void compute_reflection(Point &v, Point const& p, int const& facet) const
     {
+        //compute_reflection(v, p, 0.0);
+
         int count = 0;
         MT Fmat(_d-1,_d);
         const NT e = 0.0000000001;
@@ -407,12 +585,33 @@ public:
         v += a;
     }
 
-    void free_them_all() {
-        free(row);
-        free(colno);
-        free(conv_comb);
-        free(row_mem);
-        free(colno_mem);
+    void resetFlags() {}
+
+    void update_position_internal(NT&){}
+
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &p, update_parameters const& params) const {
+
+        int count = 0;
+        MT Fmat(_d-1,_d);
+        const NT e = 0.0000000001;
+        for (int j = 0; j < num_of_generators(); ++j) {
+            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) &&
+                ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
+                Fmat.row(count) = V.row(j);
+                count++;
+            }
+        }
+
+        VT a = Fmat.fullPivLu().kernel();
+
+        if(p.getCoefficients().dot(a) < 0.0) a *= -1.0;
+
+        a = a/a.norm();
+
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
     }
 
 };

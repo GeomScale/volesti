@@ -10,14 +10,8 @@
 #ifndef RANDOM_WALKS_UNIFORM_RDHR_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_RDHR_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
-#include "generators/boost_random_number_generator.hpp"
+
+#include "sampling/sphere.hpp"
 
 // Random directions hit-and-run walk with uniform target distribution
 
@@ -37,13 +31,13 @@ struct Walk
     typedef typename Point::FT NT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
+    Walk(GenericPolytope& P, Point const& p, RandomNumberGenerator& rng)
     {
         initialize(P, p, rng);
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p,
+    Walk(GenericPolytope& P, Point const& p,
          RandomNumberGenerator& rng, parameters const& params)
     {
         initialize(P, p, rng);
@@ -53,7 +47,7 @@ struct Walk
     <
         typename BallPolytope
     >
-    inline void apply(BallPolytope const& P,
+    inline void apply(BallPolytope& P,
                       Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator& rng)
@@ -73,7 +67,7 @@ struct Walk
 private :
 
     template <typename BallPolytope>
-    inline void initialize(BallPolytope const& P,
+    inline void initialize(BallPolytope& P,
                            Point const& p,
                            RandomNumberGenerator &rng)
     {

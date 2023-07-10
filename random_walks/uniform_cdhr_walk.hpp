@@ -10,16 +10,10 @@
 #ifndef RANDOM_WALKS_UNIFORM_CDHR_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_CDHR_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
-#include "generators/boost_random_number_generator.hpp"
+#include "sampling/sphere.hpp"
 
-// random directions hit-and-run walk with uniform target distribution
+// coordinate directions hit-and-run walk with uniform target distribution
+
 struct CDHRWalk
 {
     struct parameters {};
@@ -36,13 +30,13 @@ struct Walk
     typedef typename Point::FT NT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
+    Walk(GenericPolytope& P, Point const& p, RandomNumberGenerator& rng)
     {
         initialize(P, p, rng);
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p,
+    Walk(GenericPolytope& P, Point const& p,
          RandomNumberGenerator& rng, parameters const& params)
     {
         initialize(P, p, rng);

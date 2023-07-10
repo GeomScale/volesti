@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -16,7 +17,9 @@
 #include <vector>
 #include "sampling/sphere.hpp"
 
-
+/// This class represents the intersection of two V-polytopes
+/// \tparam VPolytope VPolytope Type
+/// \tparam RNGType RNGType Type
 template <typename VPolytope, typename RNGType>
 class IntersectionOfVpoly {
 public:
@@ -31,9 +34,15 @@ public:
     VPolytope P1;
     VPolytope P2;
 
-    IntersectionOfVpoly() {}
+    IntersectionOfVpoly(): P1(), P2() {}
 
-    IntersectionOfVpoly(VPolytope &P, VPolytope &Q) : P1(P), P2(Q) {};
+    IntersectionOfVpoly(VPolytope P, VPolytope Q) : P1(P), P2(Q) {
+        seed = std::chrono::system_clock::now().time_since_epoch().count();
+    }
+
+    IntersectionOfVpoly(VPolytope P, VPolytope Q, unsigned _seed) : P1(P), P2(Q)  {
+        seed = _seed;
+    }
 
     VPolytope first() { return P1; }
     VPolytope second() { return P2; }
@@ -43,23 +52,12 @@ public:
         return _inner_ball;
     }
 
-    int is_in(const Point &p) const {
+    int is_in(const Point &p, NT tol=NT(0)) const {
         if(P1.is_in(p)==-1)
             return P2.is_in(p);
         return 0;
     }
 
-    void init(const VPolytope &P, const VPolytope &Q) {
-        P1 = P;
-        P2 = Q;
-        seed = std::chrono::system_clock::now().time_since_epoch().count();
-    }
-
-    void init(const VPolytope &P, const VPolytope &Q, unsigned &_seed) {
-        P1 = P;
-        P2 = Q;
-        seed = _seed;
-    }
 
     int num_of_hyperplanes() const {
         return 0;
@@ -81,10 +79,6 @@ public:
     int num_of_generators() const {
         return 0;
     }
-
-    //std::vector<Point> get_vertices() const {
-    //    return vecV;
-    //}
 
     NT getRad() const {
         return rad;
@@ -165,6 +159,16 @@ public:
         _inner_ball = P1.get_center_radius_inscribed_simplex(vertices.begin(), vertices.end());
         return _inner_ball;
 
+    }
+
+    void set_InnerBall(std::pair<Point,NT> const& innerball) const
+    {
+        _inner_ball = innerball;
+    }
+
+    void set_interior_point(Point const& r)
+    {
+        _inner_ball.first = r;
     }
 
 /*
@@ -266,6 +270,41 @@ public:
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 
+    //------------------------------accelarated billiard------------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters& params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+    //------------------------------------------------------------------------------//
+
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
@@ -289,6 +328,40 @@ public:
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
+
+    //------------------------------oracles for exponential sampling---------------//////
+
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    int& facet_prev) const
+    {
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
+    }
+
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    NT const& lambda_prev,
+                                    int& facet_prev) const
+    {
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
+    }
+
+    //------------oracle for exact hmc spherical gaussian sampling---------------//
+    std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
+                                                      NT const& omega, int &facet_prev) const
+    {
+        return std::make_pair(0, 0);
+    }
 
     // shift polytope by a point c
     void shift(const VT &c) {
@@ -323,12 +396,11 @@ public:
         return true;
     }
 
-    void free_them_all() {
-        P1.free_them_all();
-        P2.free_them_all();
-    }
-
     void normalize() {}
+
+    void resetFlags() {}
+
+    void update_position_internal(NT&){}
 
     void compute_reflection (Point &v, const Point &p, const int &facet) const {
 
@@ -336,6 +408,17 @@ public:
             P1.compute_reflection (v, p, facet);
         } else {
             P1.compute_reflection (v, p, facet);
+        }
+
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (Point &v, const Point &p, update_parameters const& params) const {
+
+        if (params.facet_prev == 1) {
+            P1.compute_reflection (v, p, params);
+        } else {
+            P2.compute_reflection (v, p, params);
         }
 
     }

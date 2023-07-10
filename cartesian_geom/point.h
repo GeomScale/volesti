@@ -13,6 +13,8 @@
 #include <iostream>
 #include <Eigen/Eigen>
 
+/// This class manipulates a point parameterized by a number type e.g. double
+/// \tparam K Numerical Type
 template <typename K>
 class point
 {
@@ -86,6 +88,15 @@ public:
         coeffs(i) = coord;
     }
 
+    void set_coeffs (const Coeff& coeffs2) {
+        d = coeffs2.rows();
+        coeffs = coeffs2;
+    }
+
+    void set_to_origin() {
+        coeffs.setZero(d);
+    }
+
     FT operator[] (const unsigned int i) const
     {
         return coeffs(i);
@@ -96,6 +107,10 @@ public:
         return coeffs.data();
     }
 
+    FT sum() const {
+        return coeffs.sum();
+    }
+
     void operator+= (const point& p)
     {
         coeffs += p.getCoefficients();
@@ -103,12 +118,23 @@ public:
 
     void operator+= (const Coeff& coeffs)
     {
-        this->coeffs = coeffs + this->coeffs;
+        this->coeffs += coeffs;
+    }
+
+    void operator-= (const point& p)
+    {
+        coeffs -= p.getCoefficients();
+    }
+
+    void operator-= (const Coeff& coeffs)
+    {
+        this->coeffs -= coeffs;
     }
 
     void operator= (const Coeff& coeffs)
     {
         this->coeffs = coeffs;
+        d = coeffs.rows();
     }
 
     //TODO: avoid point construction in operators +,-,*
@@ -163,6 +189,10 @@ public:
         return true;
     }
 
+    FT distance(point const & p) {
+        return (this->coeffs - p.coeffs).norm();
+    }
+
     FT dot(const point& p) const
     {
         return coeffs.dot(p.getCoefficients());
@@ -173,16 +203,13 @@ public:
         return this->coeffs.dot(coeffs);
     }
 
+    FT squared_length() const {
+        FT lsq = length();
+        return lsq * lsq;
+    }
 
-    FT squared_length() const
-    {
-
-        FT lsq = FT(0.0);
-
-        for (auto i=0u; i<d ; i++){
-            lsq += coeffs(i) * coeffs(i);
-        }
-        return lsq;
+    FT length() const {
+        return coeffs.norm();
     }
 
     void print() const
@@ -191,6 +218,12 @@ public:
             std::cout<<coeffs(i)<<" ";
         }
         std::cout<<"\n";
+    }
+
+    static point all_ones(int dim) {
+      point p(dim);
+      for (int i = 0; i < dim; i++) p.set_coord(i, 1.0);
+      return p;
     }
 
 };
@@ -202,5 +235,3 @@ point<K> operator* (const typename K::FT& k, point<K> const& p)
 }
 
 #endif
-
-

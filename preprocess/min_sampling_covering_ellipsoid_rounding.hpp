@@ -3,30 +3,32 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
+// Modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef ROUNDING_HPP
-#define ROUNDING_HPP
+#ifndef MIN_ELLIPSOID_ROUNDING_HPP
+#define MIN_ELLIPSOID_ROUNDING_HPP
 
 #include <Eigen/Eigen>
 #include "khach.h"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"
 
-template <
-        typename WalkTypePolicy,
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT,
-        typename RandomNumberGenerator
-        >
-std::pair< std::pair<MT, VT>, NT >
-round_polytope(Polytope &P,
-               std::pair<Point,NT> &InnerBall,
-               const unsigned int &walk_length,
-               RandomNumberGenerator &rng)
+template
+<
+    typename WalkTypePolicy,
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT,
+    typename RandomNumberGenerator
+>
+std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
+                                                                std::pair<Point,NT> &InnerBall,
+                                                                const unsigned int &walk_length,
+                                                                RandomNumberGenerator &rng)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -62,7 +64,7 @@ round_polytope(Polytope &P,
         }
 
         // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
-        boost::numeric::ublas::matrix<double> Ap(d, randPoints.size());
+        MT Ap(d, randPoints.size());
         typename std::list<Point>::iterator rpit=randPoints.begin();
 
         j = 0;
@@ -71,8 +73,8 @@ round_polytope(Polytope &P,
                 Ap(i,j)=double((*rpit)[i]);
             }
         }
-        boost::numeric::ublas::matrix<double> Q(d,d); //TODO: remove dependence on ublas and copy to eigen
-        boost::numeric::ublas::vector<double> c2(d);
+        MT Q(d,d); //TODO: remove dependence on ublas and copy to eigen
+        VT c2(d);
         size_t w=1000;
         KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
@@ -107,14 +109,15 @@ round_polytope(Polytope &P,
         T = T * L_1.transpose();
 
         P.linear_transformIt(L_1.transpose());
-        P.normalize();
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();
         ratio = Rel / rel;
         iter++;
     }
 
-    return std::pair< std::pair<MT, VT>, NT > (std::pair<MT, VT>(T, shift), round_val);
+    std::tuple<MT, VT, NT> result = std::make_tuple(T, shift, std::abs(round_val));
+    return result;
 }
 
-#endif // ROUNDING_HPP
+
+#endif // MIN_ELLIPSOID_ROUNDING_HPP

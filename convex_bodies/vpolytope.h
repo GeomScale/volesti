@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -12,38 +13,167 @@
 #define VPOLYTOPE_H
 
 #include <limits>
-
 #include <iostream>
 #include <Eigen/Eigen>
+
 #include "lp_oracles/vpolyoracles.h"
-#include "khach.h"
+#include <minimum_ellipsoid/khach.h>
 
-//min and max values for the Hit and Run functions
 
-// V-Polytope class
-template <typename Point>
-class VPolytope{
+/// This class describes a polytope in V-representation or an V-polytope
+/// i.e. a polytope defined as a convex combination of points
+/// \tparam Point Point type
+template<typename Point>
+class VPolytope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT V;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    unsigned int _d;  //dimension
-    std::pair<Point,NT> _inner_ball;
+    unsigned int         _d;  //dimension
+    MT                   V;  //matrix V. Each row contains a vertex
+    VT                   b;  // vector b that contains first column of ine file
+    std::pair<Point, NT> _inner_ball;
 
-    REAL *conv_comb, *row, *conv_comb2, *conv_mem;
+    // TODO: Why don't we use std::vector<REAL>  and std::vector<int> for these pointers?
+    REAL *conv_comb, *conv_comb2, *conv_mem, *row;
     int *colno, *colno_mem;
 
 public:
     VPolytope() {}
 
+    VPolytope(const unsigned int &dim, const MT &_V, const VT &_b):
+            _d{dim}, V{_V}, b{_b},
+            conv_comb{new REAL[V.rows() + 1]},
+            conv_comb2{new REAL[V.rows() + 1]},
+            conv_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+    }
+
+    // Construct matrix V which contains the vertices row-wise
+    // TODO: change rows;
+    VPolytope(std::vector<std::vector<NT>> const& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        V.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            unsigned int j;
+            for (j = 1; j < _d + 1; j++) {
+                V(i - 1, j - 1) = Pin[i][j];
+            }
+        }
+        conv_comb = new REAL[Pin.size()];
+        conv_comb2 = new REAL[Pin.size()];
+        conv_mem = new REAL[V.rows()];
+        row = new REAL[V.rows() + 1];
+        colno = new int[V.rows() + 1];
+        colno_mem = new int[V.rows()];
+    }
+
+    template <typename T>
+    void copy_array(T* source, T* result, size_t count)
+    {
+        T* tarray;
+        tarray = new T[count];
+        std::copy_n(source, count, tarray);
+        delete [] result;
+        result = tarray;
+    }
+
+    VPolytope& operator=(const VPolytope& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+
+            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
+            copy_array(other.conv_comb2, conv_comb2, V.rows() + 1);
+            copy_array(other.conv_mem, conv_mem, V.rows());
+            copy_array(other.row, row, V.rows() + 1);
+            copy_array(other.colno, colno, V.rows() + 1);
+            copy_array(other.colno_mem, colno_mem, V.rows());
+        }
+        return *this;
+    }
+
+    VPolytope& operator=(VPolytope&& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+
+            conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+            conv_comb2 = other.conv_comb2;  other.conv_comb2 = nullptr;
+            conv_mem = other.conv_mem;  other.conv_mem = nullptr;
+            row = other.row; other.row = nullptr;
+            colno = other.colno; colno = nullptr;
+            colno_mem = other.colno_mem; colno_mem = nullptr;
+        }
+        return *this;
+    }
+
+
+    VPolytope(const VPolytope& other) :
+            _d{other._d}, V{other.V}, b{other.b},
+            conv_comb{new REAL[V.rows() + 1]},
+            conv_comb2{new REAL[V.rows() + 1]},
+            conv_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+        std::copy_n(other.conv_comb, V.rows() + 1, conv_comb);
+        std::copy_n(other.conv_comb2, V.rows() + 1, conv_comb2);
+        std::copy_n(other.conv_mem, V.rows(), conv_mem);
+        std::copy_n(other.row, V.rows() + 1, row);
+        std::copy_n(other.colno, V.rows() + 1, colno);
+        std::copy_n(other.colno_mem, V.rows(), colno_mem);
+    }
+
+    VPolytope(VPolytope&& other) :
+            _d{other._d}, V{other.V}, b{other.b},
+            conv_comb{nullptr}, conv_comb2{nullptr}, conv_mem{nullptr}, row{nullptr},
+            colno{nullptr}, colno_mem{nullptr}
+    {
+        conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+        conv_comb2 = other.conv_comb2;  other.conv_comb2 = nullptr;
+        conv_mem = other.conv_mem;  other.conv_mem = nullptr;
+        row = other.row; other.row = nullptr;
+        colno = other.colno; colno = nullptr;
+        colno_mem = other.colno_mem; colno_mem = nullptr;
+    }
+
+    ~VPolytope() {
+        delete [] conv_comb;
+        delete [] conv_comb2;
+        delete [] colno;
+        delete [] colno_mem;
+        delete [] row;
+        delete [] conv_mem;
+    }
+
     std::pair<Point,NT> InnerBall() const
     {
         return _inner_ball;
+    }
+
+    void set_InnerBall(std::pair<Point,NT> const& innerball) //const
+    {
+        _inner_ball = innerball;
+    }
+
+    void set_interior_point(Point const& r)
+    {
+        _inner_ball.first = r;
     }
 
     // return dimension
@@ -73,24 +203,20 @@ public:
         return V.rows();
     }
 
-
     // return the matrix V
     MT get_mat() const {
         return V;
     }
-
 
     // return the vector b
     VT get_vec() const {
         return b;
     }
 
-
     // change the matrix V
     void set_mat(const MT &V2) {
         V = V2;
     }
-
 
     // change the vector b
     void set_vec(const VT &b2) {
@@ -101,53 +227,15 @@ public:
         return V;
     }
 
-    void init(const unsigned int &dim, const MT &_V, const VT &_b) {
-        _d = dim;
-        V = _V;
-        b = _b;
-        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
-        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-    }
-
-
-    // Construct matrix V which contains the vertices row-wise
-    void init(const std::vector<std::vector<NT> > &Pin) {
-        _d = Pin[0][1] - 1;
-        V.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                V(i - 1, j - 1) = Pin[i][j];
-            }
-        }
-        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        conv_comb2 = (REAL *) malloc(Pin.size() * sizeof(*conv_comb2));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-    }
-
 
     // print polytope in input format
     void print() {
-#ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
-#endif
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-#ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
-#endif
             }
-#ifdef VOLESTI_DEBUG
             std::cout<<"\n";
-#endif
         }
     }
 
@@ -259,7 +347,7 @@ public:
 
 
     std::pair<Point,NT> ComputeInnerBall() {
-        std::vector<NT> temp(_d,0);
+
         NT radius =  std::numeric_limits<NT>::max(), min_plus;
         Point center(_d);
 
@@ -268,7 +356,7 @@ public:
             center = get_mean_of_vertices();
         } else {
 
-            boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
+            MT Ap(_d,randPoints.size());
             typename std::list<Point>::iterator rpit=randPoints.begin();
 
             unsigned int i, j = 0;
@@ -280,9 +368,10 @@ public:
                     point_data++;
                 }
             }
-            boost::numeric::ublas::matrix<double> Q(_d, _d);
-            boost::numeric::ublas::vector<double> c2(_d);
+            MT Q(_d, _d);
+            VT c2(_d);
             size_t w=1000;
+
             KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
             //Get ellipsoid matrix and center as Eigen objects
@@ -290,10 +379,10 @@ public:
         }
 
         std::pair<NT,NT> res;
+        Point v(_d);
         for (unsigned int i = 0; i < _d; ++i) {
-            temp.assign(_d,0);
-            temp[i] = 1.0;
-            Point v(_d,temp.begin(), temp.end());
+            v.set_to_origin();
+            v.set_coord(i, 1.0);
             res = intersect_double_line_Vpoly<NT>(V, center, v, row, colno);
             min_plus = std::min(res.first, -1.0*res.second);
             if (min_plus < radius) radius = min_plus;
@@ -306,7 +395,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(const Point &p) const {
+    int is_in(const Point &p, NT tol=NT(0)) const {
         if (memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
@@ -353,16 +442,49 @@ public:
         return line_positive_intersect(r, v);
     }
 
+    //-------------------------accelarated billiard--------------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+    //------------------------------------------------------------------------------//
+
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
                                           const VT &lamdas) const {
-
-        std::vector<NT> temp(_d);
-        temp[rand_coord]=1.0;
-        Point v(_d,temp.begin(), temp.end());
+        Point v(_d);
+        v.set_coord(rand_coord, 1.0);
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
@@ -375,6 +497,42 @@ public:
                                           const unsigned int rand_coord_prev,
                                           const VT &lamdas) const {
         return line_intersect_coord(r, rand_coord, lamdas);
+    }
+
+
+    //------------------------------oracles for exponential sampling---------------//////
+
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    int& facet_prev) const
+    {
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
+    }
+
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    NT const& lambda_prev,
+                                    int& facet_prev) const
+    {
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
+    }
+
+
+    //------------oracle for exact hmc spherical gaussian sampling---------------//
+    std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
+                                                      NT const& omega, int &facet_prev) const
+    {
+        return std::make_pair(0, 0);
     }
 
 
@@ -420,6 +578,8 @@ public:
 
     void compute_reflection(Point &v, const Point &p, const int &facet) const {
 
+        //compute_reflection(v, p, 0.0);
+
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
@@ -440,14 +600,48 @@ public:
         v += a;
     }
 
-    void free_them_all() {
-        free(row);
-        free(colno);
-        free(conv_comb);
-        free(colno_mem);
-        free(conv_comb2);
-        free(conv_mem);
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &p, update_parameters const& params) const {
+
+        int count = 0, outvert;
+        MT Fmat2(_d,_d);
+        for (int j = 0; j < num_of_vertices(); ++j) {
+            if (*(conv_comb + j) > 0.0) {
+                Fmat2.row(count) = V.row(j);
+                count++;
+            } else {
+                outvert = j;
+            }
+        }
+
+        VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
+        if (a.dot(V.row(outvert)) > 1.0) a *= -1.0;
+        a /= a.norm();
+
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
     }
+
+    void resetFlags() {}
+
+    void update_position_internal(NT&){}
+
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+        NT t_prev,
+        NT t0,
+        NT eta,
+        std::vector<Point> &coeffs,
+        bfunc phi,
+        bfunc grad_phi,
+        NonLinearOracle &intersection_oracle,
+        int ignore_facet=-1)
+    {
+        return intersection_oracle.apply(t_prev, t0, eta, V, *this,
+                                         coeffs, phi, grad_phi, ignore_facet);
+    }
+
 
 };
 

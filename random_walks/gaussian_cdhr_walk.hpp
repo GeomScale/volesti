@@ -8,6 +8,7 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_CDHR_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_CDHR_WALK_HPP
 
+#include "sampling/sphere.hpp"
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 
@@ -74,7 +75,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk(Polytope const& P,
+    Walk(Polytope& P,
          Point const& p,
          NT const& a_i,
          RandomNumberGenerator &rng)
@@ -82,7 +83,7 @@ struct Walk
         initialize(P, p, a_i, rng);
     }
 
-    Walk(Polytope const& P,
+    Walk(Polytope& P,
          Point const& p,
          NT const& a_i,
          RandomNumberGenerator& rng,

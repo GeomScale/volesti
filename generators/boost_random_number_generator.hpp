@@ -59,7 +59,7 @@ private :
 template <typename RNGType, typename NT, int Seed>
 struct BoostRandomNumberGenerator<RNGType, NT, Seed>
 {
-    BoostRandomNumberGenerator(int d)
+    BoostRandomNumberGenerator(int d=1)
             :   _rng(Seed)
             ,   _urdist(0, 1)
             ,   _uidist(0, d-1)

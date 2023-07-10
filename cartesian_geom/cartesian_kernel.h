@@ -24,6 +24,8 @@
 
 #include "point.h"
 
+/// This class represents a cartesian kernel parameterized by a numerical type e.g. double
+/// \tparam K Numerical Type
 template <typename K>
 class Cartesian
 {
@@ -31,7 +33,7 @@ public:
   typedef Cartesian<K> Self;
   typedef K                    FT;
   typedef point<Self>              Point;
-    
+
 };
 
 #endif

@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
@@ -10,8 +10,14 @@
 
 #include <exception>
 
-template <typename Polytope>
-Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+
+/// This function generates a hypercube of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
+template <class Polytope>
+Polytope generate_cube(const unsigned int& dim, const bool& Vpoly) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -66,21 +72,21 @@ Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
             }
         }
     }
-    Polytope P;
-    P.init(dim, A, b);
 
-    return P;
+    return Polytope(dim, A, b);
 }
 
 
+/// This function generates a crosspolytope of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
-Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
+Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 
     unsigned int m;
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
-    Polytope P;
     MT A;
     VT b;
     if (!Vpoly) {
@@ -130,13 +136,15 @@ Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
             }
         }
     }
-    P.init(dim, A, b);
-    return P;
+    return Polytope(dim, A, b);
 }
 
 
+/// This function generates a simplex of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
-Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
+Polytope generate_simplex(const unsigned int &dim, const bool &Vpoly){
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
@@ -167,15 +175,16 @@ Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
             A(dim, j) = 0.0;
         }
     }
-    Polytope P;
-    P.init(dim, A, b);
 
-    return P;
+    return Polytope(dim, A, b);
 }
 
 
+/// This function generates a product of simplices of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
-Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
+Polytope generate_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
     Polytope Perr;
     try
@@ -196,7 +205,7 @@ Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
     VT b;
     A.resize(2 * dim + 2, 2 * dim);
     b.resize(2 * dim + 2);
-    Polytope P;
+
 
     //first simplex
     for(unsigned int i=0; i<dim; ++i){
@@ -243,13 +252,15 @@ Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
         A(2 * dim +1, j + dim) = 0.0;
     }
 
-    P.init(2 * dim, A, b);
-    return P;
+    return Polytope(2 * dim, A, b);
 }
 
 
+/// This function generates a skinny cube of given dimension
+/// The result can be either in V-representation (Vpoly=true) or in H-representation (V-poly-false)
+/// @tparam Polytope Type of returned polytope
 template <typename Polytope>
-Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
+Polytope generate_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
     Polytope Perr;
     try
@@ -299,66 +310,52 @@ Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
             }
         }
     }
-    Polytope P;
-    P.init(dim, A, b);
+    return Polytope(dim, A, b);
+}
+
+/// This function generates the Birkhoff polytope of given type n
+/// The Birkhoff polytope also called the assignment polytope or the polytope of doubly stochastic matrices.
+/// @tparam Polytope Type of returned polytope
+template <typename Polytope>
+Polytope generate_birkhoff(unsigned int const& n) {
+
+    unsigned int m = n * n;
+    unsigned int d = n * n - 2 * n + 1;
+
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+
+    MT A = MT::Zero(m, d);
+    VT b(m);
+
+    b(d) = -1.0 * int(n - 2);
+
+    for (int i = 0; i < d; ++i) {
+        A(d, i) = -1;
+    }
+
+    for (int i = 0; i < d; ++i) {
+        b(i) = 0;
+        A(i, i) = -1;
+    }
+
+    for (int i = d+1; i < d+1+n-1; ++i) {
+        b(i) = 1;
+        for (int counter = 0; counter < n-1; ++counter) {
+            A(i, counter * (n-1) + (i-d-1)) = 1;
+        }
+    }
+
+    for (int i = d+n; i < m; ++i) {
+        b(i) = 1;
+        for (int counter = 0; counter < n-1; ++counter) {
+            A(i, counter + (i-d-n) * (n-1)) = 1;
+        }
+    }
+
+    Polytope P(d, A, b);
 
     return P;
 }
-
-
-/*
- * ToDo: brkhoff polytope generator
-template <class Polytope>
-Polytope gen_birk(int n, bool Vpoly = false){
- int m = pow(n,2);
-  int d = pow(n-1,2)+1;
-
-  std::cout << "birk_"<<n<<".ine\n";
-  std::cout << "H-representation\n";
-  std::cout << "begin\n";
-  std::cout << " " << m << " " << d << " integer\n";
-
-  std::cout << -1*(n-2) << " ";
-  for(int j=1; j< d; ++j)
-    std::cout << "1 ";
-  std::cout << "\n";
-
-  for(int i=0; i<n-1; ++i){
-		std::cout << "1 ";
-		for(int j=1; j< d; ++j){
-			if(j%(n-1) == i){
-		    std::cout << "-1 ";
-		  }
-		  else std::cout << " 0 ";
-		}
-		std::cout << "\n";
-	}
-
-	for(int i=0; i<n-1; ++i){
-		std::cout << "1 ";
-		for(int j=0; j< d-1; ++j){
-			if(j/(n-1) == i){
-		    std::cout << "-1 ";
-		  }
-		  else std::cout << " 0 ";
-		}
-		std::cout << "\n";
-	}
-
-	for(int i=0; i<d-1; ++i){
-		std::cout << "0 ";
-		for(int j=0; j< d-1; ++j){
-			if(j == i){
-		    std::cout << " 1 ";
-		  }
-		  else std::cout << " 0 ";
-		}
-		std::cout << "\n";
-	}
-	std::cout << "end\ninput_incidence" << std::endl;
- }
-
-
- */
 
 #endif

@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
@@ -9,6 +9,10 @@
 #define V_POLYTOPES_GEN_H
 
 #include <exception>
+
+#ifndef isnan
+  using std::isnan;
+#endif
 
 template <class MT>
 void removeRow(MT &matrix, unsigned int rowToRemove)
@@ -22,6 +26,9 @@ void removeRow(MT &matrix, unsigned int rowToRemove)
     matrix.conservativeResize(numRows,numCols);
 }
 
+/// Generates a random V-polytope
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
@@ -33,7 +40,7 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -65,15 +72,14 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
         }
     }
 
-    Polytope VP;
+
     VT b = VT::Ones(k);
-    VP.init(dim, V, b);
-
-    return VP;
-
+    return Polytope(dim, V, b);
 }
 
-
+/// Generates a random V-polytope inside a cube
+/// @tparam Polytope polytope type
+/// @tparam RNGType RNGType type
 template <class Polytope, class RNGType>
 Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
@@ -91,7 +97,7 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -102,7 +108,7 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
     MT V(k, d);
     unsigned int j, count_row,it=0;
     std::vector<int> indices;
-    Polytope VP;
+
     VT b = VT::Ones(k);
 
     for (unsigned int i = 0; i < k; ++i) {
@@ -111,8 +117,7 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
         }
     }
     if(k==d+1){
-        VP.init(d, V, b);
-        return VP;
+        return Polytope(d, V, b);
     }
 
     MT V2(k,d);
@@ -143,8 +148,7 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
             V2 = V;
         }
         if (indices.size()==0) {
-            VP.init(d, V, b);
-            return VP;
+            return Polytope(d, V, b);
         }
         V2.resize(k - indices.size(), d);
         count_row =0;
@@ -159,11 +163,12 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
         it++;
     }
 
-    VP.init(d, V2, VT::Ones(V2.rows()));
+
     free(colno_mem);
     free(conv_mem);
 
-    return VP;
+    return Polytope(d, V2, VT::Ones(V2.rows()));
+//    return VP;
 
 }
 

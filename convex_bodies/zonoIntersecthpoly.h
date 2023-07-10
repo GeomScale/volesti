@@ -1,14 +1,18 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 #ifndef ZONOINTERSECTHPOLY_H
 #define ZONOINTERSECTHPOLY_H
 
-
+/// This class represents the intersection of a Zonotope with an H-polytope
+/// \tparam Zonotope Zonotope Type
+/// \tparam HPolytope HPolytope Type
 template <typename Zonotope, typename HPolytope>
 class ZonoIntersectHPoly {
 private:
@@ -142,6 +146,77 @@ public:
                                   facet);
     }
 
+    //---------------------accelarated billiard---------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(PointType const& r,
+                                                     PointType const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters& params) const
+    {
+        std::pair <NT, int> polypair = HP.line_first_positive_intersect(r, v, Ar, Av, params);
+        std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < zonopair.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters& params) const
+    {
+        std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
+        std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < zonopair.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters& params) const
+    {
+        std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
+        std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < zonopair.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
+    }
+//-------------------------------------------------------------------------//
+
     //Not the first coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(PointType const& r,
                                           PointType const& r_prev,
@@ -177,6 +252,17 @@ public:
             Z.compute_reflection(v, p, facet);
         } else {
             HP.compute_reflection(v, p, facet);
+        }
+
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (PointType &v, const PointType &p, update_parameters const& params) const {
+
+        if (params.hit_ball) {
+            Z.compute_reflection(v, p, params);
+        } else {
+            HP.compute_reflection(v, p, params.facet_prev);
         }
 
     }

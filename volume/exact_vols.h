@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
@@ -73,37 +73,26 @@ NT exact_zonotope_vol(const Polytope &ZP){
 template <typename NT>
 NT vol_Ali(std::vector<NT> &plane, const NT &zit, const unsigned int dim) {
 
-    unsigned int i, J = 0, counter = 0, K = 0, k;
-    std::vector <NT> Y(dim + 2, 0.0), X(dim + 2, 0.0), a(dim + 2, 0.0);
-
-    if (zit < 0) {
-        X[0] = zit;
-        J++;
-    } else {
-        Y[0] = zit;
-        counter++;
-    }
+    unsigned int i, J = 0, K = 0, k;
+    std::vector <NT> Y(dim, 0.0), X(dim, 0.0), a(dim + 1, 0.0);
 
     for (i = 0; i < dim; i++) {
-
-        a[i] = 0.0;
 
         if (plane[i] + zit < 0) {
             X[J] = plane[i] + zit;
             J++;
         } else {
-            Y[counter] = plane[i] + zit;
-            counter++;
+            Y[K] = plane[i] + zit;
+            K++;
         }
     }
-    K = dim + 1 - J;
-    a[0] = 1.0;
-    a[dim] = 0.0;
-    a[dim + 1] = 0.0;
 
-    for (i = 0; i < J; i++) {
-        for (k = 1; k < K + 1; k++) {
-            a[k] = (Y[k - 1] * a[k] - X[i] * a[k - 1]) / (Y[k - 1] - X[i]);
+    a[0] = 1.0;
+    if (J>0) {
+        for (i = 0; i < J; i++) {
+            for (k = 0; k < K; k++) {
+                a[k+1] = (Y[k] * a[k+1] - X[i] * a[k]) / (Y[k] - X[i]);
+            }
         }
     }
     return a[K];
