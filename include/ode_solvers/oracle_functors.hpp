@@ -251,7 +251,7 @@ struct ExponentialFunctor {
     NT m; // Strong convexity constant
     NT kappa; // Condition number
     Point c; // Coefficients of LP objective
-    NT a; //variance
+    NT a; // Inverse variance
 
     parameters(Point c_) : order(2), L(1), m(1), kappa(1), c(c_), a(a_) {};
 
