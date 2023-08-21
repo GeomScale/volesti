@@ -253,7 +253,7 @@ struct ExponentialFunctor {
     Point c; // Coefficients of LP objective
     NT a; // Inverse variance
 
-    parameters(Point c_) : order(2), L(1), m(1), kappa(1), c(c_), a(a_) {};
+    parameters(Point c_, NT a_) : order(2), L(1), m(1), kappa(1), c(c_), a(a_) {};
 
   };
 
