@@ -44,6 +44,7 @@
 #include <vector>
 
 #include "ode_solvers/euler.hpp"
+#include "ode_solvers/implicit_midpoint.hpp"
 #include "ode_solvers/runge_kutta.hpp"
 #include "ode_solvers/leapfrog.hpp"
 #include "ode_solvers/richardson_extrapolation.hpp"
