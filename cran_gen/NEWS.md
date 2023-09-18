@@ -50,3 +50,7 @@
 # volesti 1.1.2-6
 
 - Fix UBSAN issues (lp_presolve)
+
+# volesti 1.1.2-7
+
+- Fix valgrind reporting a realloc(3) call with size = 0 (lpsolve)

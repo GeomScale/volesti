@@ -63,6 +63,17 @@ void *clean_realloc(void *oldptr, int width, int newsize, int oldsize)
 {
   newsize *= width;
   oldsize *= width;
+  /* this works around valgrind reporting a realloc(3) call with size = 0.
+     According to https://linux.die.net/man/3/realloc glibc frees the
+     memory in this case, and (maybe?) returns NULL:
+     > if size is equal to zero, and ptr is not NULL, then the call
+     > is equivalent to free(ptr). */
+#ifdef __linux__
+  if (oldptr != NULL && newsize == 0) {
+    free(oldptr);
+    return NULL;
+  }
+#endif
   oldptr = LUSOL_REALLOC(oldptr, newsize);
   if(newsize > oldsize)
 /*    MEMCLEAR(oldptr+oldsize, newsize-oldsize); */
