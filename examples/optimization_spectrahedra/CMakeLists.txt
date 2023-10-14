@@ -78,11 +78,12 @@ IF (OPENBLAS_LIB)
         IF (GFORTRAN_LIB)
             message( STATUS "GFORTRAN_LIB found: ${GFORTRAN_LIB}" )
 
-            add_executable (boltzmann_hmc_walk boltzmann_hmc_walk.cpp)
-            TARGET_LINK_LIBRARIES(boltzmann_hmc_walk ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
+            # These are not compiling, see issue https://github.com/GeomScale/volesti/issues/264
+            #add_executable (boltzmann_hmc_walk boltzmann_hmc_walk.cpp)
+            #TARGET_LINK_LIBRARIES(boltzmann_hmc_walk ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
 
-            add_executable (solve_sdp solve_sdp.cpp)
-            TARGET_LINK_LIBRARIES(solve_sdp ${GFORTRAN_LIB} ${LAPACK_LIBRARIES} ${ARPACK_LIB})
+            #add_executable (solve_sdp solve_sdp.cpp)
+            #TARGET_LINK_LIBRARIES(solve_sdp ${GFORTRAN_LIB} ${LAPACK_LIBRARIES} ${ARPACK_LIB})
 
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")

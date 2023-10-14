@@ -27,7 +27,7 @@ struct BRDHRWalk
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
+        Walk(GenericPolytope& P, Point const& p, RandomNumberGenerator& rng)
         {
             initialize(P, p, rng);
         }

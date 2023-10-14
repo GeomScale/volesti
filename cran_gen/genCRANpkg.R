@@ -32,7 +32,7 @@ gsub_file(
 
 # add lpsolve header files in external
 library(downloader)
-download("https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz", dest="lpSolve.tar.gz", mode="wb")
+download("https://cran.r-project.org/src/contrib/Archive/lpSolve/lpSolve_5.6.15.tar.gz", dest="lpSolve.tar.gz", mode="wb")
 untar("lpSolve.tar.gz", exdir = path)
 unlink("lpSolve.tar.gz")
 dir.create(paste0(path,"/external/LPsolve_src"))

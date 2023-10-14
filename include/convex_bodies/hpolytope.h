@@ -39,6 +39,7 @@ bool is_inner_point_nan_inf(VT const& p)
 
 /// This class describes a polytope in H-representation or an H-polytope
 /// i.e. a polytope defined by a set of linear inequalities
+/// \tparam Point Point type
 template <typename Point>
 class HPolytope {
 public:

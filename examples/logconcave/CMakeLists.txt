@@ -8,13 +8,9 @@
 project( VolEsti )
 
 
-option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
-
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
-set(MKLROOT $ENV{HOME}/intel/mkl)
+set(MKLROOT /opt/intel/oneapi/mkl/latest)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 if(COMMAND cmake_policy)
@@ -77,6 +73,7 @@ else ()
     include_directories(BEFORE /usr/include/eigen3)
 endif(BUILTIN_EIGEN)
 
+#<<<<<<< HEAD
 find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
 
 
@@ -93,6 +90,15 @@ find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/
   else()
     set(MKL_LINK "")
   endif(USE_MKL)
+#=======
+#if (USE_MKL)
+#  find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+#  include_directories (BEFORE ${MKLROOT}/include)
+#  set(PROJECT_LIBS ${BLAS_LIBRARIES})
+#  set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
+#  add_definitions(-DEIGEN_USE_MKL_ALL)
+#endif(USE_MKL)
+#>>>>>>> develop
 
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
@@ -134,6 +140,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+  add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
@@ -149,13 +156,16 @@ else ()
 
   #add_executable (adaptive_step_size adaptive_step_size.cpp)
 
-  TARGET_LINK_LIBRARIES(high_dimensional_hmc_rand_poly ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(high_dimensional_hmc ${LP_SOLVE} ${MKL_LINK})
-  #TARGET_LINK_LIBRARIES(adaptive_step_size ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(simple_ode ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(simple_sde ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(simple_uld ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(simple_hmc ${LP_SOLVE} ${MKL_LINK})
+  TARGET_LINK_LIBRARIES(high_dimensional_hmc_rand_poly ${LP_SOLVE} ${BLAS} ${MKL_LINK} )
+  TARGET_LINK_LIBRARIES(high_dimensional_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
+  #TARGET_LINK_LIBRARIES(adaptive_step_size ${LP_SOLVE} ${BLAS}  ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(simple_ode ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(simple_sde ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(simple_uld ${LP_SOLVE} ${BLAS} ${MKL_LINK}   )
+  TARGET_LINK_LIBRARIES(simple_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK} )
   TARGET_LINK_LIBRARIES(simple_nuts ${LP_SOLVE} ${MKL_LINK})
+  TARGET_LINK_LIBRARIES(exponential_exact_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(gaussian_exact_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
+
 
 endif()

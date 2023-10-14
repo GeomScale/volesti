@@ -10,7 +10,11 @@
 #include "lp_lib.h"
 
 
-// compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
+// Computes the Chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
+/// @tparam NT Number type
+/// @tparam Point Point type
+/// @tparam MT Matrix type
+/// @tparam VT Vector type
 template <typename NT, class Point, class MT, class VT>
 std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
 

@@ -75,7 +75,9 @@
 
 using namespace ifopt;
 
-// Define the variable t we use in the optimization
+/// Define the variable t we use in the optimization
+/// \tparam VT Vector Type
+/// \tparam NT Numeric Type
 template <typename VT, typename NT>
 class HPolyOracleVariables : public VariableSet {
 public:
@@ -104,7 +106,9 @@ public:
 
 };
 
-// Define the cost function f(t) = t (ipopt takes minimization so it is -t)
+/// Define the cost function f(t) = t (ipopt takes minimization so it is -t)
+/// \tparam VT Vector Type
+/// \tparam NT Numeric Type
 template <typename VT, typename NT>
 class HPolyOracleCost : public CostTerm {
 public:
@@ -128,8 +132,12 @@ public:
 
 };
 
-// Define the feasibility constraint A p(t) <= b which we translate
-// to (A * C) * Phi <= b
+/// Define the feasibility constraint A p(t) <= b which we translate
+/// to (A * C) * Phi <= b
+/// \tparam MT Matrix Type
+/// \tparam VT Vector Type
+/// \tparam NT Numeric Type
+/// \tparam bfunc feasibility constraint type
 template <typename MT, typename VT, typename NT, class bfunc>
 class HPolyOracleFeasibility : public ConstraintSet {
 public:
@@ -211,6 +219,9 @@ public:
 
 };
 
+/// Oracle that uses the COIN-OR ipopt solver
+/// \tparam Polytope Polytope Type
+/// \tparam bfunc feasibility constraint type
 template <typename Polytope, class bfunc>
 struct IpoptHPolyoracle {
   typedef typename Polytope::MT MT;
@@ -340,9 +351,11 @@ struct IpoptHPolyoracle {
 
 };
 
-// Compute intersection of H-polytope P := Ax <= b
-// with polynomial curve p(t) = sum a_j (t - t0)^j
-// Uses the MPsolve library
+/// Compute intersection of H-polytope P := Ax <= b
+/// with polynomial curve p(t) = sum a_j (t - t0)^j
+/// Uses the MPsolve library
+/// \tparam Polytope Polytope Type
+/// \tparam bfunc feasibility constraint type
 template <typename Polytope, class bfunc>
 struct MPSolveHPolyoracle {
 
@@ -437,10 +450,12 @@ struct MPSolveHPolyoracle {
 
 };
 
-// Compute intersection of H-polytope P := Ax <= b
-// with curve p(t) = sum a_j phi_j(t) where phi_j are basis
-// functions (e.g. polynomials)
-// Uses Newton-Raphson to solve the transcendental equation
+/// Compute intersection of H-polytope P := Ax <= b
+/// with curve p(t) = sum a_j phi_j(t) where phi_j are basis
+/// functions (e.g. polynomials)
+/// Uses Newton-Raphson to solve the transcendental equation
+/// \tparam Polytope Polytope Type
+/// \tparam bfunc feasibility constraint type
 template <typename Polytope, class bfunc>
 struct NewtonRaphsonHPolyoracle {
   typedef typename Polytope::MT MT;
