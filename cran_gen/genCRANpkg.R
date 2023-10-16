@@ -42,9 +42,8 @@ dir_lp = paste0(path,"/lpSolveAPI/inst/include")
 h_files = dir(dir_lp, "*.h", ignore.case = TRUE, all.files = TRUE)
 lp_dist = paste0(path,"/external/LPsolve_src/include")
 file.copy(file.path(dir_lp, h_files), lp_dist, recursive=TRUE, overwrite=TRUE)
-
+# replace the lpsolve header file that issues a warning in mac's cran test
 file.copy(paste0(path,"/external/cmake-files/lpsolve_modified_header_files/lp_rlp.h"), lp_dist, recursive=TRUE, overwrite=TRUE)
-
 dir_lp = paste0(path,"/lpSolve/src")
 h_files = dir(dir_lp, "*.h", ignore.case = TRUE, all.files = TRUE)
 lp_dist = paste0(path,"/external/LPsolve_src/run_headers")
