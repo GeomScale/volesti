@@ -27,13 +27,14 @@ function(GetLPSolve)
 
   endif()
   
-  LP_SOLVE_CMAKE_DIR
-  execute_process(COMMAND rm ${CMAKE_ROOT_DIR}/../_deps/lpsolve-src/lp_rlp.h
-  		  WORKING_DIRECTORY ${CMAKE_ROOT_DIR}
-  		  OUTPUT_QUIET)
-  execute_process(COMMAND cp lp_rlp.h ${CMAKE_ROOT_DIR}/../_deps/lpsolve-src
-  		  WORKING_DIRECTORY ${CMAKE_ROOT_DIR}
-  		  OUTPUT_QUIET)
+  execute_process(COMMAND rm lp_rlp.h
+		  WORKING_DIRECTORY ${CMAKE_ROOT_DIR}/../_deps/lpsolve-src
+  		  OUTPUT_QUIET
+  		  )
+  execute_process(COMMAND cp ${CMAKE_ROOT_DIR}/lp_rlp.h ${CMAKE_ROOT_DIR}/../_deps/lpsolve-src
+  		  #WORKING_DIRECTORY ${CMAKE_ROOT_DIR}
+  		  OUTPUT_QUIET
+  		  )
   
   include_directories(${LP_SOLVE_DIR})
 
