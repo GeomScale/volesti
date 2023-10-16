@@ -27,15 +27,6 @@ function(GetLPSolve)
 
   endif()
   
-  execute_process(COMMAND rm lp_rlp.h
-		  WORKING_DIRECTORY ${LP_SOLVE_CMAKE_DIR}/../_deps/lpsolve-src
-  		  OUTPUT_QUIET
-  		  )
-  execute_process(COMMAND cp lp_rlp.h ${LP_SOLVE_CMAKE_DIR}/../_deps/lpsolve-src
-  		  WORKING_DIRECTORY ${LP_SOLVE_CMAKE_DIR}
-  		  OUTPUT_QUIET
-  		  )
-  
   include_directories(${LP_SOLVE_DIR})
 
 endfunction()
