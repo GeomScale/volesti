@@ -357,7 +357,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     random_walks walk;
     ode_solvers solver; // Used only for logconcave sampling
 
-    NT eta;
+    NT eta = 1;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
     Point mode(dim);
@@ -421,7 +421,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         Rcpp::Function negative_logprob = Rcpp::as<Rcpp::List>(distribution)["negative_logprob"];
         Rcpp::Function negative_logprob_gradient = Rcpp::as<Rcpp::List>(distribution)["negative_logprob_gradient"];
 
-        NT L_, m, eta;
+        NT L_, m;
 
         if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("L_")) {
             L_ = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["L_"]);
@@ -473,8 +473,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob_gradient")) {
 
         functor_defined = false;
-
-        NT eta;
 
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("step_size")) {
             eta = NT(Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["step_size"]));
