@@ -28,7 +28,7 @@ public:
 
     BallIntersectPolytope() {}
 
-    BallIntersectPolytope(Polytope const& PP, CBall &BB) : P(PP), B(BB) {};
+    BallIntersectPolytope(Polytope& PP, CBall &BB) : P(PP), B(BB) {};
 
     Polytope first() const { return P; }
     CBall second() const { return B; }

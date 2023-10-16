@@ -75,7 +75,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk(Polytope const& P,
+    Walk(Polytope& P,
          Point const& p,
          NT const& a_i,
          RandomNumberGenerator &rng)
@@ -83,7 +83,7 @@ struct Walk
         initialize(P, p, a_i, rng);
     }
 
-    Walk(Polytope const& P,
+    Walk(Polytope& P,
          Point const& p,
          NT const& a_i,
          RandomNumberGenerator& rng,

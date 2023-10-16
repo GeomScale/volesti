@@ -106,7 +106,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  add_executable (vpolytopeVolume vpolytopeVolume.cpp)
-  TARGET_LINK_LIBRARIES(vpolytopeVolume ${LP_SOLVE})
+  add_executable (vpolytopevolume vpolytopevolume.cpp)
+  TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
 
 endif()

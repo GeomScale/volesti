@@ -143,7 +143,7 @@ struct GaussianRandomPointGenerator
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       NT const& a_i,
                       unsigned int const& rnum,
@@ -170,7 +170,7 @@ struct GaussianRandomPointGenerator
             typename RandomNumberGenerator,
             typename Parameters
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       NT const& a_i,
                       unsigned int const& rnum,
@@ -203,7 +203,7 @@ struct BoundaryRandomPointGenerator
             typename WalkPolicy,
             typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       unsigned int const& rnum,
                       unsigned int const& walk_length,
@@ -341,7 +341,7 @@ struct ExponentialRandomPointGenerator
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       Point const& c,   // bias function
                       NT const& T, // temperature/variance
@@ -374,7 +374,7 @@ struct ExponentialRandomPointGenerator
             typename RandomNumberGenerator,
             typename Parameters
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       Point const& c,   // bias function
                       NT const& T, // temperature/variance
