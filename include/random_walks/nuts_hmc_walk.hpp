@@ -40,11 +40,7 @@ struct NutsHamiltonianMonteCarloWalk {
       NT epsilon_=2)
     {
       epsilon = epsilon_;
-      if (F.params.L > 0){
-        eta = 10.0 / (dim * sqrt(F.params.L));
-      } else {
-        eta = 0.005;
-      }
+      eta = F.params.L > 0 ? 10.0 / (dim * sqrt(F.params.L)) : 0.005;
     }
   };
 

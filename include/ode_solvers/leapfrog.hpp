@@ -102,7 +102,6 @@ struct LeapfrogODESolver {
 
   void step(int k, bool accepted) {
     num_steps++;
-    
     if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
 
     xs_prev = xs;
@@ -177,8 +176,7 @@ struct LeapfrogODESolver {
 
       // tilde v <- v + eta / 2 F(tilde x)
       grad_x = F(v_index, xs, t);
-      xs[v_index] = xs[v_index] + (eta / 2) * grad_x;
-
+      xs[v_index] += (eta / 2) * grad_x;
     }
 
   }

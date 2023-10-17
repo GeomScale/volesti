@@ -73,32 +73,21 @@ else ()
     include_directories(BEFORE /usr/include/eigen3)
 endif(BUILTIN_EIGEN)
 
-#<<<<<<< HEAD
 find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
 
+if (USE_MKL)
+  find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
+  find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
+  find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
+  find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
 
-  if (USE_MKL)
-    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
-    find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
-    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
-    find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
-
-    include_directories (BEFORE ${MKLROOT}/include)
-    set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
-    set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
-    add_definitions(-DEIGEN_USE_MKL_ALL)
-  else()
-    set(MKL_LINK "")
-  endif(USE_MKL)
-#=======
-#if (USE_MKL)
-#  find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-#  include_directories (BEFORE ${MKLROOT}/include)
-#  set(PROJECT_LIBS ${BLAS_LIBRARIES})
-#  set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
-#  add_definitions(-DEIGEN_USE_MKL_ALL)
-#endif(USE_MKL)
-#>>>>>>> develop
+  include_directories (BEFORE ${MKLROOT}/include)
+  set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
+  set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
+  add_definitions(-DEIGEN_USE_MKL_ALL)
+else()
+  set(MKL_LINK "")
+endif(USE_MKL)
 
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
