@@ -318,6 +318,11 @@ else ()
           COMMAND logconcave_sampling_test -tc=uld)
   add_test(NAME logconcave_sampling_test_exponential_biomass_sampling
           COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
+  add_test(NAME logconcave_sampling_test_nuts_hmc_truncated
+          COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc_truncated)
+  add_test(NAME logconcave_sampling_test_nuts_hmc
+          COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc)
+
 
 	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_sampling_test_crhmc

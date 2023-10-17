@@ -38,21 +38,18 @@ P <- Hpolytope$new(A = Tr$Mat[1:nrow(Tr$Mat), 2:ncol(Tr$Mat)], b = Tr$Mat[,1])
 
 x_min = matrix(0, dimension, 1)
 
-# Smoothness and strong-convexity
-L <- 2
-m <- 2
-
 # Warm start point from truncated Gaussian
-warm_start <- sample_points(P, n = 1, random_walk = list("nburns" = 5000), distribution = list("density" = "gaussian", "variance" = 1/L, "mode" = x_min))
+warm_start <- sample_points(P, n = 1, random_walk = list("nburns" = 5000), distribution = list("density" = "gaussian", "variance" = 1/2, "mode" = x_min))
 
 # Sample points
 n_samples <- 20000
-n_burns <- n_samples / 2
 
-samples <- sample_points(P, n = n_samples, random_walk = list("walk" = "HMC", "step_size" = 0.03, "nburns" = n_burns, "walk_length" = 3, "solver" = "leapfrog", "starting_point" = warm_start[,1]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+samples <- sample_points(P, n = n_samples, random_walk = list("walk" = "NUTS", "solver" = "leapfrog", "starting_point" = warm_start[,1]),
+                         distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f))
 
 # Plot histogram
 hist(samples[1,], probability=TRUE, breaks = 100)
 
 psrfs <- psrf_univariate(samples)
 n_ess <- ess(samples)
+
