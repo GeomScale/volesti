@@ -56,6 +56,8 @@ struct LeapfrogODESolver {
   pts xs;
   pts xs_prev;
 
+  Point grad_x;
+
   MT _AA;
 
   std::pair<NT, int> pbpair;
@@ -69,9 +71,9 @@ struct LeapfrogODESolver {
   eta(step), eta0(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state), adaptive(adaptive_) {
     dim = xs[0].dimension();
     _update_parameters = update_parameters();
+    grad_x.set_dimension(dim);
     initialize();
   };
-
 
 
   void initialize() {
@@ -88,7 +90,6 @@ struct LeapfrogODESolver {
           Av.push_back(av);
           lambda_prev.push_back(NT(0));
       }
-      //step();
   }
 
   void disable_adaptive() {
@@ -101,27 +102,28 @@ struct LeapfrogODESolver {
 
   void step(int k, bool accepted) {
     num_steps++;
-
     if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
 
     xs_prev = xs;
     unsigned int x_index, v_index, it;
     t += eta;
+    Point y;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
-        //pbpair.second  = -1;
+      
       x_index = i - 1;
       v_index = i;
 
       // v' <- v + eta / 2 F(x)
-      Point z = F(v_index, xs_prev, t);
-      z = (eta / 2) * z;
-      xs[v_index] = xs[v_index] + z;
+      if (k == 0 && !accepted) {
+        grad_x = F(v_index, xs_prev, t);
+      }
+      xs[v_index] += (eta / 2) * grad_x;
 
       // x <- x + eta v'
-      Point y = xs[v_index];
+      y = xs[v_index];
 
       if (Ks[x_index] == NULL) {
-        xs[x_index] = xs_prev[x_index] + eta*y;
+        xs[x_index] += eta*y;
       }
       else {
         // Find intersection (assuming a line trajectory) between x and y
@@ -173,10 +175,8 @@ struct LeapfrogODESolver {
       }
 
       // tilde v <- v + eta / 2 F(tilde x)
-      z = F(v_index, xs, t);
-      z = (eta / 2) * z;
-      xs[v_index] = xs[v_index] + z;
-
+      grad_x = F(v_index, xs, t);
+      xs[v_index] += (eta / 2) * grad_x;
     }
 
   }
@@ -200,6 +200,19 @@ struct LeapfrogODESolver {
 
   void set_state(int index, Point p) {
     xs[index] = p;
+  }
+
+  NT get_eta() {
+    return eta;
+  }
+
+  void set_eta(NT &eta_) {
+    eta = eta_;
+    eta0 = eta_;
+  }
+
+  bounds get_bounds() {
+    return Ks;
   }
 
 };

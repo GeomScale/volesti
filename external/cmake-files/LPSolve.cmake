@@ -26,7 +26,7 @@ function(GetLPSolve)
       message(STATUS "lp_solve library found: ${LP_SOLVE_DIR}")
 
   endif()
-
+  
   include_directories(${LP_SOLVE_DIR})
 
 endfunction()
