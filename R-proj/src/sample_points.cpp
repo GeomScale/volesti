@@ -267,7 +267,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 
 //' Sample uniformly, normally distributed, or logconcave distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
 //'
-//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
+//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope, (d) VpolytopeIntersection, or (e) Intersection between an Hpolytope and an ellipsoid.
 //' @param n The number of points that the function is going to sample from the convex polytope.
 //' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 //' \itemize{
@@ -782,7 +782,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         case 6: {
             // Intersection between an H-polytope and an ellipsoid
             if (random_walk.isNotNull()) {
-                if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ExactHMC"))) == 0) {
+                if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ExactHMC")) == 0) {
                     throw Rcpp::exception("Exact HMC does not support intersection of an H-polytope with an ellipsoid.");
                 }
             }
