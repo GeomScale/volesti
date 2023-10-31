@@ -3,7 +3,7 @@
 \title{An exposed class to represent an intersection between an H-polytope and an ellipsoid.}
 
 \description{
-An intersection between of an H-polytope, defined by a set of linear inequalities, or a matrix A and an \eqn{m}-dimensional vector b s.t., \eqn{x, Ax\leq b}, and an ellipsoid defined by a positive definite matrix E s.t., \eqn{x, x^TEx \leq 1}.}.
+An intersection between of an H-polytope, defined by a set of linear inequalities, or a matrix A and an \eqn{m}-dimensional vector b s.t., \eqn{x, Ax\leq b}, and an ellipsoid defined by a positive definite matrix E s.t., \eqn{x, x^TEx \leq 1}.
 }
 \section{Fields}{
 \itemize{
