@@ -352,9 +352,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef typename Kernel::Point    Point;
     typedef HPolytope <Point> Hpolytope;
-    typedef VPolytope<Point> Vpolytope;
+    typedef VPolytope <Point> Vpolytope;
     typedef Zonotope <Point> zonotope;
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
+    typedef Ellipsoid<Point> Ellipse;
+    typedef EllipsoidIntersectPolytope <Hpolytope, Ellipse> EllipsoidIntPolytope;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::SparseMatrix<NT> SpMat;
@@ -776,6 +778,23 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
              execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
            }
            break;
+        }
+        case 6: {
+            // Intersection between an H-polytope and an ellipsoid
+            if (!set_starting_point) {throw Rcpp::exception("An internal point must be given in the case of an intersection between an H-polytope and an ellipsoid.");}
+            Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+                    Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+            Ellipse ell(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("E")));
+            EllipsoidIntPolytope EP(HP, ell);
+            if (walk==crhmc){throw Rcpp::exception("Intersection between an H-polytope and an ellipsoid is not supported by the CRHMC walk.");}
+            if (functor_defined) {
+                sample_from_polytope(EP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
+            }
+            else {
+                sample_from_polytope(EP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, G, g, hess_g, solver);
+            }
         }
     }
 
