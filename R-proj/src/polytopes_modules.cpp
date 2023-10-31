@@ -82,9 +82,9 @@ public:
 };
 class PolytopeIntersectEllipsoid {
 public:
-    Ellipsoid() {}
-    Ellipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E) : A(_A), b(_b), E(_E), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(6) {}
-    Ellipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E, double volume) : A(_A), b(_b), E(_E), vol(volume), dimension(_A.ncol()), type(6) {}
+    PolytopeIntersectEllipsoid() {}
+    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E) : A(_A), b(_b), E(_E), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(6) {}
+    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E, double volume) : A(_A), b(_b), E(_E), vol(volume), dimension(_A.ncol()), type(6) {}
     Rcpp::NumericMatrix E;
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
