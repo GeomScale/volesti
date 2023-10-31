@@ -47,7 +47,7 @@ public:
     Ellipsoid() {}
 
     // TODO(vaithak): Add a flag for telling whether the matrix passed is already inverse
-    Ellipsoid(MT& Ain) : A(Ain) {
+    Ellipsoid(const MT& Ain) : A(Ain) {
         Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
         if (eigensolver.info() != Eigen::Success) {
             throw std::runtime_error("Eigen solver returned error!");
@@ -164,8 +164,8 @@ public:
     }
 
 
-    int is_in(Point const& p) const {
-        return mat_mult(p) > 1 ? 0 : -1;
+    int is_in(Point const& p, NT tol=NT(0)) const {
+        return mat_mult(p) > 1 + NT(tol) ? 0 : -1;
     }
 
 

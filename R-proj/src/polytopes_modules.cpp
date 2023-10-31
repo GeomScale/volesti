@@ -269,8 +269,8 @@ RCPP_MODULE(polytopes){
     class_<PolytopeIntersectEllipsoid>("PolytopeIntersectEllipsoid")
     // expose the default constructor
     .constructor()
-    .constructor<Rcpp::NumericMatrix>()
-    .constructor<Rcpp::NumericMatrix, double>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::NumericMatrix>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::NumericMatrix, double>()
 
     .field( "A", &PolytopeIntersectEllipsoid::A )
     .field( "b", &PolytopeIntersectEllipsoid::b )

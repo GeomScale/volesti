@@ -781,6 +781,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 6: {
             // Intersection between an H-polytope and an ellipsoid
+            if (random_walk.isNotNull()) {
+                if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ExactHMC"))) == 0) {
+                    throw Rcpp::exception("Exact HMC does not support intersection of an H-polytope with an ellipsoid.");
+                }
+            }
             if (!set_starting_point) {throw Rcpp::exception("An internal point must be given in the case of an intersection between an H-polytope and an ellipsoid.");}
             Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));

@@ -25,7 +25,7 @@ public:
 
     EllipsoidIntersectPolytope() {}
 
-    EllipsoidIntersectPolytope(Polytope& PP, CEllipsoid &EE) : P(PP), E(EE) {};
+    EllipsoidIntersectPolytope(const Polytope& PP, const CEllipsoid &EE) : P(PP), E(EE) {};
 
     Polytope first() const { return P; }
     CEllipsoid second() const { return E; }
@@ -47,10 +47,10 @@ public:
         return P.get_vec();
     }
 
-    int is_in(PointType const& p) const
+    int is_in(PointType const& p, NT tol=NT(0)) const
     {
-        if (P.is_in(p)==-1)
-            return E.is_in(p);
+        if (P.is_in(p, tol)==-1)
+            return E.is_in(p, tol);
         return 0;
     }
 
@@ -243,6 +243,40 @@ public:
     std::pair<PointType, NT> ComputeInnerBall()
     {
         return P.ComputeInnerBall();
+    }
+
+    // Not supported oracles
+
+    std::pair<NT, int> quadratic_positive_intersect(PointType const& r, //current poistion
+                                                    PointType const& v, // current velocity
+                                                    VT& Ac, // the product Ac where c is the bias vector of the exponential distribution
+                                                    NT const& T, // the variance of the exponential distribution
+                                                    VT& Ar, // the product Ar
+                                                    VT& Av, // the product Av
+                                                    int& facet_prev) const //the facet that the trajectory hit in the previous reflection
+    {
+        std::runtime_error("Quadratic oracle is not supported by the intersection of an H-polytope with an ellipsoid.");
+        return std::make_pair(NT(0), 0); // this is added to avoid warnings
+    }
+
+    std::pair<NT, int> quadratic_positive_intersect(PointType const& r, //current poistion
+                                                    PointType const& v, // current velocity
+                                                    VT& Ac,  // the product Ac where c is the bias vector of the exponential distribution
+                                                    NT const& T, // the variance of the exponential distribution
+                                                    VT& Ar, // the product Ar
+                                                    VT& Av, // the product Av
+                                                    NT const& lambda_prev, // the intersection time of the previous reflection
+                                                    int& facet_prev) const //the facet that the trajectory hit in the previous reflection
+    {
+        std::runtime_error("Quadratic oracle is not supported by the intersection of an H-polytope with an ellipsoid.");
+        return std::make_pair(NT(0), 0); // this is added to avoid warnings
+    }
+
+    std::pair<NT, int> trigonometric_positive_intersect(PointType const& r, PointType const& v,
+                                                        NT const& omega, int &facet_prev) const
+    {
+        std::runtime_error("Trigonometric oracle is not supported by the intersection of an H-polytope with an ellipsoid.");
+        return std::make_pair(NT(0), 0); // this is added to avoid warnings
     }
 
 };

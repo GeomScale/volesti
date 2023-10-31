@@ -30,18 +30,18 @@ E = matrix(c(0.25, 0.75, 0.75, 3.25), nrow=2, ncol=2, byrow=TRUE)
 EP = PolytopeIntersectEllipsoid$new(A, b, E)
 dim = 2
 
-x0 = matrix(0, dim, 1)
+x0 = rep(0, dim)
 
 # Sample points
-n_samples <- 2000
+n_samples = 2000
 
-samples <- sample_points(EP, n = n_samples, random_walk = list("walk" = "NUTS", "solver" = "leapfrog", "starting_point" = x0),
+samples = sample_points(EP, n = n_samples, random_walk = list("walk" = "NUTS", "solver" = "leapfrog", "starting_point" = x0),
                          distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f))
 
 # Plot histogram
 hist(samples[1,], probability=TRUE, breaks = 100)
 
-psrfs <- psrf_univariate(samples)
-n_ess <- ess(samples)
+psrfs = psrf_univariate(samples)
+n_ess = ess(samples)
 
 
