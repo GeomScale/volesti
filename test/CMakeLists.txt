@@ -323,8 +323,6 @@ else ()
   add_test(NAME logconcave_sampling_test_nuts_hmc
           COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc)
 
-
-
 	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_sampling_test_crhmc
 					COMMAND crhmc_sampling_test -tc=crhmc)

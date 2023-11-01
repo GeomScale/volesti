@@ -216,10 +216,10 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
       }
 
       break;
-    case crhmc:{
+    case crhmc:
       execute_crhmc<Polytope, RNGType, PointList, NegativeGradientFunctor,NegativeLogprobFunctor, HessianFunctor, CRHMCWalk, 8>(P, rng, randPoints, walkL, numpoints, nburns, F, f, h);
+     
       break;
-      }
     case nuts:
 
       logconcave_sampling <
@@ -282,6 +282,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' The default walk is \code{'aBiW'} for the uniform distribution, \code{'CDHR'} for the Gaussian distribution and H-polytopes and 
 //' \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes. \code{'NUTS'} is the default sampler for logconcave densities and \code{'CRHMC'} 
 //' for logconcave densities with H-polytope and sparse constrainted problems.}
+
 //' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 //' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 //' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}

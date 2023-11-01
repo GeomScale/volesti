@@ -273,9 +273,7 @@ struct CrhmcRandomPointGenerator
             typename NegativeLogprobFunctor,
             typename Parameters
     >
-    static void apply(Polytope &P,
-                      Point &p,   // a point to start
-                      unsigned int const& rnum,
+    static void apply(unsigned int const& rnum,
                       unsigned int const& walk_length,
                       PointList &randPoints,
                       WalkPolicy &policy,
