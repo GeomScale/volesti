@@ -17,10 +17,10 @@ template <typename VT, typename NT>
 NT empquant(VT const& sorted_samples, NT const& q)
 {
     unsigned int n = sorted_samples.rows();
-    
+
     NT order = (n - 1) * q + 1.0;
     NT fract = order - NT(int(order));
-    int low = std::max(fix(order), 1.0);
+    int low = std::max(round_to_zero(order), 1.0);
     int high = std::min(low + 1.0, NT(n));
 
     NT y = (1.0 - fract) * sorted_samples(low - 1) + fract * sorted_samples(high - 1);

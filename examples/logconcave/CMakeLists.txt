@@ -20,7 +20,7 @@ endif(COMMAND cmake_policy)
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -73,16 +73,24 @@ else ()
     include_directories(BEFORE /usr/include/eigen3)
 endif(BUILTIN_EIGEN)
 
+find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
+
 if (USE_MKL)
-  find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
+  find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
+  find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
+  find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
+
   include_directories (BEFORE ${MKLROOT}/include)
-  set(PROJECT_LIBS ${BLAS_LIBRARIES})
+  set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
   set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
   add_definitions(-DEIGEN_USE_MKL_ALL)
+else()
+  set(MKL_LINK "")
 endif(USE_MKL)
 
 # Find lpsolve library
-find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
 if (NOT LP_SOLVE)
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
@@ -145,6 +153,6 @@ else ()
   TARGET_LINK_LIBRARIES(simple_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK} )
   TARGET_LINK_LIBRARIES(exponential_exact_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
   TARGET_LINK_LIBRARIES(gaussian_exact_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
-  
+
 
 endif()

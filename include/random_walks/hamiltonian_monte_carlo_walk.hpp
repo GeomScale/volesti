@@ -114,12 +114,10 @@ struct HamiltonianMonteCarloWalk {
 
     };
 
-    inline void apply(
-      RandomNumberGenerator &rng,
-      int walk_length=1,
-      bool metropolis_filter=true)
+    inline void apply(RandomNumberGenerator &rng,
+                      int walk_length=1,
+                      bool metropolis_filter=true)
     {
-
       num_runs++;
 
       // Pick a random velocity
@@ -156,6 +154,7 @@ struct HamiltonianMonteCarloWalk {
         }
       } else {
         x = x_tilde;
+        accepted = true;
       }
 
       discard_ratio = (1.0 * total_discarded_samples) / num_runs;

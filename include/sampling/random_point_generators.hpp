@@ -143,7 +143,7 @@ struct GaussianRandomPointGenerator
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       NT const& a_i,
                       unsigned int const& rnum,
@@ -170,7 +170,7 @@ struct GaussianRandomPointGenerator
             typename RandomNumberGenerator,
             typename Parameters
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       NT const& a_i,
                       unsigned int const& rnum,
@@ -203,7 +203,7 @@ struct BoundaryRandomPointGenerator
             typename WalkPolicy,
             typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       unsigned int const& rnum,
                       unsigned int const& walk_length,
@@ -231,26 +231,15 @@ struct LogconcaveRandomPointGenerator
 {
 
     template
-    <
-            typename Polytope,
-            typename Point,
-            typename PointList,
-            typename WalkPolicy,
-            typename RandomNumberGenerator,
-            typename NegativeGradientFunctor,
-            typename NegativeLogprobFunctor,
-            typename Parameters
+    <   typename PointList,
+        typename WalkPolicy,
+        typename RandomNumberGenerator
     >
-    static void apply(Polytope &P,
-                      Point &p,   // a point to start
-                      unsigned int const& rnum,
+    static void apply(unsigned int const& rnum,
                       unsigned int const& walk_length,
                       PointList &randPoints,
                       WalkPolicy &policy,
                       RandomNumberGenerator &rng,
-                      NegativeGradientFunctor &F,
-                      NegativeLogprobFunctor &f,
-                      Parameters &parameters,
                       Walk &walk)
     {
         typedef double NT;
@@ -341,7 +330,7 @@ struct ExponentialRandomPointGenerator
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       Point const& c,   // bias function
                       NT const& T, // temperature/variance
@@ -374,7 +363,7 @@ struct ExponentialRandomPointGenerator
             typename RandomNumberGenerator,
             typename Parameters
     >
-    static void apply(Polytope const& P,
+    static void apply(Polytope& P,
                       Point &p,   // a point to start
                       Point const& c,   // bias function
                       NT const& T, // temperature/variance

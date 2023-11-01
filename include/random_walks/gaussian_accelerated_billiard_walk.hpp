@@ -68,7 +68,7 @@ struct GaussianAcceleratedBilliardWalk
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope, typename Ellipsoid>
-        Walk(GenericPolytope const& P,
+        Walk(GenericPolytope& P,
              Point const& p,
              Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
              RandomNumberGenerator &rng)
@@ -83,7 +83,7 @@ struct GaussianAcceleratedBilliardWalk
         }
 
         template <typename GenericPolytope, typename Ellipsoid>
-        Walk(GenericPolytope const& P,
+        Walk(GenericPolytope& P,
              Point const& p,
              Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
              RandomNumberGenerator &rng,
@@ -104,7 +104,7 @@ struct GaussianAcceleratedBilliardWalk
                         typename GenericPolytope,
                         typename Ellipsoid
                 >
-        inline void apply(GenericPolytope const& P,
+        inline void apply(GenericPolytope& P,
                           Point &p,       // a point to return the result
                           Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                           unsigned int const& walk_length,
@@ -181,7 +181,7 @@ struct GaussianAcceleratedBilliardWalk
                         typename GenericPolytope,
                         typename Ellipsoid
                 >
-        inline void initialize(GenericPolytope const& P,
+        inline void initialize(GenericPolytope& P,
                                Point const& p,  // a point to start
                                Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                                RandomNumberGenerator &rng)
