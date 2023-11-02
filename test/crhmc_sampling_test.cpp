@@ -16,6 +16,8 @@
 #include "ode_solvers.hpp"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
+#include "preprocess/crhmc/crhmc_problem.h"
+#include "preprocess/crhmc/crhmc_utils.h"
 #include "random.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_int.hpp"
@@ -33,6 +35,7 @@
 #include <unistd.h>
 #include <vector>
 #include "preprocess/svd_rounding.hpp"
+#include "sampling/sampling.hpp"
 struct InnerBallFunctor {
 
   // Gaussian density centered at the inner ball center
@@ -178,15 +181,14 @@ template <typename Sampler, typename RandomNumberGenerator, typename NT,
 void check_ergodic_mean_norm(Sampler &sampler, RandomNumberGenerator &rng,
                              Point &mean, unsigned int dim,
                              int n_samples = 1500, int skip_samples = 750,
-                             NT target = NT(0), NT tol = 5e-1)
-{
-
+                             NT target = NT(0), NT tol = 5e-1) {
+  int simdLen = sampler.simdLen;
   auto start = std::chrono::high_resolution_clock::now();
 
-  for (int i = 0; i < n_samples; i++) {
+  for (int i = 0; i < std::ceil(n_samples / simdLen); i++) {
     sampler.apply(rng, 1);
     if (i >= skip_samples) {
-      Point x = sampler.getPoint();
+      Point x = Point(sampler.getPoints().rowwise().sum());
       mean = mean + x;
     }
 
@@ -228,12 +230,11 @@ Polytope read_polytope(std::string filename) {
   return P;
 }
 
-template <typename NT, typename Polytope>
+template <typename NT, typename Polytope, int simdLen = 1>
 void crhmc_polytope_sampling(
     Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
     bool rounding = false, bool centered = false,
-    unsigned int max_draws = 80000, unsigned int num_burns = 20000)
-{
+    unsigned int max_draws = 80000, unsigned int num_burns = 20000) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
@@ -246,8 +247,7 @@ void crhmc_polytope_sampling(
                             NegativeGradientFunctor, HessianFunctor>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Opts = opts<NT>;
-  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem,
-                                           NegativeGradientFunctor>;
+  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem,NegativeGradientFunctor, simdLen>;
 
   std::pair<Point, NT> inner_ball;
   if (centered) {
@@ -286,8 +286,8 @@ void crhmc_polytope_sampling(
   NT max_psrf;
 
   Opts options;
-  CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,
-                                                                  options);
+  options.simdLen = simdLen;
+  CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(F, dim,options);
   Input input = Input(P.dimension(), f, F, H);
   input.Aineq = P.get_mat();
   input.bineq = P.get_vec();
@@ -318,11 +318,16 @@ void crhmc_polytope_sampling(
   std::cout << std::endl;
   std::cout << "Sampling" << std::endl;
 
-  for (unsigned int i = 0; i < max_actual_draws; i++) {
+  for (unsigned int i = 0; i < std::ceil(max_actual_draws / simdLen); i++) {
     for (int k = 0; k < walk_length; k++) {
       crhmc.apply(rng, 1);
     }
-    samples.col(i) = crhmc.getPoint().getCoefficients();
+    MT sample = crhmc.getPoints();
+    if (i * simdLen + simdLen - 1 < max_actual_draws) {
+      samples(Eigen::all, Eigen::seq(i * simdLen, i * simdLen + simdLen - 1)) = sample;
+    } else {
+      samples(Eigen::all, Eigen::seq(i * simdLen, max_actual_draws - 1)) = sample(Eigen::all, Eigen::seq(0, max_actual_draws - 1 - simdLen * i));
+    }
     if (i % 1000 == 0 && i > 0)
       std::cout << ".";
   }
@@ -340,7 +345,7 @@ inline bool exists_check(const std::string &name) {
   return f.good();
 }
 
-template <typename NT, typename Point, typename HPolytope>
+template <typename NT, typename Point, typename HPolytope, int simdLen = 1>
 void test_sampling_polytope(HPolytope &P, std::string &name, bool centered,
                             int walk_length = 1) {
   NT step_size = 0;
@@ -349,9 +354,9 @@ void test_sampling_polytope(HPolytope &P, std::string &name, bool centered,
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  crhmc_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, false, centered);
+  crhmc_polytope_sampling<NT, HPolytope, simdLen>(P, step_size, walk_length, false, centered);
 }
-template <typename NT>
+template <typename NT, int simdLen = 1>
 void call_test_sampling_polytope() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
@@ -362,35 +367,35 @@ void call_test_sampling_polytope() {
     Hpolytope P = generate_skinny_cube<Hpolytope>(100, false);
     std::string name = "100_skinny_cube";
     bool centered = false;
-    test_sampling_polytope<NT, Point, Hpolytope>(P, name, false);
+    test_sampling_polytope<NT, Point, Hpolytope, simdLen>(P, name, false);
   }
 
   {
     Hpolytope P = generate_cross<Hpolytope>(5, false);
     std::string name = "5_cross";
     bool centered = false;
-    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope, simdLen>(P, name, centered);
   }
 
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
-    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope, simdLen>(P, name, centered);
   }
 
   {
     Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
     std::string name = "50_prod_simplex";
     bool centered = false;
-    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope, simdLen>(P, name, centered);
   }
 
   {
     Hpolytope P = generate_birkhoff<Hpolytope>(10);
     std::string name = "10_birkhoff";
     bool centered = false;
-    test_sampling_polytope<NT, Point, Hpolytope>(P, name, centered);
+    test_sampling_polytope<NT, Point, Hpolytope, simdLen>(P, name, centered);
   }
 }
 
@@ -443,7 +448,7 @@ void benchmark_cube_crhmc() {
   }
 }
 
-template <typename NT>
+template <typename NT, int simdLen = 1>
 void test_crhmc() {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
@@ -458,8 +463,7 @@ void test_crhmc() {
       crhmc_input<MT, Point, NegativeLogprobFunctor, NegativeGradientFunctor>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
-  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem,
-                                           NegativeGradientFunctor>;
+  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, NegativeGradientFunctor, simdLen>;
   using Opts = opts<NT>;
   IsotropicQuadraticFunctor::parameters<NT> params;
   params.order = 2;
@@ -468,12 +472,16 @@ void test_crhmc() {
   RandomNumberGenerator rng(1);
   unsigned int dim = 10;
   Opts options;
+  options.simdLen = simdLen;
+  options.DynamicWeight=false;
+  options.DynamicStepSize=false;
+  options.DynamicRegularizer=false;
   CRHMCWalk::parameters<NT, NegativeGradientFunctor> crhmc_params(g, dim,
                                                                   options);
   Input input = Input(dim, f, g);
   input.lb = -VT::Ones(dim);
   input.ub = VT::Ones(dim);
-  CrhmcProblem P = CrhmcProblem(input);
+  CrhmcProblem P = CrhmcProblem(input,options);
   Point x0(dim);
   CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator,
                   NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
@@ -486,13 +494,68 @@ template <typename NT>
 void call_test_crhmc() {
   std::cout << "--- Testing Constrained Riemannian Hamiltonian Monte Carlo"
             << std::endl;
-  test_crhmc<NT>();
+  std::cout << "------------SIMDLEN=1-------------------\n"
+            << std::endl;
+  test_crhmc<NT, 1>();
+  std::cout << "------------SIMDLEN=4-------------------\n"
+            << std::endl;
+  test_crhmc<NT, 4>();
 }
 template <typename NT>
 void call_test_benchmark_cube_crhmc() {
   benchmark_cube_crhmc<NT>();
 }
 
+template <typename ConstraintProblem, typename SpMat, typename Point, int simdLen=1>
+void test_polytope_sampling_sparse_problem(ConstraintProblem &problem, int n_samples = 80000, int n_burns = 20000){
+  using NT = typename Point::FT;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using Func = GaussianFunctor::FunctionFunctor<Point>;
+  using Grad = GaussianFunctor::GradientFunctor<Point>;
+  using Hess = GaussianFunctor::HessianFunctor<Point>;
+  using func_params = GaussianFunctor::parameters<NT, Point>;
+  using RNG = BoostRandomNumberGenerator<boost::mt19937, NT>;
+  func_params params = func_params(Point(problem.dimension()), 0.5, 1);
+  Func* f= new Func(params);
+  Grad* g= new Grad(params);
+  Hess* h= new Hess(params);
+  RNG rng(1);
+  std::list<Point> PointList;
+  execute_crhmc<ConstraintProblem, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(problem, rng, PointList, 1, n_samples, n_burns, g, f, h, true);
+  std::cout<<"Here--------------------------\n";
+  MT samples = MT(PointList.front().dimension(), PointList.size());
+  int i=0;
+  for (typename std::list<Point>::iterator it = PointList.begin(); it != PointList.end(); ++it){
+    samples.col(i) = (*it).getCoefficients();
+    i++;
+  }
+  NT max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+  std::cout<<"PSRF: "<<max_psrf<<std::endl;
+  delete f;
+  delete g;
+  delete h;
+}
+template <typename NT, int simdLen = 1>
+void call_test_polytope_sampling_sparse_problem(){
+  std::cout << " ---Sampling sparse problems " << std::endl;
+  using SpMat = Eigen::SparseMatrix<NT>;
+  using Kernel = Cartesian<NT>;
+  using Point = typename Kernel::Point;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using ConstraintProblem =constraint_problem<SpMat, Point>;
+  if(exists_check("../test/netlib/degen2.mm")){
+    std::cout<<"Problem name: degen2" << std::endl;
+    SpMat A;
+    VT b, lb, ub;
+    int dimension;
+    load_problem(A, b, lb, ub, dimension, "../test/netlib/degen2");
+    ConstraintProblem problem = ConstraintProblem(dimension);
+    problem.set_equality_constraints(A, b);
+    problem.set_bounds(lb, ub);
+    test_polytope_sampling_sparse_problem<ConstraintProblem, SpMat, Point, simdLen>(problem);
+  }
+}
 TEST_CASE("crhmc") {
   call_test_crhmc<double>();
 }
@@ -502,5 +565,19 @@ TEST_CASE("benchmark_crhmc_cube") {
 }
 
 TEST_CASE("test_polytope_sampling_crhmc") {
-  call_test_sampling_polytope<double>();
+  std::cout << "------------SIMDLEN=1-------------------\n"
+            << std::endl;
+  call_test_sampling_polytope<double, 1>();
+  std::cout << "------------SIMDLEN=4-------------------\n"
+            << std::endl;
+  call_test_sampling_polytope<double, 4>();
+}
+
+TEST_CASE("test_sampling_sparse_problem") {
+  std::cout << "------------SIMDLEN=1-------------------\n"
+            << std::endl;
+  call_test_polytope_sampling_sparse_problem<double, 1>();
+  std::cout << "------------SIMDLEN=4-------------------\n"
+            << std::endl;
+  call_test_polytope_sampling_sparse_problem<double, 4>();
 }

@@ -21,6 +21,7 @@
 
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
+#include "preprocess/crhmc/crhmc_utils.h"
 #include <vector>
 
 /// @brief A two sided barrier used by crhmc sampler
@@ -43,16 +44,18 @@ public:
   const NT max_step = 1e16; // largest step size
   const NT regularization_constant = 1e-20; // small regularization to not have a large inverse
   const NT unbounded_center_coord = 1e6;
-  VT extraHessian;  //Regularization factor
+  MT extraHessian;
 
   const NT inf = std::numeric_limits<NT>::infinity();
-  //initialization function
-  void set_bound(VT const &_lb, VT const &_ub) {
 
+  void set_bound(VT const &_lb, VT const &_ub) {
+    n = _lb.rows();
+    extraHessian.resize(n, 1);
+    lb.resize(n);
+    ub.resize(n);
     lb = _lb;
     ub = _ub;
-    n = lb.rows();
-    extraHessian = regularization_constant * VT::Ones(n);
+    extraHessian = regularization_constant * MT::Ones(n, 1);
     int x1 = 0, x2 = 0, x3 = 0;
     for (int i = 0; i < n; i++) {
       if (lb(i) == -inf) {
@@ -69,34 +72,43 @@ public:
     }
 
     VT c = (ub + lb) / 2;
-
-    c(lowerIdx) = lb(lowerIdx) + VT::Ones(x2, 1) * unbounded_center_coord;
-    c(upperIdx) = ub(upperIdx) - VT::Ones(x1, 1) * unbounded_center_coord;
-    c(freeIdx) *= 0.0;
+    VT bias1=VT::Ones(x2, 1) * unbounded_center_coord;
+    saxpy(c,lb,bias1,lowerIdx,lowerIdx);
+    VT bias2=-VT::Ones(x1, 1) * unbounded_center_coord;
+    saxpy(c,ub,bias2,upperIdx,upperIdx);
+    set(c, freeIdx, 0.0);
 
     center = c;
   }
   two_sided_barrier(VT const &_lb, VT const &_ub, int _vdim = 1) {
     set_bound(_lb, _ub);
     vdim = _vdim;
-    extraHessian = regularization_constant * VT::Ones(n);
+    extraHessian = regularization_constant * MT::Ones(n,1);
   }
   two_sided_barrier() { vdim = 1; }
-  //barrier function gradient
+
   VT gradient(VT const &x) {
     return (ub - x).cwiseInverse() - (x - lb).cwiseInverse();
   }
-  //Return the barrier hessian with the extra Regularization
+
   VT hessian(VT const &x) {
     VT d = ((ub - x).cwiseProduct((ub - x))).cwiseInverse() +
            ((x - lb).cwiseProduct((x - lb))).cwiseInverse();
     return d + extraHessian;
   }
-  //third derivative of the barrier
-  VT tensor(VT const &x) {
-    VT d = 2 * (((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))).cwiseInverse() -
-           2 * (((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb))).cwiseInverse();
+  MT hessian(MT const &x){
+    MT d = (((- x).colwise()+ub).cwiseProduct(((- x).colwise()+ub))).cwiseInverse() +
+           ((x.colwise() - lb).cwiseProduct((x.colwise() - lb))).cwiseInverse();
+    return d + extraHessian;
+  }
+  MT tensor(MT const &x) {
+    MT d = 2 * ((((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseProduct(((-x).colwise()+ub))).cwiseInverse() -
+           2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb))).cwiseInverse();
     return d;
+  }
+  MT quadratic_form_gradient(MT const &x, MT const &u) {
+    // Output the -grad of u' (hess phi(x)) u.
+    return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
   }
   VT quadratic_form_gradient(VT const &x, VT const &u) {
     // Output the -grad of u' (hess phi(x)) u.
@@ -119,12 +131,18 @@ public:
   VT boundary_distance(VT const &x) {
     // Output the distance of x with its closest boundary for each
     // coordinate
-
     return ((x - lb).cwiseMin(ub - x)).cwiseAbs();
   }
 
   bool feasible(VT const &x) {
     return (x.array() > lb.array() && x.array() < ub.array()).all();
+  }
+  VT feasible(MT const &x) {
+    VT result=VT::Ones(x.cols());
+    for(int i=0;i<x.cols();i++){
+      result(i)=(x.col(i).array() > lb.array() && x.col(i).array() < ub.array()).all();
+    }
+    return result;
   }
 
   std::pair<VT, VT> analytic_center_oracle(VT const &x) {
@@ -136,8 +154,7 @@ public:
   std::pair<VT, VT> lewis_center_oracle(VT const &x, VT const &w) {
     VT g = VT::Zero(n, 1);
     VT h = VT::Zero(n, 1);
-    return std::make_pair(g + w.cwiseProduct(gradient(x)),
-                          h + w.cwiseProduct(hessian(x)));
+    return std::make_pair(g + w.cwiseProduct(gradient(x)),h + w.cwiseProduct(hessian(x)));
   }
 
   std::pair<VT, VT> boundary(VT const &x) {
@@ -145,11 +162,9 @@ public:
     // Assume: only 1 vector is given
 
     VT A = VT::Ones(x.rows(), 1);
-
     VT b = ub;
 
     b = (x.array() < center.array()).select(-lb, b);
-
     A = (x.array() < center.array()).select(-A, A);
 
     return std::make_pair(A, b);

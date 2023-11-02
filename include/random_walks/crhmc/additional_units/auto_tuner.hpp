@@ -33,24 +33,23 @@ class auto_tuner {
 
 public:
   Opts options;
-  weight_tuner *tune_weights;
-  regularizion_tuner *tune_regularization;
-  step_size_tuner *tune_step_size;
+  std::unique_ptr<weight_tuner> tune_weights;
+  std::unique_ptr<regularizion_tuner> tune_regularization;
+  std::unique_ptr<step_size_tuner> tune_step_size;
   auto_tuner(Sampler &s) :
     options(s.params.options)
   {
     if (options.DynamicWeight) {
-      tune_weights = new weight_tuner(s);
+      tune_weights = std::unique_ptr<weight_tuner>(new weight_tuner(s));
     }
     if (options.DynamicRegularizer) {
-      tune_regularization = new regularizion_tuner(s);
+      tune_regularization = std::unique_ptr<regularizion_tuner>(new regularizion_tuner(s));
     }
     if (options.DynamicStepSize) {
-      tune_step_size = new step_size_tuner(s);
+      tune_step_size = std::unique_ptr<step_size_tuner>(new step_size_tuner(s));
     }
   }
-  void updateModules(Sampler &s, RandomNumberGenerator &rng)
-  {
+  void updateModules(Sampler &s, RandomNumberGenerator &rng) {
     if (options.DynamicWeight) {
       tune_weights->update_weights(s, rng);
     }

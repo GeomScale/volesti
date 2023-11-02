@@ -28,15 +28,6 @@
 #endif
 const size_t chol_k3 = (SIMD_LEN == 0) ? 1 : SIMD_LEN;
 
-using NT = double;
-using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
-using SpMat = Eigen::SparseMatrix<NT>;
-using CholObj = PackedChol<chol_k3, int>;
-using Triple = Eigen::Triplet<double>;
-using Tx = FloatArray<double, chol_k3>;
-using Opts = opts<NT>;
-NT epsilon = 1e-8;
 /*This function computes the Lewis center of the polytope*/
 //And detects additional constraint that need to be added
 // x - It outputs the minimizer of min f(x) subjects to {Ax=b}
@@ -46,9 +37,13 @@ NT epsilon = 1e-8;
 //     because of the dom(f), the algorithm will detect the collapsed dimension
 //     and output the detected constraint C x = d
 // d - detected constraint vector
-template <typename Polytope>
+template <typename Polytope, typename SpMat,typename Opts, typename MT, typename VT, typename NT>
 std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b, Polytope &f, Opts const &options, VT x = VT::Zero(0, 1))
 {
+  using CholObj = typename Polytope::CholObj;
+  using Triple = typename Polytope::Triple;
+  using Tx = typename Polytope::Tx;
+  NT epsilon = 1e-8;
   // initial conditions
   int n = A.cols();
   int m = A.rows();
@@ -173,14 +168,14 @@ std::tuple<VT, SpMat, VT, VT> lewis_center(SpMat const &A, VT const &b, Polytope
     std::pair<VT, VT> pboundary = f.barrier.boundary(x);
     VT A_ = pboundary.first;
     VT b_ = pboundary.second;
-    A_ = A_(idx);
     std::vector<Triple> sparseIdx;
     for (int i = 0; i < idx.size(); i++)
     {
-      sparseIdx.push_back(Triple(i, i, A_(i)));
+      sparseIdx.push_back(Triple(i, idx[i], A_(idx[i])));
     }
     C.setFromTriplets(sparseIdx.begin(), sparseIdx.end());
-    d = b_(idx);
+    d.resize(idx.size(), 1);
+    copy_indicies(d, b_, idx);
   }
   else
   {
