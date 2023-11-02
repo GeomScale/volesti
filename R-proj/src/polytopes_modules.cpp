@@ -80,6 +80,7 @@ public:
     unsigned int dimension;
     int type;
 };
+
 class PolytopeIntersectEllipsoid {
 public:
     PolytopeIntersectEllipsoid() {}
@@ -92,6 +93,7 @@ public:
     unsigned int dimension;
     int type;
 };
+
 RCPP_MODULE(polytopes){
     using namespace Rcpp ;
 
