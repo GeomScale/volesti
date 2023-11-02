@@ -292,7 +292,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' }
 //' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 //' \itemize{
-//' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution c) \code{logconcave} with form proportional to exp(-f(x)) where f(x) is L-smooth and m-strongly-convex d) \code{'exponential'} for the exponential distribution. The default target distribution is the uniform distribution.}
+//' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution, b) \code{'gaussian'} for the multidimensional spherical distribution, c) \code{logconcave} with form proportional to exp(-f(x)) where f(x) is L-smooth and m-strongly-convex, d) \code{'exponential'} for the exponential distribution, e) \code{'dirichlet'} for the Dirichlet distribution. The default target distribution is the uniform distribution.}
 //' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian or the exponential distribution. The default value is 1.}
 //' \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 //' \item{\code{bias} }{ The bias vector for the exponential distribution. The default vector is \eqn{c_1 = 1} and \eqn{c_i = 0} for \eqn{i \neq 1}.}
@@ -372,6 +372,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     GaussianFunctor::GradientFunctor<Point> *G = NULL;
     GaussianFunctor::FunctionFunctor<Point> *g = NULL;
     GaussianFunctor::HessianFunctor<Point> *hess_g = NULL;
+
+    DirichletFunctor::GradientFunctor<Point> *DirFunGrad = NULL;
+    DirichletFunctor::FunctionFunctor<Point> *DirFunVal = NULL;
+
     bool functor_defined = true;
 
 
@@ -385,7 +389,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     NT radius = 1.0, L;
     bool set_mode = false, gaussian = false, logconcave = false, exponential = false,
-                    set_starting_point = false, set_L = false;
+            dirichlet = false, set_starting_point = false, set_L = false;
 
     random_walks walk;
     ode_solvers solver; // Used only for logconcave sampling
@@ -413,6 +417,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     } else if (
             Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("logconcave")) == 0) {
         logconcave = true;
+    } else if (
+            Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("dirichlet")) == 0) {
+        dirichlet = true;
     } else {
         throw Rcpp::exception("Wrong distribution!");
     }
@@ -541,6 +548,40 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         G = new GaussianFunctor::GradientFunctor<Point>(*gaussian_functor_params);
         g = new GaussianFunctor::FunctionFunctor<Point>(*gaussian_functor_params);
         hess_g = new GaussianFunctor::HessianFunctor<Point>(*gaussian_functor_params);
+    }
+
+    else if (dirichlet) {
+
+        functor_defined = false;
+        
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("step_size")) {
+            eta = NT(Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["step_size"]));
+            if (eta <= NT(0)) {
+                throw Rcpp::exception("Step size must be positive");
+            }
+        } else {
+            eta = NT(-1);
+        }
+
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("solver")) {
+          std::string solver_str = Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["solver"]);
+          if (solver_str == "leapfrog") {
+            solver = leapfrog;
+          } else if (solver_str == "euler") {
+            solver = euler;
+          } else if (solver_str == "implicit_midpoint"){
+            solver = implicit_midpoint;
+          } else {
+            throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
+          }
+         } else {
+          Rcpp::warning("Solver set to leapfrog.");
+          solver = leapfrog;
+        }
+        // Create functors
+        DirichletFunctor::parameters<NT, Point> dirichlet_functor_params(dirichlet_a_vec);
+        DirFunGrad = new DirichletFunctor::GradientFunctor<Point>(dirichlet_functor_params);
+        DirFunVal = new DirichletFunctor::FunctionFunctor<Point>(dirichlet_functor_params);
     }
 
     if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
@@ -690,6 +731,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                     StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
             }
+            else if (dirichlet) {
+                throw Rcpp::exception("The support of the Dirichlet distribution is the canonical simplex (or a subset of it). Please use the class for a sparse constraint problem.");
+            }
             else {
                 sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                     StartingPoint, nburns, set_L, eta, walk, G, g, hess_g, solver);
@@ -774,6 +818,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
            if (functor_defined) {
              execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
            }
+           else if (dirichlet) {
+             execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, DirFunGrad, DirFunVal, h);
+            }
            else {
              execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
            }
@@ -795,6 +842,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             if (functor_defined) {
                 sample_from_polytope(EP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                     StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
+            }
+            else if (dirichlet) {
+                throw Rcpp::exception("The support of the Dirichlet distribution is the canonical simplex (or a subset of it). Please use the class for a sparse constraint problem.");
             }
             else {
                 sample_from_polytope(EP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
