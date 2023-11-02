@@ -23,48 +23,52 @@ class dynamic_weight {
   using NT = typename Sampler::NT;
   using Point = typename Sampler::point;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using IVT = Eigen::Array<int, Eigen::Dynamic, 1>;
   using Opts = typename Sampler::Opts;
 
 public:
-  int consecutiveBadStep = 0;
+  int simdLen;
+  IVT consecutiveBadStep;
   int n;
   VT &w;
   Opts options;
-  dynamic_weight(Sampler &s)  :
-    w(s.solver->ham.weighted_barrier->w),
-    options(s.params.options)
+  dynamic_weight(Sampler &s)
+      : simdLen(s.simdLen), w(s.solver->ham.weighted_barrier->w), options(s.params.options)
   {
     n = s.dim;
+    consecutiveBadStep = IVT::Zero(simdLen);
   }
   // If we have consecutive bad steps update the weights with
   //  the help of the leverage scores.
   void update_weights(Sampler &s, RandomNumberGenerator &rng)
   {
-    int bad_step = 0;
-    NT threshold;
-    if (s.prob < 0.5 || s.solver->num_steps == options.maxODEStep) {
-      bad_step = 1;
+    IVT bad_step = IVT::Zero(simdLen);
+    if (s.solver->num_steps == options.maxODEStep) {
+      bad_step += 1;
+    } else {
+      bad_step = (s.prob.array() < 0.5).select(1, IVT::Zero(simdLen));
     }
+    NT threshold;
     consecutiveBadStep = bad_step * consecutiveBadStep + bad_step;
 
-    if (!s.accepted) {
-      VT lsc = s.solver->ham.lsc;
+    if (s.accept.sum() < simdLen) {
+      VT lsc = s.solver->ham.lsc.colwise().maxCoeff().transpose();
       /*The more bad steps in a row we have the higher we want the threshold to be
       In order to change w more drasticaly according to the leverage scores.
       So if we have more than 2 bad steps in a row we elect to set the threshold to 4
       else to 16. Not many changes will be possible as the w should be upperbounded by 1*/
-      if (consecutiveBadStep > 2) {
+      if (consecutiveBadStep.maxCoeff() > 2) {
         threshold = 4;
       } else {
         threshold = 16;
       }
       bool changed = (lsc.array() > threshold * w.array()).any();
-      w = (lsc.array() > threshold * w.array())
-              .select((w * threshold).cwiseMin(VT::Ones(n)), w);
       if (changed) {
+        w = (lsc.array() > threshold * w.array()).select((w * threshold).cwiseMin(1), w);
         s.solver->ham.forceUpdate = true;
         s.solver->ham.move({s.x, s.v});
-        s.v = s.get_direction_with_momentum(n, rng, s.x, Point(n), false);
+        s.v = s.get_direction_with_momentum(n, rng, s.x, MT::Zero(n, simdLen), false);
       }
     }
   }

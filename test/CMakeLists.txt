@@ -324,12 +324,14 @@ else ()
           COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc)
 
 
+
 	add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
 	add_test(NAME crhmc_sampling_test_crhmc
 					COMMAND crhmc_sampling_test -tc=crhmc)
 	add_test(NAME crhmc_test_polytope_sampling
 					COMMAND crhmc_sampling_test -tc=test_polytope_sampling_crhmc)
-
+	add_test(NAME crhmc_test_sparse_sampling
+					COMMAND crhmc_sampling_test -tc=test_sampling_sparse_problem)
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)
@@ -365,7 +367,7 @@ else ()
 	#set_target_properties(benchmarks_crhmc
   #                              PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	#set_target_properties(benchmarks_crhmc_sampling
-	#														  PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
+	#															PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_polytope_preparation_test
 																PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 	set_target_properties(crhmc_sampling_test
@@ -389,15 +391,15 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
-	#TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling ${LP_SOLVE} ${MKL_LINK} ${QD_LIB} coverage_config)
-	#TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} ${QD_LIB}  coverage_config)
+	#TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling ${LP_SOLVE} ${MKL_LINK} QD_LIB coverage_config)
+	#TARGET_LINK_LIBRARIES(benchmarks_crhmc ${LP_SOLVE} ${MKL_LINK} QD_LIB  coverage_config)
   TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} ${QD_LIB} coverage_config)
+	TARGET_LINK_LIBRARIES(crhmc_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
   TARGET_LINK_LIBRARIES(matrix_sampling_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
 

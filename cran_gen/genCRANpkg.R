@@ -17,17 +17,17 @@ file.copy(dir_lp, lp_dist, recursive=TRUE)
 # fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
 library(xfun)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "struct timeb buf;", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "struct timeb buf;", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "ftime(&buf);", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "ftime(&buf);", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "return((double)buf.time+((double) buf.millitm)/1000.0);", 
-    "return((double)0);", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "return((double)buf.time+((double) buf.millitm)/1000.0);",
+    "return((double)0);",
     fixed=TRUE)
 
 # add lpsolve header files in external
@@ -165,6 +165,8 @@ unlink(dir_lpsolve_heds, recursive = TRUE)
 makefile_dir = paste0(path,'/cran_gen/Makefile')
 makefile_dist = paste0(path, '/cran_gen/cran_package/src/external/lpsolve/build/lp_solve')
 file.copy(makefile_dir, makefile_dist, recursive=TRUE)
+
+
 
 # set new cran package folder as wrking directory
 setwd(paste0(path,'/cran_gen/cran_package'))

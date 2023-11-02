@@ -255,6 +255,65 @@ struct LogconcaveRandomPointGenerator
     }
 };
 
+template
+<
+    typename Walk
+>
+struct CrhmcRandomPointGenerator
+{
+
+    template
+    <
+            typename Polytope,
+            typename Point,
+            typename PointList,
+            typename WalkPolicy,
+            typename RandomNumberGenerator,
+            typename NegativeGradientFunctor,
+            typename NegativeLogprobFunctor,
+            typename Parameters
+    >
+    static void apply(Polytope &P,
+                      Point &p,   // a point to start
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng,
+                      NegativeGradientFunctor &F,
+                      NegativeLogprobFunctor &f,
+                      Parameters &parameters,
+                      Walk &walk,
+                      int simdLen=1,
+                      bool raw_output= false)
+    {
+        typedef typename Walk::MT MT;
+        for (unsigned int i = 0; i < std::ceil((float)rnum/simdLen); ++i)
+        {
+            // Gather one sample
+            walk.apply(rng, walk_length);
+            if(walk.P.terminate){return;}
+            MT x;
+            if(raw_output){
+              x=walk.x;
+            }else{
+              x=walk.getPoints();
+            }
+            if((i + 1) * simdLen > rnum){
+              for(int j = 0; j < rnum-simdLen*i; j++){
+                Point p = Point(x.col(j));
+                policy.apply(randPoints, p);
+              }
+              break;
+            }
+            // Use PushBackWalkPolicy
+            for(int j=0; j<x.cols();j++){
+              Point p = Point(x.col(j));
+              policy.apply(randPoints, p);
+            }
+        }
+    }
+};
 
 template
 <

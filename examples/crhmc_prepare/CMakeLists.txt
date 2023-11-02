@@ -121,7 +121,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  add_executable (crhmc_prepare crhmc_prepare.cpp)
-	TARGET_LINK_LIBRARIES(crhmc_prepare ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
+  add_executable (crhmc_prepare crhmc_prepare.cpp )
+	TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${MKL_LINK} ${LP_SOLVE})
 
 endif()

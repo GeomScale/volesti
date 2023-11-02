@@ -11,11 +11,11 @@ public:
     Hpolytope() {}
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b) : A(_A), b(_b), Aeq(Rcpp::NumericMatrix(0,0)),
                 beq(Rcpp::NumericVector(0)), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
-    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq) : 
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq) :
                 A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, double volume) : A(_A), b(_b),
                 Aeq(Rcpp::NumericMatrix(0,0)), beq(Rcpp::NumericVector(0)), vol(volume), dimension(_A.ncol()), type(1) {}
-    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq, 
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq,
                 double volume) : A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(volume), dimension(_A.ncol()), type(1) {}
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
@@ -59,7 +59,27 @@ public:
     unsigned int dimension;
     int type;
 };
-
+#include <RcppEigen.h>
+using SpMat=Eigen::SparseMatrix<double> ;
+class sparse_constraint_problem {
+public:
+    sparse_constraint_problem() {}
+    sparse_constraint_problem(SpMat _Aineq, Rcpp::NumericVector _bineq, SpMat _Aeq, Rcpp::NumericVector _beq) : Aineq(_Aineq), bineq(_bineq), Aeq(_Aeq), beq(_beq),
+                        lb(Rcpp::NumericVector(_Aineq.cols(),-1e9)), ub(Rcpp::NumericMatrix(_Aineq.cols(),1e9)), dimension(_Aineq.cols()), type(5) {}
+    sparse_constraint_problem(SpMat _Aineq, Rcpp::NumericVector _bineq, SpMat _Aeq, Rcpp::NumericVector _beq,
+                        Rcpp::NumericVector _lb, Rcpp::NumericVector _ub) : Aineq(_Aineq), bineq(_bineq), Aeq(_Aeq), beq(_beq),
+                        lb(_lb), ub(_ub), dimension(_Aineq.cols()), type(5) {}
+    sparse_constraint_problem(SpMat _Aeq, Rcpp::NumericVector _beq) : Aineq(SpMat(0, _Aeq.cols())), bineq(Rcpp::NumericVector(0)), Aeq(_Aeq), beq(_beq),
+                        lb(Rcpp::NumericVector(_Aeq.cols(),-1e9)), ub(Rcpp::NumericMatrix(_Aeq.cols(),1e9)), dimension(_Aeq.cols()), type(5) {}
+    SpMat Aineq;
+    Rcpp::NumericVector bineq;
+    SpMat Aeq;
+    Rcpp::NumericVector beq;
+    Rcpp::NumericVector lb;
+    Rcpp::NumericVector ub;
+    unsigned int dimension;
+    int type;
+};
 RCPP_MODULE(polytopes){
     using namespace Rcpp ;
 
@@ -174,6 +194,47 @@ RCPP_MODULE(polytopes){
     .field( "volume", &VPinterVP::vol )
     .field( "dimension", &VPinterVP::dimension )
     .field( "type", &VPinterVP::type );
+
+    //' An exposed class to represent a sparse constraint problem
+    //'
+    //' @description A constraint problem is defined by a set of linear inequalities and equalities or equivalently a \eqn{d}-dimensional constraint problem is defined by a \eqn{mineq\times d} matrix Aineq and a \eqn{mineq}-dimensional vector bineq, s.t.: \eqn{Aineqx\leq bineq}, a \eqn{meq\times d} matrix Aeq and a \eqn{meq}-dimensional vector beq, s.t.: \eqn{Aeqx\eq beq} and two \eqn{d} vectors lb, ub such that \eqn{lb\leq x \leq ub}.
+    //'
+    //' @field Aineq \eqn{mineq\times d} sparse matrix Aineq
+    //' @field bineq \eqn{mineq}-dimensional vector bineq
+    //' @field Aeq \eqn{meq\times d} sparse matrix Aeq
+    //' @field beq \eqn{meq}-dimensional vector beq
+    //' @field lb \eqn{d}-dimensional vector lb
+    //' @field ub \eqn{d}-dimensional vector ub
+    //' @field dimension An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field type An integer that declares the representation of the polytope. For sparse_constraint_problem the default value is 5. It has not be given to the constructor.
+    //'
+    //' @example
+    //' # create a 2-d unit simplex
+    //' Aineq = matrix(, nrow=0, ncol=2, byrow = TRUE)
+    //' Aineq = as( Aineq, 'dgCMatrix' )
+    //' bineq= matrix(,nrow=0, ncol=1, byrow=TRUE)
+    //' Aeq = matrix(c(1,1), ncol=2, nrow=1, byrow=TRUE)
+    //' Aeq = as( Aeq, 'dgCMatrix' )
+    //' beq = c(1)
+    //' lb = c(0,0)
+    //' ub = c(1,1)
+    //' P = sparse_constraint_problem$new(Aineq, bineq, Aeq, beq, lb, ub)
+    //' @export
+    class_<sparse_constraint_problem>("sparse_constraint_problem")
+    // expose the default constructor
+    .constructor()
+    .constructor<SpMat, Rcpp::NumericVector, SpMat, Rcpp::NumericVector>()
+    .constructor<SpMat, Rcpp::NumericVector, SpMat, Rcpp::NumericVector, Rcpp::NumericVector, Rcpp::NumericVector>()
+    .constructor<SpMat, Rcpp::NumericVector>()
+
+    .field( "Aineq", &sparse_constraint_problem::Aineq )
+    .field( "bineq", &sparse_constraint_problem::bineq )
+    .field( "Aeq", &sparse_constraint_problem::Aeq )
+    .field( "beq", &sparse_constraint_problem::beq )
+    .field( "lb", &sparse_constraint_problem::lb )
+    .field( "ub", &sparse_constraint_problem::ub )
+    .field( "dimension", &sparse_constraint_problem::dimension )
+    .field( "type", &sparse_constraint_problem::type );
 }
 
 extern SEXP _rcpp_module_boot_polytopes(void);

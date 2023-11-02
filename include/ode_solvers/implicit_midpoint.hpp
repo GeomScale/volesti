@@ -53,16 +53,15 @@ inline std::vector<T> operator-(const std::vector<T> &v1,
 
   return v1 + v2 * (-1.0);
 }
-template <typename Point, typename NT, typename Polytope, typename func>
+template <typename Point, typename NT, typename Polytope, typename func, int simdLen = 1>
 struct ImplicitMidpointODESolver {
   using VT = typename Polytope::VT;
   using MT = typename Polytope::MT;
-  using pts = std::vector<Point>;
-  using hamiltonian = Hamiltonian<Polytope, Point>;
+  using pts = std::vector<MT>;
+  using hamiltonian = Hamiltonian<Polytope, Point, simdLen>;
   using Opts = opts<NT>;
 
   unsigned int dim;
-
   NT eta;
   int num_steps = 0;
   NT t;
@@ -75,17 +74,14 @@ struct ImplicitMidpointODESolver {
   func F;
   Polytope &P;
   Opts &options;
-  VT nu;
-
+  MT nu;
+  int num_runs = 0;
   hamiltonian ham;
-
   bool done;
 #ifdef TIME_KEEPING
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-  std::chrono::duration<double> DU_duration =
-      std::chrono::duration<double>::zero();
-  std::chrono::duration<double> approxDK_duration =
-      std::chrono::duration<double>::zero();
+  std::chrono::duration<double> DU_duration = std::chrono::duration<double>::zero();
+  std::chrono::duration<double> approxDK_duration = std::chrono::duration<double>::zero();
 #endif
   ImplicitMidpointODESolver(NT initial_time,
                             NT step,
@@ -101,10 +97,11 @@ struct ImplicitMidpointODESolver {
                             options(user_options),
                             ham(hamiltonian(boundaries))
   {
-    dim = xs[0].dimension();
+    dim = xs[0].rows();
   };
 
   void step(int k, bool accepted) {
+    num_runs++;
     pts partialDerivatives;
 #ifdef TIME_KEEPING
     start = std::chrono::system_clock::now();
@@ -117,7 +114,7 @@ struct ImplicitMidpointODESolver {
     xs = xs + partialDerivatives * (eta / 2);
     xs_prev = xs;
     done = false;
-    nu = VT::Zero(P.equations());
+    nu = MT::Zero(P.equations(), simdLen);
     for (int i = 0; i < options.maxODEStep; i++) {
       pts xs_old = xs;
       pts xmid = (xs_prev + xs) / 2.0;
@@ -125,20 +122,21 @@ struct ImplicitMidpointODESolver {
       start = std::chrono::system_clock::now();
 #endif
       partialDerivatives = ham.approxDK(xmid, nu);
+
 #ifdef TIME_KEEPING
       end = std::chrono::system_clock::now();
       approxDK_duration += end - start;
 #endif
       xs = xs_prev + partialDerivatives * (eta);
-      NT dist = ham.x_norm(xmid, xs - xs_old) / eta;
-      NT maxdist = dist;
+      VT dist = ham.x_norm(xmid, xs - xs_old) / eta;
+      NT maxdist = dist.maxCoeff();
       //If the estimate does not change terminate
       if (maxdist < options.implicitTol) {
         done = true;
         num_steps = i;
         break;
-      //If the estimate is very bad sample another velocity
-      } else if (maxdist > options.convergence_limit) {
+      //If the estimate is very bad, sample another velocity
+    } else if (maxdist > options.convergence_bound) {
         xs = xs * std::nan("1");
         done = true;
         num_steps = i;
@@ -163,16 +161,15 @@ struct ImplicitMidpointODESolver {
     }
   }
 
-  Point get_state(int index) { return xs[index]; }
+  MT get_state(int index) { return xs[index]; }
 
-  void set_state(int index, Point p) { xs[index] = p; }
-  void print_state() {
+  void set_state(int index, MT p) { xs[index] = p; }
+  template<typename StreamType>
+  void print_state(StreamType &stream) {
     for (int j = 0; j < xs.size(); j++) {
-      std::cerr << "state " << j << ": ";
-      for (unsigned int i = 0; i < xs[j].dimension(); i++) {
-        std::cerr << xs[j][i] << " ";
-      }
-      std::cerr << '\n';
+      stream << "state " << j << ": \n";
+      stream << xs[j];
+      stream << '\n';
     }
   }
 };

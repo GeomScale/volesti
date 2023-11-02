@@ -51,8 +51,7 @@ struct SimulationStats {
   NT average_acceptance_prob = NT(0);
   NT step_size = NT(0);
 
-  friend std::ostream &operator<<(std::ostream &out,
-                                  const SimulationStats &stats)
+  friend std::ostream &operator<<(std::ostream &out, const SimulationStats &stats)
   {
     out << stats.method << "," << stats.walk_length << "," << stats.min_ess
         << "," << stats.max_psrf << "," << stats.time_per_draw << ","
@@ -147,13 +146,12 @@ NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
   }
   return max_psrf;
 }
-template <typename NT, typename Polytope>
-std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
-    Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
-    double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
-    bool centered = false, unsigned int max_draws = 80000,
-    unsigned int num_burns = 20000)
-{
+template <typename NT, typename Polytope, int simdLen = 1, typename StreamType>
+std::vector<SimulationStats<NT>> benchmark_polytope_sampling(StreamType &stream,
+                                                             Polytope &P, NT eta = NT(-1), unsigned int walk_length = 1,
+                                                             double target_time = std::numeric_limits<NT>::max(), bool rounding = false,
+                                                             bool centered = false, unsigned int max_draws = 80000,
+                                                             unsigned int num_burns = 20000) {
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using MT = typename Polytope::MT;
@@ -164,7 +162,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   using Input = crhmc_input<MT, Point, Func, Grad, Hess>;
   using CrhmcProblem = crhmc_problem<Point, Input>;
   using Opts = opts<NT>;
-  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad>;
+  using Solver = ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad, simdLen>;
   using RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, NT>;
 
   SimulationStats<NT> rdhr_stats;
@@ -187,7 +185,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   unsigned int dim = x0.dimension();
 
   if (rounding) {
-    std::cout << "SVD Rounding" << std::endl;
+    stream << "SVD Rounding" << std::endl;
     svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, inner_ball, walk_length,
                                                   rng);
   }
@@ -207,12 +205,17 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
   Opts options;
+  options.simdLen = simdLen;
   CRHMCWalk::parameters<NT, Grad> crhmc_params(F, dim, options);
   Input input = Input(P.dimension(), f, F, H);
   input.Aineq = P.get_mat();
   input.bineq = P.get_vec();
 
   CrhmcProblem crhmc_problem = CrhmcProblem(input);
+#ifdef TIME_KEEPING
+  crhmc_problem.print_preparation_time(stream);
+#endif
+
   Point x_start(crhmc_problem.center);
   CRHMCWalk::Walk<Point, CrhmcProblem, RandomNumberGenerator, Grad, Func,
                   Solver>
@@ -237,13 +240,20 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   std::cout << std::endl;
   std::cout << "Sampling" << std::endl;
-
+#ifdef TIME_KEEPING
+  crhmc.initialize_timers();
+#endif
   start = std::chrono::high_resolution_clock::now();
-  for (unsigned int i = 0; i < max_actual_draws; i++) {
+  for (unsigned int i = 0; i < std::ceil(max_actual_draws / simdLen); i++) {
     for (int k = 0; k < walk_length; k++) {
       crhmc.apply(rng, 1);
     }
-    samples.col(i) = crhmc.getPoint().getCoefficients();
+    MT sample = crhmc.getPoints();
+    if (i * simdLen + simdLen - 1 < max_actual_draws) {
+      samples(Eigen::all, Eigen::seq(i * simdLen, i * simdLen + simdLen - 1)) = sample;
+    } else {
+      samples(Eigen::all, Eigen::seq(i * simdLen, max_actual_draws - 1)) = sample(Eigen::all, Eigen::seq(0, max_actual_draws - 1 - simdLen * i));
+    }
     if (i % 1000 == 0 && i > 0)
       std::cout << ".";
   }
@@ -251,30 +261,31 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
   ETA = (NT)std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
             .count();
-
   std::cout << std::endl;
-#ifdef TIME_KEEPING
   std::chrono::duration<double> total_time = stop - start;
-  std::cerr << "Total time: " << total_time.count() << "\n";
+  stream << "Total Sampling time: " << total_time.count() << "\n";
   assert(total_time.count() < target_time);
-  std::cout << "Assertion (preparation_time< " << target_time
-            << " secs) passed!" << std::endl
-            << std::endl;
-  crhmc.print_timing_information();
+  stream << "Assertion (preparation_time< " << target_time
+         << " secs) passed!" << std::endl
+         << std::endl;
+#ifdef TIME_KEEPING
+  crhmc.print_timing_information(stream);
 #endif
   print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
-  std::cout << "min ess " << min_ess << "us" << std::endl;
-  std::cout << "Average time per sample: " << ETA / max_actual_draws << "us"
-            << std::endl;
-  std::cout << "Average time per independent sample: " << ETA / min_ess << "us"
-            << std::endl;
-  std::cout << "Step size (final): " << crhmc.solver->eta << std::endl;
-  std::cout << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
-  std::cout << "Average Acceptance Probability: "
-            << crhmc.average_acceptance_prob << std::endl;
+  stream << "Problem original size: m= " << P.num_of_hyperplanes() << ", n= " << P.dimension() << std::endl;
+  stream << "Number of non Zeros: " << crhmc_problem.nnz() << std::endl;
+  stream << "min ess " << min_ess << std::endl;
+  stream << "Average time per sample: " << ETA / max_actual_draws << "us"
+         << std::endl;
+  stream << "Average time per independent sample: " << ETA / min_ess << "us"
+         << std::endl;
+  stream << "Step size (final): " << crhmc.solver->eta << std::endl;
+  stream << "Discard Ratio: " << crhmc.discard_ratio << std::endl;
+  stream << "Average Acceptance Probability: "
+         << crhmc.average_acceptance_prob << std::endl;
   max_psrf = check_interval_psrf<NT, VT, MT>(samples);
-  std::cout << "max_psrf: " << max_psrf << std::endl;
-  std::cout << std::endl;
+  stream << "max_psrf: " << max_psrf << std::endl;
+  stream << std::endl;
 
   crhmc_stats.method = "CRHMC";
   crhmc_stats.walk_length = walk_length;
@@ -288,31 +299,33 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
   return std::vector<SimulationStats<NT>>{rdhr_stats, crhmc_stats};
 }
 
-template <typename NT, typename Point, typename HPolytope>
-void test_benchmark_polytope(
-    HPolytope &P, std::string &name, bool centered,
-    double target_time = std::numeric_limits<NT>::max(), int walk_length = 1)
-{
+template <typename NT, typename Point, typename HPolytope, int simdLen = 1, typename StreamType>
+void test_benchmark_polytope(StreamType &stream,
+                             HPolytope &P, std::string &name, bool centered,
+                             double target_time = std::numeric_limits<NT>::max(), int walk_length = 1) {
+  stream << "CRHMC polytope preparation for " << name << std::endl;
   std::cout << "CRHMC polytope preparation for " << name << std::endl;
   std::vector<SimulationStats<NT>> results;
   NT step_size = 0;
   std::pair<Point, NT> inner_ball;
   std::ofstream outfile;
-  std::cout << name << std::endl;
   outfile.open("results_" + name + "_new.txt");
   P.normalize();
   inner_ball = P.ComputeInnerBall();
   step_size = inner_ball.second / 10;
-  results = benchmark_polytope_sampling<NT, HPolytope>(P, step_size, walk_length, target_time,
-                                                       false, centered);
+  results = benchmark_polytope_sampling<NT, HPolytope, simdLen>(stream, P, step_size, walk_length, target_time,
+                                                                false, centered);
   outfile << results[0];
   outfile << results[1];
 
   outfile.close();
 }
 
-template <typename NT>
+template <typename NT, int simdLen = 1>
 void call_test_benchmark_polytope() {
+  std::ofstream stream;
+  stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + ".txt");
+  stream << "---------------Using simdLen= " << simdLen << "---------------" << std::endl;
   using Kernel = Cartesian<NT>;
   using Point = typename Kernel::Point;
   using Hpolytope = HPolytope<Point>;
@@ -321,7 +334,7 @@ void call_test_benchmark_polytope() {
     std::string name = "100_skinny_cube";
     bool centered = false;
     double target_time = 20; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, false, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, false);
   }
 
   {
@@ -329,23 +342,23 @@ void call_test_benchmark_polytope() {
     std::string name = "5_cross";
     bool centered = false;
     double target_time = 10; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   {
     Hpolytope P = generate_simplex<Hpolytope>(100, false);
     std::string name = "100_simplex";
     bool centered = false;
-    double target_time = 15; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    double target_time = 20; // secs
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   {
     Hpolytope P = generate_prod_simplex<Hpolytope>(50, false);
     std::string name = "50_prod_simplex";
     bool centered = false;
-    double target_time = 15; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    double target_time = 20; // secs
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
   {
@@ -353,35 +366,36 @@ void call_test_benchmark_polytope() {
     std::string name = "10_birkhoff";
     bool centered = false;
     double target_time = 15; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
-  if (exists_check("netlib/afiro.ine"))
-  {
-    Hpolytope P = read_polytope<Hpolytope, NT>("netlib/afiro.ine");
+  if (exists_check("../test/netlib/afiro.ine")) {
+    Hpolytope P = read_polytope<Hpolytope, NT>("../test/netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
     double target_time = 100; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
-  if (exists_check("metabolic_full_dim/polytope_e_coli.ine"))
-  {
+  if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
     Hpolytope P =
-        read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine");
+        read_polytope<Hpolytope, NT>("../test/metabolic_full_dim/polytope_e_coli.ine");
     std::string name = "e_coli";
     bool centered = true;
     double target_time = 600; // secs
-    test_benchmark_polytope<NT, Point, Hpolytope>(P, name, centered, target_time);
+    test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
+
+  stream.close();
 }
 
 int main() {
-
   std::cout
       << "---------------CRHMC polytope sampling benchmarking---------------"
       << std::endl
       << std::endl;
-  call_test_benchmark_polytope<double>();
+  call_test_benchmark_polytope<double, 1>();
+  call_test_benchmark_polytope<double, 4>();
+  call_test_benchmark_polytope<double, 8>();
   return 0;
 }
