@@ -122,8 +122,10 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
   add_executable (sampling_functions sampling_functions.cpp)
-	TARGET_LINK_LIBRARIES(sampling_functions QD_LIB ${MKL_LINK} ${LP_SOLVE})
-	add_executable (simple_crhmc simple_crhmc.cpp)
-	TARGET_LINK_LIBRARIES(simple_crhmc QD_LIB ${MKL_LINK} ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(sampling_functions QD_LIB ${MKL_LINK} ${LP_SOLVE})
+  add_executable (simple_crhmc simple_crhmc.cpp)
+  TARGET_LINK_LIBRARIES(simple_crhmc QD_LIB ${MKL_LINK} ${LP_SOLVE})
+  add_executable (dirichlet_sampling dirichlet_sampling.cpp)
+  TARGET_LINK_LIBRARIES(dirichlet_sampling QD_LIB ${MKL_LINK} ${LP_SOLVE})
 
 endif()
