@@ -578,8 +578,19 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
           Rcpp::warning("Solver set to leapfrog.");
           solver = leapfrog;
         }
+
+        VT a_vec(dim);
+        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("dirichlet_a_vec")) {
+            a_vec = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["dirichlet_a_vec"]);
+            if (a_vec.size() != dim) {
+                Rcpp::exception("The number of parameters in the Dirichlet distribution must be equal to the dimension.");
+            }
+        } else {
+            a_vec = VT::Ones(dim);
+            Rcpp::warning("Dirichlet is set to be the uniform distribution over the canonical simplex.");
+        }
         // Create functors
-        DirichletFunctor::parameters<NT, Point> dirichlet_functor_params(dirichlet_a_vec);
+        DirichletFunctor::parameters<NT, Point> dirichlet_functor_params = DirichletFunctor::parameters<NT, Point>(a_vec);
         DirFunGrad = new DirichletFunctor::GradientFunctor<Point>(dirichlet_functor_params);
         DirFunVal = new DirichletFunctor::FunctionFunctor<Point>(dirichlet_functor_params);
     }
@@ -819,7 +830,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
              execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
            }
            else if (dirichlet) {
-             execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, DirFunGrad, DirFunVal, h);
+             execute_crhmc<sparse_problem, RNGType, std::list<Point>, DirichletFunctor::GradientFunctor<Point>,DirichletFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, DirFunGrad, DirFunVal, h);
             }
            else {
              execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
