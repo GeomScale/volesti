@@ -51,8 +51,6 @@ void sample_dirichlet(int n_samples = 80000,
   
   int dim = 3;
   RNG rng(dim);
-  MT A(1,dim);
-  A <<  1.0, 1.0, 1.0;
   SpMat Aeq(1,3);
   Aeq.coeffRef(0,0) = NT(1);
   Aeq.coeffRef(0,1) = NT(1);

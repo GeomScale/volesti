@@ -681,7 +681,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         if (!logconcave) throw Rcpp::exception("ULD is not supported for non first-order sampling");
         walk = uld;
     } else if(Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("CRHMC")) == 0){
-        if (!logconcave) throw Rcpp::exception("CRHMC is used for logconcave sampling");
+        if (!logconcave && !dirichlet) throw Rcpp::exception("CRHMC is used for logconcave sampling");
         if (type !=1 && type !=5 ) {
             throw Rcpp::exception("CRHMC sampling is supported only for H-polytopes and Sparse Problems.");
         }
@@ -817,23 +817,23 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             break;
         }
         case 5: {
-          // Sparse constraint_problem
-          SpMat Aeq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aeq"));
-          VT beq=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("beq"));
-          SpMat Aineq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aineq"));
-          VT bineq= Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("bineq"));
-          VT lb=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("lb"));
-          VT ub=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("ub"));
-           sparse_problem problem(dim, Aeq, beq, Aineq, bineq, lb, ub);
-           if(walk!=crhmc){throw Rcpp::exception("Sparse problems are supported only by the CRHMC walk.");}
-           if (functor_defined) {
-             execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
-           }
-           else if (dirichlet) {
-             execute_crhmc<sparse_problem, RNGType, std::list<Point>, DirichletFunctor::GradientFunctor<Point>,DirichletFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, DirFunGrad, DirFunVal, h);
+            // Sparse constraint_problem
+            SpMat Aeq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aeq"));
+            VT beq=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("beq"));
+            SpMat Aineq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aineq"));
+            VT bineq= Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("bineq"));
+            VT lb=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("lb"));
+            VT ub=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("ub"));
+            sparse_problem problem(dim, Aeq, beq, Aineq, bineq, lb, ub);
+            if(walk!=crhmc){throw Rcpp::exception("Sparse problems are supported only by the CRHMC walk.");}
+            if (functor_defined) {
+                execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
+            }
+            else if (dirichlet) {
+            execute_crhmc<sparse_problem, RNGType, std::list<Point>, DirichletFunctor::GradientFunctor<Point>,DirichletFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, DirFunGrad, DirFunVal, h);
             }
            else {
-             execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
+            execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
            }
            break;
         }
