@@ -59,6 +59,20 @@ public:
     unsigned int dimension;
     int type;
 };
+
+class PolytopeIntersectEllipsoid {
+public:
+    PolytopeIntersectEllipsoid() {}
+    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E) : A(_A), b(_b), E(_E), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(6) {}
+    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E, double volume) : A(_A), b(_b), E(_E), vol(volume), dimension(_A.ncol()), type(6) {}
+    Rcpp::NumericMatrix E;
+    Rcpp::NumericMatrix A;
+    Rcpp::NumericVector b;
+    double vol;
+    unsigned int dimension;
+    int type;
+};
+
 #include <RcppEigen.h>
 using SpMat=Eigen::SparseMatrix<double> ;
 class sparse_constraint_problem {
@@ -77,19 +91,6 @@ public:
     Rcpp::NumericVector beq;
     Rcpp::NumericVector lb;
     Rcpp::NumericVector ub;
-    unsigned int dimension;
-    int type;
-};
-
-class PolytopeIntersectEllipsoid {
-public:
-    PolytopeIntersectEllipsoid() {}
-    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E) : A(_A), b(_b), E(_E), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(6) {}
-    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E, double volume) : A(_A), b(_b), E(_E), vol(volume), dimension(_A.ncol()), type(6) {}
-    Rcpp::NumericMatrix E;
-    Rcpp::NumericMatrix A;
-    Rcpp::NumericVector b;
-    double vol;
     unsigned int dimension;
     int type;
 };
