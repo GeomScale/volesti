@@ -334,12 +334,12 @@ void benchmark_nuts_hmc(bool truncated) {
     bool automatic_burnin = false;
     std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
 
-    for (unsigned int dim = dim_min; dim <= dim_max; dim+=10) 
+    for (unsigned int dim = dim_min; dim <= dim_max; dim+=10)
     {
       MT samples(dim, n_samples);
       Point x0(dim);
       NutsHamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
-      if (truncated) 
+      if (truncated)
       {
         Hpolytope P = generate_cube<Hpolytope>(dim, false);
 
@@ -784,8 +784,8 @@ void benchmark_polytope_linear_program_optimization(
     typedef std::vector<Point> pts;
     typedef boost::mt19937 RNGType;
     typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-    typedef LinearProgramFunctor::GradientFunctor<Point> NegativeGradientFunctor;
-    typedef LinearProgramFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef ExponentialFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef ExponentialFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
     typedef OptimizationFunctor::GradientFunctor<Point, NegativeLogprobFunctor,
         NegativeGradientFunctor> NegativeGradientOptimizationFunctor;
     typedef OptimizationFunctor::FunctionFunctor<Point, NegativeLogprobFunctor,
@@ -816,7 +816,7 @@ void benchmark_polytope_linear_program_optimization(
     }
 
     // Declare oracles for LP
-    LinearProgramFunctor::parameters<NT, Point> lp_params(coeffs);
+    ExponentialFunctor::parameters<NT, Point> lp_params(coeffs);
 
     NegativeGradientFunctor F_lp(lp_params);
     NegativeLogprobFunctor f_lp(lp_params);
@@ -1116,8 +1116,8 @@ void call_test_exp_sampling() {
     typedef HPolytope<Point> Hpolytope;
     std::string name;
     std::vector<std::tuple<Hpolytope, Point, std::string, bool>> polytopes;
-    
-    
+
+
     if (exists_check("metabolic_full_dim/e_coli_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_e_coli.ine")){
       Point biomass_function_e_coli = load_biomass_function<Point, NT>("metabolic_full_dim/e_coli_biomass_function.txt");
       polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), biomass_function_e_coli, "e_coli", true));
