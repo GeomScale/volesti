@@ -2,8 +2,6 @@ PKG_CPPFLAGS= -I../../external/boost -I../../external/LPsolve_src/run_headers -I
 
 PKG_CXXFLAGS= -Wno-deprecated-declarations -lm -ldl -Wno-ignored-attributes -DBOOST_NO_AUTO_PTR -DDISABLE_NLP_ORACLES
 
-CXX_STD = CXX11
-
 PKG_LIBS=-LRproj_externals/lp_solve -llp_solve -L../../external/PackedCSparse/qd -lqd $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 $(SHLIB): Rproj_externals/lp_solve/liblp_solve.a ../../external/PackedCSparse/qd/libqd.a
