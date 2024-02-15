@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get update || true;
-             sudo apt-get install ${{ matrix.config.compiler_pkg }} lp-solve;
+             sudo apt-get install ${{ matrix.config.compiler_pkg }} lp-solve libopenblas-dev;
              rm -rf build;
              mkdir build;
              cd build;
