@@ -34,6 +34,7 @@ function(GetLPSolve)
   add_compile_options(-DLoadLanguageLib=0)
   add_compile_definitions(RoleIsExternalInvEngine)
   add_compile_definitions(INVERSE_ACTIVE=3)
+  add_compile_options(-DLoadableBlasLib=0)
 
   include_directories (BEFORE ${LP_SOLVE_DIR})
   include_directories (BEFORE ${LP_SOLVE_DIR}/bfp)
