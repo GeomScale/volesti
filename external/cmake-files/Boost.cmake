@@ -2,10 +2,10 @@ set(BOOST_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(GetBoost)
 	find_path(BOOST_DIR NAMES boost PATHS ${BOOST_CMAKE_DIR}/../_deps/boost-src)
 
-	if (NOT BOOST_DIR) 
-  
-    set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2" CACHE STRING "Boost download URL")
-    set(BOOST_URL_SHA256 "f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41" CACHE STRING "Boost download URL SHA256 checksum")
+	if (NOT BOOST_DIR)
+
+    set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2" CACHE STRING "Boost download URL")
+    set(BOOST_URL_SHA256 "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454" CACHE STRING "Boost download URL SHA256 checksum")
 
     include(FetchContent)
     set(FETCHCONTENT_BASE_DIR "${BOOST_CMAKE_DIR}/../_deps")
