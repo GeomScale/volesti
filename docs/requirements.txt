@@ -2,3 +2,4 @@ breathe
 sphinx_sitemap
 myst_parser
 sphinx-math-dollar
+sphinx_rtd_theme
