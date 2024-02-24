@@ -9,7 +9,9 @@
 #define RANDOM_WALKS_COMPUTE_DIAMETER_HPP
 
 #include "convex_bodies/ball.h"
+#include "convex_bodies/ellipsoid.h"
 #include "convex_bodies/ballintersectconvex.h"
+#include "convex_bodies/ellipsoidintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #ifndef DISABLE_LPSOLVE
@@ -198,6 +200,16 @@ struct compute_diameter<BallIntersectPolytope<Polytope, Ball<Point>>>
     static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> &P)
     {
         return NT(2) * P.radius();
+    }
+};
+
+template <typename Polytope, typename Point>
+struct compute_diameter<EllipsoidIntersectPolytope<Polytope, Ellipsoid<Point>>>
+{
+    template <typename NT>
+    static NT compute(EllipsoidIntersectPolytope<Polytope, Ellipsoid<Point>> &P)
+    {
+        return NT(1.5) * P.radius();
     }
 };
 

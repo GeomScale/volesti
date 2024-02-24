@@ -59,6 +59,20 @@ public:
     unsigned int dimension;
     int type;
 };
+
+class PolytopeIntersectEllipsoid {
+public:
+    PolytopeIntersectEllipsoid() {}
+    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E) : A(_A), b(_b), E(_E), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(6) {}
+    PolytopeIntersectEllipsoid(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _E, double volume) : A(_A), b(_b), E(_E), vol(volume), dimension(_A.ncol()), type(6) {}
+    Rcpp::NumericMatrix A;
+    Rcpp::NumericVector b;
+    Rcpp::NumericMatrix E;
+    double vol;
+    unsigned int dimension;
+    int type;
+};
+
 #include <RcppEigen.h>
 using SpMat=Eigen::SparseMatrix<double> ;
 class sparse_constraint_problem {
@@ -80,6 +94,7 @@ public:
     unsigned int dimension;
     int type;
 };
+
 RCPP_MODULE(polytopes){
     using namespace Rcpp ;
 
@@ -194,6 +209,37 @@ RCPP_MODULE(polytopes){
     .field( "volume", &VPinterVP::vol )
     .field( "dimension", &VPinterVP::dimension )
     .field( "type", &VPinterVP::type );
+
+    //' An exposed class to represent an intersection between an H-polytope and an ellipsoid.
+    //'
+    //' @description An intersection between of an H-polytope, defined by a set of linear inequalities, or a matrix A and an \eqn{m}-dimensional vector b s.t., \eqn{x, Ax\leq b}, and an ellipsoid defined by a positive definite matrix E s.t., \eqn{x, x^TEx \leq 1}.
+    //'
+    //' @field A \eqn{m \times d} matrix A
+    //' @field b \eqn{m}-dimensional vector b
+    //' @field E \eqn{d \times d} positive definite matrix E
+    //' @field volume The volume of the convex body, if it is known.
+    //' @field dimension An integer that declares the dimension of the convex body. It has not be given to the constructor.
+    //' @field type An integer that declares the representation of the convex body. For the intersection between an H-polytope and an ellipsoid the default value is 6. It has not be given to the constructor.
+    //'
+    //' @example
+    //' # create a 2-d intersection
+    //' A = matrix(c(1,0,0,1,-1,0,0,-1), nrow=4, ncol=2, byrow=TRUE)
+    //' b = rep(1,4)
+    //' E = matrix(c(0.25, 0.75, 0.75, 3.25), nrow=2, ncol=2, byrow=TRUE)
+    //' EP = PolytopeIntersectEllipsoid$new(A, b, E)
+    //' @export
+    class_<PolytopeIntersectEllipsoid>("PolytopeIntersectEllipsoid")
+    // expose the default constructor
+    .constructor()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::NumericMatrix>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::NumericMatrix, double>()
+
+    .field( "A", &PolytopeIntersectEllipsoid::A )
+    .field( "b", &PolytopeIntersectEllipsoid::b )
+    .field( "E", &PolytopeIntersectEllipsoid::E )
+    .field( "volume", &PolytopeIntersectEllipsoid::vol )
+    .field( "dimension", &PolytopeIntersectEllipsoid::dimension )
+    .field( "type", &PolytopeIntersectEllipsoid::type );
 
     //' An exposed class to represent a sparse constraint problem
     //'

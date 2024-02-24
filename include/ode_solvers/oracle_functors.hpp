@@ -394,4 +394,103 @@ struct HessianFunctor {
 
 };
 
+struct DirichletFunctor {
+
+  // Sample from the Dirichlet distribution
+  template <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    typedef typename Point::Coeff VT;
+
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+    VT a_vec; // Coefficients of LP objective
+    NT eta;
+
+    parameters(VT a_vec_) : order(2), L(1), m(1), kappa(1), eta(-1), a_vec(a_vec_) {};
+    parameters(VT a_vec_, NT eta_) : order(2), L(1), m(1), kappa(1), a_vec(a_vec_), eta(eta_) {};
+
+  };
+
+  template
+  <
+      typename Point
+  >
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef typename Point::Coeff VT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+    unsigned int dim;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {
+      dim = params_.a_vec.size();
+    }
+
+    // The index i represents the state vector index
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        VT grad(dim);
+        VT x = xs[0].getCoefficients();
+        NT *grad_data = grad.data();
+        for (int i = 0; i < dim; i++)
+        {
+          *grad_data = ((params.a_vec.coeff(i) - NT(1)) / x.getCoefficients().coeff(i));
+          grad_data++;
+        }
+        Point y(grad);
+        return y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }
+
+    Point operator()(Point const&x){
+      VT grad(dim);
+      NT *grad_data = grad.data();
+      for (int i = 0; i < dim; i++)
+      {
+        *grad_data = ((params.a_vec.coeff(i) - NT(1)) / x.getCoefficients().coeff(i));
+        grad_data++;
+      }
+      Point y(grad);
+      return y;
+    }
+
+  };
+
+  template
+  <
+    typename Point
+  >
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+    typedef typename Point::Coeff VT;
+
+    parameters<NT, Point> &params;
+    unsigned int dim;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {
+      dim = params_.a_vec.size();
+    };
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      NT neg_val = NT(0);
+      for (int i = 0; i < dim; i++)
+      {
+        neg_val -= (params.a_vec.coeff(i) - NT(1)) * std::log(x.getCoefficients().coeff(i));
+      }
+      return neg_val;
+    }
+
+  };
+
+};
+
 #endif

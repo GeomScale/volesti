@@ -267,7 +267,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 
 //' Sample uniformly, normally distributed, or logconcave distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
 //'
-//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
+//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope, (d) VpolytopeIntersection, or (e) Intersection between an Hpolytope and an ellipsoid.
 //' @param n The number of points that the function is going to sample from the convex polytope.
 //' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 //' \itemize{
@@ -292,7 +292,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' }
 //' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 //' \itemize{
-//' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution c) \code{logconcave} with form proportional to exp(-f(x)) where f(x) is L-smooth and m-strongly-convex d) \code{'exponential'} for the exponential distribution. The default target distribution is the uniform distribution.}
+//' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution, b) \code{'gaussian'} for the multidimensional spherical distribution, c) \code{logconcave} with form proportional to exp(-f(x)) where f(x) is L-smooth and m-strongly-convex, d) \code{'exponential'} for the exponential distribution. The default target distribution is the uniform distribution.}
 //' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian or the exponential distribution. The default value is 1.}
 //' \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 //' \item{\code{bias} }{ The bias vector for the exponential distribution. The default vector is \eqn{c_1 = 1} and \eqn{c_i = 0} for \eqn{i \neq 1}.}
@@ -352,9 +352,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef typename Kernel::Point    Point;
     typedef HPolytope <Point> Hpolytope;
-    typedef VPolytope<Point> Vpolytope;
+    typedef VPolytope <Point> Vpolytope;
     typedef Zonotope <Point> zonotope;
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
+    typedef Ellipsoid<Point> Ellipse;
+    typedef EllipsoidIntersectPolytope <Hpolytope, Ellipse> EllipsoidIntPolytope;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::SparseMatrix<NT> SpMat;
@@ -370,6 +372,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     GaussianFunctor::GradientFunctor<Point> *G = NULL;
     GaussianFunctor::FunctionFunctor<Point> *g = NULL;
     GaussianFunctor::HessianFunctor<Point> *hess_g = NULL;
+
     bool functor_defined = true;
 
 
@@ -383,7 +386,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     NT radius = 1.0, L;
     bool set_mode = false, gaussian = false, logconcave = false, exponential = false,
-                    set_starting_point = false, set_L = false;
+            set_starting_point = false, set_L = false;
 
     random_walks walk;
     ode_solvers solver; // Used only for logconcave sampling
@@ -760,22 +763,44 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             break;
         }
         case 5: {
-          // Sparse constraint_problem
-          SpMat Aeq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aeq"));
-          VT beq=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("beq"));
-          SpMat Aineq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aineq"));
-          VT bineq= Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("bineq"));
-          VT lb=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("lb"));
-          VT ub=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("ub"));
-           sparse_problem problem(dim, Aeq, beq, Aineq, bineq, lb, ub);
-           if(walk!=crhmc){throw Rcpp::exception("Sparse problems are supported only by the CRHMC walk.");}
-           if (functor_defined) {
-             execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
-           }
-           else {
-             execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
-           }
+            // Sparse constraint_problem
+            SpMat Aeq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aeq"));
+            VT beq=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("beq"));
+            SpMat Aineq = Rcpp::as<SpMat>(Rcpp::as<Rcpp::Reference>(P).field("Aineq"));
+            VT bineq= Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("bineq"));
+            VT lb=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("lb"));
+            VT ub=  Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("ub"));
+            sparse_problem problem(dim, Aeq, beq, Aineq, bineq, lb, ub);
+            if(walk!=crhmc){throw Rcpp::exception("Sparse problems are supported only by the CRHMC walk.");}
+            if (functor_defined) {
+                execute_crhmc<sparse_problem, RNGType, std::list<Point>, RcppFunctor::GradientFunctor<Point>,RcppFunctor::FunctionFunctor<Point>, RcppFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, F, f, h);
+            }
+            else {
+                execute_crhmc<sparse_problem, RNGType, std::list<Point>, GaussianFunctor::GradientFunctor<Point>,GaussianFunctor::FunctionFunctor<Point>, GaussianFunctor::HessianFunctor<Point>, CRHMCWalk, 8>(problem, rng, randPoints, walkL, numpoints, nburns, G, g, hess_g);
+            }
            break;
+        }
+        case 6: {
+            // Intersection between an H-polytope and an ellipsoid
+            if (random_walk.isNotNull()) {
+                if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ExactHMC")) == 0) {
+                    throw Rcpp::exception("Exact HMC does not support intersection of an H-polytope with an ellipsoid.");
+                }
+            }
+            if (!set_starting_point) {throw Rcpp::exception("An internal point must be given in the case of an intersection between an H-polytope and an ellipsoid.");}
+            Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+                    Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+            Ellipse ell(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("E")));
+            EllipsoidIntPolytope EP(HP, ell);
+            if (walk==crhmc){throw Rcpp::exception("Intersection between an H-polytope and an ellipsoid is not supported by the CRHMC walk.");}
+            if (functor_defined) {
+                sample_from_polytope(EP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, F, f, h, solver);
+            }
+            else {
+                sample_from_polytope(EP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, G, g, hess_g, solver);
+            }
         }
     }
 
