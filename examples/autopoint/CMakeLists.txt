@@ -12,7 +12,7 @@ project( VolEsti )
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
 option(BUILTIN_AUTODIFF "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.17)
 
@@ -141,7 +141,7 @@ endif()
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++14 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   add_definitions(${CMAKE_CXX_FLAGS} "-pthread")  # optimization of the compiler
-  
+
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
