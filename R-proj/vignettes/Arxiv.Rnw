@@ -1,7 +1,0 @@
-\documentclass{article}
-\usepackage{pdfpages}
-%\VignetteIndexEntry{Arxiv paper}
-
-\begin{document}
-\includepdf[pages=-, fitpaper=true]{volesti_arxiv.pdf}
-\end{document}
