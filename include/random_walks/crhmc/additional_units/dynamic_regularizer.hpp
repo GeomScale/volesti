@@ -25,33 +25,34 @@ class dynamic_regularizer {
 public:
   using NT = typename Sampler::NT;
   using Point = typename Sampler::point;
-  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
   using Opts = typename Sampler::Opts;
   int n;
-  VT bound;
+  int simdLen;
+  MT bound;
   Opts &options;
-  VT &extraHessian;
+  MT &extraHessian;
   dynamic_regularizer(Sampler &s) :
+    simdLen(s.simdLen),
     options(s.params.options),
     extraHessian(options.DynamicWeight
       ? s.solver->ham.weighted_barrier->extraHessian
       : s.solver->ham.barrier->extraHessian)
   {
     n = s.dim;
-    bound = VT::Ones(n);
-    extraHessian = VT::Ones(n);
+    bound = MT::Ones(n, simdLen);
+    extraHessian = MT::Ones(n, simdLen);
   }
 
-  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng)
-  {
-    VT x = s.x.getCoefficients();
-    x = (x.cwiseAbs()).cwiseMax(VT::Ones(n));
+  void update_regularization_factor(Sampler &s, RandomNumberGenerator &rng) {
+    MT x = s.x;
+    x = (x.cwiseAbs()).cwiseMax(1);
     bound = bound.cwiseMax(x);
-
     if ((2 / (bound.array() * bound.array()) < n * extraHessian.array()).any()) {
       extraHessian = (0.5 / n) * (bound.cwiseProduct(bound)).cwiseInverse();
+      s.solver->ham.forceUpdate = true;
       s.solver->ham.move({s.x, s.v});
-      s.v = s.get_direction_with_momentum(n, rng, s.x, Point(n), false);
+      s.v = s.get_direction_with_momentum(n, rng, s.x, MT::Zero(n, simdLen), 0, false);
     }
   }
 };

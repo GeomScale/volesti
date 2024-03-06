@@ -68,7 +68,7 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
         variance = NT(0);
 
         for (int j = 0; j < N; j++) {
-            variance += pow(normalized_sample_row[j], 2);
+            variance += std::pow(normalized_sample_row[j], 2);
         }
 
         variance *= (1.0 / N);

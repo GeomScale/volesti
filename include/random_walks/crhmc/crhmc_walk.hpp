@@ -36,7 +36,7 @@ struct CRHMCWalk {
     parameters(OracleFunctor const &F,
       unsigned int dim,
       Opts &user_options,
-      NT epsilon_ = 2) :
+      NT epsilon_ = 2)  :
       options(user_options)
     {
       epsilon = epsilon_;
@@ -59,17 +59,19 @@ struct CRHMCWalk {
     using pts = std::vector<Point>;
     using NT = typename Point::FT;
     using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+    using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
     using Sampler = CRHMCWalk::Walk<Point, Polytope, RandomNumberGenerator,
                                     NegativeGradientFunctor,
                                     NegativeLogprobFunctor, Solver>;
 
     using Opts = typename Polytope::Opts;
+    using IVT = Eigen::Matrix<int, Eigen::Dynamic, 1>;
 
     // Hyperparameters of the sampler
     parameters<NT, NegativeGradientFunctor> &params;
 
     // Numerical ODE solver
-    Solver *solver;
+    std::unique_ptr<Solver> solver;
 
     // Dimension
     unsigned int dim;
@@ -87,25 +89,25 @@ struct CRHMCWalk {
     float average_acceptance_prob = 0;
 
     // Acceptance probability
-    NT prob;
+    VT prob;
     bool accepted;
-    NT accept;
+    IVT accept;
     bool update_modules;
-
+    int simdLen;
     // References to xs
-    Point x, v;
+    MT x, v;
 
     // Proposal points
-    Point x_tilde, v_tilde;
+    MT x_tilde, v_tilde;
 
     // Gradient function
     NegativeGradientFunctor &F;
 
     // Auto tuner
-    auto_tuner<Sampler, RandomNumberGenerator> *module_update;
+    std::unique_ptr<auto_tuner<Sampler, RandomNumberGenerator>>module_update;
 
     // Helper variables
-    NT H, H_tilde, log_prob, u_logprob;
+    VT H, H_tilde;
     // Density exponent
     NegativeLogprobFunctor &f;
 #ifdef TIME_KEEPING
@@ -118,41 +120,50 @@ struct CRHMCWalk {
       NegativeLogprobFunctor &neg_logprob_f,
       parameters<NT, NegativeGradientFunctor> &param) :
       params(param),
+      P(Problem),
       F(neg_grad_f),
-      f(neg_logprob_f),
-      P(Problem)
+      f(neg_logprob_f)
     {
 
       dim = p.dimension();
-
+      simdLen = params.options.simdLen;
       // Starting point is provided from outside
-      x = p;
+      x = p.getCoefficients() * MT::Ones(1, simdLen);
       accepted = false;
       // Initialize solver
-      solver =
-          new Solver(0.0, params.eta, pts{x, x}, F, Problem, params.options);
-      v = solver->get_state(1);
-      module_update = new auto_tuner<Sampler, RandomNumberGenerator>(*this);
+      solver = std::unique_ptr<Solver>(new Solver(0.0, params.eta, {x, x}, F, Problem, params.options));
+      v = MT::Zero(dim, simdLen);
+      module_update = std::unique_ptr<auto_tuner<Sampler, RandomNumberGenerator>>(new auto_tuner<Sampler, RandomNumberGenerator>(*this));
       update_modules = params.options.DynamicWeight ||
                        params.options.DynamicRegularizer ||
                        params.options.DynamicStepSize;
     };
-    Point get_direction_with_momentum(unsigned int const &dim,
-      RandomNumberGenerator &rng,
-      Point x,
-      Point v,
-      NT momentum = 0,
-      bool normalize = true)
+    // Sample a new velocity with momentum
+    MT get_direction_with_momentum(unsigned int const &dim,
+                                RandomNumberGenerator &rng, MT const &x, MT v,
+                                NT momentum = 0, bool normalize = true)
     {
-      Point z = GetDirection<Point>::apply(dim, rng, normalize);
+      MT z = MT(dim, simdLen);
+      for (int i = 0; i < simdLen; i++)
+      {
+        z.col(i) = GetDirection<Point>::apply(dim, rng, normalize).getCoefficients();
+      }
       solver->ham.move({x, v});
-      VT sqrthess = (solver->ham.hess).cwiseSqrt();
-      z = Point(sqrthess.cwiseProduct(z.getCoefficients()));
+      MT sqrthess = (solver->ham.hess).cwiseSqrt();
+      z = sqrthess.cwiseProduct(z);
       return v * std::sqrt(momentum) + z * std::sqrt(1 - momentum);
     }
     // Returns the current point in the tranformed in the original space
-    inline Point getPoint() { return Point(P.T * x.getCoefficients() + P.y); }
+    inline MT getPoints() { return (P.T * x).colwise() + P.y; }
+    // Returns the current point in the tranformed in the original space
+    inline Point getPoint() { return Point(P.T * x.col(0) + P.y); }
 
+    inline MT masked_choose(MT &x, MT &x_tilde, IVT &accept) {
+      return accept.transpose().replicate(x.rows(), 1).select(x_tilde, x);
+    }
+    inline void disable_adaptive(){
+      update_modules=false;
+    }
     inline void apply(RandomNumberGenerator &rng,
       int walk_length = 1,
       bool metropolis_filter = true)
@@ -160,47 +171,45 @@ struct CRHMCWalk {
       num_runs++;
       //  Pick a random velocity with momentum
       v = get_direction_with_momentum(dim, rng, x, v, params.momentum, false);
-
       solver->set_state(0, x);
       solver->set_state(1, v);
       // Get proposals
       solver->steps(walk_length, accepted);
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
-
       if (metropolis_filter) {
 #ifdef TIME_KEEPING
         start = std::chrono::system_clock::now();
 #endif
         // Calculate initial Hamiltonian
         H = solver->ham.hamiltonian(x, v);
+
         // Calculate new Hamiltonian
-        H_tilde = solver->ham.hamiltonian(x_tilde, Point(dim) - v_tilde);
+        H_tilde = solver->ham.hamiltonian(x_tilde, -v_tilde);
+
 #ifdef TIME_KEEPING
         end = std::chrono::system_clock::now();
         H_duration += end - start;
 #endif
-        NT feasible = solver->ham.feasible(x_tilde.getCoefficients(),
-                                           v_tilde.getCoefficients());
-        prob = std::min(1.0, exp(H - H_tilde)) * feasible;
+        VT feasible = solver->ham.feasible(x_tilde,
+                                           v_tilde);
+        prob = (1.0 < exp((H - H_tilde).array())).select(1.0, exp((H - H_tilde).array()));
+        prob = (feasible.array() > 0.5).select(prob, 0);
 
-        log_prob = log(prob);
-        total_acceptance_prob += prob;
+        total_acceptance_prob += prob.sum();
+        VT rng_vector = VT(simdLen);
+        for (int i = 0; i < simdLen; i++)
+        {
+          rng_vector(i) = rng.sample_urdist();
+        }
+        accept = (rng_vector.array() < prob.array()).select(1 * IVT::Ones(simdLen), 0 * IVT::Ones(simdLen));
 
-        // Decide to switch
-        if (rng.sample_urdist() < prob) {
-          x = x_tilde;
-          v = v_tilde;
-          accepted = true;
-        }
-        else {
-          total_discarded_samples++;
-          accepted = false;
-          v = Point(dim) - v;
-        }
-        discard_ratio = (1.0 * total_discarded_samples) / num_runs;
-        average_acceptance_prob = total_acceptance_prob / num_runs;
-        accept = accepted ? 1 : 0;
+        x = masked_choose(x, x_tilde, accept);
+        v = -v;
+        v = masked_choose(v, v_tilde, accept);
+        total_discarded_samples += simdLen - accept.sum();
+        discard_ratio = (1.0 * total_discarded_samples) / (num_runs * simdLen);
+        average_acceptance_prob = total_acceptance_prob / (num_runs * simdLen);
       } else {
         x = x_tilde;
         v = v_tilde;
@@ -210,18 +219,24 @@ struct CRHMCWalk {
       }
     }
 #ifdef TIME_KEEPING
-    void print_timing_information() {
-      std::cerr << "--------------Timing Information--------------\n";
+    void initialize_timers() {
+      H_duration = std::chrono::duration<double>::zero();
+      solver->DU_duration = std::chrono::duration<double>::zero();
+      solver->approxDK_duration = std::chrono::duration<double>::zero();
+    }
+    template <typename StreamType>
+    void print_timing_information(StreamType &stream) {
+      stream << "---Sampling Timing Information" << std::endl;
       double DU_time = solver->DU_duration.count();
       double DK_time = solver->approxDK_duration.count();
       double H_time = H_duration.count();
       double total_time = H_time + DK_time + DU_time;
-      std::cerr << "Computing the Hamiltonian in time, " << H_time << " secs\n";
-      std::cerr << "Computing DU partial derivatives in time, " << DU_time
-                << " secs\n";
-      std::cerr << "Computing DK partial derivatives in time, " << DK_time
-                << " secs\n";
-      std::cerr << "H_time + DK_time + DU_time: " << total_time << "\n";
+      stream << "Computing the Hamiltonian in time, " << H_time << " secs\n";
+      stream << "Computing DU partial derivatives in time, " << DU_time
+             << " secs\n";
+      stream << "Computing DK partial derivatives in time, " << DK_time
+             << " secs\n";
+      stream << "H_time + DK_time + DU_time: " << total_time << "\n";
     }
 #endif
   };

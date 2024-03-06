@@ -19,7 +19,7 @@ struct GaussianHamiltonianMonteCarloExactWalk
     GaussianHamiltonianMonteCarloExactWalk(double L, unsigned int _rho)
             :   param(L, true, _rho, true)
     {}
-    
+
     GaussianHamiltonianMonteCarloExactWalk(double L)
             :   param(L, true, 0, false)
     {}
@@ -28,7 +28,7 @@ struct GaussianHamiltonianMonteCarloExactWalk
             :   param(0, false, 0, false)
     {}
 
-    
+
     struct parameters
     {
         parameters(double L, bool set, unsigned int _rho, bool _set_rho)
@@ -80,7 +80,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void apply(GenericPolytope const& P,
+    inline void apply(GenericPolytope& P,
                       Point& p,
                       NT const& a_i,
                       unsigned int const& walk_length,
@@ -120,7 +120,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void get_starting_point(GenericPolytope const& P,
+    inline void get_starting_point(GenericPolytope& P,
                                    Point const& center,
                                    Point &q,
                                    unsigned int const& walk_length,
@@ -141,7 +141,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void parameters_burnin(GenericPolytope const& P, 
+    inline void parameters_burnin(GenericPolytope& P,
                                   Point const& center,
                                   unsigned int const& num_points,
                                   unsigned int const& walk_length,
@@ -154,7 +154,7 @@ struct Walk
         pointset.push_back(_p);
         NT rad = NT(0), max_dist, Lmax = NT(0), radius = P.InnerBall().second;
 
-        for (int i = 0; i < num_points; i++) 
+        for (int i = 0; i < num_points; i++)
         {
             p = GetPointInDsphere<Point>::apply(n, radius, rng);
             p += center;
@@ -162,18 +162,18 @@ struct Walk
 
             apply(P, p, walk_length, rng);
             max_dist = get_max_distance(pointset, p, rad);
-            if (max_dist > Lmax) 
+            if (max_dist > Lmax)
             {
                 Lmax = max_dist;
             }
-            if (2.0*rad > Lmax) 
+            if (2.0*rad > Lmax)
             {
                 Lmax = 2.0 * rad;
             }
             pointset.push_back(p);
         }
 
-        if (Lmax > _Len) 
+        if (Lmax > _Len)
         {
             update_delta(Lmax);
         }
@@ -191,7 +191,7 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope const& P,
+    inline void initialize(GenericPolytope& P,
                            Point const& p,
                            NT const& a_i,
                            RandomNumberGenerator &rng)
@@ -239,14 +239,14 @@ private :
             p.set_coord(i, C * std::cos(omega * T + Phi));
             v.set_coord(i, -C * omega * std::sin(omega * T + Phi));
         }
-        
+
     }
 
-    inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad) 
+    inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad)
     {
         double dis = -1.0, temp_dis;
         int jj = 0;
-        for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++) 
+        for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++)
         {
             temp_dis = (q.getCoefficients() - (*vecit).getCoefficients()).norm();
             if (temp_dis > dis) {

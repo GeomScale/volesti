@@ -26,28 +26,31 @@ public:
   const Type ipmDistanceTol = 1e-8;
   const Type ipmDualTol = 1e-12;
   int maxNZ = 30;
-  Type max_coord = 1e7;
-  bool EnableReordering = false;
+  Type max_coord = 1e9;
+  bool EnableReordering = true;
   const int min_convergence_steps=8;
 
   /*ODE options*/
   const Type implicitTol = 1e-5;
   const int maxODEStep = 30;
   Type initialStep = 0.2;
-  Type convergence_limit = 1e16;
+  Type convergence_bound = 1e16;
+
+  /*PackedCS Solver Options*/
   Type solver_accuracy_threshold=1e-2;
+  int simdLen=1;
 
   /*Sampler options*/
   bool DynamicWeight = true; //Enable the use of dynamic weights for each variable when sampling
   bool DynamicStepSize = true;  // Enable adaptive step size that avoids low acceptance probability
   bool DynamicRegularizer = true; //Enable the addition of a regularization term
-
+  Type regularization_factor=1e-20;
   /*Dynamic step choices*/
   Type warmUpStep = 10;
-  Type maxConsecutiveBadStep = 10;
+  int maxConsecutiveBadStep = 10;
   Type targetODEStep = 10;
   Type shrinkFactor = 1.1;
-  Type minStepSize = 0.001;
+  Type minStepSize = 1e-5;
   Type effectiveStepSize = 1;
 
   opts() {}

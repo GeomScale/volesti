@@ -37,7 +37,7 @@ void write_to_file(std::string filename, std::vector<Point> const& randPoints) {
 }
 
 
-void sample_using_uniform_billiard_walk(HPOLYTOPE const& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points) {
+void sample_using_uniform_billiard_walk(HPOLYTOPE& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points) {
     std::string filename = "uniform_billiard_walk.txt";
     typedef RandomPointGenerator<BilliardWalkType> Generator;
 
@@ -49,7 +49,7 @@ void sample_using_uniform_billiard_walk(HPOLYTOPE const& HP, RNGType& rng, unsig
 }
 
 
-void sample_using_uniform_accelerated_billiard_walk(HPOLYTOPE const& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points) {
+void sample_using_uniform_accelerated_billiard_walk(HPOLYTOPE& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points) {
     std::string filename = "uniform_accelerated_billiard_walk.txt";
     typedef RandomPointGenerator<AcceleratedBilliardWalkType> Generator;
 
@@ -61,7 +61,7 @@ void sample_using_uniform_accelerated_billiard_walk(HPOLYTOPE const& HP, RNGType
 }
 
 
-void sample_using_gaussian_billiard_walk(HPOLYTOPE const& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points) {
+void sample_using_gaussian_billiard_walk(HPOLYTOPE& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points) {
     std::string filename = "gaussian_billiard_walk.txt";
     typedef MultivariateGaussianRandomPointGenerator<GaussianAcceleratedWalkType> Generator;
 

@@ -58,7 +58,7 @@ struct BCDHRWalk_multithread
         //typedef thread_params thread_parameters_;
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
+        Walk(GenericPolytope& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
         {
             initialize(P, parameters, rng);
         }
@@ -68,7 +68,7 @@ struct BCDHRWalk_multithread
             typename BallPolytope
         >
         inline void apply(BallPolytope const& P,
-                          thread_parameters_ &params, // parameters 
+                          thread_parameters_ &params, // parameters
                           unsigned int const& walk_length,
                           RandomNumberGenerator& rng)
         {
@@ -97,13 +97,13 @@ struct BCDHRWalk_multithread
 
         template <typename GenericBody>
         inline void initialize(GenericBody const& P,
-                               thread_parameters_ &params, // parameters 
+                               thread_parameters_ &params, // parameters
                                RandomNumberGenerator& rng)
         {
             params.lambdas.setZero(P.num_of_hyperplanes());
             params.rand_coord = rng.sample_uidist();
             NT kapa = rng.sample_urdist();
-            
+
             std::pair<NT, NT> bpair = P.line_intersect_coord(params.p, params.rand_coord,
                                                              params.lambdas);
             params.p_prev = params.p;
@@ -158,7 +158,7 @@ struct BRDHRWalk_multithread
         //typedef thread_params thread_parameters_;
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
+        Walk(GenericPolytope& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
         {
             initialize(P, parameters, rng);
         }
@@ -168,7 +168,7 @@ struct BRDHRWalk_multithread
                 typename BallPolytope
         >
         inline void apply(BallPolytope const& P,
-                          thread_parameters_ &params, // parameters 
+                          thread_parameters_ &params, // parameters
                           unsigned int const& walk_length,
                           RandomNumberGenerator& rng)
         {
@@ -191,7 +191,7 @@ struct BRDHRWalk_multithread
 
         template <typename GenericBody>
         inline void initialize(GenericBody const& P,
-                               thread_parameters_ &params, // parameters 
+                               thread_parameters_ &params, // parameters
                                RandomNumberGenerator& rng)
         {
             params.lambdas.setZero(P.num_of_hyperplanes());
@@ -243,7 +243,7 @@ struct Walk
     typedef thread_parameters<NT, Point> thread_parameters_;
     //typedef thread_params thread_parameters_;
 
-    Walk(Polytope const& P,
+    Walk(Polytope& P,
          thread_parameters_ &params,
          NT const& a_i,
          RandomNumberGenerator &rng)
@@ -252,7 +252,7 @@ struct Walk
     }
 
     template <typename parameters>
-    Walk(Polytope const& P,
+    Walk(Polytope& P,
          thread_parameters_ &params,
          NT const& a_i,
          RandomNumberGenerator &rng,
@@ -260,14 +260,14 @@ struct Walk
     {
         initialize(P, params, a_i, rng);
     }
-    
+
 
     template
     <
         typename BallPolytope
     >
     inline void apply(BallPolytope const& P,
-                      thread_parameters_ &params, // parameters 
+                      thread_parameters_ &params, // parameters
                       NT const& a_i,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
@@ -293,7 +293,7 @@ private :
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
-                           thread_parameters_ &params, // parameters 
+                           thread_parameters_ &params, // parameters
                            NT const& a_i,
                            RandomNumberGenerator &rng)
     {
@@ -345,11 +345,11 @@ struct Walk
     typedef thread_parameters<NT, Point> thread_parameters_;
     //typedef thread_params thread_parameters_;
 
-    Walk(Polytope const&, thread_parameters_ &, NT const&, RandomNumberGenerator&)
+    Walk(Polytope&, thread_parameters_ &, NT const&, RandomNumberGenerator&)
     {}
 
     template <typename parameters>
-    Walk(Polytope const&, thread_parameters_ &, NT const&, RandomNumberGenerator&,
+    Walk(Polytope&, thread_parameters_ &, NT const&, RandomNumberGenerator&,
          parameters&)
     {}
 
@@ -358,7 +358,7 @@ struct Walk
         typename BallPolytope
     >
     inline void apply(BallPolytope const& P,
-                      thread_parameters_ &params, // parameters 
+                      thread_parameters_ &params, // parameters
                       NT const& a_i,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
@@ -440,7 +440,7 @@ struct Walk
     //typedef thread_params thread_parameters_;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, thread_parameters_ &parameters, RandomNumberGenerator &rng)
+    Walk(GenericPolytope& P, thread_parameters_ &parameters, RandomNumberGenerator &rng)
     {
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
@@ -448,7 +448,7 @@ struct Walk
     }
 
     template <typename GenericPolytope, typename parameters_>
-    Walk(GenericPolytope const& P, thread_parameters_ &parameters, RandomNumberGenerator &rng,
+    Walk(GenericPolytope& P, thread_parameters_ &parameters, RandomNumberGenerator &rng,
          parameters_ const& params)
     {
         _Len = params.set_L ? params.m_L
@@ -461,7 +461,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void apply(GenericPolytope const& P,
+    inline void apply(GenericPolytope& P,
                       thread_parameters_ &parameters,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
@@ -491,7 +491,7 @@ struct Walk
                 P.compute_reflection(parameters.v, parameters.p, pbpair.second);
                 it++;
             }
-            if (it == 50*n) 
+            if (it == 50*n)
             {
                 parameters.p = parameters.p0;
             }
@@ -509,7 +509,7 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope const& P,
+    inline void initialize(GenericPolytope& P,
                            thread_parameters_ &parameters,
                            RandomNumberGenerator &rng)
     {
@@ -524,7 +524,7 @@ private :
 
         std::pair<NT, int> pbpair
                 = P.line_positive_intersect(parameters.p, parameters.v, parameters.lambdas, parameters.Av);
-        if (T <= pbpair.first) 
+        if (T <= pbpair.first)
         {
             parameters.p += (T * parameters.v);
             parameters.lambda_prev = T;
@@ -538,9 +538,9 @@ private :
         while (it <= 50*n)
         {
             std::pair<NT, int> pbpair
-                    = P.line_positive_intersect(parameters.p, parameters.v, parameters.lambdas, 
+                    = P.line_positive_intersect(parameters.p, parameters.v, parameters.lambdas,
                                                 parameters.Av, parameters.lambda_prev);
-            if (T <= pbpair.first) 
+            if (T <= pbpair.first)
             {
                 parameters.p += (T * parameters.v);
                 parameters.lambda_prev = T;
@@ -599,7 +599,7 @@ struct Walk
     //typedef thread_params thread_parameters_;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
+    Walk(GenericPolytope& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
     {
         initialize(P, parameters, rng);
     }
@@ -610,7 +610,7 @@ struct Walk
         typename BallPolytope
     >
     inline void apply(BallPolytope const& P,
-                      thread_parameters_ &params, // parameters 
+                      thread_parameters_ &params, // parameters
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
@@ -634,7 +634,7 @@ private :
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
-                           thread_parameters_ &params, // parameters 
+                           thread_parameters_ &params, // parameters
                            RandomNumberGenerator &rng)
     {
         params.lambdas.setZero(P.num_of_hyperplanes());
@@ -690,7 +690,7 @@ struct Walk
     //typedef thread_params thread_parameters_;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
+    Walk(GenericPolytope& P, thread_parameters_ &parameters, RandomNumberGenerator& rng)
     {
         initialize(P, parameters, rng);
     }
@@ -700,7 +700,7 @@ struct Walk
         typename BallPolytope
     >
     inline void apply(BallPolytope const& P,
-                      thread_parameters_ &params, // parameters 
+                      thread_parameters_ &params, // parameters
                       unsigned int const& walk_length,
                       RandomNumberGenerator& rng)
     {
@@ -719,7 +719,7 @@ private :
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
-                           thread_parameters_ &params, // parameters 
+                           thread_parameters_ &params, // parameters
                            RandomNumberGenerator &rng)
     {
         params.lambdas.setZero(P.num_of_hyperplanes());

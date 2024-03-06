@@ -57,7 +57,7 @@ struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
 
 // Compute the first variance a_0 for the starting gaussian
 template <typename Polytope, typename NT>
-void get_first_gaussian(Polytope const& P,
+void get_first_gaussian(Polytope& P,
                         NT const& frac,
                         NT const& chebychev_radius,
                         NT const& error,
@@ -125,7 +125,7 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-NT get_next_gaussian(Polytope const& P,
+NT get_next_gaussian(Polytope& P,
                      Point &p,
                      NT const& a,
                      const unsigned int &N,
@@ -186,7 +186,7 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-void compute_annealing_schedule(Polytope const& P,
+void compute_annealing_schedule(Polytope& P,
                                 NT const& ratio,
                                 NT const& C,
                                 NT const& frac,
@@ -289,7 +289,7 @@ template
     typename RandomNumberGenerator
 
 >
-double volume_cooling_gaussians(Polytope const& Pin,
+double volume_cooling_gaussians(Polytope& Pin,
                                 RandomNumberGenerator& rng,
                                 double const& error = 0.1,
                                 unsigned int const& walk_length = 1)
@@ -483,7 +483,7 @@ double volume_cooling_gaussians(Polytope &Pin,
 {
     RandomNumberGenerator rng(Pin.dimension());
     Pin.set_interior_point(interior_point);
-    
+
     return volume_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
 }
 

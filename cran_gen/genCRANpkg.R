@@ -17,17 +17,17 @@ file.copy(dir_lp, lp_dist, recursive=TRUE)
 # fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
 library(xfun)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "struct timeb buf;", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "struct timeb buf;", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "ftime(&buf);", "", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "ftime(&buf);", "",
     fixed=TRUE)
 gsub_file(
-    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "return((double)buf.time+((double) buf.millitm)/1000.0);", 
-    "return((double)0);", 
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"),
+    "return((double)buf.time+((double) buf.millitm)/1000.0);",
+    "return((double)0);",
     fixed=TRUE)
 
 # add lpsolve header files in external
@@ -42,6 +42,8 @@ dir_lp = paste0(path,"/lpSolveAPI/inst/include")
 h_files = dir(dir_lp, "*.h", ignore.case = TRUE, all.files = TRUE)
 lp_dist = paste0(path,"/external/LPsolve_src/include")
 file.copy(file.path(dir_lp, h_files), lp_dist, recursive=TRUE, overwrite=TRUE)
+# replace the lpsolve header file that issues a warning in mac's cran test
+file.copy(paste0(path,"/external/cmake-files/lpsolve_modified_header_files/lp_rlp.h"), lp_dist, recursive=TRUE, overwrite=TRUE)
 dir_lp = paste0(path,"/lpSolve/src")
 h_files = dir(dir_lp, "*.h", ignore.case = TRUE, all.files = TRUE)
 lp_dist = paste0(path,"/external/LPsolve_src/run_headers")
@@ -163,6 +165,8 @@ unlink(dir_lpsolve_heds, recursive = TRUE)
 makefile_dir = paste0(path,'/cran_gen/Makefile')
 makefile_dist = paste0(path, '/cran_gen/cran_package/src/external/lpsolve/build/lp_solve')
 file.copy(makefile_dir, makefile_dist, recursive=TRUE)
+
+
 
 # set new cran package folder as wrking directory
 setwd(paste0(path,'/cran_gen/cran_package'))

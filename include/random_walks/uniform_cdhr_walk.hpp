@@ -30,13 +30,13 @@ struct Walk
     typedef typename Point::FT NT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
+    Walk(GenericPolytope& P, Point const& p, RandomNumberGenerator& rng)
     {
         initialize(P, p, rng);
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p,
+    Walk(GenericPolytope& P, Point const& p,
          RandomNumberGenerator& rng, parameters const& params)
     {
         initialize(P, p, rng);

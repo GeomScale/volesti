@@ -41,6 +41,8 @@
 #include "generators/h_polytopes_generator.h"
 #include "generators/convex_bodies_generator.h"
 
+#include "diagnostics/univariate_psrf.hpp"
+
 #include "preprocess/svd_rounding.hpp"
 #include "misc/misc.h"
 
@@ -306,6 +308,80 @@ void benchmark_hmc(bool truncated) {
 
       ETA = (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
       std::cout << ETA << std::endl;
+    }
+
+}
+
+template <typename NT>
+void benchmark_nuts_hmc(bool truncated) {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef HPolytope<Point> Hpolytope;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RandomNumberGenerator;
+    typedef CustomFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef CustomFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef LeapfrogODESolver<Point, NT, Hpolytope, NegativeGradientFunctor> Solver;
+
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+
+    NegativeGradientFunctor F;
+    NegativeLogprobFunctor f;
+    RandomNumberGenerator rng(1);
+    unsigned int dim_min = 10;
+    unsigned int dim_max = 100;
+    int n_samples = 1000;
+    long ETA;
+    bool automatic_burnin = false;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+
+    for (unsigned int dim = dim_min; dim <= dim_max; dim+=10)
+    {
+      MT samples(dim, n_samples);
+      Point x0(dim);
+      NutsHamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+      if (truncated)
+      {
+        Hpolytope P = generate_cube<Hpolytope>(dim, false);
+
+        std::cout << "eta0: " << hmc_params.eta << std::endl;
+
+        NutsHamiltonianMonteCarloWalk::Walk<Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+        hmc(&P, x0, F, f, hmc_params, automatic_burnin);
+
+        hmc.burnin(rng);
+        std::cout << "eta: " << hmc.get_eta_solver() << std::endl;
+
+        start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < n_samples; i++) {
+          hmc.apply(rng);
+          samples.col(i) = hmc.x.getCoefficients();
+        }
+        stop = std::chrono::high_resolution_clock::now();
+        std::cout << "proportion of sucussfull steps: " << hmc.get_ratio_acceptance() << std::endl;
+      }
+      else
+      {
+        NutsHamiltonianMonteCarloWalk::Walk<Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+        hmc(NULL, x0, F, f, hmc_params, automatic_burnin);
+
+        hmc.burnin(rng);
+        std::cout << "eta: " << hmc.get_eta_solver() << std::endl;
+
+        start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < n_samples; i++) {
+          hmc.apply(rng);
+          samples.col(i) = hmc.x.getCoefficients();
+        }
+        stop = std::chrono::high_resolution_clock::now();
+        std::cout << "proportion of sucussfull steps: " << hmc.get_ratio_acceptance() << std::endl;
+      }
+
+      std::cout << "PSRF: " << univariate_psrf<NT, VT>(samples).maxCoeff() << std::endl;
+
+      ETA = (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+      std::cout<< "time: " << ETA << "\n" << std::endl;
     }
 
 }
@@ -710,8 +786,8 @@ void benchmark_polytope_linear_program_optimization(
     typedef std::vector<Point> pts;
     typedef boost::mt19937 RNGType;
     typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-    typedef LinearProgramFunctor::GradientFunctor<Point> NegativeGradientFunctor;
-    typedef LinearProgramFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef ExponentialFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef ExponentialFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
     typedef OptimizationFunctor::GradientFunctor<Point, NegativeLogprobFunctor,
         NegativeGradientFunctor> NegativeGradientOptimizationFunctor;
     typedef OptimizationFunctor::FunctionFunctor<Point, NegativeLogprobFunctor,
@@ -742,7 +818,7 @@ void benchmark_polytope_linear_program_optimization(
     }
 
     // Declare oracles for LP
-    LinearProgramFunctor::parameters<NT, Point> lp_params(coeffs);
+    ExponentialFunctor::parameters<NT, Point> lp_params(coeffs);
 
     NegativeGradientFunctor F_lp(lp_params);
     NegativeLogprobFunctor f_lp(lp_params);
@@ -878,6 +954,11 @@ void call_test_uld() {
 template <typename NT>
 void call_test_benchmark_hmc(bool truncated) {
   benchmark_hmc<NT>(truncated);
+}
+
+template <typename NT>
+void call_test_benchmark_nuts_hmc(bool truncated) {
+  benchmark_nuts_hmc<NT>(truncated);
 }
 
 template <typename NT>
@@ -1037,8 +1118,8 @@ void call_test_exp_sampling() {
     typedef HPolytope<Point> Hpolytope;
     std::string name;
     std::vector<std::tuple<Hpolytope, Point, std::string, bool>> polytopes;
-    
-    
+
+
     if (exists_check("metabolic_full_dim/e_coli_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_e_coli.ine")){
       Point biomass_function_e_coli = load_biomass_function<Point, NT>("metabolic_full_dim/e_coli_biomass_function.txt");
       polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), biomass_function_e_coli, "e_coli", true));
@@ -1196,6 +1277,14 @@ TEST_CASE("uld") {
 
 TEST_CASE("exponential_biomass_sampling") {
     call_test_exp_sampling<double>();
+}
+
+TEST_CASE("benchmark_nuts_hmc_truncated") {
+    call_test_benchmark_nuts_hmc<double>(true);
+}
+
+TEST_CASE("benchmark_nuts_hmc") {
+    call_test_benchmark_nuts_hmc<double>(false);
 }
 
 TEST_CASE("benchmark_hmc") {

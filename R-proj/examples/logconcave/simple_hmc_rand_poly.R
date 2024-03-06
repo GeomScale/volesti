@@ -29,10 +29,10 @@ dimension <- 50
 facets <- 200
 
 # Create domain of truncation
-H <- gen_rand_hpoly(dimension, facets)
+H <- gen_rand_hpoly(dimension, facets, seed = 15)
 
 # Rounding
-Tr <- rounding(H)
+Tr <- rounding(H, seed = 127)
 
 P <- Hpolytope$new(A = Tr$Mat[1:nrow(Tr$Mat), 2:ncol(Tr$Mat)], b = Tr$Mat[,1])
 
