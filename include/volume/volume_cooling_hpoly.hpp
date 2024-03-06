@@ -135,7 +135,7 @@ bool get_next_zonoball(std::vector<HPolytope> &HPolySet,
     return false;
 }
 
-template 
+template
 <
     typename RandomPointGenerator,
     typename ZonoHP,
@@ -374,7 +374,7 @@ template
         typename HPolytope,
         typename Polytope
 >
-double volume_cooling_hpoly(Polytope const& Pin,
+double volume_cooling_hpoly(Polytope& Pin,
                                  double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
 {

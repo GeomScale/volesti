@@ -21,6 +21,7 @@
 
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
+#include "preprocess/crhmc/crhmc_utils.h"
 #include <vector>
 
 /// @brief A weighted two sided barrier used by crhmc sampler
@@ -43,8 +44,7 @@ public:
   const NT max_step = 1e16; // largest step size
   const NT regularization_constant = 1e-20; // small regularization to not have a large inverse
   const NT unbounded_center_coord = 1e6;
-  VT extraHessian;
-
+  MT extraHessian;
   const NT inf = std::numeric_limits<NT>::infinity();
 
   VT w;
@@ -54,7 +54,7 @@ public:
     set_bound(_lb, _ub);
     w = _w;
     vdim = _vdim;
-    extraHessian = regularization_constant * VT::Ones(n);
+    extraHessian = regularization_constant * VT::Ones(n,1);
   }
   weighted_two_sided_barrier() { vdim = 1; }
 
@@ -67,10 +67,24 @@ public:
            w.cwiseQuotient((x - lb).cwiseProduct((x - lb)));
     return d + extraHessian;
   }
+  MT hessian(MT const &x){
+    MT d = (((- x).colwise()+ub).cwiseProduct(((- x).colwise()+ub))).cwiseInverse() +
+           ((x.colwise() - lb).cwiseProduct((x.colwise() - lb))).cwiseInverse();
+    return w.asDiagonal()*d + extraHessian;
+  }
   VT tensor(VT const &x) {
     VT d = 2 * w.cwiseQuotient(((ub - x).cwiseProduct((ub - x))).cwiseProduct((ub - x))) -
            2 * w.cwiseQuotient(((x - lb).cwiseProduct((x - lb))).cwiseProduct((x - lb)));
     return d;
+  }
+  MT tensor(MT const &x) {
+    MT d = 2 * ((((-x).colwise()+ub).cwiseProduct(((-x).colwise()+ub))).cwiseProduct(((-x).colwise()+ub))).cwiseInverse() -
+           2 * (((x.colwise() - lb).cwiseProduct(( x.colwise() - lb))).cwiseProduct(( x.colwise() - lb))).cwiseInverse();
+    return w.asDiagonal()*d;
+  }
+  MT quadratic_form_gradient(MT const &x, MT const &u) {
+    // Output the -grad of u' (hess phi(x)) u.
+    return (u.cwiseProduct(u)).cwiseProduct(tensor(x));
   }
   VT quadratic_form_gradient(VT const &x, VT const &u) {
     // Output the -grad of u' (hess phi(x)) u.
@@ -99,7 +113,13 @@ public:
   bool feasible(VT const &x) {
     return (x.array() > lb.array() && x.array() < ub.array()).all();
   }
-
+  VT feasible(MT const &x) {
+    VT result=VT::Ones(x.cols());
+    for(int i=0;i<x.cols();i++){
+      result(i)=(x.col(i).array() > lb.array() && x.col(i).array() < ub.array()).all();
+    }
+    return result;
+  }
   void set_bound(VT const &_lb, VT const &_ub) {
 
     lb = _lb;
@@ -122,10 +142,11 @@ public:
     }
 
     VT c = (ub + lb) / 2;
-
-    c(lowerIdx) = lb(lowerIdx) + VT::Ones(x2, 1) * unbounded_center_coord;
-    c(upperIdx) = ub(upperIdx) - VT::Ones(x1, 1) * unbounded_center_coord;
-    c(freeIdx) *= 0.0;
+    VT bias1=VT::Ones(x2, 1) * unbounded_center_coord;
+    saxpy(c,lb,bias1,lowerIdx,lowerIdx);
+    VT bias2=-VT::Ones(x1, 1) * unbounded_center_coord;
+    saxpy(c,ub,bias2,upperIdx,upperIdx);
+    set(c, freeIdx, 0.0);
 
     center = c;
   }
@@ -133,13 +154,10 @@ public:
   std::pair<VT, VT> boundary(VT const &x) {
     // Output the normal at the boundary around x for each barrier.
     // Assume: only 1 vector is given
-
     VT A = VT::Ones(x.rows(), 1);
-
     VT b = ub;
 
     b = (x.array() < center.array()).select(-lb, b);
-
     A = (x.array() < center.array()).select(-A, A);
 
     return std::make_pair(A, b);

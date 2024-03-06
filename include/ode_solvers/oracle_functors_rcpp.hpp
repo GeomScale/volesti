@@ -91,6 +91,17 @@ struct RcppFunctor {
       }
     }
 
+    Point operator() (Point const& x) const {
+      VT y = Rcpp::as<VT>(neg_grad_f(Rcpp::wrap(x.getCoefficients())));
+
+      Point z(y);
+
+      if (negate) z = (-1.0) * z;
+
+      // Return result as Point
+      return z;
+    }
+
   };
 
   // Negative log-probability functor
@@ -118,6 +129,31 @@ struct RcppFunctor {
 
   };
 
+  // Log-probability hessian functor
+  template
+  <
+    typename Point
+  >
+  struct HessianFunctor {
+    typedef typename Point::FT NT;
+    typedef typename Point::Coeff VT;
+
+    parameters<NT> params;
+    Rcpp::Function hessian; // Negative hessian as an Rcpp::Function
+
+    HessianFunctor(
+      parameters<NT> params_,
+      Rcpp::Function hessian_) :
+      params(params_),
+      hessian(hessian_)
+    {};
+
+    Point operator() (Point const& x) const {
+      VT y= Rcpp::as<VT>(hessian(Rcpp::wrap(x.getCoefficients())));
+      return Point(y);
+    }
+
+  };
 };
 
 #endif

@@ -76,52 +76,42 @@ GetLPSolve()
 include("../../external/cmake-files/QD.cmake")
 GetQD()
 
-# Find lpsolve library
-find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-if (NOT LP_SOLVE)
-  message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
+if (USE_MKL)
+  find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
+  find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
+  find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
+  find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
+
+  include_directories (BEFORE ${MKLROOT}/include)
+  set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
+  set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
+  add_definitions(-DEIGEN_USE_MKL_ALL)
+else()
+  set(MKL_LINK "")
+endif(USE_MKL)
+
+include_directories (BEFORE ../../external)
+include_directories (BEFORE ../../external/minimum_ellipsoid)
+include_directories (BEFORE ../../include/)
+
+# for Eigen
+if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
+  add_compile_options(-D "EIGEN_NO_DEBUG")
 else ()
-
-  message(STATUS "Library lp_solve found: ${LP_SOLVE}")
-  set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
-
-  if (USE_MKL)
-    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
-    find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
-    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
-    find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
-
-    include_directories (BEFORE ${MKLROOT}/include)
-    set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
-    set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
-    add_definitions(-DEIGEN_USE_MKL_ALL)
-  else()
-    set(MKL_LINK "")
-  endif(USE_MKL)
-
-  include_directories (BEFORE ../../external)
-  include_directories (BEFORE ../../external/minimum_ellipsoid)
-  include_directories (BEFORE ../../include/)
-
-  # for Eigen
-  if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
-    add_compile_options(-D "EIGEN_NO_DEBUG")
-  else ()
-    add_compile_definitions("EIGEN_NO_DEBUG")
-  endif ()
+  add_compile_definitions("EIGEN_NO_DEBUG")
+endif ()
 
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-	#add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
-	set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
-  add_definitions(${CMAKE_CXX_FLAGS} "-O3 "  ${ADDITIONAL_FLAGS})  # optimization of the compiler
-  #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
-  add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
-  add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
-  add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+#add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
+set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
+add_definitions(${CMAKE_CXX_FLAGS} "-O3 "  ${ADDITIONAL_FLAGS})  # optimization of the compiler
+#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
+add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
+add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
+add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  add_executable (crhmc_prepare crhmc_prepare.cpp)
-	TARGET_LINK_LIBRARIES(crhmc_prepare ${QD_LIB} ${MKL_LINK} ${LP_SOLVE})
+add_executable (crhmc_prepare crhmc_prepare.cpp )
+TARGET_LINK_LIBRARIES(crhmc_prepare QD_LIB ${MKL_LINK})
 
-endif()

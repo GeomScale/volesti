@@ -17,12 +17,20 @@
 #define CRHMC_INPUT_H
 #include "Eigen/Eigen"
 #include "opts.h"
+#include "convex_bodies/hpolytope.h"
+#include "preprocess/crhmc/constraint_problem.h"
 /*0 funciton handles are given as a reference in case the user gives no
 function. Then the uniform function is implied*/
 template <typename Point>
 struct ZeroFunctor
 {
+  using Type = typename Point::FT;
   Point operator()(Point const &x) const { return Point(x.dimension()); }
+  struct parameters {
+    Type L=1;
+    Type eta=1;
+  };
+  struct parameters params;
 };
 template <typename Point>
 struct ZeroScalarFunctor
@@ -45,9 +53,11 @@ class crhmc_input
   ZeroScalarFunctor<Point> zerosf;
 
 public:
+  using MT = MatrixType;
   using Func = func;
   using Grad = grad;
   using Hess = hess;
+  using point= Point;
   MatrixType Aineq;                       // Matrix of coefficients for the inequality constraints
   VT bineq;                               // Right hand side of the inequality constraints
   MatrixType Aeq;                         // Matrix of coefficients for the equality constraints
@@ -62,37 +72,38 @@ public:
   bool fHandle;                           // whether f is handle or not
   bool dfHandle;                          // whether df is handle or not
   bool ddfHandle;                         // whether ddf is handle or not
+  unsigned int dimension;                 // dimension of the original problem
   const Type inf = options.max_coord + 1; // helper for barrier handling
   /*Constructors for different input instances*/
-  crhmc_input(int dimension, func &function, grad &g, hess &h)
+  crhmc_input(int dim, func &function, grad &g, hess &h)
       : f(function), df(g), ddf(h)
-  {
+  { dimension=dim;
     fZero = false;
     fHandle = true;
     dfHandle = true;
     ddfHandle = true;
     init(dimension);
   }
-  crhmc_input(int dimension, func &function)
+  crhmc_input(int dim, func &function)
       : f(function), df(zerof), ddf(zerof)
-  {
+  { dimension=dim;
     fZero = false;
     fHandle = true;
     dfHandle = false;
     ddfHandle = false;
     init(dimension);
   }
-  crhmc_input(int dimension, func &function, grad &g)
+  crhmc_input(int dim, func &function, grad &g)
       : f(function), df(g), ddf(zerof)
-  {
+  { dimension=dim;
     fZero = false;
     fHandle = true;
     dfHandle = true;
     ddfHandle = false;
     init(dimension);
   }
-  crhmc_input(int dimension) : f(zerosf), df(zerof), ddf(zerof)
-  {
+  crhmc_input(int dim) : f(zerosf), df(zerof), ddf(zerof)
+  { dimension=dim;
     fZero = true;
     fHandle = false;
     dfHandle = false;
@@ -110,4 +121,52 @@ public:
     ub = VT::Ones(dimension) * inf;
   }
 };
+#include <type_traits>
+
+template <
+    typename Input, typename Polytope, typename Func, typename Grad, typename Hess,
+    typename std::enable_if<std::is_same<
+        Polytope, HPolytope<typename Input::point>>::value>::type * = nullptr>
+inline Input convert2crhmc_input(Polytope &P, Func &f, Grad &g, Hess &h) {
+  int dimension = P.dimension();
+  Input input = Input(dimension, f, g, h);
+  if (std::is_same<
+      Hess, ZeroFunctor<typename Input::point>>::value){
+        input.ddfHandle=false;
+  }
+  input.Aineq = P.get_mat();
+  input.bineq = P.get_vec();
+  return input;
+}
+
+template <typename Input, typename Polytope, typename Func, typename Grad, typename Hess,
+          typename std::enable_if<std::is_same<
+              Polytope, constraint_problem<typename Input::MT,
+                                           typename Input::point>>::value>::type
+              * = nullptr>
+inline Input convert2crhmc_input(Polytope &P, Func &f, Grad &g, Hess &h) {
+  int dimension = P.dimension();
+  Input input = Input(dimension, f, g, h);
+  if (std::is_same<
+      Hess, ZeroFunctor<typename Input::point>>::value){
+        input.ddfHandle=false;
+  }
+  std::tie(input.Aineq, input.bineq) = P.get_inequalities();
+  std::tie(input.Aeq, input.beq) = P.get_equations();
+  std::tie(input.lb, input.ub) = P.get_bounds();
+  return input;
+}
+template <typename Input, typename Polytope, typename Func, typename Grad, typename Hess,
+          typename std::enable_if<
+              !std::is_same<Polytope,
+                            constraint_problem<typename Input::MT,
+                                               typename Input::point>>::value &&
+              !std::is_same<Polytope, HPolytope<typename Input::point>>::value>::
+              type * = nullptr>
+inline Input convert2crhmc_input(Polytope &P, Func &f, Grad &g, Hess &h) {
+  /*CRHMC works only for H-polytopes and constraint_problems for now*/
+  int dimension = 0;
+  Input input = Input(dimension, f, g, h);
+  return input;
+}
 #endif

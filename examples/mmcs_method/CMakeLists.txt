@@ -105,7 +105,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
-  
+
   find_package(OpenMP REQUIRED)
 
   add_executable (skinny_cube_10_dim skinny_cube_10_dim.cpp)

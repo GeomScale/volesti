@@ -84,7 +84,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline bool apply(GenericPolytope const& P,
+    inline bool apply(GenericPolytope& P,
                       Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
@@ -104,7 +104,7 @@ struct Walk
                 }
                 T = rng.sample_urdist() * _Len;
                 _v = GetDirection<Point>::apply(n, rng, false);
-                
+
                 it = 0;
                 while (it < _rho)
                 {
@@ -122,7 +122,7 @@ struct Walk
                     P.compute_reflection(_v, _p, pbpair.second);
                     it++;
                 }
-                
+
             } while (P.is_in(_p, INSIDE_BODY_TOLLERANCE) == 0);
             if (it == _rho) {
                 _p = p0;
@@ -137,7 +137,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void get_starting_point(GenericPolytope const& P,
+    inline void get_starting_point(GenericPolytope& P,
                                    Point const& center,
                                    Point &q,
                                    unsigned int const& walk_length,
@@ -158,7 +158,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void parameters_burnin(GenericPolytope const& P, 
+    inline void parameters_burnin(GenericPolytope& P,
                                   Point const& center,
                                   unsigned int const& num_points,
                                   unsigned int const& walk_length,
@@ -171,7 +171,7 @@ struct Walk
         pointset.push_back(_p);
         NT rad = NT(0), max_dist, Lmax = NT(0), radius = P.InnerBall().second;
 
-        for (int i = 0; i < num_points; i++) 
+        for (int i = 0; i < num_points; i++)
         {
             p = GetPointInDsphere<Point>::apply(n, radius, rng);
             p += center;
@@ -179,18 +179,18 @@ struct Walk
 
             apply(P, p, walk_length, rng);
             max_dist = get_max_distance(pointset, p, rad);
-            if (max_dist > Lmax) 
+            if (max_dist > Lmax)
             {
                 Lmax = max_dist;
             }
-            if (2.0 * rad > Lmax) 
+            if (2.0 * rad > Lmax)
             {
                 Lmax = 2.0 * rad;
             }
             pointset.push_back(p);
         }
 
-        if (Lmax > _Len) 
+        if (Lmax > _Len)
         {
             update_delta(Lmax);
         }
@@ -210,7 +210,7 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope const& P,
+    inline void initialize(GenericPolytope& P,
                            Point const& p,
                            RandomNumberGenerator &rng)
     {
@@ -219,7 +219,7 @@ private :
         _lambdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
         _v = GetDirection<Point>::apply(n, rng, false);
-        
+
         do {
             _p = p;
             T = rng.sample_urdist() * _Len;
@@ -262,11 +262,11 @@ private :
     }
 
 
-    inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad) 
+    inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad)
     {
         double dis = -1.0, temp_dis;
         int jj = 0;
-        for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++) 
+        for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++)
         {
             temp_dis = (q.getCoefficients() - (*vecit).getCoefficients()).norm();
             if (temp_dis > dis) {

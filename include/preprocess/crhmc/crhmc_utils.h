@@ -11,6 +11,7 @@
 #ifndef CRHMC_UTILS_H
 #define CRHMC_UTILS_H
 #include "Eigen/Eigen"
+#include <unsupported/Eigen/SparseExtra>
 #include "PackedCSparse/SparseMatrix.h"
 #include <algorithm>
 #include <vector>
@@ -93,6 +94,7 @@ void sparse_stack_h(const SparseMatrixType &left, const SparseMatrixType &right,
                  [&](int i)
                  { return i + left.nonZeros(); });
 }
+#include <unsupported/Eigen/SparseExtra>
 
 template <typename SparseMatrixType>
 void sparse_stack_h_inplace(SparseMatrixType &left,
@@ -116,16 +118,13 @@ void sparse_stack_h_inplace(SparseMatrixType &left,
       { return i + leftnz; });
 }
 
-template <typename SparseMatrixType, typename Type>
-void remove_zero_rows(SparseMatrixType &A)
-{
+template <typename SparseMatrixType, typename VectorType, typename Type>
+void remove_zero_rows(SparseMatrixType &A, VectorType &b) {
   std::vector<Eigen::Triplet<Type>> tripletList;
   unsigned Ndata = A.cols();
   unsigned Nbins = A.rows();
-  for (int k = 0; k < A.outerSize(); ++k)
-  {
-    for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it)
-    {
+  for (int k = 0; k < A.outerSize(); ++k) {
+    for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it) {
       tripletList.push_back(
           Eigen::Triplet<Type>(it.row(), it.col(), it.value()));
     }
@@ -134,20 +133,19 @@ void remove_zero_rows(SparseMatrixType &A)
   std::vector<bool> has_value(Nbins, false);
   for (auto tr : tripletList)
     has_value[tr.row()] = true;
-
   if (std::all_of(has_value.begin(), has_value.end(),
-                  [](bool v)
-                  { return v; }))
-  {
+                  [](bool v) { return v; })) {
     return;
   }
   // create map from old to new indices
   std::map<unsigned, unsigned> row_map;
   unsigned new_idx = 0;
   for (unsigned old_idx = 0; old_idx < Nbins; old_idx++)
-    if (has_value[old_idx])
-      row_map[old_idx] = new_idx++;
-
+    if (has_value[old_idx]) {
+      row_map[old_idx] = new_idx;
+      b(new_idx) = b(old_idx);
+      new_idx++;
+    }
   // make new triplet list, dropping empty rows
   std::vector<Eigen::Triplet<Type>> newTripletList;
   newTripletList.reserve(Ndata);
@@ -156,36 +154,15 @@ void remove_zero_rows(SparseMatrixType &A)
         Eigen::Triplet<Type>(row_map[tr.row()], tr.col(), tr.value()));
 
   // form new matrix and return
-  SparseMatrixType ret(new_idx, Ndata);
-  ret.setFromTriplets(newTripletList.begin(), newTripletList.end());
-  A = SparseMatrixType(ret);
+  A.resize(new_idx, Ndata);
+  A.setFromTriplets(newTripletList.begin(), newTripletList.end());
+  b.conservativeResize(new_idx);
 }
 
 template <typename SparseMatrixType, typename Type>
-void remove_rows(SparseMatrixType &A, std::vector<int> indices)
-{
-  std::vector<Eigen::Triplet<Type>> tripletList;
+void remove_rows(SparseMatrixType &A, std::vector<bool> &notRemoved) {
   unsigned Ndata = A.cols();
   unsigned Nbins = A.rows();
-  for (int k = 0; k < A.outerSize(); ++k)
-  {
-    for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it)
-    {
-      tripletList.push_back(
-          Eigen::Triplet<Type>(it.row(), it.col(), it.value()));
-    }
-  }
-
-  std::vector<bool> notRemoved(Nbins, false);
-  for (auto tr : indices)
-    notRemoved[tr] = true;
-
-  if (std::all_of(notRemoved.begin(), notRemoved.end(),
-                  [](bool v)
-                  { return v; }))
-  {
-    return;
-  }
   // create map from old to new indices
   std::map<unsigned, unsigned> row_map;
   unsigned new_idx = 0;
@@ -193,17 +170,18 @@ void remove_rows(SparseMatrixType &A, std::vector<int> indices)
     if (notRemoved[old_idx])
       row_map[old_idx] = new_idx++;
 
-  // make new triplet list, dropping empty rows
-  std::vector<Eigen::Triplet<Type>> newTripletList;
-  newTripletList.reserve(Ndata);
-  for (auto tr : tripletList)
-    newTripletList.push_back(
-        Eigen::Triplet<Type>(row_map[tr.row()], tr.col(), tr.value()));
-
+  std::vector<Eigen::Triplet<Type>> tripletList;
+  for (int k = 0; k < A.outerSize(); ++k) {
+    for (typename SparseMatrixType::InnerIterator it(A, k); it; ++it) {
+      if (notRemoved[it.row()]) {
+        tripletList.push_back(
+            Eigen::Triplet<Type>(row_map[it.row()], it.col(), it.value()));
+      }
+    }
+  }
   // form new matrix and return
-  SparseMatrixType ret(new_idx, Ndata);
-  ret.setFromTriplets(newTripletList.begin(), newTripletList.end());
-  A = SparseMatrixType(ret);
+  A.resize(new_idx, Ndata);
+  A.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 template <typename SparseMatrixType, typename VectorType, typename Type>
@@ -352,6 +330,17 @@ PM postOrderPerm(SparseMatrixType const &A)
   return post_perm;
 }
 
+template <typename SparseMatrixType,typename VectorType>
+void fillin_reduce(SparseMatrixType &X,VectorType& b){
+  SparseMatrixType I = SparseMatrixType(Eigen::VectorXd::Ones(X.rows()).asDiagonal());
+  SparseMatrixType XX = X * X.transpose() + I;
+  XX.makeCompressed();
+  Eigen::SimplicialLDLT<SparseMatrixType, Eigen::Lower,
+                        Eigen::AMDOrdering<int>> cholesky;
+  cholesky.analyzePattern(XX);
+  X = cholesky.permutationP() * X;
+  b = cholesky.permutationP() *b;
+}
 template<typename SparseMatrixType,typename Type,typename IndexType>
 PackedCSparse::SparseMatrix<Type,IndexType> transform_format(SparseMatrixType const &mat) {
   PackedCSparse::SparseMatrix<Type, IndexType> A = PackedCSparse::SparseMatrix<Type, IndexType>(mat.rows(), mat.cols(), mat.nonZeros());
@@ -367,5 +356,51 @@ PackedCSparse::SparseMatrix<Type,IndexType> transform_format(SparseMatrixType co
   A.p[A.n] = nnz;
   return A;
 }
-
+template<typename MatrixType, typename IndexType>
+void copy_indicies(MatrixType& a, MatrixType& b, std::vector<IndexType>const & a_idx, std::vector<IndexType>const & b_idx){
+for(int i=0;i<b_idx.size();i++){
+  a(a_idx[i])=b(b_idx[i]);
+}
+}
+template<typename MatrixType, typename IndexType>
+void copy_indicies(MatrixType& a, MatrixType b, std::vector<IndexType>const & b_idx){
+for(int i=0;i<b_idx.size();i++){
+  a(i)=b(b_idx[i]);
+}
+}
+template<typename MatrixType, typename IndexType, typename Type>
+void set(MatrixType &a, std::vector<IndexType>const & idx, const Type c){
+  for(int i=0;i<idx.size();i++){
+    a(idx[i])=c;
+  }
+}
+template<typename MatrixType, typename IndexType>
+void saxpy(MatrixType &a,MatrixType const &b,MatrixType const& c, std::vector<IndexType>const & a_idx, std::vector<IndexType>const & b_idx){
+for(int i=0;i<b_idx.size();i++){
+  a(a_idx[i])=b(b_idx[i])+c(i);
+}
+}
+/*Problem on the form X=[A|b] bounds=[lb|ub] */
+template< typename SpMat, typename VT>
+void load_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
+                        std::string problem_name) {
+   {
+    std::string fileName(problem_name);
+    fileName.append(".mm");
+    SpMat X;
+    loadMarket(X, fileName);
+    int m = X.rows();
+    dimension = X.cols() - 1;
+    A = X.leftCols(dimension);
+    b = VT(X.col(dimension));
+  }
+  {
+    std::string fileName(problem_name);
+    fileName.append("_bounds.mm");
+    SpMat bounds;
+    loadMarket(bounds, fileName);
+    lb = VT(bounds.col(0));
+    ub = VT(bounds.col(1));
+  }
+}
 #endif

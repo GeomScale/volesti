@@ -42,7 +42,7 @@ void print_diagnostics(MT const& samples, unsigned int &min_ess, StreamType &str
         row_mean = samples.row(i).mean();
         row_std = NT(0);
         for (int j = 0; j < N; j++) {
-            row_std += pow(samples(i, j) - row_mean, 2);
+            row_std += std::pow(samples(i, j) - row_mean, 2);
         }
         row_std = sqrt(row_std / N);
         vt.addRow(i + 1, row_mean, row_std, ess(i), intv_psrf(i));

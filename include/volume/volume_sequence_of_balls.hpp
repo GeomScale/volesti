@@ -44,7 +44,7 @@ template
     typename RandomNumberGenerator
 
 >
-double volume_sequence_of_balls(Polytope const& Pin,
+double volume_sequence_of_balls(Polytope& Pin,
                                 RandomNumberGenerator &rng,
                                 double const& error = 1.0,
                                 unsigned int const& walk_length = 1,
@@ -258,7 +258,7 @@ double volume_sequence_of_balls(Polytope &Pin,
 {
     RandomNumberGenerator rng(Pin.dimension());
     Pin.set_interior_point(interior_point);
-    
+
     return volume_sequence_of_balls<WalkTypePolicy>(Pin, rng, error,
                                                     walk_length, n_threads);
 }
