@@ -191,6 +191,7 @@ add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
 #add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
 
 add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
+add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17") #enable the c++17 support needed by autodiff
 #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")

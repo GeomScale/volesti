@@ -1,8 +1,18 @@
-#ifndef AB9D4FD9_C418_44AC_8276_CC42540EF027
-#define AB9D4FD9_C418_44AC_8276_CC42540EF027
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2024 Vissarion Fisikopoulos
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#ifndef CARTESIAN_KERNEL_AUTOPOINT_H
+#define CARTESIAN_KERNEL_AUTOPOINT_H
+
 #include <iostream>
 #include <Eigen/Eigen>
 
+/// This class manipulates a point used for automatic differentation
+/// parameterized by a number type e.g. double
+/// \tparam T Numerical Type
 template <typename T>
 class autopoint
 {
@@ -133,7 +143,7 @@ class autopoint
         temp.coeffs=coeffs.array().log().matrix();
         return temp;
     }
-    
+
     autopoint exp() const {
         autopoint temp;
         temp.d = d;
@@ -217,7 +227,7 @@ class autopoint
     {
         return autopoint((Coeff)(coeffs * ((FT)k)));
     }
-    
+
     autopoint operator* (T k)
     {
         return autopoint((Coeff)(coeffs * ((FT)k)));
@@ -225,12 +235,12 @@ class autopoint
     // matrix multiplication
     autopoint operator* (const autopoint& autopoint_)
     {
-        return autopoint((Coeff)(coeffs * autopoint_.getCoefficients())); 
+        return autopoint((Coeff)(coeffs * autopoint_.getCoefficients()));
     }
     // matrix multiplication with normal matrix
     autopoint operator* (const coeff& matrix_)
     {
-        return autopoint((  autopoint(matrix_) * autopoint(coeffs) )); 
+        return autopoint((  autopoint(matrix_) * autopoint(coeffs) ));
     }
 
     void operator*= (const FT k)
@@ -283,7 +293,7 @@ class autopoint
         std::cout<<"\n";
     }
 
-    static autopoint all_ones(int dim) 
+    static autopoint all_ones(int dim)
     {
       autopoint p(dim);
       for (int i = 0; i < dim; i++) p.set_coord(i, 1.0);
@@ -298,7 +308,7 @@ autopoint<K> operator* ( K k, autopoint<K> const& p)
     return p * k;
 }
 
-// matrix times autopoint 
+// matrix times autopoint
 template<typename K>
 autopoint<K> operator* (  Eigen::Matrix<K, Eigen::Dynamic,Eigen::Dynamic> matrix_, autopoint<K> const& p)
 {
@@ -308,4 +318,4 @@ autopoint<K> operator* (  Eigen::Matrix<K, Eigen::Dynamic,Eigen::Dynamic> matrix
 
 
 
-#endif /* AB9D4FD9_C418_44AC_8276_CC42540EF027 */
+#endif // CARTESIAN_KERNEL_AUTOPOINT_H

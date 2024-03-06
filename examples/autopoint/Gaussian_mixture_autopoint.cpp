@@ -26,6 +26,7 @@
 #include "Eigen/Eigen"
 
 #include "ode_solvers/ode_solvers.hpp"
+#include "ode_solvers/oracle_autodiff_functors.hpp"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"

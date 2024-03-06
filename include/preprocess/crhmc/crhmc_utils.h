@@ -375,7 +375,7 @@ void set(MatrixType &a, std::vector<IndexType>const & idx, const Type c){
   }
 }
 template<typename MatrixType, typename IndexType>
-void saxpy(MatrixType &a,MatrixType const &b,MatrixType const& c, std::vector<IndexType>const & a_idx, std::vector<IndexType>const & b_idx){
+void volesti_saxpy(MatrixType &a,MatrixType const &b,MatrixType const& c, std::vector<IndexType>const & a_idx, std::vector<IndexType>const & b_idx){
 for(int i=0;i<b_idx.size();i++){
   a(a_idx[i])=b(b_idx[i])+c(i);
 }
