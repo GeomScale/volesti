@@ -13,7 +13,7 @@
 #include "doctest.h"
 #include "generators/known_polytope_generators.h"
 #include "misc/misc.h"
-#include "ode_solvers.hpp"
+#include "ode_solvers/ode_solvers.hpp"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
 #include "preprocess/crhmc/crhmc_problem.h"

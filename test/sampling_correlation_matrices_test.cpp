@@ -9,17 +9,17 @@
 
 #include "doctest.h"
 #include <iostream>
-#include "misc.h"
+
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 
 #include "cartesian_geom/cartesian_kernel.h"
+#include "diagnostics/univariate_psrf.hpp"
+#include "misc/misc.h"
 #include "random_walks/random_walks.hpp"
 #include "sampling/sample_correlation_matrices.hpp"
-
-#include "diagnostics/univariate_psrf.hpp"
 
 template<typename NT, typename MT, typename VT>
 MT rebuildMatrix(const VT &xvector, const unsigned int n){
