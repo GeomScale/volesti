@@ -44,8 +44,8 @@ jobs:
         run: git clone https://github.com/GeomScale/Rvolesti.git;
 
       - name: Upgrade with current develop of volesti
-        run: cp -rf include Rvolesti/src/volesti;
-             cp -rf external Rvolesti/src;
+        run: cp -r -fo include Rvolesti/src/volesti;
+             cp -r -fo external Rvolesti/src;
 
       - name: Check
         env:
