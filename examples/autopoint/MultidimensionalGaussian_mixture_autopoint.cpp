@@ -24,6 +24,7 @@
 #include "Eigen/Eigen"
 
 #include "ode_solvers/ode_solvers.hpp"
+#include "ode_solvers/oracle_autodiff_functors.hpp"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -79,7 +80,7 @@ void run_main()
     }
     start = std::chrono::high_resolution_clock::now();
     std::cerr << (long)std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count();
-    for (int i = 0; i < max_actual_draws; i++) {  
+    for (int i = 0; i < max_actual_draws; i++) {
         std::cout << hmc.x.getCoefficients().transpose() << std::endl;
         hmc.apply(rng, 3);
         samples.col(i) = hmc.x.getCoefficients();

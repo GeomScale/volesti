@@ -11,8 +11,7 @@ project( VolEsti )
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(BUILTIN_AUTODIFF "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.17)
 
@@ -61,8 +60,15 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
+option(BUILTIN_AUTODIFF "Use autodiff from ../external" OFF)
 include("../../external/cmake-files/Autodiff.cmake")
 GetAutodiff()
+if (BUILTIN_AUTODIFF)
+    include_directories (BEFORE ../../external/_deps/Autodiff)
+else ()
+    include_directories(BEFORE /usr/local/include)
+endif(BUILTIN_AUTODIFF)
+
 include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
@@ -77,11 +83,7 @@ if (BUILTIN_EIGEN)
 else ()
     include_directories(BEFORE /usr/include/eigen3)
 endif(BUILTIN_EIGEN)
-if (BUILTIN_AUTODIFF)
-    include_directories (BEFORE ../../external/_deps/Autodiff)
-else ()
-    include_directories(BEFORE /usr/local/include)
-endif(BUILTIN_AUTODIFF)
+
 
 if (USE_MKL)
 find_library(BLAS
@@ -141,7 +143,7 @@ endif()
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++14 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   add_definitions(${CMAKE_CXX_FLAGS} "-pthread")  # optimization of the compiler
-  
+
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
