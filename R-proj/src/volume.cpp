@@ -184,6 +184,7 @@ std::pair<double, double> generic_volume(Polytope& P, RNGType &rng, unsigned int
 //' }
 //' @param rounding Optional. A string parameter to request a rounding method to be applied in the input polytope before volume computation: a) \code{'min_ellipsoid'}, b) \code{'svd'}, c) \code{'max_ellipsoid'} and d) \code{'none'} for no rounding.
 //' @param seed Optional. A fixed seed for the number generator.
+//' @param precision Optional. A numeric parameter that allows users to specify the desired precision level of the volume approximation. This directly affects the 'error' parameter, controlling the upper bound of the approximation error. If both 'precision' and 'error' within 'settings' are provided, 'precision' takes precedence.
 //'
 //' @references \cite{I.Z.Emiris and V. Fisikopoulos,
 //' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2018.},
@@ -212,7 +213,8 @@ std::pair<double, double> generic_volume(Polytope& P, RNGType &rng, unsigned int
 Rcpp::List volume (Rcpp::Reference P,
                Rcpp::Nullable<Rcpp::List> settings = R_NilValue,
                Rcpp::Nullable<std::string> rounding = R_NilValue,
-               Rcpp::Nullable<double> seed = R_NilValue) {
+               Rcpp::Nullable<double> seed = R_NilValue,
+               Rcpp::Nullable<double> precision = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -253,6 +255,16 @@ Rcpp::List volume (Rcpp::Reference P,
     }
 
     NT e;
+
+    if (precision.isNotNull()) {
+        e = Rcpp::as<double>(precision);
+    } else {
+        if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) {
+            e = 0.1; 
+        } else {
+            e = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["error"]);
+        }
+    }
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
         algo = CB;
