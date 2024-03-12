@@ -1,0 +1,7 @@
+Compile it locally with
+
+`docker run --rm --volume $PWD/joss_paper:/data --user $(id -u):$(id -g) --env JOURNAL=joss openjournals/inara`
+
+More instructions on
+
+https://joss.readthedocs.io/en/latest/submitting.html#example-paper-and-bibliography
