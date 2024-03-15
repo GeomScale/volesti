@@ -12,7 +12,6 @@ Welcome to VolEsti's documentation!
 
    getting_started/install.md
    getting_started/cpp_example.md
-   getting_started/r_example.md
 
 .. toctree::
    :caption: Tutorials
