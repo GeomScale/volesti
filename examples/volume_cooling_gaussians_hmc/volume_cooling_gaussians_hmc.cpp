@@ -1,46 +1,49 @@
+
 #include "Eigen/Eigen"
 #include <vector>
 #include "cartesian_geom/cartesian_kernel.h"
+#include "hpolytope.h"
 #include "known_polytope_generators.h"
+
 #include "random_walks/random_walks.hpp"
 
-#include "vpolytope.h"
+#include "volume_sequence_of_balls.hpp"
+#include "volume_cooling_gaussians.hpp"
+#include "volume_cooling_balls.hpp"
+
 #include <iostream>
 #include <fstream>
 #include "misc.h"
-#include <limits>
-
-#include "volume_cooling_gaussians.hpp"
-#include "volume_cooling_balls.hpp"
 
 typedef double NT;
 typedef Cartesian <NT> Kernel;
 typedef typename Kernel::Point Point;
 typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-typedef VPolytope <Point> VPOLYTOPE;
+typedef HPolytope <Point> HPOLYTOPE;
 
-void calculateVolumes(VPOLYTOPE &VP) {
+void calculateVolumes(HPOLYTOPE &HP) {
 	// Setup parameters for calculating volume
-	int walk_len = 10 + VP.dimension()/10;
+	int walk_len = 10 + HP.dimension()/10;
 	NT e=0.1;
 
 	// Calculating volume of the passed polytope
-	NT volume2 = volume_cooling_gaussians<GaussianBallWalk, RNGType>(VP, e, walk_len);
+	NT volume = volume_cooling_gaussians<GaussianHamiltonianMonteCarloExactWalk, RNGType>(HP, e, walk_len);
 
-	std::cout<<"\t Using Cooling Gaussians method: "<<volume2<<"\n";
+	std::cout<<"\t Using Cooling Gaussians method: "<<volume<<"\n";
+	
 }
 
 
 int main(int argc, char* argv[]) {
 
-	// Generating a 4-dimensional VPolytope
-	VPOLYTOPE VP1 = generate_cross<VPOLYTOPE>(4, true);
-	std::cout<<"Polytope VP1: \n";
-	VP1.print();
+	// Generating a 3-dimensional cube centered at origin
+	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(3, false);
+	std::cout<<"Polytope HP: \n";
+	HP.print();
 	std::cout<<"\n";
 
-	std::cout<<"Volume of VP1: \n";
-	calculateVolumes(VP1);
+	std::cout<<"Volume of HP: \n";
+	calculateVolumes(HP);
 
 	return 0;
 }

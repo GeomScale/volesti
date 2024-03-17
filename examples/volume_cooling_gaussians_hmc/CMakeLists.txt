@@ -6,7 +6,6 @@
 
 project( VolEsti )
 
-
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
@@ -15,11 +14,10 @@ if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-option(BUILTIN_EIGEN "Use eigen from ../../external" OFF)
-
-
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
 else()
@@ -53,20 +51,26 @@ else()
     message(STATUS "Library fftw3 found:" ${FFTW3})
 
   endif(NOT IFOPT)
-
 endif(DISABLE_NLP_ORACLES)
 
+# eigen
+option(BUILTIN_EIGEN "Use eigen from ../../external" OFF)
 include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
+if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
+  add_compile_options(-D "EIGEN_NO_DEBUG")
+else ()
+  add_compile_definitions("EIGEN_NO_DEBUG")
+endif ()
+
+# boost
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
+# lp_solve
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
-
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 include_directories (BEFORE ../../external)
 include_directories (BEFORE ../../external/minimum_ellipsoid)
@@ -84,17 +88,11 @@ include_directories (BEFORE ../../include/nlp_oracles)
 include_directories (BEFORE ../../include/misc)
 include_directories (BEFORE ../../include/optimization)
 
-# for Eigen
-if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
-  add_compile_options(-D "EIGEN_NO_DEBUG")
-else ()
-  add_compile_definitions("EIGEN_NO_DEBUG")
-endif ()
 
 add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
-#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+
 add_executable (volume_cooling_gaussians_hmc volume_cooling_gaussians_hmc.cpp)
 target_link_libraries(volume_cooling_gaussians_hmc PUBLIC lp_solve)
