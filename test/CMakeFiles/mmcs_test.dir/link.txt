@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/mmcs_test.dir/mmcs_test.cpp.o CMakeFiles/test_main.dir/test_main.cpp.o -o mmcs_test  liblp_solve.a 
