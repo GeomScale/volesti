@@ -224,23 +224,24 @@ private :
         }
     }
 
-    inline void update_position(Point &p, Point &v, NT const& T, NT const& omega)
-    {
-        NT C, Phi;
-        for (size_t i = 0; i < p.dimension(); i++)
-        {
-            C = std::sqrt(p[i] * p[i] + (v[i] * v[i]) / (omega * omega));
-            Phi = std::atan((-v[i]) / (p[i] * omega));
-            if (v[i] < 0.0 && Phi < 0.0) {
-                Phi += M_PI;
-            } else if (v[i] > 0.0 && Phi > 0.0) {
-                Phi -= M_PI;
-            }
-            p.set_coord(i, C * std::cos(omega * T + Phi));
-            v.set_coord(i, -C * omega * std::sin(omega * T + Phi));
-        }
+    inline void update_position(Point &p, Point &v, NT const& T, NT const& omega) {
+        NT cosOmegaT = std::cos(omega * T);
+        NT sinOmegaT = std::sin(omega * T);
+        NT cosTerm, sinTerm, newP, newV;
 
-    }
+        for (size_t i = 0; i < p.dimension(); i++) {
+            // Use pre-computed cosine and sine values
+            cosTerm = cosOmegaT;
+            sinTerm = sinOmegaT;
+
+            newP = cosTerm * p[i] + (sinTerm * v[i]) / omega;
+            newV = -omega * sinTerm * p[i] + cosTerm * v[i];
+
+            p.set_coord(i, newP);
+            v.set_coord(i, newV);
+        }
+    }   
+
 
     inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad)
     {
@@ -272,4 +273,3 @@ private :
 
 
 #endif // RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
-
