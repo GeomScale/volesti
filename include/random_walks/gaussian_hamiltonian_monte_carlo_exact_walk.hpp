@@ -225,20 +225,23 @@ private :
     }
 
     inline void update_position(Point &p, Point &v, NT const& T, NT const& omega) {
-        NT cosOmegaT = std::cos(omega * T);
-        NT sinOmegaT = std::sin(omega * T);
-        NT cosTerm, sinTerm, newP, newV;
+
+        // The next values of p and v        
+        NT next_p, next_v;
+
+        // Pre-calculation of the trigonometric functions used within the function 
+        NT sinVal = std::sin(omega * T);
+        NT cosVal = std::cos(omega * T);
 
         for (size_t i = 0; i < p.dimension(); i++) {
-            // Use pre-computed cosine and sine values
-            cosTerm = cosOmegaT;
-            sinTerm = sinOmegaT;
 
-            newP = cosTerm * p[i] + (sinTerm * v[i]) / omega;
-            newV = -omega * sinTerm * p[i] + cosTerm * v[i];
+            // Calculation of the next values
+            next_p = cosVal * p[i] + (sinVal * v[i]) / omega;
+            next_v = -omega * sinVal * p[i] + cosVal * v[i];
 
-            p.set_coord(i, newP);
-            v.set_coord(i, newV);
+            // Assigning the new values
+            p.set_coord(i, next_p);
+            v.set_coord(i, next_v);
         }
     }   
 
