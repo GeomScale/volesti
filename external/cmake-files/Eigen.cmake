@@ -1,6 +1,6 @@
 set(EIGEN_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(GetEigen)
-  find_path(EIGEN_DIR NAMES Eigen PATHS ${EIGEN_CMAKE_DIR}/../_deps/eigen-src)
+  find_path(EIGEN_DIR NAMES signature_of_eigen3_matrix_library PATHS ${EIGEN_CMAKE_DIR}/../_deps/eigen-src PATH_SUFFIXES eigen3 eigen)
 
   if (NOT EIGEN_DIR) 
     include(FetchContent)
