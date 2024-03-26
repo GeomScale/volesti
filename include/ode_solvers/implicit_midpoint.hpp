@@ -104,11 +104,11 @@ struct ImplicitMidpointODESolver {
     num_runs++;
     pts partialDerivatives;
 #ifdef TIME_KEEPING
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     partialDerivatives = ham.DU(xs);
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     DU_duration += end - start;
 #endif
     xs = xs + partialDerivatives * (eta / 2);
@@ -119,12 +119,12 @@ struct ImplicitMidpointODESolver {
       pts xs_old = xs;
       pts xmid = (xs_prev + xs) / 2.0;
 #ifdef TIME_KEEPING
-      start = std::chrono::system_clock::now();
+      start = std::chrono::high_resolution_clock::now();
 #endif
       partialDerivatives = ham.approxDK(xmid, nu);
 
 #ifdef TIME_KEEPING
-      end = std::chrono::system_clock::now();
+      end = std::chrono::high_resolution_clock::now();
       approxDK_duration += end - start;
 #endif
       xs = xs_prev + partialDerivatives * (eta);
@@ -144,11 +144,11 @@ struct ImplicitMidpointODESolver {
       }
     }
 #ifdef TIME_KEEPING
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     partialDerivatives = ham.DU(xs);
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     DU_duration += end - start;
 #endif
     xs = xs + partialDerivatives * (eta / 2);
