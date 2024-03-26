@@ -179,7 +179,7 @@ struct CRHMCWalk {
       v_tilde = solver->get_state(1);
       if (metropolis_filter) {
 #ifdef TIME_KEEPING
-        start = std::chrono::system_clock::now();
+        start = std::chrono::high_resolution_clock::now();
 #endif
         // Calculate initial Hamiltonian
         H = solver->ham.hamiltonian(x, v);
@@ -188,7 +188,7 @@ struct CRHMCWalk {
         H_tilde = solver->ham.hamiltonian(x_tilde, -v_tilde);
 
 #ifdef TIME_KEEPING
-        end = std::chrono::system_clock::now();
+        end = std::chrono::high_resolution_clock::now();
         H_duration += end - start;
 #endif
         VT feasible = solver->ham.feasible(x_tilde,
