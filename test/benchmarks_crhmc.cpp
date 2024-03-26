@@ -51,9 +51,9 @@ double benchmark(std::string fileName) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
   std::cout << "CRHMC polytope preparation for " << fileName << std::endl;
 
-  start = std::chrono::system_clock::now();
+  start = std::chrono::high_resolution_clock::now();
   CrhmcProblem P = CrhmcProblem(input);
-  end = std::chrono::system_clock::now();
+  end = std::chrono::high_resolution_clock::now();
 
   std::cout << "Preparation completed in time, ";
   std::chrono::duration<double> elapsed_seconds = end - start;
@@ -80,9 +80,9 @@ int main() {
   std::cout << "CRHMC polytope preparation 100000 dimensional Cube "
             << std::endl;
 
-  start = std::chrono::system_clock::now();
+  start = std::chrono::high_resolution_clock::now();
   CrhmcProblem P = CrhmcProblem(input);
-  end = std::chrono::system_clock::now();
+  end = std::chrono::high_resolution_clock::now();
 
   std::cout << "Preparation completed in time, ";
   std::chrono::duration<double> elapsed_seconds = end - start;
