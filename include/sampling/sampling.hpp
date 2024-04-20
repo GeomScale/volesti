@@ -33,31 +33,28 @@ void uniform_sampling(PointList &randPoints,
                    RandomNumberGenerator &rng,
                    const unsigned int &walk_len,
                    const unsigned int &rnum,
-                   const Point &starting_point,
+                   Point &starting_point,
                    unsigned int const& nburns)
 {
 
-    typedef typename WalkTypePolicy::template Walk
+    typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
-            > walk;
-
-    //RandomNumberGenerator rng(P.dimension());
-    PushBackWalkPolicy push_back_policy;
+            > walk(P, starting_point, rng);
 
     Point p = starting_point;
 
-    typedef RandomPointGenerator <walk> RandomPointGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                    push_back_policy, rng);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walk.apply(P, p, walk_len, rng);
+        }
     }
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
-                                push_back_policy, rng);
 
-
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walk.apply(P, p, walk_len, rng);
+        randPoints.push_back(p);
+    }
 }
 
 template <
@@ -73,27 +70,28 @@ void uniform_sampling(PointList &randPoints,
                    WalkTypePolicy &WalkType,
                    const unsigned int &walk_len,
                    const unsigned int &rnum,
-                   const Point &starting_point,
+                   Point &starting_point,
                    unsigned int const& nburns)
 {
-    typedef typename WalkTypePolicy::template Walk
+
+    typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
-            > walk;
-
-    //RandomNumberGenerator rng(P.dimension());
-    PushBackWalkPolicy push_back_policy;
-    typedef RandomPointGenerator<walk> RandomPointGenerator;
+            > walk(P, starting_point, rng);
 
     Point p = starting_point;
+
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                    push_back_policy, rng, WalkType.param);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walk.apply(P, p, walk_len, rng); 
+        }
     }
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
-                                push_back_policy, rng, WalkType.param);
+
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walk.apply(P, p, walk_len, rng);
+        randPoints.push_back(p);
+    }
 }
 
 
@@ -115,25 +113,24 @@ void uniform_sampling_boundary(PointList &randPoints,
 {
     typedef typename WalkTypePolicy::template Walk
             <
-                    Polytope,
-                    RandomNumberGenerator
-            > walk;
+                Polytope,
+                RandomNumberGenerator
+            > Walk;
 
-    //RandomNumberGenerator rng(P.dimension());
-    PushBackWalkPolicy push_back_policy;
+    Walk walk(P, starting_point, rng);
+    Point current_point = starting_point;
+    Point dummy_point(P.dimension());
 
-    Point p = starting_point;
-
-    typedef BoundaryRandomPointGenerator <walk> BoundaryRandomPointGenerator;
-    if (nburns > 0) {
-        BoundaryRandomPointGenerator::apply(P, p, nburns, walk_len,
-                                            randPoints, push_back_policy, rng);
-        randPoints.clear();
+    for (unsigned int i = 0; i < nburns; ++i) {
+        walk.apply(P, current_point, dummy_point, walk_len, rng);
+        current_point = dummy_point;
     }
-    unsigned int n = rnum / 2;
-    BoundaryRandomPointGenerator::apply(P, p, rnum / 2, walk_len,
-                                        randPoints, push_back_policy, rng);
 
+    for (unsigned int i = 0; i < rnum/2; ++i) {
+        walk.apply(P, current_point, dummy_point, walk_len, rng);
+        randPoints.push_back(current_point);
+        current_point = dummy_point;
+    }
 }
 
 
@@ -156,27 +153,24 @@ void gaussian_sampling(PointList &randPoints,
                        unsigned int const& nburns)
 {
 
-    typedef typename WalkTypePolicy::template Walk
+    typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
-            > walk;
-
-    //RandomNumberGenerator rng(P.dimension());
-    PushBackWalkPolicy push_back_policy;
+            > walk(P, starting_point, a, rng);
 
     Point p = starting_point;
 
-    typedef GaussianRandomPointGenerator <walk> RandomPointGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, a, nburns, walk_len, randPoints,
-                                    push_back_policy, rng);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walk.apply(P, p, a, walk_len, rng);
+        }
     }
-    RandomPointGenerator::apply(P, p, a, rnum, walk_len, randPoints,
-                                push_back_policy, rng);
 
-
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walk.apply(P, p, a, walk_len, rng);
+        randPoints.push_back(p);
+    }
 }
 
 
@@ -199,25 +193,24 @@ void gaussian_sampling(PointList &randPoints,
                        unsigned int const& nburns)
 {
 
-    typedef typename WalkTypePolicy::template Walk
-            <
+    typename WalkTypePolicy::template Walk
+            <       
                     Polytope,
                     RandomNumberGenerator
-            > walk;
-
-    //RandomNumberGenerator rng(P.dimension());
-    PushBackWalkPolicy push_back_policy;
+            > walk(P, starting_point, a, rng);
 
     Point p = starting_point;
 
-    typedef GaussianRandomPointGenerator <walk> RandomPointGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, a, nburns, walk_len, randPoints,
-                                    push_back_policy, rng, WalkType.param);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walk.apply(P, p, a, walk_len, rng);
+        }
     }
-    RandomPointGenerator::apply(P, p, a, rnum, walk_len, randPoints,
-                                push_back_policy, rng, WalkType.param);
+
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walk.apply(P, p, a, walk_len, rng); 
+        randPoints.push_back(p);
+    }
 }
 
 template <
@@ -241,50 +234,38 @@ void logconcave_sampling(PointList &randPoints,
                          NegativeGradientFunctor &F,
                          NegativeLogprobFunctor &f)
 {
-    typedef typename WalkTypePolicy::template Walk
+    
+    typename WalkTypePolicy::template Walk
             <
-                    Point,
                     Polytope,
                     RandomNumberGenerator,
                     NegativeGradientFunctor,
                     NegativeLogprobFunctor,
                     Solver
-            > walk;
+            > logconcave_walk(P, starting_point, F, f, rng);
 
-    typedef typename WalkTypePolicy::template parameters
-            <
-                    NT,
-                    NegativeGradientFunctor
-            > walk_params;
+    auto params = typename WalkTypePolicy::parameters<F>(F, starting_point.dimension());
+    logconcave_walk.set_parameters(params);
 
-    // Initialize random walk parameters
-    unsigned int dim = starting_point.dimension();
-    walk_params params(F, dim);
-
-    if (F.params.eta > 0) {
-        params.eta = F.params.eta;
+    Point current_point = starting_point;
+    for (unsigned int i = 0; i < nburns; ++i) {
+        logconcave_walk.apply(current_point, walk_len, rng);
     }
 
     PushBackWalkPolicy push_back_policy;
-
-    Point p = starting_point;
-
-    walk logconcave_walk(&P, p, F, f, params);
-
-    typedef LogconcaveRandomPointGenerator<walk> RandomPointGenerator;
-    
-    if (nburns > 0) {
-        RandomPointGenerator::apply(nburns, walk_len, randPoints,
-                                push_back_policy, rng, logconcave_walk);
+    for (unsigned int i = 0; i < rnum; ++i) {
+        logconcave_walk.apply(current_point, walk_len, rng);
+        push_back_policy.apply(randPoints, current_point);
     }
     logconcave_walk.disable_adaptive();
-    randPoints.clear();
-
-    RandomPointGenerator::apply(rnum, walk_len, randPoints,
-                                push_back_policy, rng, logconcave_walk);
 }
+
+
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
+#include "random_walks/crhmc/crhmc_walk.hpp"
+#include "random_walks/crhmc/crhmc_walk.hpp"
+
 template
         <
         typename PointList,
@@ -309,54 +290,59 @@ void crhmc_sampling(PointList &randPoints,
                     HessianFunctor &h,
                     int simdLen = 1,
                     bool raw_output=false) {
-  typedef  typename Polytope::MT MatrixType;
-  typedef  crhmc_input
-          <
-                  MatrixType,
-                  Point,
-                  NegativeLogprobFunctor,
-                  NegativeGradientFunctor,
-                  HessianFunctor
-          > Input;
-  Input input = convert2crhmc_input<Input, Polytope, NegativeLogprobFunctor, NegativeGradientFunctor, HessianFunctor>(P, f, F, h);
-  typedef crhmc_problem<Point, Input> CrhmcProblem;
-  CrhmcProblem problem = CrhmcProblem(input);
-  if(problem.terminate){return;}
-  typedef typename WalkTypePolicy::template Walk
-          <
-                  Point,
-                  CrhmcProblem,
-                  RandomNumberGenerator,
-                  NegativeGradientFunctor,
-                  NegativeLogprobFunctor,
-                  Solver
-          > walk;
-  typedef typename WalkTypePolicy::template parameters
-          <
-                  NT,
-                  NegativeGradientFunctor
-          > walk_params;
-  Point p = Point(problem.center);
-  problem.options.simdLen=simdLen;
-  walk_params params(input.df, p.dimension(), problem.options);
+    typedef typename Polytope::MT MatrixType;
+    typedef  crhmc_input
+            <
+                    MatrixType,
+                    Point,
+                    NegativeLogprobFunctor,
+                    NegativeGradientFunctor,
+                    HessianFunctor
+            > Input;
+    Input input = convert2crhmc_input<Input, Polytope, NegativeLogprobFunctor, NegativeGradientFunctor, HessianFunctor>(P, f, F, h);
+    typedef crhmc_problem<Point, Input> CrhmcProblem;
+    CrhmcProblem problem = CrhmcProblem(input);
+    if(problem.terminate) { return; }
 
-  if (input.df.params.eta > 0) {
-    params.eta = input.df.params.eta;
-  }
+    Point p = Point(problem.center);
+    problem.options.simdLen=simdLen;
 
-  PushBackWalkPolicy push_back_policy;
+    typename CRHMCWalk::template parameters
+            <
+                    NT, 
+                    NegativeGradientFunctor
+            > params(F, P.dimension(), problem.options);
 
-  walk crhmc_walk = walk(problem, p, input.df, input.f, params);
 
-  typedef CrhmcRandomPointGenerator<walk> RandomPointGenerator;
+    if (input.df.params.eta > 0) {
+        params.eta = input.df.params.eta;
+    }
 
-  RandomPointGenerator::apply(problem, p, nburns, walk_len, randPoints,
-                              push_back_policy, rng, F, f, params, crhmc_walk);
-  //crhmc_walk.disable_adaptive();
-  randPoints.clear();
-  RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
-                              push_back_policy, rng, F, f, params, crhmc_walk, simdLen, raw_output);
+    
+    typename CRHMCWalk::template Walk
+            <
+                    Point,
+                    CrhmcProblem,
+                    RandomNumberGenerator,
+                    NegativeGradientFunctor,
+                    NegativeLogprobFunctor,
+                    Solver
+            > crhmc_walk(problem, p, F, f, params);
+
+    for(unsigned int i = 0; i < nburns; ++i) {
+        crhmc_walk.apply(rng, walk_len);
+    }
+
+    for(unsigned int i = 0; i < rnum; ++i) {
+        crhmc_walk.apply(rng, walk_len);
+        if (raw_output) {
+            
+        } else {
+            randPoints.push_back(crhmc_walk.getPoint());
+        }
+    }
 }
+
 #include "ode_solvers/ode_solvers.hpp"
 template <
         typename Polytope,
@@ -450,28 +436,32 @@ void exponential_sampling(PointList &randPoints,
                           const unsigned int &rnum,
                           const Point &c,
                           const NT &a,
-                          const Point &starting_point,
+                          Point &starting_point,
                           unsigned int const& nburns)
 {
-
     typedef typename WalkTypePolicy::template Walk
             <
-                    Polytope,
+                    Polytope, 
                     RandomNumberGenerator
             > walk;
 
     PushBackWalkPolicy push_back_policy;
+    Point p = starting_point; 
 
-    Point p = starting_point;
+    typedef ExponentialRandomPointGenerator<walk> RandomPointGenerator;
 
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, nburns, walk_len, randPoints,
-                                    push_back_policy, rng);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walk tmpWalk(P, p, rng); 
+            tmpWalk.apply(p, c, a, walk_len);  
+        }
     }
-    RandomPointGenerator::apply(P, p, c, a, rnum, walk_len, randPoints,
-                                push_back_policy, rng);
+
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walk tmpWalk(P, p, rng);  
+        tmpWalk.apply(p, c, a, walk_len);
+        randPoints.push_back(p);
+    }
 }
 
 
@@ -494,27 +484,24 @@ void exponential_sampling(PointList &randPoints,
                        const Point &starting_point,
                        unsigned int const& nburns)
 {
-
     typedef typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
             > walk;
+    
+    walk walkInstance(P, starting_point, rng, WalkType.param);  
 
-    PushBackWalkPolicy push_back_policy;
-
-    Point p = starting_point;
-
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, nburns, walk_len, randPoints,
-                                    push_back_policy, rng, WalkType.param);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walkInstance.apply(starting_point, c, a, walk_len);  
+        }
     }
-    RandomPointGenerator::apply(P, p, c, a, rnum, walk_len, randPoints,
-                                push_back_policy, rng, WalkType.param);
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walkInstance.apply(starting_point, c, a, walk_len);  
+        randPoints.push_back(starting_point);  
+    }
 }
-
 
 template
 <
@@ -533,28 +520,26 @@ void exponential_sampling(PointList &randPoints,
                        const Point &c,
                        const NT &a,
                        const NT &eta,
-                       const Point &starting_point,
+                       Point &starting_point,
                        unsigned int const& nburns)
 {
-
     typedef typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
             > walk;
 
-    PushBackWalkPolicy push_back_policy;
+    walk walkInstance(P, starting_point, rng);
 
-    Point p = starting_point;
-
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
-                                    push_back_policy, rng);
-        randPoints.clear();
+        for (unsigned int i = 0; i < nburns; ++i) {
+            walkInstance.apply(starting_point, c, a, eta, walk_len);
+        }
     }
-    RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
-                                push_back_policy, rng);
+    for (unsigned int i = 0; i < rnum; ++i) {
+        walkInstance.apply(starting_point, c, a, eta, walk_len);
+        randPoints.push_back(starting_point);
+    }
 }
 
 
@@ -578,25 +563,23 @@ void exponential_sampling(PointList &randPoints,
                        const Point &starting_point,
                        unsigned int const& nburns)
 {
-
-    typedef typename WalkTypePolicy::template Walk
+    
+    typename WalkTypePolicy::template Walk
             <
                     Polytope,
                     RandomNumberGenerator
-            > walk;
-
-    PushBackWalkPolicy push_back_policy;
+            > walk(P, starting_point, rng, WalkType.param);
 
     Point p = starting_point;
 
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
-    if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
-                                    push_back_policy, rng, WalkType.param);
-        randPoints.clear();
+    for(unsigned int i = 0; i < nburns; ++i) {
+        walk.apply(p, walk_len, c, a, eta, rng);
     }
-    RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
-                                push_back_policy, rng, WalkType.param);
+
+    for(unsigned int i = 0; i < rnum; ++i) {
+        walk.apply(p, walk_len, c, a, eta, rng);
+        randPoints.push_back(p);
+    }
 }
 
 
