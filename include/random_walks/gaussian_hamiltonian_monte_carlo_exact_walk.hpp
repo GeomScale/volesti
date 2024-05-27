@@ -272,4 +272,3 @@ private :
 
 
 #endif // RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
-

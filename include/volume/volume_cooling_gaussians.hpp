@@ -19,9 +19,7 @@
 #include <chrono>
 
 #include "cartesian_geom/cartesian_kernel.h"
-#include "random_walks/gaussian_helpers.hpp"
-#include "random_walks/gaussian_ball_walk.hpp"
-#include "random_walks/gaussian_cdhr_walk.hpp"
+#include "random_walks/random_walks.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
 
@@ -457,7 +455,7 @@ double volume_cooling_gaussians(Polytope& Pin,
 
 template
 <
-    typename WalkTypePolicy = GaussianCDHRWalk,
+    typename WalkTypePolicy = GaussianHamiltonianMonteCarloExactWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
@@ -472,7 +470,7 @@ double volume_cooling_gaussians(Polytope &Pin,
 
 template
 <
-    typename WalkTypePolicy = GaussianCDHRWalk,
+    typename WalkTypePolicy = GaussianHamiltonianMonteCarloExactWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
