@@ -18,10 +18,6 @@
 [![codecov](https://codecov.io/gh/GeomScale/volesti/branch/develop/graph/badge.svg)](https://codecov.io/gh/GeomScale/volesti)
 [![doc-actions](https://github.com/GeomScale/volesti/actions/workflows/docs.yml/badge.svg)](https://github.com/GeomScale/volesti/actions/workflows/docs.yml?query=branch%3Adevelop)
 
-[![R-CMD-ubuntu](https://github.com/GeomScale/volesti/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-ubuntu)
-[![R-CMD-macOS](https://github.com/GeomScale/volesti/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-macOS)
-[![R-CMD-windows](https://github.com/GeomScale/volesti/workflows/R-CMD-check-windows/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-windows)
-
 ### 📄 Documentation
 
 * [Package documentation](https://volesti.readthedocs.io)
@@ -37,8 +33,8 @@
 
 ### © Copyright and Licensing
 
-Copyright (c) 2012-2022 Vissarion Fisikopoulos\
-Copyright (c) 2018-2022 Apostolos Chalkis\
-Copyright (c) 2020-2022 Elias Tsigaridas
+Copyright (c) 2012-2024 Vissarion Fisikopoulos\
+Copyright (c) 2018-2024 Apostolos Chalkis\
+Copyright (c) 2020-2024 Elias Tsigaridas
 
 You may redistribute or modify the software under the [GNU Lesser General Public License](/LICENSE) as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
