@@ -20,8 +20,7 @@
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "random_walks/gaussian_helpers.hpp"
-#include "random_walks/gaussian_ball_walk.hpp"
-#include "random_walks/gaussian_cdhr_walk.hpp"
+#include "random_walks/random_walks.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
 
@@ -177,10 +176,9 @@ NT get_next_gaussian(Polytope& P,
     return last_a * std::pow(ratio, k);
 }
 
-// Compute the sequence of spherical gaussians
 template
 <
-    typename WalkType,
+    typename WalkTypePolicy,
     typename RandomPointGenerator,
     typename Polytope,
     typename NT,
@@ -195,7 +193,9 @@ void compute_annealing_schedule(Polytope& P,
                                 NT const& chebychev_radius,
                                 NT const& error,
                                 std::vector<NT>& a_vals,
-                                RandomNumberGenerator& rng)
+                                RandomNumberGenerator& rng,
+                                typename std::conditional<std::is_same<WalkTypePolicy, GaussianHamiltonianMonteCarloExactWalk>::value,
+                                typename GaussianHamiltonianMonteCarloExactWalk::parameters, void*>::type walk_params = nullptr)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Polytope::VT VT;
@@ -204,20 +204,14 @@ void compute_annealing_schedule(Polytope& P,
     get_first_gaussian(P, frac, chebychev_radius, error, a_vals);
 
 #ifdef VOLESTI_DEBUG
-    std::cout<<"first gaussian computed\n"<<std::endl;
+    std::cout << "first gaussian computed\n" << std::endl;
 #endif
 
     NT a_stop = 0.0;
     const NT tol = 0.001;
     unsigned int it = 0;
     unsigned int n = P.dimension();
-    const unsigned int totalSteps = ((int)150/((1.0 - frac) * error))+1;
-
-    if (a_vals[0]<a_stop) a_vals[0] = a_stop;
-
-#ifdef VOLESTI_DEBUG
-    std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
-#endif
+    const unsigned int totalSteps = static_cast<unsigned int>(150 / ((1.0 - frac) * error)) + 1;
 
     Point p(n);
 
@@ -225,35 +219,38 @@ void compute_annealing_schedule(Polytope& P,
     {
         // Compute the next gaussian
         NT next_a = get_next_gaussian<RandomPointGenerator>
-                      (P, p, a_vals[it], N, ratio, C, walk_length, rng);
+                    (P, p, a_vals[it], N, ratio, C, walk_length, rng);
+
+#ifdef VOLESTI_DEBUG
+        std::cout << "Processing a_vals[" << it << "] = " << a_vals[it] << ", next_a = " << next_a << std::endl;
+#endif
 
         NT curr_fn = 0;
         NT curr_its = 0;
-        auto steps = totalSteps;
 
-        WalkType walk(P, p, a_vals[it], rng);
-        //TODO: test update delta here?
+        if constexpr (std::is_same<WalkTypePolicy, GaussianHamiltonianMonteCarloExactWalk>::value) {
+            GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator> walk(P, p, a_vals[it], rng, walk_params);
 
-        update_delta<WalkType>
-                ::apply(walk, 4.0 * chebychev_radius
-                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+            for (unsigned int j = 0; j < totalSteps; ++j) {
+                walk.template apply(P, p, a_vals[it], walk_length, rng);
+                curr_its++;
+                curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
+            }
+        } else {
+            WalkTypePolicy walk(P, p, a_vals[it], rng);
 
-        // Compute some ratios to decide if this is the last gaussian
-        for (unsigned  int j = 0; j < steps; j++)
-        {
-            walk.template apply(P, p, a_vals[it], walk_length, rng);
-            curr_its += 1.0;
-            curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
+            for (unsigned int j = 0; j < totalSteps; ++j) {
+                walk.template apply(P, p, a_vals[it], walk_length, rng);
+                curr_its++;
+                curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
+            }
         }
 
-        // Remove the last gaussian.
-        // Set the last a_i equal to zero
-        if (next_a>0 && curr_fn/curr_its>(1.0+tol))
-        {
+        // pick the last gaussian
+        if (next_a > 0 && curr_fn / curr_its > (1.0 + tol)) {
             a_vals.push_back(next_a);
             it++;
-        } else if (next_a <= 0)
-        {
+        } else if (next_a <= 0) {
             a_vals.push_back(a_stop);
             it++;
             break;
@@ -263,6 +260,8 @@ void compute_annealing_schedule(Polytope& P,
         }
     }
 }
+
+
 
 template <typename NT>
 struct gaussian_annealing_parameters
@@ -292,7 +291,8 @@ template
 double volume_cooling_gaussians(Polytope& Pin,
                                 RandomNumberGenerator& rng,
                                 double const& error = 0.1,
-                                unsigned int const& walk_length = 1)
+                                unsigned int const& walk_length = 1,
+                                double L = -1)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -335,11 +335,22 @@ double volume_cooling_gaussians(Polytope& Pin,
     NT C = parameters.C;
     unsigned int N = parameters.N;
 
-    compute_annealing_schedule
-    <
-        WalkType,
-        RandomPointGenerator
-    >(P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng);
+    // Construct the necesary parameters if this is the case
+    // Construct the necessary parameters if this is the case
+    if constexpr (std::is_same<WalkTypePolicy, GaussianHamiltonianMonteCarloExactWalk>::value) {
+        if (L > 0) {
+            typename GaussianHamiltonianMonteCarloExactWalk::parameters walk_params(L, true, 0, false);
+            compute_annealing_schedule<GaussianHamiltonianMonteCarloExactWalk, RandomPointGenerator>(
+                P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng, walk_params);
+        } else {
+            compute_annealing_schedule<WalkType, RandomPointGenerator>(
+                P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng);
+        }
+        } else {
+            compute_annealing_schedule<WalkType, RandomPointGenerator>(
+                P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng);
+    }
+
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "
