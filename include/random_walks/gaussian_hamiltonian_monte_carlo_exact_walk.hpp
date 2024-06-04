@@ -224,8 +224,7 @@ private :
         }
     }
 
-    inline void update_position(Point& p, Point& v, const NT& T, const NT& omega) {
-
+    inline void update_position(Point &p, Point &v, NT const& T, NT const& omega) {
         NT next_p, next_v;
         
         NT sinVal = std::sin(omega * T);

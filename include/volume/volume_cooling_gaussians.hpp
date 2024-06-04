@@ -45,6 +45,16 @@ struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
     }
 };
 
+template <typename Polytope, typename RandomNumberGenerator>
+struct update_delta<GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator>>
+{
+    template <typename NT>
+    static void apply(GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator>& walk, NT delta)
+    {
+        walk.update_delta(delta);
+    }
+};
+
 
 ////////////////////////////// Algorithms
 
@@ -178,7 +188,7 @@ NT get_next_gaussian(Polytope& P,
 
 template
 <
-    typename WalkTypePolicy,
+    typename WalkType,
     typename RandomPointGenerator,
     typename Polytope,
     typename NT,
@@ -194,7 +204,7 @@ void compute_annealing_schedule(Polytope& P,
                                 NT const& error,
                                 std::vector<NT>& a_vals,
                                 RandomNumberGenerator& rng,
-                                typename std::conditional<std::is_same<WalkTypePolicy, GaussianHamiltonianMonteCarloExactWalk>::value,
+                                typename std::conditional<std::is_same<WalkType, GaussianHamiltonianMonteCarloExactWalk>::value,
                                 typename GaussianHamiltonianMonteCarloExactWalk::parameters, void*>::type walk_params = nullptr)
 {
     typedef typename Polytope::PointType Point;
@@ -228,8 +238,12 @@ void compute_annealing_schedule(Polytope& P,
         NT curr_fn = 0;
         NT curr_its = 0;
 
-        if constexpr (std::is_same<WalkTypePolicy, GaussianHamiltonianMonteCarloExactWalk>::value) {
+        if constexpr (std::is_same<WalkType, GaussianHamiltonianMonteCarloExactWalk>::value) {
             GaussianHamiltonianMonteCarloExactWalk::Walk<Polytope, RandomNumberGenerator> walk(P, p, a_vals[it], rng, walk_params);
+            
+            update_delta<decltype(walk)>::apply(walk, 4.0 * chebychev_radius / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+
+
 
             for (unsigned int j = 0; j < totalSteps; ++j) {
                 walk.template apply(P, p, a_vals[it], walk_length, rng);
@@ -237,7 +251,14 @@ void compute_annealing_schedule(Polytope& P,
                 curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
             }
         } else {
-            WalkTypePolicy walk(P, p, a_vals[it], rng);
+
+            WalkType walk(P, p, a_vals[it], rng);
+            //TODO: test update delta here?
+
+            update_delta<WalkType>
+                ::apply(walk, 4.0 * chebychev_radius
+                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+
 
             for (unsigned int j = 0; j < totalSteps; ++j) {
                 walk.template apply(P, p, a_vals[it], walk_length, rng);
@@ -260,8 +281,6 @@ void compute_annealing_schedule(Polytope& P,
         }
     }
 }
-
-
 
 template <typename NT>
 struct gaussian_annealing_parameters
@@ -336,7 +355,6 @@ double volume_cooling_gaussians(Polytope& Pin,
     unsigned int N = parameters.N;
 
     // Construct the necesary parameters if this is the case
-    // Construct the necessary parameters if this is the case
     if constexpr (std::is_same<WalkTypePolicy, GaussianHamiltonianMonteCarloExactWalk>::value) {
         if (L > 0) {
             typename GaussianHamiltonianMonteCarloExactWalk::parameters walk_params(L, true, 0, false);
@@ -346,7 +364,8 @@ double volume_cooling_gaussians(Polytope& Pin,
             compute_annealing_schedule<WalkType, RandomPointGenerator>(
                 P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng);
         }
-        } else {
+    } 
+    else {
             compute_annealing_schedule<WalkType, RandomPointGenerator>(
                 P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng);
     }

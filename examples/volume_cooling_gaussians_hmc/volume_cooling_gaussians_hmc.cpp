@@ -1,16 +1,16 @@
 #include "Eigen/Eigen"
 #include <vector>
 #include "cartesian_geom/cartesian_kernel.h"
-#include "hpolytope.h"
-#include "known_polytope_generators.h"
+#include "convex_bodies/hpolytope.h"
+#include "generators/known_polytope_generators.h"
 #include "random_walks/random_walks.hpp"
-#include "volume_sequence_of_balls.hpp"
-#include "volume_cooling_gaussians.hpp"
-#include "volume_cooling_balls.hpp"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
 
 #include <iostream>
 #include <fstream>
-#include "misc.h"
+#include "misc/misc.h"
 
 typedef double NT;
 typedef Cartesian<NT> Kernel;
@@ -18,8 +18,8 @@ typedef typename Kernel::Point Point;
 typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 typedef HPolytope<Point> HPOLYTOPE;
 
-void calculateAndVerifyVolume(HPOLYTOPE& polytope, const std::string& description, NT expectedVolume, NT epsilon, NT L) {
-    int walk_len = 200;
+void verify_volume(HPOLYTOPE& polytope, const std::string& description, NT expectedVolume, NT epsilon, NT L) {
+    int walk_len = 1;
     NT e = 0.1;
 
     std::cout << "Calculating volume for " << description << ":\n";
@@ -40,19 +40,19 @@ int main() {
     
     // 3-dimensional cube
     HPOLYTOPE cube = generate_cube<HPOLYTOPE>(3, false);
-    calculateAndVerifyVolume(cube, "3-dimensional cube", 1.0, epsilon, 10);
+    verify_volume(cube, "3-dimensional cube", 1.0, epsilon, 4);
 
     // 3-dimensional cross polytope
     HPOLYTOPE crossPolytope = generate_cross<HPOLYTOPE>(3, false);
-    calculateAndVerifyVolume(crossPolytope, "3-dimensional cross polytope", 4.0 / 6.0, epsilon, 10);
+    verify_volume(crossPolytope, "3-dimensional cross polytope", 4.0 / 6.0, epsilon, 4);
 
     // 3-dimensional simplex
     HPOLYTOPE simplex = generate_simplex<HPOLYTOPE>(3, false);
-    calculateAndVerifyVolume(simplex, "3-dimensional simplex", 1.0 / 6.0, epsilon, 4);
+    verify_volume(simplex, "3-dimensional simplex", 1.0 / 6.0, epsilon, 10);
 
-    // birkhoff polytope dimension 3 
+    // 4-dimensional birkhoff  
     HPOLYTOPE birkhoffPolytope = generate_birkhoff<HPOLYTOPE>(3);
-    calculateAndVerifyVolume(birkhoffPolytope, "Birkhoff polytope (dim 3)", -1, epsilon, 8);  // Theoretical volume not easily available
+    verify_volume(birkhoffPolytope, "Birkhoff polytope (dim 4)", 1.0 / 16.0, epsilon, 2);  // Theoretical volume not easily available
 
     return 0;
 }

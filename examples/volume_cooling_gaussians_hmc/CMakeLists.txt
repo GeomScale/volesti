@@ -74,21 +74,8 @@ else ()
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   include_directories (BEFORE ../../external)
-  include_directories (BEFORE ../../external/minimum_ellipsoid)
-  include_directories (BEFORE ../../include/generators)
-  include_directories (BEFORE ../../include/volume)
   include_directories (BEFORE ../../include)
-  include_directories (BEFORE ../../include/lp_oracles)
-  include_directories (BEFORE ../../include/nlp_oracles)
-  include_directories (BEFORE ../../include/convex_bodies)
-  include_directories (BEFORE ../../include/random_walks)
-  include_directories (BEFORE ../../include/annealing)
-  include_directories (BEFORE ../../include/ode_solvers)
-  include_directories (BEFORE ../../include/root_finders)
-  include_directories (BEFORE ../../include/samplers)
-  include_directories (BEFORE ../../include/misc)
-  include_directories (BEFORE ../../include/optimization)
-  include_directories (BEFORE ../../test)
+
 
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -98,7 +85,6 @@ else ()
   endif ()
 
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
