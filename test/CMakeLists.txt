@@ -348,6 +348,12 @@ add_test(NAME test_new_rdhr_uniform_MT COMMAND matrix_sampling_test -tc=new_rdhr
 add_test(NAME test_new_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_billiard_uniform_MT)
 add_test(NAME test_new_accelerated_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform_MT)
 
+add_executable(gaussian_hmc_reflections_test gaussian_hmc_reflections_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME ghmc_reflections_test_cube COMMAND gaussian_hmc_reflections_test -tc=cube)
+add_test(NAME ghmc_reflections_test_cross COMMAND gaussian_hmc_reflections_test -tc=cross)
+add_test(NAME ghmc_reflections_test_simplex COMMAND gaussian_hmc_reflections_test -tc=simplex)
+
+
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
@@ -388,3 +394,4 @@ TARGET_LINK_LIBRARIES(logconcave_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} 
 TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(gaussian_hmc_reflections_test lp_solve coverage_config)
