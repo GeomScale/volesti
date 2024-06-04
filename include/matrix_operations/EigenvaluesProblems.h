@@ -168,8 +168,9 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-            geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+            geigs(&op, &Bop, 1, ncv);
 
         // Initialize and compute
         geigs.init();
@@ -325,8 +326,9 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest generalized eigenvalue
+        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-            geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+            geigs(&op, &Bop, 1, ncv);
 
         // Initialize and compute
         geigs.init();
@@ -443,12 +445,13 @@ public:
 	    int matrixDim = A.rows();
     NT lambdaMinPositive;
     
-    Spectra::DenseSymMatProd<NT> op(A);
-    Spectra::DenseCholesky<NT> Bop(B);
+    Spectra::DenseSymMatProd<NT> op(B);
+    Spectra::DenseCholesky<NT> Bop(A);
     
     //construct generalized eigen solver object, requesting the smallest eigenvalue
-    Spectra::SymGEigsSolver<NT, Spectra::SMALLEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-        	geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+    int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
+    Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
+        	geigs(&op, &Bop, 1, ncv);
    	 
     	//initialize and compute
     	geigs.init();
@@ -462,7 +465,7 @@ public:
    		 eigvec = geigs.eigenvectors().col(0);
     	}
    	 
-    	lambdaMinPositive = evalues(0);
+    	lambdaMinPositive = NT(1)/evalues(0);
 
 #elif
         NT lambdaMinPositive = NT(0);
