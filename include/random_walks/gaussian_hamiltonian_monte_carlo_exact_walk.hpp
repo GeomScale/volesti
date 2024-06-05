@@ -81,15 +81,15 @@ struct Walk
         typename GenericPolytope
     >
     inline void apply(GenericPolytope& P,
-                      Point& p,
-                      NT const& a_i,
-                      unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
+                    Point& p,
+                    NT const& a_i,
+                    unsigned int const& walk_length,
+                    RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
         NT T;
 
-        for (auto j=0u; j<walk_length; ++j)
+        for (auto j = 0u; j < walk_length; ++j)
         {
             T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng, false);
@@ -100,20 +100,24 @@ struct Walk
                 auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
                 if (T <= pbpair.first) {
                     update_position(_p, _v, T, _omega);
+                    assert(P.is_in(_p) != 0 && "Point is outside the polytope after update_position");
                     break;
                 }
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
+                assert(P.is_in(_p) != 0 && "Point is outside the polytope after update_position");
                 P.compute_reflection(_v, _p, pbpair.second);
+                assert(P.is_in(_p) != 0 && "Point is outside the polytope after compute_reflection");
                 it++;
             }
-            if (it == _rho){
+            if (it == _rho) {
                 _p = p0;
             }
         }
         p = _p;
     }
+
 
 
     template

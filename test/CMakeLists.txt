@@ -352,6 +352,7 @@ add_executable(gaussian_hmc_reflections_test gaussian_hmc_reflections_test.cpp $
 add_test(NAME ghmc_reflections_test_cube COMMAND gaussian_hmc_reflections_test -tc=cube)
 add_test(NAME ghmc_reflections_test_cross COMMAND gaussian_hmc_reflections_test -tc=cross)
 add_test(NAME ghmc_reflections_test_simplex COMMAND gaussian_hmc_reflections_test -tc=simplex)
+add_test(NAME ghmc_reflections_test_random_hpoly COMMAND gaussian_hmc_reflections_test -tc=random_hpoly)
 
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
