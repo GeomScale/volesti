@@ -100,15 +100,15 @@ struct Walk
                 auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
                 if (T <= pbpair.first) {
                     update_position(_p, _v, T, _omega);
-                    assert(P.is_in(_p) != 0 && "Point is outside the polytope after update_position");
+                    assert(P.is_in(_p) == 0);
                     break;
                 }
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
-                assert(P.is_in(_p) != 0 && "Point is outside the polytope after update_position");
+                assert(P.is_in(_p) == 0);
                 P.compute_reflection(_v, _p, pbpair.second);
-                assert(P.is_in(_p) != 0 && "Point is outside the polytope after compute_reflection");
+                assert(P.is_in(_p) == 0);
                 it++;
             }
             if (it == _rho) {
