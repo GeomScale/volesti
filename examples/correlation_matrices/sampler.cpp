@@ -90,10 +90,12 @@ void write_to_file(std::string filename, std::vector<PointType> const& randPoint
 }
 
 bool is_correlation_matrix(const MT& matrix){
+
+	const double tol = 1e-8;
 	
 	//check if all the diagonal elements are ones
 	for(int i=0 ; i<matrix.rows() ; i++){
-		if(matrix(i,i) != 1.0){
+		if(std::abs(matrix(i, i)-1.0) > tol){
 			return false;
 		}
 	}
@@ -104,7 +106,7 @@ bool is_correlation_matrix(const MT& matrix){
 	if(eigen_solver.info() != Eigen::Success) return false;
 	
 	//the matrix is positive definite if all eigenvalues are positive
-	return eigen_solver.eigenvalues().minCoeff() > 0;
+	return eigen_solver.eigenvalues().minCoeff() > tol;
 }
 
 template<typename WalkType>
@@ -143,8 +145,21 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
-
+    
+    int valid_points = 0;
+    for(const auto& points : randPoints){
+    	if(is_correlation_matrix(points.mat)){
+    		valid_points++;
+    	}
+    	
+    }
+    
+    
+    std::cout << "Number of valid points = " << valid_points << std::endl;
+    	
     write_to_file<PointMT>(walkname + "_matrices_MT.txt", randPoints);
+
+    //write_to_file<PointMT>(walkname + "_matrices_MT.txt", randPoints);
 }
 
 int main(int argc, char const *argv[]){
