@@ -9,7 +9,7 @@
 #define H_POLYTOPES_GEN_H
 
 #include <exception>
-
+#include <chrono>
 
 #ifndef isnan
   using std::isnan;

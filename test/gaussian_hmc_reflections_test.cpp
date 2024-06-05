@@ -6,7 +6,7 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
 #include "generators/known_polytope_generators.h"
-//#include "generators/h_polytopes_generator.h" // Include your polytope generator
+#include "generators/h_polytopes_generator.h" // Include your polytope generator
 #include "random_walks/random_walks.hpp"
 #include "misc/misc.h"
 #include "doctest.h"
@@ -25,9 +25,9 @@ void test_gaussian_hmc_reflections(const std::string& polytope_type, RNGType& rn
         P = generate_cross<Polytope>(dim, false);
     } else if (polytope_type == "simplex") {
         P = generate_simplex<Polytope>(dim, false);
-    } /*else if (polytope_type == "random") {
-       P = random_hpoly<Polytope, RNGType>(dim, m);
-    } */ else {
+    } else if (polytope_type == "random") {
+       P = random_hpoly<Polytope, boost::mt19937>(dim, m, 123456);
+    }  else {
         std::cout << "Unknown polytope type: " << polytope_type << std::endl;
         return;
     }
@@ -58,8 +58,8 @@ TEST_CASE("GHMC Reflections Test - Simplex") {
     RNGType rng(123456);
     test_gaussian_hmc_reflections("simplex", rng, 10);
 }
-/*
+
 TEST_CASE("GHMC Reflections Test - Random Polytope") {
     RNGType rng(123456);
     test_gaussian_hmc_reflections("random", rng, 10, 3, 30); // 3D polytope with 30 hyperplanes
-}*/
+}
