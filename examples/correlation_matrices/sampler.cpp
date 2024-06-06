@@ -126,7 +126,7 @@ void correlation_matrix_uniform_sampling(const unsigned int n, const unsigned in
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
-    write_to_file<Point>(walkname + "_matrices.txt", randPoints);
+    write_to_file<Point>(walkname + "_matrices" + std::to_string(n) + ".txt", randPoints);
 }
 
 template<typename WalkType>
@@ -157,9 +157,7 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     
     std::cout << "Number of valid points = " << valid_points << std::endl;
     	
-    write_to_file<PointMT>(walkname + "_matrices_MT.txt", randPoints);
-
-    //write_to_file<PointMT>(walkname + "_matrices_MT.txt", randPoints);
+    write_to_file<PointMT>(walkname + "_matrices_MT" + std::to_string(n) + ".txt", randPoints);
 }
 
 int main(int argc, char const *argv[]){
@@ -179,25 +177,30 @@ int main(int argc, char const *argv[]){
     printf("\n");
 #endif
 
-    unsigned int n = 3, num_points = 5000;
+    unsigned int num_points = 5000;
+    
+    std::vector<unsigned int> dimensions = {3, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    
+    for(unsigned int n : dimensions){
 
-    old_uniform_sampling<BilliardWalk>(n, num_points);
+    	old_uniform_sampling<BilliardWalk>(n, num_points);
 
-    correlation_matrix_uniform_sampling<BallWalk>(n, num_points, "BallWalk");
+    	correlation_matrix_uniform_sampling<BallWalk>(n, num_points, "BallWalk");
 
-    correlation_matrix_uniform_sampling<RDHRWalk>(n, num_points, "RDHRWalk");
+    	correlation_matrix_uniform_sampling<RDHRWalk>(n, num_points, "RDHRWalk");
 
-    correlation_matrix_uniform_sampling<BilliardWalk>(n, num_points, "BilliardWalk");
+    	correlation_matrix_uniform_sampling<BilliardWalk>(n, num_points, "BilliardWalk");
 
-    correlation_matrix_uniform_sampling<AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
+    	correlation_matrix_uniform_sampling<AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
 
-    correlation_matrix_uniform_sampling_MT<BallWalk>(n, num_points, "BallWalk");
+    	correlation_matrix_uniform_sampling_MT<BallWalk>(n, num_points, "BallWalk");
 
-    correlation_matrix_uniform_sampling_MT<RDHRWalk>(n, num_points, "RDHRWalk");
+    	correlation_matrix_uniform_sampling_MT<RDHRWalk>(n, num_points, "RDHRWalk");
 
-    correlation_matrix_uniform_sampling_MT<BilliardWalk>(n, num_points, "BilliardWalk");
+    	correlation_matrix_uniform_sampling_MT<BilliardWalk>(n, num_points, "BilliardWalk");
 
-    correlation_matrix_uniform_sampling_MT<AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
+    	correlation_matrix_uniform_sampling_MT<AcceleratedBilliardWalk>(n, num_points, "AcceleratedBilliardWalk");
+    }
 
     return 0;
 }
