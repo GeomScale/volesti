@@ -8,7 +8,43 @@
 #define SAMPLE_POINTS_HPP
 
 struct UniformDistribution {};
-struct GaussianDistribution {};
+
+struct SphericalGaussianDistribution
+{
+    SphericalGaussianDistribution()
+        :   variance(1.0)
+    {}
+    SphericalGaussianDistribution(double _variance)
+        :   variance(_variance)
+    {}
+    double variance;
+};
+
+struct GaussianDistribution
+{
+    using CartesianEllipsoid = Ellipsoid<point<Cartesian<double>>>;
+
+    GaussianDistribution() {}
+
+    GaussianDistribution(CartesianEllipsoid _ellipsoid)
+        :   ellipsoid(_ellipsoid)
+    {}
+    CartesianEllipsoid ellipsoid;
+};
+
+struct ExponentialDistribution
+{
+    using CartesianPoint = point<Cartesian<double>>;
+
+    ExponentialDistribution() {}
+
+    ExponentialDistribution(CartesianPoint _c, double _T)
+        :   c(_c)
+        ,   T(_T)
+    {}
+    CartesianPoint c;
+    double T;
+};
 
 namespace detail
 {
@@ -33,7 +69,7 @@ template
     typename RandomNumberGenerator,
     typename PointList
 >
-void sample_points(Polytope const& P,
+void sample_points(Polytope& P, // TODO: make it a const&
                    Point const& starting_point,
                    WalkType const& walk_with_parameters,
                    Distribution const& distribution,
@@ -68,16 +104,75 @@ void sample_points(Polytope const& P,
             walk.apply(P, p, walk_len, rng);
         }
 
+        samples.reserve(rnum);
         for (unsigned int i = 0; i < rnum; ++i)
         {
             walk.apply(P, p, walk_len, rng);
             samples.push_back(p);
         }
     }
-    else if constexpr (std::is_same<WalkType, GaussianBallWalk>::value
-               && std::is_same<Distribution, GaussianDistribution>::value)
+    else if constexpr ((std::is_same<WalkType, GaussianBallWalk>::value
+                     || std::is_same<WalkType, GaussianCDHRWalk>::value
+                     || std::is_same<WalkType, GaussianHamiltonianMonteCarloExactWalk>::value
+                     || std::is_same<WalkType, GaussianRDHRWalk>::value)
+                    && std::is_same<Distribution, SphericalGaussianDistribution>::value)
     {
-        //TODO
+        typename WalkType::template Walk<Polytope, RandomNumberGenerator>
+            walk(P, starting_point, distribution.variance, rng, walk_with_parameters.param);
+
+        Point p = starting_point;
+
+        for (unsigned int i = 0; i < nburns; ++i)
+        {
+            walk.apply(P, p, distribution.variance, walk_len, rng);
+        }
+
+        samples.reserve(rnum);
+        for (unsigned int i = 0; i < rnum; ++i)
+        {
+            walk.apply(P, p, distribution.variance, walk_len, rng);
+            samples.push_back(p);
+        }
+    }
+    else if constexpr (std::is_same<WalkType, GaussianAcceleratedBilliardWalk>::value
+                    && std::is_same<Distribution, GaussianDistribution>::value)
+    {
+        typename WalkType::template Walk<Polytope, RandomNumberGenerator>
+            walk(P, starting_point, distribution.ellipsoid, rng, walk_with_parameters.param);
+
+        Point p = starting_point;
+
+        for (unsigned int i = 0; i < nburns; ++i)
+        {
+            walk.apply(P, p, distribution.ellipsoid, walk_len, rng);
+        }
+
+        samples.reserve(rnum);
+        for (unsigned int i = 0; i < rnum; ++i)
+        {
+            walk.apply(P, p, distribution.ellipsoid, walk_len, rng);
+            samples.push_back(p);
+        }
+    }
+    else if constexpr (std::is_same<WalkType, ExponentialHamiltonianMonteCarloExactWalk>::value
+                    && std::is_same<Distribution, ExponentialDistribution>::value)
+    {
+        typename WalkType::template Walk<Polytope, RandomNumberGenerator>
+            walk(P, starting_point, distribution.c, distribution.T, rng, walk_with_parameters.param);
+
+        Point p = starting_point;
+
+        for (unsigned int i = 0; i < nburns; ++i)
+        {
+            walk.apply(P, p, walk_len, rng);
+        }
+
+        samples.reserve(rnum);
+        for (unsigned int i = 0; i < rnum; ++i)
+        {
+            walk.apply(P, p, walk_len, rng);
+            samples.push_back(p);
+        }
     }
     else
     {

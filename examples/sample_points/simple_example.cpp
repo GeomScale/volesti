@@ -21,15 +21,15 @@ typedef typename Kernel::Point Point;
 typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
 typedef HPolytope<Point> HPolytopeType;
 
+using NT = double;
+using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
+using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
+
 template <typename Walk, typename Distribution>
 void sample_points_eigen_matrix(HPolytopeType const& HP, Point const& q, Walk const& walk,
                                 Distribution const& distr, RNGType rng, int walk_len, int rnum,
                                 int nburns)
 {
-    using NT = double;
-    using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
-    using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
-
     MT samples(HP.dimension(), rnum);
 
     sample_points(HP, q, walk, distr, rng, walk_len, rnum, nburns, samples);
@@ -54,6 +54,8 @@ int main() {
     RNGType rng(HP.dimension());
 
     // NEW INTERFACE Sampling
+
+    // Walks
     AcceleratedBilliardWalk abill_walk;
     AcceleratedBilliardWalk abill_walk_custom(10); //user defined walk parameters
     BallWalk ball_walk;
@@ -65,21 +67,43 @@ int main() {
     VaidyaWalk vaidya_walk;
 
     GaussianBallWalk gball_walk;
+    GaussianCDHRWalk gcdhr_walk;
+    GaussianRDHRWalk grdhr_walk;
+    GaussianHamiltonianMonteCarloExactWalk ghmc_walk;
+
+    GaussianAcceleratedBilliardWalk gbill_walk;
+
+    ExponentialHamiltonianMonteCarloExactWalk ehmc_walk;
+
+    // Distributions
 
     UniformDistribution udistr{};
-    GaussianDistribution gdistr{};
+    SphericalGaussianDistribution sgdistr{};
+
+    MT A(2, 2);
+    A << 0.25, 0.75,
+         0.75, 3.25;
+    Ellipsoid<Point> ell(A);    // origin centered ellipsoid
+    GaussianDistribution gdistr(ell);
+
+    NT variance = 1.0;
+    auto c = GetDirection<Point>::apply(HP.dimension(), rng, false);
+    ExponentialDistribution edistr(c, variance);
+
+    // Sampling
 
     using NT = double;
     using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
     using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
 
-    int rnum = 100;
-    int nburns = 50;
-    int walk_len = 10;
+    int rnum = 20;
+    int nburns = 5;
+    int walk_len = 2;
 
     MT samples(HP.dimension(), rnum);
 
     // 1. the eigen matrix interface
+    std::cout << "uniform" << std::endl;
     sample_points_eigen_matrix(HP, q, abill_walk, udistr, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, abill_walk_custom, udistr, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, ball_walk, udistr, rng, walk_len, rnum, nburns);
@@ -89,6 +113,21 @@ int main() {
     sample_points_eigen_matrix(HP, q, rdhr_walk, udistr, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, vaidya_walk, udistr, rng, walk_len, rnum, nburns);
 
+    std::cout << "shperical gaussian" << std::endl;
+    sample_points_eigen_matrix(HP, q, gball_walk, sgdistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, gcdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, grdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, ghmc_walk, sgdistr, rng, walk_len, rnum, nburns);
+
+    std::cout << "general gaussian" << std::endl;
+    sample_points_eigen_matrix(HP, q, gbill_walk, gdistr, rng, walk_len, rnum, nburns);
+
+    std::cout << "exponential" << std::endl;
+    sample_points_eigen_matrix(HP, q, ehmc_walk, edistr, rng, walk_len, rnum, nburns);
+
+    std::cout << "logconcave" << std::endl;
+
+    std::cout << "fix the following" << std::endl;
     // TODO: fix
     // Does not converge because of the starting point
     // Also ess returns rnum instead of 0
@@ -97,6 +136,7 @@ int main() {
     // Does not compile because of walk-distribution combination
     //sample_points_eigen_matrix(HP, q, abill_walk, gdistr, rng, walk_len, rnum, nburns);
 
+    std::cout << "std::vector interface" << std::endl;
     // 2. the std::vector interface
     std::vector<Point> points;
     sample_points(HP, q, cdhr_walk, udistr, rng, walk_len, rnum, nburns, points);
