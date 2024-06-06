@@ -106,7 +106,7 @@ bool is_correlation_matrix(const MT& matrix){
 	if(eigen_solver.info() != Eigen::Success) return false;
 	
 	//the matrix is positive definite if all eigenvalues are positive
-	return eigen_solver.eigenvalues().minCoeff() > tol;
+	return eigen_solver.eigenvalues().minCoeff() > -tol;
 }
 
 template<typename WalkType>
