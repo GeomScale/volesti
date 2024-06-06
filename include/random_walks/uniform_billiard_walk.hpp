@@ -12,7 +12,6 @@
 #define RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP
 
 #include <Eigen/Eigen>
-#include <iostream>
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
