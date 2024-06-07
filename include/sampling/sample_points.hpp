@@ -46,6 +46,40 @@ struct ExponentialDistribution
     double T;
 };
 
+
+/*
+template <typename GradientFunctor, typename FunctionFunctor>
+struct LogConcaveDistribution
+{
+    LogConcaveDistribution() {}
+
+    LogConcaveDistribution(GradientFunctor g, FunctionFunctor f)
+        : grad(g)
+        , func(f)
+    {}
+
+    GradientFunctor grad;
+    FunctionFunctor func;
+};
+*/
+
+
+struct LogConcaveDistribution
+{
+    using CartesianPoint = point<Cartesian<double>>;
+
+    template <typename GradientFunctor, typename FunctionFunctor>
+    LogConcaveDistribution(GradientFunctor g, FunctionFunctor f, double _L)
+        : grad(g)
+        , func(f)
+        , L(_L)
+    {}
+
+    std::function<CartesianPoint(unsigned int const&, std::vector<CartesianPoint> const&, double const&)> grad;
+    std::function<double(CartesianPoint const&)> func;
+    double L;
+};
+
 namespace detail
 {
 
@@ -173,6 +207,44 @@ void sample_points(Polytope& P, // TODO: make it a const&
             walk.apply(P, p, walk_len, rng);
             samples.push_back(p);
         }
+    }
+    else if constexpr ((std::is_same<WalkType, HamiltonianMonteCarloWalk>::value
+                     || std::is_same<WalkType, NutsHamiltonianMonteCarloWalk>::value)
+                    && std::is_same<Distribution, LogConcaveDistribution>::value)
+    {
+        using HPolytope = typename std::remove_const<Polytope>::type;
+
+        using Solver = LeapfrogODESolver<Point, double, HPolytope, decltype(distribution.grad)>;
+
+        std::vector<Point> xs;
+        unsigned int i = 0;
+        double t = 1.0;
+
+        typename WalkType::parameters
+        <
+            double,
+            decltype(distribution.grad)
+        > hmc_params(distribution.L, P.dimension());
+
+        Point walk_p = starting_point; //TODO: avoid the copy
+        auto g = distribution.grad;
+        auto f = distribution.func;
+
+        HPolytope P_copy = P; //TODO: avoid the copy
+        typename WalkType::template Walk
+        <
+            Point, HPolytope, RandomNumberGenerator,
+            decltype(distribution.grad), decltype(distribution.func), Solver
+        >
+        walk(&P_copy, walk_p, g, f, hmc_params);
+
+        Point p = starting_point;
+
+        for (int i = 0; i < rnum; i++) {
+            walk.apply(rng, 3);
+            samples.push_back(walk.x);
+        }
+
     }
     else
     {
