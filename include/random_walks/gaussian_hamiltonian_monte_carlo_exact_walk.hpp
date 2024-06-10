@@ -81,15 +81,15 @@ struct Walk
         typename GenericPolytope
     >
     inline void apply(GenericPolytope& P,
-                    Point& p,
-                    NT const& a_i,
-                    unsigned int const& walk_length,
-                    RandomNumberGenerator &rng)
+                      Point& p,
+                      NT const& a_i,
+                      unsigned int const& walk_length,
+                      RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
         NT T;
 
-        for (auto j = 0u; j < walk_length; ++j)
+        for (auto j=0u; j<walk_length; ++j)
         {
             T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng, false);
@@ -97,27 +97,96 @@ struct Walk
             int it = 0;
             while (it < _rho)
             {
+                //std::cout<<"Those are the vectors we are working with: ";
+                //_p.print();
+                //std::cout<<"\n";
                 auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
+                std::cout<<pbpair.first - T<<std::endl;
+                
                 if (T <= pbpair.first) {
+
                     update_position(_p, _v, T, _omega);
-                    assert(P.is_in(_p) == 0);
+
+                    //WOW1 is not printed
+                    if(P.is_in(_p) != -1)
+                        std::cout<<"WOW1"<<std::endl;
+
+                    //if -1, the it is inside
+                    assert(P.is_in(_p) == -1);
+
                     break;
                 }
+
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
+                //Navigate
+                std::cout<<"Position before update ";
+                _p.print();
+                std::cout<<"Is in value before update: "<<P.is_in(_p)<<std::endl;
+
                 update_position(_p, _v, _lambda_prev, _omega);
-                assert(P.is_in(_p) == 0);
+                
+                std::cout<<"Position after update ";
+                _p.print(); 
+                std::cout<<"Is in value after update: "<<P.is_in(_p)<<std::endl;
+                
+                if(P.is_in(_p) != -1)
+                {
+                    NT epsilon = NT(1e-5);
+                    NT cnt = 0;
+                    while (P.is_in(_p) != -1) {
+                        Point inward_shift(P.get_mat().row(pbpair.second));
+                        inward_shift.operator*=(epsilon); 
+                        if(cnt < 1)
+                        {
+                            std::cout<<"This is the inward shift: ";
+                            inward_shift.print();
+                        }
+                        _p -= inward_shift;  // Apply the shift
+                        cnt++;
+                        if(cnt > 1000000)
+                        {
+                            std::cout<<"Something is wrong, point after the computation: ";
+                            _p.print();
+                            std::cout<<epsilon<<"\n"<<P.get_mat().row(pbpair.second);
+
+                            /*
+                            std::cout<<"\n"<<"\n"<<"Multiplication Debug";
+                            Point tempVec(P.get_mat().row(pbpair.second)); // Get the inward normal vector scaled by epsilon
+                            std::cout<<std::endl<<"WOW TempVec: ";
+                            tempVec.print();
+                            std::cout<<std::endl<<"WOW Facet: "<<pbpair.second<<std::endl;
+                            std::cout<<std::endl<<"WOW Row: "<<P.get_mat().row(pbpair.second)<<std::endl;
+                            Point inward_shift(tempVec);
+                            inward_shift.print();
+                            inward_shift.operator*=(epsilon); 
+                            inward_shift.print();
+                            */
+                            break;
+                        }
+                    }
+                    if(P.is_in(_p) != -1)
+                        std::cout<<"AHAM"<<std::endl;
+                }
+                
+                std::cout<<"Second assertion: ";
+                assert(P.is_in(_p)== -1);
+                std::cout<<"\n";
+                
                 P.compute_reflection(_v, _p, pbpair.second);
-                assert(P.is_in(_p) == 0);
+                std::cout<<"Third assertion: ";
+                assert(P.is_in(_p)== -1);
+                if(P.is_in(_p) != -1)
+                    std::cout<<"WOW3"<<std::endl;
+                
                 it++;
             }
-            if (it == _rho) {
+            if (it == _rho){
                 _p = p0;
             }
         }
         p = _p;
     }
-
 
 
     template
@@ -230,6 +299,7 @@ private :
 
     inline void update_position(Point &p, Point &v, NT const& T, NT const& omega)
     {
+        //Navigate
         NT C, Phi;
         for (size_t i = 0; i < p.dimension(); i++)
         {
@@ -276,4 +346,3 @@ private :
 
 
 #endif // RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
-

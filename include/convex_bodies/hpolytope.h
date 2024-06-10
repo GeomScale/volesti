@@ -65,6 +65,7 @@ public:
         _d{d_}, A{A_}, b{b_}
     {
     }
+    //Navigate
 
     // Copy constructor
     HPolytope(HPolytope<Point> const& p) :
@@ -750,22 +751,20 @@ public:
     }
 
 
-    //------------oracle for exact hmc spherical gaussian sampling---------------//
-
+    // Boundary oracle for exact hmc spherical gaussian sampling
     // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by A and b
+    // with polytope discribed by A and b (the ray describes a curve)
     std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
                                                         NT const& omega, int &facet_prev) const
     {
+        constexpr NT pi_2 = NT(2.0) * M_PI;
+        NT t = std::numeric_limits<NT>::max();
 
-        NT lamda = 0, C, Phi, t1, t2, tmin;
-        NT min_plus = std::numeric_limits<NT>::max(), t = std::numeric_limits<NT>::max();
-        NT max_minus = std::numeric_limits<NT>::lowest();
-        VT sum_nom, sum_denom;
-        unsigned int j;
-        int m = num_of_hyperplanes(), facet = -1;
+        int m = num_of_hyperplanes();
+        int facet = -1;
 
-
+        VT sum_nom;
+        VT sum_denom;
         sum_nom.noalias() = A * r.getCoefficients();
         sum_denom.noalias() = A * v.getCoefficients();
 
@@ -773,32 +772,39 @@ public:
         NT* sum_denom_data = sum_denom.data();
         const NT* b_data = b.data();
 
+        const NT omega_sqr = omega * omega;
+        const NT pi_2_omega = pi_2 / omega;
+
         for (int i = 0; i < m; i++) {
 
-            C = std::sqrt((*sum_nom_data) * (*sum_nom_data) + ((*sum_denom_data) * (*sum_denom_data)) / (omega * omega));
-            Phi = std::atan((-(*sum_denom_data)) / ((*sum_nom_data) * omega));
+            NT C = std::sqrt((*sum_nom_data) * (*sum_nom_data) + ((*sum_denom_data) * (*sum_denom_data))
+              / omega_sqr);
+            NT Phi = std::atan((-(*sum_denom_data)) / ((*sum_nom_data) * omega));
+
             if ((*sum_denom_data) < 0.0 && Phi < 0.0) {
                 Phi += M_PI;
             } else if ((*sum_denom_data) > 0.0 && Phi > 0.0) {
                 Phi -= M_PI;
             }
-
+            //Navigate
+            //std::cout<<std::endl<<"C: "<<C<<" b_data: "<<(*b_data)<<std::endl<<(*b_data) - C<<std::endl;
             if (C > (*b_data)) {
+                //std::cout<<std::endl<<"Entered t1 and t2 calculation"<<std::endl;
                 NT acos_b = std::acos((*b_data) / C);
-                t1 = (acos_b - Phi) / omega;
+                NT t1 = (acos_b - Phi) / omega;
                 if (facet_prev == i && std::abs(t1) < 1e-10){
-                    t1 = (2.0 * M_PI) / omega;
+                    t1 = pi_2_omega;
                 }
 
-                t2 = (-acos_b - Phi) / omega;
+                NT t2 = (-acos_b - Phi) / omega;
                 if (facet_prev == i && std::abs(t2) < 1e-10){
-                    t2 = (2.0 * M_PI) / omega;
+                    t2 = pi_2_omega;
                 }
 
-                t1 += (t1 < NT(0)) ? (2.0 * M_PI) / omega : NT(0);
-                t2 += (t2 < NT(0)) ? (2.0 * M_PI) / omega : NT(0);
+                t1 += (t1 < NT(0)) ? pi_2_omega : NT(0);
+                t2 += (t2 < NT(0)) ? pi_2_omega : NT(0);
 
-                tmin = std::min(t1, t2);
+                NT tmin = std::min(t1, t2);
 
                 if (tmin < t && tmin > NT(0)) {
                     facet = i;

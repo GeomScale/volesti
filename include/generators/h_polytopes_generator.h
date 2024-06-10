@@ -52,8 +52,26 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
         normal = 1.0 / std::sqrt(normal);
         p *= normal;
         A.row(i) = p.getCoefficients();
-        b(i) = 10.0;
+        b(i) = 0.1;
     }
+    /*
+        // Print each column of A
+    for (unsigned int j = 0; j < dim; ++j) {
+        std::cout << "Column " << j << ": ";
+        for (unsigned int i = 0; i < m; ++i) {
+            std::cout << A(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Print elements of b
+    std::cout << "Vector b: ";
+    for (unsigned int i = 0; i < m; ++i) {
+        std::cout << b(i) << " ";
+    }
+    std::cout << std::endl;
+    */
+    return Polytope(dim, A, b);
 
     return Polytope(dim, A, b);
 }

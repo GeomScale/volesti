@@ -355,6 +355,7 @@ add_test(NAME ghmc_reflections_test_simplex COMMAND gaussian_hmc_reflections_tes
 add_test(NAME ghmc_reflections_test_random_hpoly COMMAND gaussian_hmc_reflections_test -tc=random_hpoly)
 
 
+
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
