@@ -105,6 +105,8 @@ struct Walk
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
+                if(P.is_in(_p) != -1)
+                    P.nudge_in(_p);
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }

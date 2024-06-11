@@ -290,6 +290,33 @@ public:
         return -1;
     }
 
+    //Nudge the Point p inside the Polytope
+    void nudge_in(Point& p, NT tol=NT(0)) const
+    {
+        int m = A.rows();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+            //Check if corresponding hyperplane is violated
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol)){
+                
+                //Nudging correction
+                NT eps = -1e-7;
+
+                NT eps_1 = -(*b_data - A.row(i) * p.getCoefficients());
+                MT A_nor = A;
+                A_nor.normalize();
+                NT eps_2 = eps_1 + eps;
+
+                //Nudge the point inside with respect to the normal its vector
+                Point shift(A_nor.row(i));
+                shift.operator*=(eps_2);
+                p.operator+=(shift);
+            }
+            b_data++;
+        }
+    }
+
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
