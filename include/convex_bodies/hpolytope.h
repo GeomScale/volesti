@@ -283,12 +283,49 @@ public:
 
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol)){
+                
+                std::cout<<"ZXCXZCXZCXZCZXC "<<m<<" "<<*b_data - A.row(i) * p.getCoefficients();
+                
                 return 0;
-
+            
+            }
             b_data++;
         }
         return -1;
+    }
+
+    //Check if Point p is in H-polytope P:= Ax<=b
+    void is_reflection(Point& p, NT tol=NT(0)) const
+    {
+        int m = A.rows();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+            //Check if corresponding hyperplane is violated
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol)){
+                
+                NT eps_1 = -(*b_data - A.row(i) * p.getCoefficients());
+                    
+                std::cout<< std::endl << "First dif "<<(*b_data - A.row(i) * p.getCoefficients()) <<"\n";
+
+                MT A_nor = A;
+
+                A_nor.normalize();
+
+                NT eps = -1e-7;
+                NT eps_2 = eps_1 + eps;
+
+                Point shift(A_nor.row(i));
+                shift *= (eps_2);
+                
+
+                std::cout<<"Shift: ";
+                shift.print();
+                p.operator+=(shift);
+            }
+            b_data++;
+        }
     }
 
     // compute intersection point of ray starting from r and pointing to v

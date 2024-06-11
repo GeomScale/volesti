@@ -53,6 +53,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
     typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
 
     template <typename GenericPolytope>
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
@@ -132,6 +133,35 @@ struct Walk
                 
                 if(P.is_in(_p) != -1)
                 {
+
+                    P.is_reflection(_p);
+                    /*
+                    //normalize A
+                    MT A = P.get_mat();
+                    A.normalize();
+
+                    //get b_i
+                    VT b = P.get_vec();
+                    NT b_i = b(pbpair.second);
+
+                    NT eps_1 = -(b_i - A.row(pbpair.second) * _p.getCoefficients());
+                    std::cout<< std::endl << "First dif "<<(b_i - A.row(pbpair.second) * _p.getCoefficients()) <<"\n";
+
+
+                    NT eps = - 1e-05;
+                    NT eps_2 = eps_1 + eps;
+
+                    Point shift(A.row(pbpair.second));
+                    shift *= (eps_2);
+                    
+
+                    std::cout<<"Shift: ";
+                    shift.print();
+                    _p = _p + shift;
+
+                    std::cout<< std::endl << "Second dif "<<(b_i - A.row(pbpair.second) * _p.getCoefficients()) <<"\n";
+                    std::cout<< std::endl << "Facet " << pbpair.second;
+                    
                     NT epsilon = NT(1e-5);
                     NT cnt = 0;
                     while (P.is_in(_p) != -1) {
@@ -150,7 +180,7 @@ struct Walk
                             _p.print();
                             std::cout<<epsilon<<"\n"<<P.get_mat().row(pbpair.second);
 
-                            /*
+                            
                             std::cout<<"\n"<<"\n"<<"Multiplication Debug";
                             Point tempVec(P.get_mat().row(pbpair.second)); // Get the inward normal vector scaled by epsilon
                             std::cout<<std::endl<<"WOW TempVec: ";
@@ -161,10 +191,11 @@ struct Walk
                             inward_shift.print();
                             inward_shift.operator*=(epsilon); 
                             inward_shift.print();
-                            */
+                            
                             break;
                         }
                     }
+                    */
                     if(P.is_in(_p) != -1)
                         std::cout<<"AHAM"<<std::endl;
                 }
