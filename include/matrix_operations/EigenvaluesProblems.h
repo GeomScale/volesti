@@ -168,6 +168,8 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+	// An empirical value of ncv that gives a better performance
+	// TODO: tune this implementation by tuning the parameters like ncv
         int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
             geigs(&op, &Bop, 1, ncv);
@@ -326,6 +328,8 @@ public:
         Spectra::DenseCholesky<NT> Bop(-A);
 
         // Construct generalized eigen solver object, requesting the largest generalized eigenvalue
+	// an empirical value of ncv that gives a better performance
+	// TODO: tune this implementation by tuning the parameters like ncv
         int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
             geigs(&op, &Bop, 1, ncv);
