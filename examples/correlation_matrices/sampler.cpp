@@ -91,22 +91,27 @@ void write_to_file(std::string filename, std::vector<PointType> const& randPoint
 
 bool is_correlation_matrix(const MT& matrix){
 
-	const double tol = 1e-8;
+    const double tol = 1e-8;
 
-	//check if all the diagonal elements are ones
-	for(int i=0 ; i<matrix.rows() ; i++){
-		if(std::abs(matrix(i, i)-1.0) > tol){
-			return false;
-		}
+    //check if all the diagonal elements are ones
+    for(int i=0 ; i<matrix.rows() ; i++)
+    {
+        if(std::abs(matrix(i, i)-1.0) > tol)
+	{
+	    return false;
 	}
+    }
 
 	//check if the matrix is positive definite
-	Eigen::SelfAdjointEigenSolver<MT> eigen_solver(matrix);
+    Eigen::SelfAdjointEigenSolver<MT> eigen_solver(matrix);
 
-	if(eigen_solver.info() != Eigen::Success) return false;
+    if(eigen_solver.info() != Eigen::Success) 
+    {
+	    return false;
+    }
 
-	//the matrix is positive definite if all eigenvalues are positive
-	return eigen_solver.eigenvalues().minCoeff() > -tol;
+    //the matrix is positive definite if all eigenvalues are positive
+    return eigen_solver.eigenvalues().minCoeff() > -tol;
 }
 
 template<typename WalkType>
