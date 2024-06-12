@@ -104,7 +104,7 @@ bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8){
 
     if(eigen_solver.info() != Eigen::Success) 
     {
-	    return false;
+        return false;
     }
 
     //the matrix is positive definite if all eigenvalues are positive
@@ -151,7 +151,7 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     int valid_points = 0;
     for(const auto& points : randPoints){
     	if(is_correlation_matrix(points.mat)){
-    		valid_points++;
+    	    valid_points++;
     	}
     }
     std::cout << "Number of valid points = " << valid_points << std::endl;
