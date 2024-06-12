@@ -167,7 +167,7 @@ public:
         Spectra::DenseSymMatProd<NT> op(B);
         Spectra::DenseCholesky<NT> Bop(-A);
 
-        // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+        // Construct generalized eigen solver object, computing the minimum positive eigenvalue by computing the largest eigenvalue of the inverse Generalized Eigenvalue Problem
 	// An empirical value of ncv that gives a better performance
 	// TODO: tune this implementation by tuning the parameters like ncv
         int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
