@@ -443,7 +443,7 @@ public:
     NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) const {
 
 #if defined(SPECTRA_EIGENVALUES_SOLVER)
-	    int matrixDim = A.rows();
+	int matrixDim = A.rows();
         NT lambdaMinPositive;
 
         Spectra::DenseSymMatProd<NT> op(B);
@@ -462,8 +462,8 @@ public:
     	VT evalues;
 
     	if(geigs.info() == Spectra::SUCCESSFUL){
-   		 evalues = geigs.eigenvalues();
-   		 eigvec = geigs.eigenvectors().col(0);
+   	    evalues = geigs.eigenvalues();
+   	    eigvec = geigs.eigenvectors().col(0);
     	}
 
     	lambdaMinPositive = NT(1)/evalues(0);
