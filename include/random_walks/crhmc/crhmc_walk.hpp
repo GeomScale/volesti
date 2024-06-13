@@ -43,6 +43,16 @@ struct CRHMCWalk {
       eta = 1.0 / (dim * sqrt(F.params.L));
       momentum = 1 - std::min(1.0, eta / effectiveStepSize);
     }
+    parameters(NT const& L,
+               unsigned int dim,
+               Opts &user_options,
+               NT epsilon_ = 2)
+      : options(user_options)
+    {
+      epsilon = epsilon_;
+      eta = 1.0 / (dim * sqrt(L));
+      momentum = 1 - std::min(1.0, eta / effectiveStepSize);
+    }
   };
 
   template

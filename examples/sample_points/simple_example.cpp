@@ -44,7 +44,8 @@ void sample_points_eigen_matrix(HPolytopeType const& HP, Point const& q, Walk co
 struct CustomFunctor {
 
   // Custom density with neg log prob equal to c^T x
-  template <
+  template
+  <
       typename NT,
       typename Point
   >
@@ -59,10 +60,7 @@ struct CustomFunctor {
 
   };
 
-  template
-  <
-      typename Point
-  >
+  template <typename Point>
   struct GradientFunctor {
     typedef typename Point::FT NT;
     typedef std::vector<Point> pts;
@@ -80,13 +78,9 @@ struct CustomFunctor {
         return xs[i + 1]; // returns derivative
       }
     }
-
   };
 
-  template
-  <
-    typename Point
-  >
+  template<typename Point>
   struct FunctionFunctor {
     typedef typename Point::FT NT;
 
@@ -99,7 +93,82 @@ struct CustomFunctor {
       Point y = x - params.x0;
       return 0.5 * y.dot(y);
     }
+  };
+};
 
+struct CustomGaussianFunctor {
+
+  template
+  <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    Point x0;
+    NT a;
+    NT eta;
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+
+    parameters(Point x0_, NT a_, NT eta_) :
+        x0(x0_), a(a_), eta(eta_), order(2), L(2 * a_), m(2 * a_), kappa(1) {};
+
+  };
+
+  template<typename Point>
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    /*
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        Point y = (-2.0 * params.a) * (xs[0] - params.x0);
+        return y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }*/
+    Point operator()(Point const&x){
+      Point y = (-2.0 * params.a) * (x - params.x0);
+      return y;
+    }
+  };
+
+  template<typename Point>
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      Point y = x - params.x0;
+      return params.a * y.dot(y);
+    }
+  };
+
+  template<typename Point>
+  struct HessianFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    HessianFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (Point const& x) const {
+        return (2.0 * params.a) * Point::all_ones(x.dimension());
+    }
   };
 
 };
@@ -140,6 +209,7 @@ int main() {
 
     HamiltonianMonteCarloWalk hmc_walk;
     NutsHamiltonianMonteCarloWalk nhmc_walk;
+    CRHMCWalk crhmc_walk;
 
     // Distributions
 
@@ -161,45 +231,30 @@ int main() {
     ExponentialDistribution edistr(c, variance);
 
     // 4. LogConcave
-    using NegativeGradientFunctor = CustomFunctor::GradientFunctor<Point>;
-    using NegativeLogprobFunctor = CustomFunctor::FunctionFunctor<Point>;
-    using Solver = LeapfrogODESolver<Point, NT, HPolytopeType, NegativeGradientFunctor>;
 
     std::pair<Point, NT> inner_ball = HP.ComputeInnerBall();
     Point x0 = inner_ball.first;
 
-    CustomFunctor::parameters<NT, Point> params(x0);
+    // Reflective HMC and Remmannian HMC are using slightly different functor interfaces
+    // TODO: check if this could be unified
 
+    using NegativeGradientFunctorR = CustomFunctor::GradientFunctor<Point>;
+    using NegativeLogprobFunctorR = CustomFunctor::FunctionFunctor<Point>;
+    CustomFunctor::parameters<NT, Point> params_r(x0);
+    NegativeGradientFunctorR gr(params_r);
+    NegativeLogprobFunctorR fr(params_r);
+    LogConcaveDistribution logconcave_reflective(gr, fr, params_r.L);
+
+    using NegativeGradientFunctor = CustomGaussianFunctor::GradientFunctor<Point>;
+    using NegativeLogprobFunctor = CustomGaussianFunctor::FunctionFunctor<Point>;
+    using HessianFunctor = CustomGaussianFunctor::HessianFunctor<Point>;
+    CustomGaussianFunctor::parameters<NT, Point> params(x0, 0.5, 1);
     NegativeGradientFunctor g(params);
     NegativeLogprobFunctor f(params);
-    LogConcaveDistribution logconcave(g, f, params.L);
+    HessianFunctor h(params);
+    LogConcaveDistribution logconcave_crhmc(g, f, h, params.L);
 
-/*
-    NegativeGradientFunctor F(params);
-    NegativeLogprobFunctor f(params);
 
-    HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, HP.dimension());
-
-    HamiltonianMonteCarloWalk hmc(F, f, hmc_params);
-
-    int n_samples = 80000;
-    int n_burns = 0;
-
-    MT samples;
-    samples.resize(dim, n_samples - n_burns);
-
-    hmc.solver->eta0 = 0.5;
-
-    for (int i = 0; i < n_samples; i++) {
-      if (i % 1000 == 0) std::cerr << ".";
-      hmc.apply(rng, 3);
-      if (i >= n_burns) {
-          samples.col(i - n_burns) = hmc.x.getCoefficients();
-          std::cout << hmc.x.getCoefficients().transpose() << std::endl;
-      }
-    }
-    std::cerr << std::endl;
-*/
     // Sampling
 
     using NT = double;
@@ -236,9 +291,10 @@ int main() {
     sample_points_eigen_matrix(HP, q, ehmc_walk, edistr, rng, walk_len, rnum, nburns);
 
     std::cout << "logconcave" << std::endl;
-    sample_points_eigen_matrix(HP, q, hmc_walk, logconcave, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
 
+    sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
 
 
     std::cout << "fix the following" << std::endl;

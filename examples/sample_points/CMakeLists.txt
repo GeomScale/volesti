@@ -18,6 +18,9 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../../external/cmake-files/QD.cmake")
+GetQD()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 add_definitions(${CMAKE_CXX_FLAGS} "-g")
@@ -26,4 +29,4 @@ include_directories (BEFORE ../../external)
 include_directories (BEFORE ../../include)
 
 add_executable (example simple_example.cpp)
-target_link_libraries(example PUBLIC lp_solve)
+target_link_libraries(example PUBLIC lp_solve QD_LIB)
