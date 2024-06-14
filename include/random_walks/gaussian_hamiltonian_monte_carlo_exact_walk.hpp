@@ -89,6 +89,9 @@ struct Walk
         unsigned int n = P.dimension();
         NT T;
 
+        //normalize the Polyope
+        P.normalize();
+
         for (auto j=0u; j<walk_length; ++j)
         {
             T = rng.sample_urdist() * _Len;
@@ -105,8 +108,7 @@ struct Walk
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
-                if(P.is_in(_p) != -1)
-                    P.nudge_in(_p);
+                P.nudge_in(_p);
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
@@ -203,6 +205,9 @@ private :
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
 
+        //normalize the Polyope
+        P.normalize();
+
         NT T = rng.sample_urdist() * _Len;
         int it = 0;
 
@@ -220,6 +225,7 @@ private :
             }
             _lambda_prev = pbpair.first;
             update_position(_p, _v, _lambda_prev, _omega);
+            P.nudge_in(_p);
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
             it++;

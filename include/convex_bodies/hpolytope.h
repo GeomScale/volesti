@@ -290,26 +290,26 @@ public:
         return -1;
     }
 
-    //Nudge the Point p inside the Polytope
     void nudge_in(Point& p, NT tol=NT(0)) const
     {
         int m = A.rows();
         const NT* b_data = b.data();
 
         for (int i = 0; i < m; i++) {
-            //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol)){
-                
+
+            NT dist = *b_data - A.row(i) * p.getCoefficients();
+
+            if (dist < NT(-tol)){
                 //Nudging correction
                 NT eps = -1e-7;
 
-                NT eps_1 = -(*b_data - A.row(i) * p.getCoefficients());
-                MT A_nor = A;
-                A_nor.normalize();
+                NT eps_1 = -dist;
+                //A.row is already normalized, no need to do it again
+                VT A_i = A.row(i);
                 NT eps_2 = eps_1 + eps;
 
                 //Nudge the point inside with respect to the normal its vector
-                Point shift(A_nor.row(i));
+                Point shift(A_i);
                 shift.operator*=(eps_2);
                 p.operator+=(shift);
             }
