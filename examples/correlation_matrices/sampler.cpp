@@ -17,6 +17,7 @@
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "random_walks/random_walks.hpp"
 #include "sampling/sample_correlation_matrices.hpp"
+#include "matrix_operations/EigenvaluesProblems.h"
 
 typedef double                                              NT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
@@ -99,16 +100,16 @@ bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8){
 	}
     }
 
-    //check if the matrix is positive definite
-    Eigen::SelfAdjointEigenSolver<MT> eigen_solver(matrix);
+    //check if the matrix is positive semidefinite
+    using NT = double;
+    using MatrixType = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    EigenvaluesProblems<NT, MatrixType, Eigen::Matrix<NT, Eigen::Dynamic, 1>> solver;
 
-    if(eigen_solver.info() != Eigen::Success) 
+    if(solver.isPositiveSemidefinite(matrix))
     {
-        return false;
+         return true;
     }
-
-    //the matrix is positive definite if all eigenvalues are positive
-    return eigen_solver.eigenvalues().minCoeff() > -tol;
+    return false;
 }
 
 template<typename WalkType>
