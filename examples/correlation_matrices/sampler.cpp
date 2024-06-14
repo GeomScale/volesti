@@ -107,7 +107,7 @@ bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8){
 
     if(solver.isPositiveSemidefinite(matrix))
     {
-         return true;
+        return true;
     }
     return false;
 }
