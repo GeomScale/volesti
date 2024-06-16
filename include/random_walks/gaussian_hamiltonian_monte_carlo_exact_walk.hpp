@@ -57,6 +57,7 @@ struct Walk
     template <typename GenericPolytope>
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
     {
+        P.normalize();
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
@@ -68,6 +69,7 @@ struct Walk
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng,
          parameters const& params)
     {
+        P.normalize();
         _Len = params.set_L ? params.m_L
                           : compute_diameter<GenericPolytope>
                             ::template compute<NT>(P);
@@ -80,7 +82,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void apply(GenericPolytope& P,
+    inline void apply(GenericPolytope const& P,
                       Point& p,
                       NT const& a_i,
                       unsigned int const& walk_length,
@@ -88,9 +90,6 @@ struct Walk
     {
         unsigned int n = P.dimension();
         NT T;
-
-        //normalize the Polyope
-        P.normalize();
 
         for (auto j=0u; j<walk_length; ++j)
         {
@@ -124,7 +123,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void get_starting_point(GenericPolytope& P,
+    inline void get_starting_point(GenericPolytope const& P,
                                    Point const& center,
                                    Point &q,
                                    unsigned int const& walk_length,
@@ -145,7 +144,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void parameters_burnin(GenericPolytope& P,
+    inline void parameters_burnin(GenericPolytope const& P,
                                   Point const& center,
                                   unsigned int const& num_points,
                                   unsigned int const& walk_length,
@@ -195,7 +194,7 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope& P,
+    inline void initialize(GenericPolytope const& P,
                            Point const& p,
                            NT const& a_i,
                            RandomNumberGenerator &rng)
@@ -204,9 +203,6 @@ private :
         _facet_prev = -1;
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
-
-        //normalize the Polyope
-        P.normalize();
 
         NT T = rng.sample_urdist() * _Len;
         int it = 0;
