@@ -56,6 +56,7 @@ private:
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
+    bool                normalized = 0;
 
 public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
@@ -881,14 +882,23 @@ public:
         return A;
     }
 
+
+    bool is_normalized()
+    {
+        return normalized;
+    }
+
     void normalize()
     {
-        NT row_norm;
-        for (int i = 0; i < num_of_hyperplanes(); ++i)
-        {
-            row_norm = A.row(i).norm();
-            A.row(i) = A.row(i) / row_norm;
-            b(i) = b(i) / row_norm;
+        if(!is_normalized()){
+            NT row_norm;
+            for (int i = 0; i < num_of_hyperplanes(); ++i)
+            {
+                row_norm = A.row(i).norm();
+                A.row(i) = A.row(i) / row_norm;
+                b(i) = b(i) / row_norm;
+            }
+            normalized = true;
         }
     }
 
