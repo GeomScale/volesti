@@ -57,7 +57,6 @@ struct Walk
     template <typename GenericPolytope>
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
     {
-        P.normalize();
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
@@ -69,7 +68,6 @@ struct Walk
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng,
          parameters const& params)
     {
-        P.normalize();
         _Len = params.set_L ? params.m_L
                           : compute_diameter<GenericPolytope>
                             ::template compute<NT>(P);
@@ -91,6 +89,9 @@ struct Walk
         unsigned int n = P.dimension();
         NT T;
 
+        GenericPolytope P_normalized = P;
+        P_normalized.normalize();
+
         for (auto j=0u; j<walk_length; ++j)
         {
             T = rng.sample_urdist() * _Len;
@@ -107,7 +108,7 @@ struct Walk
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
-                P.nudge_in(_p);
+                P_normalized.nudge_in(_p);
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
@@ -207,6 +208,9 @@ private :
         NT T = rng.sample_urdist() * _Len;
         int it = 0;
 
+        GenericPolytope P_normalized = P;
+        P_normalized.normalize();
+
         while (it <= _rho)
         {
             auto pbpair
@@ -221,7 +225,7 @@ private :
             }
             _lambda_prev = pbpair.first;
             update_position(_p, _v, _lambda_prev, _omega);
-            P.nudge_in(_p);
+            P_normalized.nudge_in(_p);
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
