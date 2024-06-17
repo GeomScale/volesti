@@ -167,9 +167,12 @@ public:
         Spectra::DenseSymMatProd<NT> op(B);
         Spectra::DenseCholesky<NT> Bop(-A);
 
-        // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+        // Construct generalized eigen solver object, computing the minimum positive eigenvalue by computing the largest eigenvalue of the inverse Generalized Eigenvalue Problem
+	// An empirical value of ncv that gives a better performance
+	// TODO: tune this implementation by tuning the parameters like ncv
+        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-            geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+            geigs(&op, &Bop, 1, ncv);
 
         // Initialize and compute
         geigs.init();
@@ -324,9 +327,12 @@ public:
         Spectra::DenseSymMatProd<NT> op(B);
         Spectra::DenseCholesky<NT> Bop(-A);
 
-        // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+        // Construct generalized eigen solver object, requesting the largest generalized eigenvalue
+	// an empirical value of ncv that gives a better performance
+	// TODO: tune this implementation by tuning the parameters like ncv
+        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-            geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+            geigs(&op, &Bop, 1, ncv);
 
         // Initialize and compute
         geigs.init();
@@ -439,10 +445,39 @@ public:
     /// \param[in] B: symmetric matrix
     /// \return The minimum positive eigenvalue and the corresponding eigenvector
     NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) const {
+
+#if defined(SPECTRA_EIGENVALUES_SOLVER)
+	int matrixDim = A.rows();
+        NT lambdaMinPositive;
+
+        Spectra::DenseSymMatProd<NT> op(B);
+        Spectra::DenseCholesky<NT> Bop(A);
+
+        //construct generalized eigen solver object, requesting the smallest eigenvalue
+        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
+        	geigs(&op, &Bop, 1, ncv);
+
+    	//initialize and compute
+    	geigs.init();
+    	int nconv = geigs.compute();
+
+    	//retrieve results
+    	VT evalues;
+
+    	if(geigs.info() == Spectra::SUCCESSFUL){
+   	    evalues = geigs.eigenvalues();
+   	    eigvec = geigs.eigenvectors().col(0);
+    	}
+
+    	lambdaMinPositive = NT(1)/evalues(0);
+
+#elif
         NT lambdaMinPositive = NT(0);
         Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A);
         lambdaMinPositive = 1/ges.eigenvalues().reverse()[0];
         eigvec = ges.eigenvectors().reverse().col(0).reverse();
+#endif
         return lambdaMinPositive;
     }
 };
