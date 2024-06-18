@@ -121,7 +121,6 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 
     NT volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
     test_values(volume, expectedBilliard, exact);
-    CHECK(false);
 }
 
 
