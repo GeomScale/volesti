@@ -26,6 +26,7 @@
 #include "preprocess/svd_rounding.hpp"
 
 #include "generators/known_polytope_generators.h"
+#include "generators/h_polytopes_generator.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -108,7 +109,6 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
     RNGType rng(d);
-
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
     std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
 
@@ -121,6 +121,7 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 
     NT volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
     test_values(volume, expectedBilliard, exact);
+    CHECK(false);
 }
 
 
@@ -184,7 +185,7 @@ void call_test_max_ellipsoid() {
 
     std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
-    rounding_max_ellipsoid_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
+    rounding_max_ellipsoid_test(P, 0, 3070.64, 3188.25, 3262.61, 3200.0);
 }
 
 

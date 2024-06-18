@@ -22,7 +22,8 @@ template
     typename Point   
 >
 std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
-                                                        Point const& InnerPoint)
+                                                        Point const& InnerPoint,
+                                                        const bool aggressive_mode = false)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
@@ -44,15 +45,31 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         E = (E + E.transpose()) / 2.0;
         E = E + MT::Identity(d, d)*std::pow(10, -8.0); //normalize E
 
-        Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+        Eigen::LLT<MT> lltOfA(E.inverse()); // compute the Cholesky decomposition of E^{-1}
         L = lltOfA.matrixL();
 
-        Eigen::SelfAdjointEigenSolver <MT> eigensolver(L);
-        r = eigensolver.eigenvalues().minCoeff();
-        R = eigensolver.eigenvalues().maxCoeff();
-
+        // computing eigenvalues of E
+        Spectra::DenseSymMatProd<NT> op(E);
+        Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
+                               Spectra::DenseSymMatProd<NT>> eigs(&op, 2, std::min(std::max(10, int(d)/5), int(d)));
+        eigs.init();
+        int nconv = eigs.compute();
+        if (eigs.info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
+            R = 1.0 / eigs.eigenvalues().coeff(1);
+            r = 1.0 / eigs.eigenvalues().coeff(0);
+        } else  {
+            Eigen::SelfAdjointEigenSolver<MT> eigensolver(E);
+            if (eigensolver.info() == Eigen::ComputationInfo::Success) {
+                R = 1.0 / eigensolver.eigenvalues().coeff(0);
+                r = 1.0 / eigensolver.eigenvalues().template tail<1>().value();
+            } else {
+                std::runtime_error("Computations failed.");
+            }
+        }
+        
         // check the roundness of the polytope
-        if(((std::abs(R / r) <= 2.3 && iter_res.second) || iter >= 20) && iter>2){
+        if(((std::abs(R / r) <= 6.0 && iter_res.second) || iter >= 5) || 
+           aggressive_mode){
             break;
         }
 
