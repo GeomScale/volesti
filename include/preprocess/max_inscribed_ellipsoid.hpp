@@ -3,14 +3,17 @@
 // Copyright (c) 2012-2024 Vissarion Fisikopoulos
 // Copyright (c) 2018-2024 Apostolos Chalkis
 // Copyright (c) 2020-2024 Elias Tsigaridas
+// Copyright (c) 2021 Vaibhav Thakkar
 
-//Contributed by Apostolos Chalkis
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+//Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
+//Modified by Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MVE_COMPUTATION_TEST_HPP
-#define MVE_COMPUTATION_TEST_HPP
+#ifndef MVE_COMPUTATION_HPP
+#define MVE_COMPUTATION_HPP
 
 #include <utility>
 #include <Eigen/Eigen>
