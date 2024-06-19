@@ -31,7 +31,7 @@ void call_test_max_ball() {
     Hpolytope P;
 
     std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
-    P = skinny_random_hpoly<Hpolytope, PolyRNGType>(100, 1000, true, 127);
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(100, 1000, true, 2000.0);
     
     std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
 

@@ -67,7 +67,7 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, NT const seed)
 {
     boost::normal_distribution<> gdist(0, 1);
     RNGType rng(seed);
-    //typename MT::NullaryExpr W(d,d,[&](){return gdist(rng);});
+    
     MT W(d, d);
     for (int i = 0; i < d; i++) {
         for (int j = 0; j < d; j++) {
@@ -98,13 +98,12 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, NT const seed)
 /// This function generates a random H-polytope of given dimension and number of hyperplanes $m$
 /// @tparam Polytope Type of returned polytope
 /// @tparam RNGType RNGType Type
-template <class Polytope, class RNGType>
+template <class Polytope, typename NT, class RNGType>
 Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_rounding = false,
-                             double seed = std::numeric_limits<double>::signaling_NaN()) {
+                             const NT eig_ratio = NT(1000.0), double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
-    typedef typename Polytope::NT    NT;
     typedef typename Polytope::PointType Point;
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -122,7 +121,6 @@ Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_ro
         std::cout<<"rounding done"<<std::endl;
     }
 
-    const NT eig_ratio = 1000.0;
     MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, static_cast<NT>(rng_seed));
 
     Eigen::LLT<MT> lltOfA(cov); // compute the Cholesky decomposition of E^{-1}
