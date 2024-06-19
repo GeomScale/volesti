@@ -67,12 +67,6 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
             }
         }
         
-        // check the roundness of the polytope
-        if(((std::abs(R / r) <= 6.0 && iter_res.second) || iter >= 5) || 
-           aggressive_mode){
-            break;
-        }
-
         // shift polytope and apply the linear transformation on P
         P.shift(iter_res.first.second);
         shift += T * iter_res.first.second;
@@ -83,6 +77,12 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         reg = std::max(reg / 10.0, std::pow(10, -10.0));
         P.normalize();
         x0 = VT::Zero(d);
+
+        // check the roundness of the polytope
+        if(((std::abs(R / r) <= 6.0 && iter_res.second) || iter >= 5) || 
+           aggressive_mode){
+            break;
+        }
 
         iter++;
     }
