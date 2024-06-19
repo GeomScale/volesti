@@ -9,7 +9,11 @@
 #define H_POLYTOPES_GEN_H
 
 #include <exception>
+#include <chrono>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 
 #ifndef isnan
   using std::isnan;
@@ -57,5 +61,81 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
 
     return Polytope(dim, A, b);
 }
+
+template <class MT, class VT, class RNGType, typename NT>
+MT get_skinny_transformation(const int d, NT const eig_ratio, NT const seed)
+{
+    boost::normal_distribution<> gdist(0, 1);
+    RNGType rng(seed);
+    //typename MT::NullaryExpr W(d,d,[&](){return gdist(rng);});
+    MT W(d, d);
+    for (int i = 0; i < d; i++) {
+        for (int j = 0; j < d; j++) {
+            W(i, j) = gdist(rng);
+        }
+    }
+    
+    Eigen::HouseholderQR<MT> qr(W);
+    MT Q = qr.householderQ();
+    
+    VT diag(d);
+    const NT eig_min = NT(1), eig_max = eig_ratio;
+    diag(0) = eig_min;
+    diag(d-1) = eig_max;
+    boost::random::uniform_real_distribution<NT> udist(NT(0), NT(1));
+    NT rand;
+    for (int i = 1; i < d-1; i++)
+    {
+        rand = udist(rng);
+        diag(i) = rand * eig_max + (NT(1)-rand) * eig_min;
+    }
+    std::sort(diag.begin(), diag.end());
+    MT cov = Q*diag.asDiagonal()*Q.transpose();
+
+    return cov;
+}
+
+/// This function generates a random H-polytope of given dimension and number of hyperplanes $m$
+/// @tparam Polytope Type of returned polytope
+/// @tparam RNGType RNGType Type
+template <class Polytope, class RNGType>
+Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_rounding = false,
+                             double seed = std::numeric_limits<double>::signaling_NaN()) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PointType Point;
+
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
+
+    Polytope P = random_hpoly<Polytope, RNGType>(dim, m, static_cast<NT>(rng_seed));
+
+    if (pre_rounding) {
+        Point x0(dim);
+        max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, x0, true);
+        std::cout<<"rounding done"<<std::endl;
+    }
+
+    const NT eig_ratio = 1000.0;
+    MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, static_cast<NT>(rng_seed));
+
+    Eigen::LLT<MT> lltOfA(cov); // compute the Cholesky decomposition of E^{-1}
+    MT L = lltOfA.matrixL();
+    P.linear_transformIt(L.inverse());
+
+    Polytope P2 = P;
+    Point x0(dim);
+    max_inscribed_ellipsoid_rounding<MT, VT, NT>(P2, x0);
+
+    return P;
+}
+
+
 
 #endif

@@ -27,7 +27,7 @@
 */
 
 template <typename MT, typename VT, typename NT>
-void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, 
+void calcstep(MT const& A, MT const& A_trans, Eigen::LLT<MT> const& lltOfB, VT &s, 
               VT &y, VT &r1, VT const& r2, NT const& r3, VT &r4,
               VT &dx, VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
 {
@@ -41,7 +41,8 @@ void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s,
 
     rhs.block(0,0,n,1).noalias() = r2 + A_trans * tmp;
     rhs(n) = r3 + tmp.sum();
-    VT dxdt = R.colPivHouseholderQr().solve(R.transpose().colPivHouseholderQr().solve(rhs));
+
+    VT dxdt = lltOfB.solve(rhs);
 
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
@@ -81,11 +82,13 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
     NT const tau0 = 0.995, power_num = 5.0 * std::pow(10.0, 15.0);
     NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
 
-    MT B(n + 1, n + 1), AtD(n, m), R(n + 1, n + 1), 
+    MT B(n + 1, n + 1), AtD(n, m), 
        eEye = std::pow(10.0, -14.0) * MT::Identity(n + 1, n + 1),
        A_trans = A.transpose();
 
     for (unsigned int i = 0; i < maxiter; ++i) {
+
+        std::cout<<"i: "<<i<<std::endl;
 
         // KKT residuals
         r1.noalias() = b - (A * x + s + t * e_m);
@@ -127,11 +130,12 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
         vec_iter2 = y.data();
         for (int j = 0; j < m; ++j) {
             *vec_iter1 = std::min(power_num, (*vec_iter2) / (*vec_iter3));
-            AtD.col(j).noalias() = A_trans.col(j) * (*vec_iter1);
+            //AtD.col(j).noalias() = A_trans.col(j) * (*vec_iter1);
             vec_iter1++;
             vec_iter3++;
             vec_iter2++;
         }
+        AtD.noalias() = A_trans*d.asDiagonal();
 
         AtDe.noalias() = AtD * e_m;
         B.block(0, 0, n, n).noalias() = AtD * A;
@@ -141,11 +145,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
         B.noalias() += eEye;
 
         // Cholesky decomposition
-        Eigen::LLT <MT> lltOfB(B);
-        R = lltOfB.matrixL().transpose();
+        Eigen::LLT<MT> lltOfB(B);
 
         // predictor step & length
-        calcstep(A, A_trans, R, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
+        calcstep(A, A_trans, lltOfB, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
 
         alphap = -1.0;
         alphad = -1.0;
@@ -172,7 +175,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
 
         // corrector and combined step & length
         mu_ds_dy.noalias() = e_m * mu - ds.cwiseProduct(dy);
-        calcstep(A, A_trans, R, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
+        calcstep(A, A_trans, lltOfB, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
 
         dx += dxc;
         ds += dsc;

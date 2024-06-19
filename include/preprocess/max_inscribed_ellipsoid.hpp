@@ -77,6 +77,8 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
     int i = 1;
     while (i <= maxiter) {
 
+        std::cout<<"max vol i: "<<i<<std::endl;
+
         Y = y.asDiagonal();
 
         E2.noalias() = MT(A_trans * Y * A);
