@@ -31,11 +31,11 @@ void call_test_max_ball() {
     Hpolytope P;
 
     std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(100, 1000, true, 2000.0);
-    
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(50, 500, true, 2000.0, 127);
+    P.normalize();
     std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
 
-    auto [center, radius, converged] =  max_inscribed_ball(P.get_mat(), P.get_vec(), 500, 1e-06);
+    auto [center, radius, converged, unbounded] =  max_inscribed_ball(P.get_mat(), P.get_vec(), 500, 1e-08);
     
     std::cout<<"[1] center: "<<InnerBall.first.getCoefficients().transpose()<<std::endl;
     std::cout<<"[1] radius: "<<InnerBall.second<<std::endl;

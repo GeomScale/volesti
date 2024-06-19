@@ -58,10 +58,10 @@ void calcstep(MT const& A, MT const& A_trans, Eigen::LLT<MT> const& lltOfB, VT &
 
 
 template <typename MT, typename VT, typename NT>
-std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned int maxiter, NT tol) 
+std::tuple<VT, NT, bool, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned int maxiter, NT tol) 
 {
     int m = A.rows(), n = A.cols();
-    bool converge;
+    bool converge = false, unbouned = false;
 
     NT bnrm = b.norm();
     VT o_m = VT::Zero(m), o_n = VT::Zero(n), e_m = VT::Ones(m);
@@ -108,9 +108,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
         total_err = std::max(total_err, rgap);
 
         // progress output & check stopping
-        if (total_err < tol || ( t > 0 && ( (std::abs(t - t_prev) <= tol * t && std::abs(t - t_prev) <= tol * t_prev) 
-                    || (t_prev >= (1.0 - tol) * t && i > 0) 
-                    || (t <= (1.0 - tol) * t_prev && i > 0) ) ) ) 
+        if ( (total_err < tol && t>0) || ( t > 0 && ( (std::abs(t - t_prev) <= tol * std::min(std::abs(t), std::abs(t_prev)) 
+                    || std::abs(t - t_prev) <= tol) && i > 10) ) )  
         {
             //converged
             converge = true;
@@ -120,6 +119,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
         if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) 
         {
             //unbounded
+            unbouned = true;
             converge = false;
             break;
         }
@@ -130,7 +130,6 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
         vec_iter2 = y.data();
         for (int j = 0; j < m; ++j) {
             *vec_iter1 = std::min(power_num, (*vec_iter2) / (*vec_iter3));
-            //AtD.col(j).noalias() = A_trans.col(j) * (*vec_iter1);
             vec_iter1++;
             vec_iter3++;
             vec_iter2++;
@@ -212,7 +211,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned 
         y += alphad * dy;
     }
 
-    std::tuple<VT, NT, bool> result = std::make_tuple(x, t, converge);
+    std::tuple<VT, NT, bool, bool> result = std::make_tuple(x, t, converge, unbouned);
     return result;
 }
 

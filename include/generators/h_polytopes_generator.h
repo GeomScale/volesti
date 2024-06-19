@@ -23,17 +23,17 @@
 /// @tparam Polytope Type of returned polytope
 /// @tparam RNGType RNGType Type
 template <class Polytope, class RNGType>
-Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
+Polytope random_hpoly(unsigned int dim, unsigned int m, int seed = std::numeric_limits<int>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
     typedef typename Polytope::PointType Point;
 
-    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    int rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
     if (!isnan(seed)) {
-        unsigned rng_seed = seed;
+        int rng_seed = seed;
         rng.seed(rng_seed);
     }
 
@@ -63,7 +63,7 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
 }
 
 template <class MT, class VT, class RNGType, typename NT>
-MT get_skinny_transformation(const int d, NT const eig_ratio, NT const seed)
+MT get_skinny_transformation(const int d, NT const eig_ratio, int const seed)
 {
     boost::normal_distribution<> gdist(0, 1);
     RNGType rng(seed);
@@ -90,7 +90,7 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, NT const seed)
         diag(i) = rand * eig_max + (NT(1)-rand) * eig_min;
     }
     std::sort(diag.begin(), diag.end());
-    MT cov = Q*diag.asDiagonal()*Q.transpose();
+    MT cov = Q * diag.asDiagonal() * Q.transpose();
 
     return cov;
 }
@@ -100,20 +100,20 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, NT const seed)
 /// @tparam RNGType RNGType Type
 template <class Polytope, typename NT, class RNGType>
 Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_rounding = false,
-                             const NT eig_ratio = NT(1000.0), double seed = std::numeric_limits<double>::signaling_NaN()) {
+                             const NT eig_ratio = NT(1000.0), int seed = std::numeric_limits<int>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::PointType Point;
 
-    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    int rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
     if (!isnan(seed)) {
-        unsigned rng_seed = seed;
+        int rng_seed = seed;
         rng.seed(rng_seed);
     }
 
-    Polytope P = random_hpoly<Polytope, RNGType>(dim, m, static_cast<NT>(rng_seed));
+    Polytope P = random_hpoly<Polytope, RNGType>(dim, m, seed);
 
     if (pre_rounding) {
         Point x0(dim);
@@ -121,15 +121,15 @@ Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_ro
         std::cout<<"rounding done"<<std::endl;
     }
 
-    MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, static_cast<NT>(rng_seed));
-
+    MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, seed);
+    std::cout<<"cov done"<<std::endl;
     Eigen::LLT<MT> lltOfA(cov); // compute the Cholesky decomposition of E^{-1}
     MT L = lltOfA.matrixL();
     P.linear_transformIt(L.inverse());
 
-    Polytope P2 = P;
-    Point x0(dim);
-    max_inscribed_ellipsoid_rounding<MT, VT, NT>(P2, x0);
+    //Polytope P2 = P;
+    //Point x0(dim);
+    //max_inscribed_ellipsoid_rounding<MT, VT, NT>(P2, x0);
 
     return P;
 }
