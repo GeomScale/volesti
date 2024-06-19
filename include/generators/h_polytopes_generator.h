@@ -62,6 +62,8 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, int seed = std::numeric_
     return Polytope(dim, A, b);
 }
 
+/// This function generates a transformation that maps the unit ball to a skinny ellipsoid
+/// with given ratio between the lengths of its maximum and minimum axis
 template <class MT, class VT, class RNGType, typename NT>
 MT get_skinny_transformation(const int d, NT const eig_ratio, int const seed)
 {
@@ -84,8 +86,7 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, int const seed)
     diag(d-1) = eig_max;
     boost::random::uniform_real_distribution<NT> udist(NT(0), NT(1));
     NT rand;
-    for (int i = 1; i < d-1; i++)
-    {
+    for (int i = 1; i < d-1; i++) {
         rand = udist(rng);
         diag(i) = rand * eig_max + (NT(1)-rand) * eig_min;
     }
@@ -95,8 +96,9 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, int const seed)
     return cov;
 }
 
-/// This function generates a random H-polytope of given dimension and number of hyperplanes $m$
+/// This function generates a skinny random H-polytope of given dimension and number of hyperplanes $m$
 /// @tparam Polytope Type of returned polytope
+/// @tparam NT Number type
 /// @tparam RNGType RNGType Type
 template <class Polytope, typename NT, class RNGType>
 Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_rounding = false,
@@ -115,21 +117,16 @@ Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_ro
 
     Polytope P = random_hpoly<Polytope, RNGType>(dim, m, seed);
 
+    // rounding the polytope before applying the skinny transformation
     if (pre_rounding) {
         Point x0(dim);
         max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, x0, true);
-        std::cout<<"rounding done"<<std::endl;
     }
 
     MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, seed);
-    std::cout<<"cov done"<<std::endl;
-    Eigen::LLT<MT> lltOfA(cov); // compute the Cholesky decomposition of E^{-1}
+    Eigen::LLT<MT> lltOfA(cov);
     MT L = lltOfA.matrixL();
     P.linear_transformIt(L.inverse());
-
-    //Polytope P2 = P;
-    //Point x0(dim);
-    //max_inscribed_ellipsoid_rounding<MT, VT, NT>(P2, x0);
 
     return P;
 }

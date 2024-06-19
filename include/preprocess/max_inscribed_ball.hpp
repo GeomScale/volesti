@@ -58,10 +58,12 @@ void calcstep(MT const& A, MT const& A_trans, Eigen::LLT<MT> const& lltOfB, VT &
 
 
 template <typename MT, typename VT, typename NT>
-std::tuple<VT, NT, bool, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned int maxiter, NT tol) 
+std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, 
+                                             unsigned int maxiter, NT tol,
+                                             const bool feasibility_only = false) 
 {
     int m = A.rows(), n = A.cols();
-    bool converge = false, unbouned = false;
+    bool converge = false;
 
     NT bnrm = b.norm();
     VT o_m = VT::Zero(m), o_n = VT::Zero(n), e_m = VT::Ones(m);
@@ -88,8 +90,6 @@ std::tuple<VT, NT, bool, bool>  max_inscribed_ball(MT const& A, VT const& b, uns
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
-        std::cout<<"i: "<<i<<std::endl;
-
         // KKT residuals
         r1.noalias() = b - (A * x + s + t * e_m);
         r2.noalias() = -A_trans * y;
@@ -108,18 +108,19 @@ std::tuple<VT, NT, bool, bool>  max_inscribed_ball(MT const& A, VT const& b, uns
         total_err = std::max(total_err, rgap);
 
         // progress output & check stopping
-        if ( (total_err < tol && t>0) || ( t > 0 && ( (std::abs(t - t_prev) <= tol * std::min(std::abs(t), std::abs(t_prev)) 
-                    || std::abs(t - t_prev) <= tol) && i > 10) ) )  
+        if ( (total_err < tol && t > 0) || 
+             ( t > 0 && ( (std::abs(t - t_prev) <= tol * std::min(std::abs(t), std::abs(t_prev)) ||
+                           std::abs(t - t_prev) <= tol) && i > 10) ) ||
+             (feasibility_only && t > tol/2.0 && i > 0) )  
         {
             //converged
             converge = true;
             break;
         }
 
-        if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) 
+        if ((dt > 10000.0 * bnrm || t > 10000000.0 * bnrm) && i > 20) 
         {
             //unbounded
-            unbouned = true;
             converge = false;
             break;
         }
@@ -211,7 +212,7 @@ std::tuple<VT, NT, bool, bool>  max_inscribed_ball(MT const& A, VT const& b, uns
         y += alphad * dy;
     }
 
-    std::tuple<VT, NT, bool, bool> result = std::make_tuple(x, t, converge, unbouned);
+    std::tuple<VT, NT, bool> result = std::make_tuple(x, t, converge);
     return result;
 }
 

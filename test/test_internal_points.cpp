@@ -30,21 +30,42 @@ void call_test_max_ball() {
     typedef boost::mt19937 PolyRNGType;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(50, 500, true, 2000.0, 127);
+    std::cout << "\n--- Testing Chebychev ball for skinny H-polytope" << std::endl;
+    bool pre_rounding = true; // round random polytope before applying the skinny transformation
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(7, 200, pre_rounding, 2000.0, 14027);
     P.normalize();
     std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
 
-    auto [center, radius, converged, unbounded] =  max_inscribed_ball(P.get_mat(), P.get_vec(), 500, 1e-08);
+    auto [center, radius, converged] =  max_inscribed_ball(P.get_mat(), P.get_vec(), 500, 1e-08);
     
-    std::cout<<"[1] center: "<<InnerBall.first.getCoefficients().transpose()<<std::endl;
-    std::cout<<"[1] radius: "<<InnerBall.second<<std::endl;
+    CHECK(P.is_in(Point(center)) == -1);
+    CHECK(std::abs(radius - InnerBall.second) <= 1e-06);
+    CHECK(converged);
+}
 
-    std::cout<<"[2] center: "<<center.transpose()<<std::endl;
-    std::cout<<"[2] radius: "<<radius<<std::endl;
-    CHECK(false);
+template <typename NT>
+void call_test_max_ball_feasibility() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    typedef boost::mt19937 PolyRNGType;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing feasibility point for skinny H-polytope" << std::endl;
+    bool pre_rounding = true; // round random polytope before applying the skinny transformation 
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(50, 500, pre_rounding, 2000.0, 127);
+    P.normalize();
+
+    bool feasibility_only = true; // compute only a feasible point
+    NT tol = 1e-08;
+    unsigned int maxiter = 500;
+    auto [center, radius, converged] =  max_inscribed_ball(P.get_mat(), P.get_vec(), maxiter, tol, feasibility_only);
+
+    CHECK(P.is_in(Point(center)) == -1);
+    CHECK(converged);
 }
 
 TEST_CASE("test_max_ball") {
     call_test_max_ball<double>();
+    call_test_max_ball_feasibility<double>();
 }
