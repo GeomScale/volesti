@@ -22,14 +22,16 @@ template
     typename Point   
 >
 std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
-                                                        Point const& InnerPoint)
+                                                        Point const& InnerPoint,
+                                                        unsigned int const max_iterations = 5,
+                                                        NT const max_eig_ratio = NT(6))
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
 
     VT x0 = InnerPoint.getCoefficients();
     MT E, L;
-    unsigned int maxiter = 150, iter = 1, d = P.dimension();
+    unsigned int maxiter = 500, iter = 1, d = P.dimension();
 
     NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -4.0), round_val = 1.0;
 
@@ -44,18 +46,28 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         E = (E + E.transpose()) / 2.0;
         E = E + MT::Identity(d, d)*std::pow(10, -8.0); //normalize E
 
-        Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+        Eigen::LLT<MT> lltOfA(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of E^{-1}
         L = lltOfA.matrixL();
 
-        Eigen::SelfAdjointEigenSolver <MT> eigensolver(L);
-        r = eigensolver.eigenvalues().minCoeff();
-        R = eigensolver.eigenvalues().maxCoeff();
-
-        // check the roundness of the polytope
-        if(((std::abs(R / r) <= 2.3 && iter_res.second) || iter >= 20) && iter>2){
-            break;
+        // computing eigenvalues of E
+        Spectra::DenseSymMatProd<NT> op(E);
+        // The value of ncv is chosen empirically
+        Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
+                               Spectra::DenseSymMatProd<NT>> eigs(&op, 2, std::min(std::max(10, int(d)/5), int(d)));
+        eigs.init();
+        int nconv = eigs.compute();
+        if (eigs.info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
+            R = 1.0 / eigs.eigenvalues().coeff(1);
+            r = 1.0 / eigs.eigenvalues().coeff(0);
+        } else  {
+            Eigen::SelfAdjointEigenSolver<MT> eigensolver(E);
+            if (eigensolver.info() == Eigen::ComputationInfo::Success) {
+                R = 1.0 / eigensolver.eigenvalues().coeff(0);
+                r = 1.0 / eigensolver.eigenvalues().template tail<1>().value();
+            } else {
+                std::runtime_error("Computations failed.");
+            }
         }
-
         // shift polytope and apply the linear transformation on P
         P.shift(iter_res.first.second);
         shift += T * iter_res.first.second;
@@ -66,6 +78,11 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         reg = std::max(reg / 10.0, std::pow(10, -10.0));
         P.normalize();
         x0 = VT::Zero(d);
+
+        // check the roundness of the polytope
+        if(((std::abs(R / r) <= max_eig_ratio && iter_res.second) || iter >= max_iterations)){
+            break;
+        }
 
         iter++;
     }
