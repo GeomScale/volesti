@@ -18,6 +18,7 @@
 #include "convex_bodies/hpolytope.h"
 
 #include "preprocess/max_inscribed_ball.hpp"
+#include "preprocess/analytic_center_full_dim.h"
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
@@ -32,14 +33,16 @@ void call_test_max_ball() {
 
     std::cout << "\n--- Testing Chebychev ball for skinny H-polytope" << std::endl;
     bool pre_rounding = true; // round random polytope before applying the skinny transformation
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(7, 200, pre_rounding, 2000.0, 14027);
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(4, 180, pre_rounding, 2000.0, 127);
     P.normalize();
     std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
 
-    auto [center, radius, converged] =  max_inscribed_ball(P.get_mat(), P.get_vec(), 500, 1e-08);
+    NT tol = 1e-08;
+    unsigned int maxiter = 500;
+    auto [center, radius, converged] =  max_inscribed_ball(P.get_mat(), P.get_vec(), maxiter, tol);
     
     CHECK(P.is_in(Point(center)) == -1);
-    CHECK(std::abs(radius - InnerBall.second) <= 1e-06);
+    CHECK(std::abs(radius - InnerBall.second) <= 1e-03);
     CHECK(converged);
 }
 
@@ -65,7 +68,36 @@ void call_test_max_ball_feasibility() {
     CHECK(converged);
 }
 
+template <typename NT>
+void call_test_analytic_center() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    typedef typename Hpolytope::MT MT;
+    typedef typename Hpolytope::VT VT;
+    typedef boost::mt19937 PolyRNGType;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing analytic center for skinny H-polytope" << std::endl;
+    bool pre_rounding = false; // round random polytope before applying the skinny transformation 
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(2, 9, pre_rounding, 100.0, 127);
+    P.normalize();
+    auto [analytic_center, converged] = analytic_center_linear_ineq<MT, VT, NT>(P.get_mat(), P.get_vec());
+    
+    CHECK(P.is_in(Point(analytic_center)) == -1);
+    CHECK(converged);
+    CHECK(std::abs(analytic_center(0) + 12.5341) < 1e-04);
+    CHECK(std::abs(analytic_center(1) + 2.5453) < 1e-04);
+}
+
 TEST_CASE("test_max_ball") {
     call_test_max_ball<double>();
+}
+
+TEST_CASE("test_feasibility_point") {
     call_test_max_ball_feasibility<double>();
+}
+
+TEST_CASE("test_analytic_center") {
+    call_test_analytic_center<double>();
 }

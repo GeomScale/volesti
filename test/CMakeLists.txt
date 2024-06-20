@@ -201,6 +201,10 @@ add_library(test_main OBJECT test_main.cpp)
 add_executable (test_internal_points test_internal_points.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_max_ball
           COMMAND test_internal_points -tc=test_max_ball)
+add_test(NAME test_feasibility_point
+          COMMAND test_internal_points -tc=test_feasibility_point)
+add_test(NAME test_analytic_center
+          COMMAND test_internal_points -tc=test_analytic_center)
 
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
