@@ -113,11 +113,11 @@ std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
         get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
         grad_err = grad.norm();
 
-        if(iter >= max_iters || grad_err <= grad_err_tol || rel_pos_err <= rel_pos_err_tol) {
+        if (iter >= max_iters || grad_err <= grad_err_tol || rel_pos_err <= rel_pos_err_tol) {
             converged = true;
             break;
         }
-    } while(true);
+    } while (true);
     
     return std::make_tuple(x, converged);
 }
