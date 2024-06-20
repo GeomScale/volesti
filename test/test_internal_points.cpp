@@ -32,7 +32,8 @@ void call_test_max_ball() {
 
     std::cout << "\n--- Testing Chebychev ball for skinny H-polytope" << std::endl;
     bool pre_rounding = true; // round random polytope before applying the skinny transformation
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(4, 180, pre_rounding, 2000.0, 127);
+    NT max_min_eig_ratio = NT(2000);
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(4, 180, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
 
@@ -55,7 +56,8 @@ void call_test_max_ball_feasibility() {
 
     std::cout << "\n--- Testing feasibility point for skinny H-polytope" << std::endl;
     bool pre_rounding = true; // round random polytope before applying the skinny transformation 
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(50, 500, pre_rounding, 2000.0, 127);
+    NT max_min_eig_ratio = NT(2000);
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(50, 500, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
 
     bool feasibility_only = true; // compute only a feasible point
@@ -79,7 +81,8 @@ void call_test_analytic_center() {
 
     std::cout << "\n--- Testing analytic center for skinny H-polytope" << std::endl;
     bool pre_rounding = true; // round random polytope before applying the skinny transformation 
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, 100.0, 127);
+    NT max_min_eig_ratio = NT(100);
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     
     auto [analytic_center, converged] = analytic_center_linear_ineq<MT, VT, NT>(P.get_mat(), P.get_vec());
