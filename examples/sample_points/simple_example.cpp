@@ -25,12 +25,12 @@ using NT = double;
 using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
 using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
 
-template <typename Walk, typename Distribution>
-void sample_points_eigen_matrix(HPolytopeType const& HP, Point const& q, Walk const& walk,
+template <typename PolytopeOrProblem, typename Walk, typename Distribution>
+void sample_points_eigen_matrix(PolytopeOrProblem const& HP, Point const& q, Walk const& walk,
                                 Distribution const& distr, RNGType rng, int walk_len, int rnum,
                                 int nburns)
 {
-    MT samples(HP.dimension(), rnum);
+    MT samples(q.dimension(), rnum);
 
     sample_points(HP, q, walk, distr, rng, walk_len, rnum, nburns, samples);
 
@@ -96,84 +96,48 @@ struct CustomFunctor {
   };
 };
 
-struct CustomGaussianFunctor {
+inline bool exists_check(const std::string &name) {
+  std::ifstream f(name.c_str());
+  return f.good();
+}
 
-  template
-  <
-      typename NT,
-      typename Point
-  >
-  struct parameters {
-    Point x0;
-    NT a;
-    NT eta;
-    unsigned int order;
-    NT L; // Lipschitz constant for gradient
-    NT m; // Strong convexity constant
-    NT kappa; // Condition number
+template< typename SpMat, typename VT>
+void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
+                        std::string problem_name) {
+   {
+    std::string fileName("../crhmc_sampling/data/");
+    fileName.append(problem_name);
+    fileName.append(".mm");
+    if(!exists_check(fileName)){
+      std::cerr<<"Problem does not exist.\n";
+      exit(1);}
+    SpMat X;
+    loadMarket(X, fileName);
+    int m = X.rows();
+    dimension = X.cols() - 1;
+    A = X.leftCols(dimension);
+    b = VT(X.col(dimension));
+  }
+  {
+    std::string fileName("../crhmc_sampling/data/");
+    fileName.append(problem_name);
+    fileName.append("_bounds.mm");
+    if(!exists_check(fileName)){
+      std::cerr<<"Problem does not exist.\n";
+      exit(1);}
+    SpMat bounds;
+    loadMarket(bounds, fileName);
+    lb = VT(bounds.col(0));
+    ub = VT(bounds.col(1));
+  }
+}
 
-    parameters(Point x0_, NT a_, NT eta_) :
-        x0(x0_), a(a_), eta(eta_), order(2), L(2 * a_), m(2 * a_), kappa(1) {};
-
-  };
-
-  template<typename Point>
-  struct GradientFunctor {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
-
-    parameters<NT, Point> &params;
-
-    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
-
-    // The index i represents the state vector index
-    /*
-    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
-      if (i == params.order - 1) {
-        Point y = (-2.0 * params.a) * (xs[0] - params.x0);
-        return y;
-      } else {
-        return xs[i + 1]; // returns derivative
-      }
-    }*/
-    Point operator()(Point const&x){
-      Point y = (-2.0 * params.a) * (x - params.x0);
-      return y;
-    }
-  };
-
-  template<typename Point>
-  struct FunctionFunctor {
-    typedef typename Point::FT NT;
-
-    parameters<NT, Point> &params;
-
-    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
-
-    // The index i represents the state vector index
-    NT operator() (Point const& x) const {
-      Point y = x - params.x0;
-      return params.a * y.dot(y);
-    }
-  };
-
-  template<typename Point>
-  struct HessianFunctor {
-    typedef typename Point::FT NT;
-
-    parameters<NT, Point> &params;
-
-    HessianFunctor(parameters<NT, Point> &params_) : params(params_) {};
-
-    // The index i represents the state vector index
-    Point operator() (Point const& x) const {
-        return (2.0 * params.a) * Point::all_ones(x.dimension());
-    }
-  };
-
-};
 
 int main() {
+    // NEW INTERFACE Sampling
+
+    // Inputs:
+
     // Generating a 3-dimensional cube centered at origin
     HPolytopeType HP = generate_cube<HPolytopeType>(10, false);
     std::cout<<"Polytope: \n";
@@ -185,7 +149,19 @@ int main() {
     Point q(HP.dimension());
     RNGType rng(HP.dimension());
 
-    // NEW INTERFACE Sampling
+    // Generating a sparse polytope/problem
+    using SpMat = Eigen::SparseMatrix<NT>;
+    using ConstraintProblem =constraint_problem<SpMat, Point>;
+    std::string problem_name("simplex3");
+    std::cerr << "CRHMC on " << problem_name << "\n";
+    SpMat As;
+    VT b, lb, ub;
+    int dimension;
+    load_crhmc_problem(As, b, lb, ub, dimension, problem_name);
+    ConstraintProblem problem = ConstraintProblem(dimension);
+    problem.set_equality_constraints(As, b);
+    problem.set_bounds(lb, ub);
+
 
     // Walks
     AcceleratedBilliardWalk abill_walk;
@@ -245,15 +221,16 @@ int main() {
     NegativeLogprobFunctorR fr(params_r);
     LogConcaveDistribution logconcave_reflective(gr, fr, params_r.L);
 
-    using NegativeGradientFunctor = CustomGaussianFunctor::GradientFunctor<Point>;
-    using NegativeLogprobFunctor = CustomGaussianFunctor::FunctionFunctor<Point>;
-    using HessianFunctor = CustomGaussianFunctor::HessianFunctor<Point>;
-    CustomGaussianFunctor::parameters<NT, Point> params(x0, 0.5, 1);
+    using NegativeGradientFunctor = GaussianFunctor::GradientFunctor<Point>;
+    using NegativeLogprobFunctor = GaussianFunctor::FunctionFunctor<Point>;
+    using HessianFunctor = GaussianFunctor::HessianFunctor<Point>;
+    GaussianFunctor::parameters<NT, Point> params(x0, 0.5, 1);
     NegativeGradientFunctor g(params);
     NegativeLogprobFunctor f(params);
     HessianFunctor h(params);
     LogConcaveDistribution logconcave_crhmc(g, f, h, params.L);
 
+    LogConcaveDistribution logconcave_ref_gaus(g, f, params.L);
 
     // Sampling
 
@@ -293,8 +270,10 @@ int main() {
     std::cout << "logconcave" << std::endl;
     sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
 
     sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
 
 
     std::cout << "fix the following" << std::endl;

@@ -258,9 +258,8 @@ void sample_points(Polytope& P, // TODO: make it a const&
         using HPolytope = typename std::remove_const<Polytope>::type;
         HPolytope HP = P; //TODO: avoid the copy
 
-        constexpr int simdLen = 8;
+        constexpr int simdLen = 8; //TODO: input parameter
         using NT = double;
-        using MT = typename HPolytope::MT;
 
         int dimension = HP.dimension();
 
@@ -298,19 +297,19 @@ void sample_points(Polytope& P, // TODO: make it a const&
             >;
 
         using Walk = typename WalkType::template Walk
-                <
-                        Point,
-                        CrhmcProblem,
-                        RandomNumberGenerator,
-                        NegativeGradientFunctor,
-                        NegativeLogprobFunctor,
-                        Solver
-                >;
+            <
+                    Point,
+                    CrhmcProblem,
+                    RandomNumberGenerator,
+                    NegativeGradientFunctor,
+                    NegativeLogprobFunctor,
+                    Solver
+            >;
         using WalkParams = typename WalkType::template parameters
-                <
-                        NT,
-                        NegativeGradientFunctor
-                >;
+            <
+                    NT,
+                    NegativeGradientFunctor
+            >;
         Point p = Point(problem.center);
         problem.options.simdLen=simdLen;
         WalkParams params(distribution.L, p.dimension(), problem.options);
@@ -333,7 +332,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
         {
             walk.apply(rng, walk_len);
             if (walk.P.terminate) {return;}
-            MT x = raw_output ? walk.x : walk.getPoints();
+            auto x = raw_output ? walk.x : walk.getPoints();
 
             if ((i + 1) * simdLen > rnum)
             {
