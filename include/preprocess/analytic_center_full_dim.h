@@ -89,8 +89,7 @@ std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
         Ax.noalias() += step*Ad;
 
         rel_pos_err = std::numeric_limits<NT>::lowest();
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < n; i++) {
             rel_pos_err_temp = std::abs(step_d.coeff(i) / x_prev.coeff(i));
             if (rel_pos_err_temp > rel_pos_err) {
                 rel_pos_err = rel_pos_err_temp;
