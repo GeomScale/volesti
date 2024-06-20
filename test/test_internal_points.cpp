@@ -2,6 +2,7 @@
 
 // Copyright (c) 2024 Vissarion Fisikopoulos
 // Copyright (c) 2024 Apostolos Chalkis
+// Copyright (c) 2024 Elias Tsigaridas
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
