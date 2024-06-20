@@ -18,7 +18,7 @@
 #include "convex_bodies/hpolytope.h"
 
 #include "preprocess/max_inscribed_ball.hpp"
-#include "preprocess/analytic_center_full_dim.h"
+#include "preprocess/analytic_center_linear_ineq.h"
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
@@ -79,15 +79,17 @@ void call_test_analytic_center() {
     Hpolytope P;
 
     std::cout << "\n--- Testing analytic center for skinny H-polytope" << std::endl;
-    bool pre_rounding = false; // round random polytope before applying the skinny transformation 
-    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(2, 9, pre_rounding, 100.0, 127);
+    bool pre_rounding = true; // round random polytope before applying the skinny transformation 
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, 100.0, 127);
     P.normalize();
+    
     auto [analytic_center, converged] = analytic_center_linear_ineq<MT, VT, NT>(P.get_mat(), P.get_vec());
     
     CHECK(P.is_in(Point(analytic_center)) == -1);
     CHECK(converged);
-    CHECK(std::abs(analytic_center(0) + 12.5341) < 1e-04);
-    CHECK(std::abs(analytic_center(1) + 2.5453) < 1e-04);
+    CHECK(std::abs(analytic_center(0) + 4.75912) < 1e-04);
+    CHECK(std::abs(analytic_center(1) + 4.28762) < 1e-04);
+    CHECK(std::abs(analytic_center(2) - 7.54156) < 1e-04);
 }
 
 TEST_CASE("test_max_ball") {

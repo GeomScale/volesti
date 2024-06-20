@@ -120,7 +120,8 @@ Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_ro
     // rounding the polytope before applying the skinny transformation
     if (pre_rounding) {
         Point x0(dim);
-        max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, x0, true);
+        // run only one iteration
+        max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, x0, 1);
     }
 
     MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, seed);
