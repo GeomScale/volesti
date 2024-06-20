@@ -2,12 +2,10 @@
 
 // Copyright (c) 2012-2024 Vissarion Fisikopoulos
 // Copyright (c) 2018-2024 Apostolos Chalkis
-// Copyright (c) 2020-2024 Elias Tsigaridas
 // Copyright (c) 2021 Vaibhav Thakkar
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 //Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
-//Modified by Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -40,6 +38,7 @@
 */
 
 // using Custom_MT as to deal with both dense and sparse matrices, MT will be the type of result matrix
+// TODO: Change the return data structure to std::tuple
 template <typename MT, typename Custom_MT, typename VT, typename NT>
 std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
                                                            unsigned int const& maxiter,
@@ -130,6 +129,7 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
             
             // computing eigenvalues of E2
             Spectra::DenseSymMatProd<NT> op(E2);
+            // The value of ncv is chosen empirically
             Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
                                    Spectra::DenseSymMatProd<NT>> eigs(&op, 2, std::min(std::max(10, n/5), n));
             eigs.init();
