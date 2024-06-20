@@ -78,7 +78,7 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         reg = std::max(reg / 10.0, std::pow(10, -10.0));
         P.normalize();
         x0 = VT::Zero(d);
-        
+
         // check the roundness of the polytope
         if(((std::abs(R / r) <= max_eig_ratio && iter_res.second) || iter >= max_iterations)){
             break;

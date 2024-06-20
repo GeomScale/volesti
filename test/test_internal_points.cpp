@@ -1,9 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2024 Vissarion Fisikopoulos
-// Copyright (c) 2018-2024 Apostolos Chalkis
-
-// Contributed by Apostolos Chalkis
+// Copyright (c) 2024 Vissarion Fisikopoulos
+// Copyright (c) 2024 Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
