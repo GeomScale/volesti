@@ -111,6 +111,7 @@ public:
     std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
+        normalized = false;
         #ifndef DISABLE_LPSOLVE
             _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
         #else
