@@ -40,9 +40,9 @@
 // using Custom_MT as to deal with both dense and sparse matrices, MT will be the type of result matrix
 // TODO: Change the return data structure to std::tuple
 template <typename MT, typename Custom_MT, typename VT, typename NT>
-std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
-                                                           unsigned int const& maxiter,
-                                                           NT const& tol, NT const& reg)
+std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
+                                                 unsigned int const& maxiter,
+                                                 NT const& tol, NT const& reg)
 {
     typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
 
@@ -256,7 +256,7 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
         x += x0;
     }
 
-    return std::pair<std::pair<MT, VT>, bool>(std::pair<MT, VT>(E2, x), converged);
+    return std::make_tuple(E2, x, converged);
 }
 
 

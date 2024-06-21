@@ -85,7 +85,7 @@ void call_test_analytic_center() {
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     
-    auto [analytic_center, converged] = analytic_center_linear_ineq<MT, VT, NT>(P.get_mat(), P.get_vec());
+    auto [Hessian, analytic_center, converged] = analytic_center_linear_ineq<MT, VT, NT>(P.get_mat(), P.get_vec());
     
     CHECK(P.is_in(Point(analytic_center)) == -1);
     CHECK(converged);

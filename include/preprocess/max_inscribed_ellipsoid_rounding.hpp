@@ -12,6 +12,54 @@
 #define MAX_ELLIPSOID_ROUNDING_HPP
 
 #include "max_inscribed_ellipsoid.hpp"
+#include "analytic_center_linear_ineq.h"
+#include "feasible_point.hpp"
+
+enum EllipsoidType
+{
+  MAX_ELLIPSOID = 1,
+  LOG_BARRIER = 2
+};
+
+template<int C>
+struct inscribed_ellispoid
+{
+    template<typename MT, typename Custom_MT, typename VT, typename NT>
+    inline static std::tuple<MT, VT, NT> 
+    compute(Custom_MT A, VT b, VT const& x0,
+            unsigned int const& maxiter,
+            NT const& tol, NT const& reg) 
+    {
+      std::runtime_error("no roudning method is defined");
+      return std::tuple<MT, VT, NT>();
+    }
+};
+
+template <>
+struct inscribed_ellispoid<EllipsoidType::MAX_ELLIPSOID>
+{
+    template<typename MT, typename Custom_MT, typename VT, typename NT>
+    inline static std::tuple<MT, VT, NT> 
+    compute(Custom_MT A, VT b, VT const& x0,
+            unsigned int const& maxiter,
+            NT const& tol, NT const& reg) 
+    {
+      return max_inscribed_ellipsoid<MT>(A, b, x0, maxiter, tol, reg);
+    }
+};
+
+template <>
+struct inscribed_ellispoid<EllipsoidType::LOG_BARRIER>
+{
+    template<typename MT, typename Custom_MT, typename VT, typename NT>
+    inline static std::tuple<MT, VT, NT> 
+    compute(Custom_MT const& A, VT const& b, VT const& x0,
+            unsigned int const& maxiter,
+            NT const& tol, NT&) 
+    {
+      return analytic_center_linear_ineq<MT, VT, NT>(MT(A), b, x0);
+    }
+};
 
 template 
 <
@@ -19,18 +67,34 @@ template
     typename VT,
     typename NT,
     typename Polytope,
-    typename Point   
+    int ellipsopid_type = EllipsoidType::MAX_ELLIPSOID
+>
+std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
+                                                        unsigned int const max_iterations = 5,
+                                                        NT const max_eig_ratio = NT(6))
+{
+    typedef typename Polytope::PointType Point;
+    VT x = compute_feasible_point(P.get_mat(), P.get_vec());
+    return max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, Point(x), max_iterations, max_eig_ratio);
+}
+
+template 
+<
+    typename MT,
+    typename VT,
+    typename NT,
+    typename Polytope,
+    typename Point,
+    int ellipsopid_type = EllipsoidType::MAX_ELLIPSOID
 >
 std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
                                                         Point const& InnerPoint,
                                                         unsigned int const max_iterations = 5,
                                                         NT const max_eig_ratio = NT(6))
 {
-    std::pair<std::pair<MT, VT>, bool> iter_res;
-    iter_res.second = false;
-
-    VT x0 = InnerPoint.getCoefficients();
+    VT x0 = InnerPoint.getCoefficients(), center;
     MT E, L;
+    bool converged;
     unsigned int maxiter = 500, iter = 1, d = P.dimension();
 
     NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -4.0), round_val = 1.0;
@@ -41,10 +105,12 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
     while (true)
     {
         // compute the largest inscribed ellipsoid in P centered at x0
-        iter_res = max_inscribed_ellipsoid<MT>(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
-        E = iter_res.first.first;
+        //std::tie(E, center, converged) = max_inscribed_ellipsoid<MT>(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
+        std::tie(E, center, converged) = 
+                       inscribed_ellispoid<ellipsopid_type>::template compute<MT>(P.get_mat(), P.get_vec(),
+                                                                                  x0, maxiter, tol, reg);
         E = (E + E.transpose()) / 2.0;
-        E = E + MT::Identity(d, d)*std::pow(10, -8.0); //normalize E
+        E += MT::Identity(d, d)*std::pow(10, -8.0); //normalize E
 
         Eigen::LLT<MT> lltOfA(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of E^{-1}
         L = lltOfA.matrixL();
@@ -69,9 +135,9 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
             }
         }
         // shift polytope and apply the linear transformation on P
-        P.shift(iter_res.first.second);
-        shift += T * iter_res.first.second;
-        T = T * L;
+        P.shift(center);
+        shift.noalias() += T * center;
+        T.applyOnTheRight(L); // T = T * L;
         round_val *= L.transpose().determinant();
         P.linear_transformIt(L);
 
@@ -80,7 +146,8 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         x0 = VT::Zero(d);
 
         // check the roundness of the polytope
-        if(((std::abs(R / r) <= max_eig_ratio && iter_res.second) || iter >= max_iterations)){
+        std::cout<<"std::abs(R / r): "<<std::abs(R / r)<<std::endl;
+        if(((std::abs(R / r) <= max_eig_ratio && converged) || iter >= max_iterations)){
             break;
         }
 

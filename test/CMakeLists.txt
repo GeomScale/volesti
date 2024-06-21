@@ -296,6 +296,8 @@ add_test(NAME test_round_max_ellipsoid
           COMMAND new_rounding_test -tc=round_max_ellipsoid)
 add_test(NAME test_round_svd
           COMMAND new_rounding_test -tc=round_svd)
+add_test(NAME test_round_log_barrier_test
+          COMMAND new_rounding_test -tc=round_log_barrier_test)
 
 
 

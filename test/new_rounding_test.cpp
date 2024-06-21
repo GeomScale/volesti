@@ -111,7 +111,37 @@ void rounding_max_ellipsoid_test(Polytope &HP,
     RNGType rng(d);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
     std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
+    // Setup the parameters
+    int walk_len = 1;
+    NT e = 0.1;
 
+    // Estimate the volume
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+
+    NT volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
+    test_values(volume, expectedBilliard, exact);
+}
+
+template <class Polytope>
+void rounding_log_barrier_test(Polytope &HP,
+                                 double const& expectedBall,
+                                 double const& expectedCDHR,
+                                 double const& expectedRDHR,
+                                 double const& expectedBilliard,
+                                 double const& exact)
+{
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+
+    int d = HP.dimension();
+
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
+    RNGType rng(d);
+    std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
+    std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point, EllipsoidType::LOG_BARRIER>(HP, InnerBall.first);
+    max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP);
     // Setup the parameters
     int walk_len = 1;
     NT e = 0.1;
@@ -164,11 +194,11 @@ void call_test_min_ellipsoid() {
     typedef HPolytope <Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
+    std::cout << "\n--- Testing min ellipsoid rounding of H-skinny_cube5" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
     rounding_min_ellipsoid_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
+    std::cout << "\n--- Testing min ellipsoid rounding of H-skinny_cube10" << std::endl;
 
     P = generate_skinny_cube<Hpolytope>(10);
     rounding_min_ellipsoid_test(P, 0, 122550, 108426, 105003.0, 102400.0);
@@ -182,9 +212,21 @@ void call_test_max_ellipsoid() {
     typedef HPolytope <Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
+    std::cout << "\n--- Testing max ellipsoid rounding of H-skinny_cube5" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
     rounding_max_ellipsoid_test(P, 0, 3070.64, 3188.25, 3262.61, 3200.0);
+}
+
+template <typename NT>
+void call_test_log_barrier() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing log-barrier rounding of H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_log_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
 }
 
 
@@ -195,7 +237,7 @@ void call_test_svd() {
     typedef HPolytope <Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
+    std::cout << "\n--- Testing SVD rounding of H-skinny_cube5" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
     rounding_svd_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 }
@@ -207,6 +249,10 @@ TEST_CASE("round_min_ellipsoid") {
 
 TEST_CASE("round_max_ellipsoid") {
     call_test_max_ellipsoid<double>();
+}
+
+TEST_CASE("round_log_barrier_test") {
+    call_test_log_barrier<double>();
 }
 
 TEST_CASE("round_svd") {

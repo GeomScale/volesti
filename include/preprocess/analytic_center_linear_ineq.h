@@ -13,6 +13,7 @@
 #include <tuple>
 
 #include "max_inscribed_ball.hpp"
+#include "feasible_point.hpp"
 
 template <typename VT, typename NT>
 NT get_max_step(VT const& Ad, VT const& b_Ax)
@@ -33,17 +34,8 @@ template <typename MT, typename VT, typename NT>
 void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b, 
                                  VT const& x, VT const& Ax, MT &H, VT &grad, VT &b_Ax)
 {
-    const int m = A.rows();
-    VT s(m);
-
     b_Ax.noalias() = b - Ax;
-    NT *s_data = s.data();
-    for (int i = 0; i < m; i++)
-    {
-        *s_data = NT(1) / b_Ax.coeff(i);
-        s_data++;
-    }
-
+    VT s = b_Ax.cwiseInverse();
     VT s_sq = s.cwiseProduct(s);
     // Gradient of the log-barrier function
     grad.noalias() = A_trans * s;
@@ -70,27 +62,20 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
             (ii) A boolean variable that declares convergence
 */
 template <typename MT, typename VT, typename NT>
-std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b, 
-                                                  unsigned int const max_iters = 500,
-                                                  NT const grad_err_tol = 1e-08,
-                                                  NT const rel_pos_err_tol = 1e-12) 
+std::tuple<MT, VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b, VT const& x0,
+                                                      unsigned int const max_iters = 500,
+                                                      NT const grad_err_tol = 1e-08,
+                                                      NT const rel_pos_err_tol = 1e-12) 
 {
-    VT x;
-    bool feasibility_only = true, converged;
-    // Compute a feasible point
-    std::tie(x, std::ignore, converged) = max_inscribed_ball(A, b, max_iters, 1e-08, feasibility_only);
-    VT Ax = A * x;
-    if (!converged || (Ax.array() > b.array()).any())
-    {
-        std::runtime_error("The computation of the analytic center failed.");
-    }
     // Initialization
+    VT x = x0;
+    VT Ax = A * x;
     const int n = A.cols(), m = A.rows();
     MT H(n, n), A_trans = A.transpose();
     VT grad(n), d(n), Ad(m), b_Ax(m), step_d(n), x_prev;
     NT grad_err, rel_pos_err, rel_pos_err_temp, step;
     unsigned int iter = 0;
-    converged = false;
+    bool converged = false;
     const NT tol_bnd = NT(0.01);
 
     get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
@@ -128,7 +113,17 @@ std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
         }
     } while (true);
     
-    return std::make_tuple(x, converged);
+    return std::make_tuple(H, x, converged);
+}
+
+template <typename MT, typename VT, typename NT>
+std::tuple<MT, VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
+                                                      unsigned int const max_iters = 500,
+                                                      NT const grad_err_tol = 1e-08,
+                                                      NT const rel_pos_err_tol = 1e-12) 
+{
+    VT x0 = compute_feasible_point(A, b);
+    return analytic_center_linear_ineq<MT, VT, NT>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
 }
 
 #endif
