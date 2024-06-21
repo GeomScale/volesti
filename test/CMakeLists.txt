@@ -297,6 +297,8 @@ add_test(NAME test_round_max_ellipsoid
 add_test(NAME test_round_svd
           COMMAND new_rounding_test -tc=round_svd)
 
+
+
 add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME logconcave_sampling_test_hmc
         COMMAND logconcave_sampling_test -tc=hmc)
@@ -348,6 +350,14 @@ add_test(NAME test_new_rdhr_uniform_MT COMMAND matrix_sampling_test -tc=new_rdhr
 add_test(NAME test_new_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_billiard_uniform_MT)
 add_test(NAME test_new_accelerated_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform_MT)
 
+add_executable (test_internal_points test_internal_points.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_max_ball
+          COMMAND test_internal_points -tc=test_max_ball)
+add_test(NAME test_feasibility_point
+          COMMAND test_internal_points -tc=test_feasibility_point)
+add_test(NAME test_analytic_center
+          COMMAND test_internal_points -tc=test_analytic_center)
+
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
@@ -388,3 +398,4 @@ TARGET_LINK_LIBRARIES(logconcave_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} 
 TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
