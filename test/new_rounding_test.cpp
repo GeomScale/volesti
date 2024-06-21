@@ -141,7 +141,6 @@ void rounding_log_barrier_test(Polytope &HP,
     RNGType rng(d);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
     std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point, EllipsoidType::LOG_BARRIER>(HP, InnerBall.first);
-    max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP);
     // Setup the parameters
     int walk_len = 1;
     NT e = 0.1;

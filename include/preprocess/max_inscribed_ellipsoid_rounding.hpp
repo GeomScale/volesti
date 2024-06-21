@@ -57,7 +57,7 @@ struct inscribed_ellispoid<EllipsoidType::LOG_BARRIER>
             unsigned int const& maxiter,
             NT const& tol, NT&) 
     {
-      return analytic_center_linear_ineq<MT, VT, NT>(MT(A), b, x0);
+      return analytic_center_linear_ineq<MT, Custom_MT, VT, NT>(A, b, x0);
     }
 };
 

@@ -77,6 +77,7 @@ void call_test_analytic_center() {
     typedef typename Hpolytope::MT MT;
     typedef typename Hpolytope::VT VT;
     typedef boost::mt19937 PolyRNGType;
+    typedef Eigen::SparseMatrix<NT> SpMT;
     Hpolytope P;
 
     std::cout << "\n--- Testing analytic center for skinny H-polytope" << std::endl;
@@ -85,13 +86,24 @@ void call_test_analytic_center() {
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     
-    auto [Hessian, analytic_center, converged] = analytic_center_linear_ineq<MT, VT, NT>(P.get_mat(), P.get_vec());
+    auto [Hessian, analytic_center, converged] = analytic_center_linear_ineq<MT, MT, VT, NT>(P.get_mat(), P.get_vec());
+    SpMT Asp = P.get_mat().sparseView();
     
+    auto [Hessian_sp, analytic_center2, converged2] = analytic_center_linear_ineq<MT, SpMT, VT, NT>(Asp, P.get_vec());
+
     CHECK(P.is_in(Point(analytic_center)) == -1);
     CHECK(converged);
     CHECK(std::abs(analytic_center(0) + 4.75912) < 1e-04);
     CHECK(std::abs(analytic_center(1) + 4.28762) < 1e-04);
     CHECK(std::abs(analytic_center(2) - 7.54156) < 1e-04);
+
+    CHECK(P.is_in(Point(analytic_center2)) == -1);
+    CHECK(converged2);
+    CHECK(std::abs(analytic_center(0) - analytic_center2(0)) < 1e-12);
+    CHECK(std::abs(analytic_center(1) - analytic_center2(1)) < 1e-12);
+    CHECK(std::abs(analytic_center(2) - analytic_center2(2)) < 1e-12);
+
+    CHECK((Hessian - Hessian_sp).norm() < 1e-12);
 }
 
 TEST_CASE("test_max_ball") {
