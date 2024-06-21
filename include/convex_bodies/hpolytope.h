@@ -891,7 +891,8 @@ public:
 
     void normalize()
     {
-        if(!is_normalized()){
+        if(is_normalized() == false)
+        {
             NT row_norm;
             for (int i = 0; i < num_of_hyperplanes(); ++i)
             {
