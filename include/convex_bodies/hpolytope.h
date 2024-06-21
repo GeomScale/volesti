@@ -56,6 +56,7 @@ private:
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
+    bool                normalized = 0;
 
 public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
@@ -288,6 +289,33 @@ public:
             b_data++;
         }
         return -1;
+    }
+
+    void nudge_in(Point& p, NT tol=NT(0)) const
+    {
+        int m = A.rows();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+
+            NT dist = *b_data - A.row(i) * p.getCoefficients();
+
+            if (dist < NT(-tol)){
+                //Nudging correction
+                NT eps = -1e-7;
+
+                NT eps_1 = -dist;
+                //A.row is already normalized, no need to do it again
+                VT A_i = A.row(i);
+                NT eps_2 = eps_1 + eps;
+
+                //Nudge the point inside with respect to the normal its vector
+                Point shift(A_i);
+                shift.operator*=(eps_2);
+                p.operator+=(shift);
+            }
+            b_data++;
+        }
     }
 
     // compute intersection point of ray starting from r and pointing to v
@@ -854,14 +882,23 @@ public:
         return A;
     }
 
+
+    bool is_normalized()
+    {
+        return normalized;
+    }
+
     void normalize()
     {
-        NT row_norm;
-        for (int i = 0; i < num_of_hyperplanes(); ++i)
-        {
-            row_norm = A.row(i).norm();
-            A.row(i) = A.row(i) / row_norm;
-            b(i) = b(i) / row_norm;
+        if(!is_normalized()){
+            NT row_norm;
+            for (int i = 0; i < num_of_hyperplanes(); ++i)
+            {
+                row_norm = A.row(i).norm();
+                A.row(i) = A.row(i) / row_norm;
+                b(i) = b(i) / row_norm;
+            }
+            normalized = true;
         }
     }
 
