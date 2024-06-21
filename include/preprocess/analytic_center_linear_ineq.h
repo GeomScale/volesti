@@ -38,7 +38,8 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
 
     b_Ax.noalias() = b - Ax;
     NT *s_data = s.data();
-    for (int i = 0; i < m; i++) {
+    for (int i = 0; i < m; i++)
+    {
         *s_data = NT(1) / b_Ax.coeff(i);
         s_data++;
     }
@@ -53,9 +54,12 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
 /*
     This implementation computes the analytic center of a polytope given 
     as a set of linear inequalities P = {x | Ax <= b}. The analytic center
-    is the optimal solution of the following optimization problem,
-    \min - \sum \log(b_i - a_i^Tx), where a_i is the i-th row of A.
-    The function implements the Newton method.
+    is the minimizer of the log barrier function i.e., the optimal solution
+    of the following optimization problem (Convex Optimization, Boyd and Vandenberghe, Section 8.5.3),
+
+    \min -\sum \log(b_i - a_i^Tx), where a_i is the i-th row of A.
+    
+    The function solves the problem by using the Newton method.
 
     Input: (i)   Matrix A, vector b such that the polytope P = {x | Ax<=b}
            (ii)  The number of maximum iterations, max_iters
@@ -74,9 +78,10 @@ std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
     VT x;
     bool feasibility_only = true, converged;
     // Compute a feasible point
-    std::tie(x, std::ignore, converged) =  max_inscribed_ball(A, b, max_iters, 1e-08, feasibility_only);
+    std::tie(x, std::ignore, converged) = max_inscribed_ball(A, b, max_iters, 1e-08, feasibility_only);
     VT Ax = A * x;
-    if(!converged || (Ax.array() > b.array()).any()) {
+    if (!converged || (Ax.array() > b.array()).any())
+    {
         std::runtime_error("The computation of the analytic center failed.");
     }
     // Initialization
@@ -86,16 +91,17 @@ std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
     NT grad_err, rel_pos_err, rel_pos_err_temp, step;
     unsigned int iter = 0;
     converged = false;
+    const NT tol_bnd = NT(0.01);
 
     get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
     
     do {
         iter++;
         // Compute the direction
-        d.noalias() = - H.lu().solve(grad);
+        d.noalias() = - H.llt().solve(grad);
         Ad.noalias() = A * d;
         // Compute the step length
-        step = std::min(NT(0.99) * get_max_step<VT, NT>(Ad, b_Ax), NT(1));
+        step = std::min((NT(1) - tol_bnd) * get_max_step<VT, NT>(Ad, b_Ax), NT(1));
         step_d.noalias() = step*d;
         x_prev = x;
         x += step_d;
@@ -103,17 +109,20 @@ std::tuple<VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
 
         // Compute the max_i\{ |step*d_i| ./ |x_i| \} 
         rel_pos_err = std::numeric_limits<NT>::lowest();
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++)
+        {
             rel_pos_err_temp = std::abs(step_d.coeff(i) / x_prev.coeff(i));
-            if (rel_pos_err_temp > rel_pos_err) {
+            if (rel_pos_err_temp > rel_pos_err)
+            {
                 rel_pos_err = rel_pos_err_temp;
-            } 
+            }
         }
         
         get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
         grad_err = grad.norm();
 
-        if (iter >= max_iters || grad_err <= grad_err_tol || rel_pos_err <= rel_pos_err_tol) {
+        if (iter >= max_iters || grad_err <= grad_err_tol || rel_pos_err <= rel_pos_err_tol)
+        {
             converged = true;
             break;
         }
