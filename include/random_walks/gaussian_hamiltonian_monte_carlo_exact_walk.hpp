@@ -53,6 +53,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
     typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
 
     template <typename GenericPolytope>
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
@@ -108,7 +109,7 @@ struct Walk
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
-                P_normalized.nudge_in(_p);
+                nudge_in(P_normalized, _p);
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
@@ -225,10 +226,44 @@ private :
             }
             _lambda_prev = pbpair.first;
             update_position(_p, _v, _lambda_prev, _omega);
-            P_normalized.nudge_in(_p);
+            nudge_in(P_normalized, _p);
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
+        }
+    }
+
+    template
+    <
+        typename GenericPolytope
+    >
+    inline void nudge_in(GenericPolytope& P, Point& p, NT tol=NT(0))
+    {
+        MT A = P.get_mat();
+        VT b = P.get_vec();
+
+        int m = A.rows();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+
+            NT dist = *b_data - A.row(i) * p.getCoefficients();
+
+            if (dist < NT(-tol)){
+                //Nudging correction
+                NT eps = -1e-7;
+
+                NT eps_1 = -dist;
+                //A.row is already normalized, no need to do it again
+                VT A_i = A.row(i);
+                NT eps_2 = eps_1 + eps;
+
+                //Nudge the point inside with respect to the normal its vector
+                Point shift(A_i);
+                shift.operator*=(eps_2);
+                p.operator+=(shift);
+            }
+            b_data++;
         }
     }
 
@@ -280,4 +315,3 @@ private :
 
 
 #endif // RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
-
