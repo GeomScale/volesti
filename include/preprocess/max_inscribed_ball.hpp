@@ -11,7 +11,7 @@
 #ifndef MAX_INNER_BALL
 #define MAX_INNER_BALL
 
-#include "cholesky_opoerator.h"
+#include "mat_computational_operator.h"
 
 /*
     This implmentation computes the largest inscribed ball in a given convex polytope P.
@@ -45,7 +45,7 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     rhs.block(0,0,n,1).noalias() = r2 + A_trans * tmp;
     rhs(n) = r3 + tmp.sum();
 
-    VT dxdt = cholesky_operator<MT>::solve(llt, B, rhs);
+    VT dxdt = matrix_computational_operator<MT>::solve_vec(llt, B, rhs);
 
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
@@ -59,12 +59,13 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     }
 }
 
-
+// Using MT as to deal with both dense and sparse matrices
 template <typename MT, typename VT, typename NT>
 std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, 
                                              unsigned int maxiter, NT tol,
                                              const bool feasibility_only = false) 
 {
+    typedef matrix_computational_operator<MT> mat_op;
     int m = A.rows(), n = A.cols();
     bool converge = false;
 
@@ -88,10 +89,9 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
     NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
 
     MT B, AtD(n, m), A_trans = A.transpose();
-    //MT_dense eEye = std::pow(10.0, -14.0) * MT_dense::Identity(n + 1, n + 1);
 
-    cholesky_operator<MT>::init_Bmat(B, n, A_trans, A);
-    auto llt = cholesky_operator<MT>::initialize(B);
+    mat_op::init_Bmat(B, n, A_trans, A);
+    auto llt = mat_op::initialize_chol(B);
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
@@ -140,21 +140,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
             vec_iter3++;
             vec_iter2++;
         }
-        AtD = A_trans*d.asDiagonal(); //todo: optimize it in cholesky_operator
+        mat_op::update_A_Diag(AtD, A_trans, d.asDiagonal()); // AtD = A_trans*d.asDiagonal()
 
         AtDe.noalias() = AtD * e_m;
-        //std::cout<<"starting update Bmat..\n"<<std::endl;
-        cholesky_operator<MT>::update_Bmat(B, AtDe, d, AtD, A);
-        //exit(-1);
-        //B.block(0, 0, n, n).noalias() = AtD * A;
-        //B.block(0, n, n, 1).noalias() = AtDe;
-        //B.block(n, 0, 1, n).noalias() = AtDe.transpose();
-        //B(n, n) = d.sum();
-        //B.noalias() += eEye;
-        //std::cout<<"B:\n"<<Eigen::MatrixXd(B)<<std::endl;
-
-        // Cholesky decomposition
-        //Eigen::LLT<MT> lltOfB(B);
+        mat_op::update_Bmat(B, AtDe, d, AtD, A);
 
         // predictor step & length
         calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);

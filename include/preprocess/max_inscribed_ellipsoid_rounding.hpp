@@ -30,7 +30,7 @@ struct inscribed_ellispoid
             unsigned int const& maxiter,
             NT const& tol, NT const& reg) 
     {
-      std::runtime_error("no roudning method is defined");
+      std::runtime_error("No roudning method is defined");
       return std::tuple<MT, VT, NT>();
     }
 };

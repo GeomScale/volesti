@@ -191,15 +191,15 @@ add_library(test_main OBJECT test_main.cpp)
 
 
 
-#add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
-#add_test(NAME test_round_min_ellipsoid
-#          COMMAND new_rounding_test -tc=round_min_ellipsoid)
-#add_test(NAME test_round_max_ellipsoid
-#          COMMAND new_rounding_test -tc=round_max_ellipsoid)
-#add_test(NAME test_round_svd
-#          COMMAND new_rounding_test -tc=round_svd)
-#add_test(NAME test_round_log_barrier_test
-#          COMMAND new_rounding_test -tc=round_log_barrier_test)
+add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_round_min_ellipsoid
+          COMMAND new_rounding_test -tc=round_min_ellipsoid)
+add_test(NAME test_round_max_ellipsoid
+          COMMAND new_rounding_test -tc=round_max_ellipsoid)
+add_test(NAME test_round_svd
+          COMMAND new_rounding_test -tc=round_svd)
+add_test(NAME test_round_log_barrier_test
+          COMMAND new_rounding_test -tc=round_log_barrier_test)
 
 
 
@@ -223,5 +223,5 @@ set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 #															PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 
 
-#TARGET_LINK_LIBRARIES(new_rounding_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(new_rounding_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)

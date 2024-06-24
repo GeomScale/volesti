@@ -18,6 +18,7 @@
 #include "Spectra/include/Spectra/SymEigsSolver.h"
 #include "Spectra/include/Spectra/Util/SelectionRule.h"
 #include "Spectra/include/Spectra/MatOp/DenseSymMatProd.h"
+#include "mat_computational_operator.h"
 
 
 /*
@@ -37,14 +38,14 @@
             matrix E2^{-1} = E_transpose * E
 */
 
-// using Custom_MT as to deal with both dense and sparse matrices, MT will be the type of result matrix
-// TODO: Change the return data structure to std::tuple
-template <typename MT, typename Custom_MT, typename VT, typename NT>
-std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
-                                                 unsigned int const& maxiter,
-                                                 NT const& tol, NT const& reg)
+// Using MT as to deal with both dense and sparse matrices, MT_dense will be the type of result matrix
+template <typename MT_dense, typename MT, typename VT, typename NT>
+std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
+                                                       unsigned int const& maxiter,
+                                                       NT const& tol, NT const& reg)
 {
     typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
+    typedef matrix_computational_operator<MT> mat_op;
 
     int m = A.rows(), n = A.cols();
     bool converged = false;
@@ -66,22 +67,23 @@ std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0
 
     VT const bmAx0 = b - A * x0, ones_m = VT::Ones(m);
 
-    MT Q(m, m), E2(n, n), YQ(m,m), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n);
+    MT_dense Q(m,m), YQ(m,m), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n);
     Diagonal_MT Y(m);
-    Custom_MT YA(m, n);
+    MT YA(m, n);
 
     A = (ones_m.cwiseProduct(bmAx0.cwiseInverse())).asDiagonal() * A, b = ones_m;
-    Custom_MT A_trans = A.transpose();
+    MT A_trans = A.transpose(), E2(n,n);
+
+    auto llt = mat_op::initialize_chol(A_trans*A);
 
     int i = 1;
     while (i <= maxiter) {
 
         Y = y.asDiagonal();
 
-        E2.noalias() = MT(A_trans * Y * A);
-        Eigen::LLT<MT> llt(E2);
-
-        Q.noalias() = A * llt.solve(A_trans);
+        mat_op::update_Atrans_Diag_A(E2, A_trans, A, Y);
+        Q.noalias() = A * mat_op::solve_mat(llt, E2, A_trans, logdetE2);
+        
         h = Q.diagonal();
         h = h.cwiseSqrt();
 
@@ -120,7 +122,6 @@ std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0
 
         res = std::max(r1, r2);
         res = std::max(res, r3);
-        logdetE2 = llt.matrixL().toDenseMatrix().diagonal().array().log().sum();
         objval = logdetE2; //logdet of E2 is already divided by 2
 
         if (i % 10 == 0) {
@@ -128,15 +129,13 @@ std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0
             NT rel, Rel;
             
             // computing eigenvalues of E2
-            Spectra::DenseSymMatProd<NT> op(E2);
-            // The value of ncv is chosen empirically
-            Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                   Spectra::DenseSymMatProd<NT>> eigs(&op, 2, std::min(std::max(10, n/5), n));
-            eigs.init();
-            int nconv = eigs.compute();
-            if (eigs.info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
-                Rel = 1.0 / eigs.eigenvalues().coeff(1);
-                rel = 1.0 / eigs.eigenvalues().coeff(0);
+            auto op = mat_op::get_mat_prod_op(E2);
+            auto eigs = mat_op::get_eigs_solver(op, n);
+            eigs->init();
+            int nconv = eigs->compute();
+            if (eigs->info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
+                Rel = 1.0 / eigs->eigenvalues().coeff(1);
+                rel = 1.0 / eigs->eigenvalues().coeff(0);
             } else {
                 Eigen::SelfAdjointEigenSolver<MT> eigensolver(E2); // E2 is positive definite matrix
                 if (eigensolver.info() == Eigen::ComputationInfo::Success) {
@@ -176,7 +175,7 @@ std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0
         YQ.noalias() = Y * Q;
         G = YQ.cwiseProduct(YQ.transpose());
         y2h = 2.0 * yh;
-        YA.noalias() = Y * A;
+        mat_op::update_Diag_A(YA, Y, A); // YA = Y * A;
 
         vec_iter1 = y2h.data();
         vec_iter2 = z.data();
@@ -190,10 +189,10 @@ std::tuple<MT, VT, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0
 
         G.diagonal() += y2h_z;
         h_z = h + z;
-        Eigen::PartialPivLU<MT> luG(G);
-        T.noalias() = luG.solve(h_z.asDiagonal()*YA);
+        Eigen::PartialPivLU<MT_dense> luG(G);
+        T.noalias() = luG.solve(MT_dense(h_z.asDiagonal()*YA));
 
-        ATP.noalias() = MT(y2h.asDiagonal()*T - YA).transpose();
+        ATP.noalias() = MT_dense(y2h.asDiagonal()*T - YA).transpose();
 
         vec_iter1 = R3.data();
         vec_iter2 = y.data();

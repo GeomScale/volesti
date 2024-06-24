@@ -1,7 +1,8 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2024 Vissarion Fisikopoulos
-// Copyright (c) 2018-2024 Apostolos Chalkis
+// Copyright (c) 2024 Vissarion Fisikopoulos
+// Copyright (c) 2024 Apostolos Chalkis
+// Copyright (c) 2024 Elias Tsigaridas
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -13,6 +14,7 @@
 
 #include "max_inscribed_ball.hpp"
 
+// Using MT as to deal with both dense and sparse matrices
 template <typename MT, typename VT>
 VT compute_feasible_point(MT const& A, VT const& b)
 {

@@ -91,7 +91,10 @@ void call_test_max_ball_sparse() {
     std::cout<<"converged2: "<<converged2<<std::endl;
     VT center_(4);
     center_ << 0.207107, 0.5, 0.593398, 0.792893;
+
     CHECK(OP.is_in(Point(center)) == -1);
+    auto [E, x0, round_val] = max_inscribed_ellipsoid_rounding<MT, VT, NT>(OP, Point(center));
+    
     CHECK((center - center_).norm() <= 1e-06);
     CHECK(std::abs(radius - 0.207107) <= 1e-06);
     CHECK(converged);

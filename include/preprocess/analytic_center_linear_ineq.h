@@ -14,7 +14,7 @@
 
 #include "max_inscribed_ball.hpp"
 #include "feasible_point.hpp"
-#include "cholesky_opoerator.h"
+#include "mat_computational_operator.h"
 
 template <typename VT, typename NT>
 NT get_max_step(VT const& Ad, VT const& b_Ax)
@@ -41,7 +41,7 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
     // Gradient of the log-barrier function
     grad.noalias() = A_trans * s;
     // Hessian of the log-barrier function
-    cholesky_operator<MT>::update_hessian_Atrans_D_A(H, A_trans, A, s_sq.asDiagonal());
+    matrix_computational_operator<MT>::update_Atrans_Diag_A(H, A_trans, A, s_sq.asDiagonal());
 }
 
 /*
@@ -59,8 +59,11 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
            (iii) Tolerance parameter grad_err_tol to bound the L2-norm of the gradient
            (iv)  Tolerance parameter rel_pos_err_tol to check the relative progress in each iteration
 
-    Output: (i)  The analytic center of the polytope
-            (ii) A boolean variable that declares convergence
+    Output: (i)   The Hessian computed on the analytic center
+            (ii)  The analytic center of the polytope
+            (iii) A boolean variable that declares convergence
+    
+    Note: Using MT as to deal with both dense and sparse matrices, MT_dense will be the type of result matrix
 */
 template <typename MT_dense, typename MT, typename VT, typename NT>
 std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b, VT const& x0,
@@ -68,6 +71,7 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
                                                             NT const grad_err_tol = 1e-08,
                                                             NT const rel_pos_err_tol = 1e-12) 
 {
+    typedef matrix_computational_operator<MT> mat_op;
     // Initialization
     VT x = x0;
     VT Ax = A * x;
@@ -79,14 +83,14 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
     bool converged = false;
     const NT tol_bnd = NT(0.01);
 
-    auto llt = cholesky_operator<MT>::initialize(A_trans*A);
+    auto llt = mat_op::initialize_chol(A_trans*A);
 
     get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
     
     do {
         iter++;
         // Compute the direction
-        d.noalias() = - cholesky_operator<MT>::solve(llt, H, grad);
+        d.noalias() = - mat_op::solve_vec(llt, H, grad);
         Ad.noalias() = A * d;
         // Compute the step length
         step = std::min((NT(1) - tol_bnd) * get_max_step<VT, NT>(Ad, b_Ax), NT(1));
