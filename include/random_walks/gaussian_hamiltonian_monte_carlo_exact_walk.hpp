@@ -241,13 +241,16 @@ private :
     {
         MT A = P.get_mat();
         VT b = P.get_vec();
-
         int m = A.rows();
-        const NT* b_data = b.data();
+
+        VT b_Ax = b - A * p.getCoefficients();
+        const NT* b_Ax_data = b_Ax.data();
+
+        NT dist;
 
         for (int i = 0; i < m; i++) {
 
-            NT dist = *b_data - A.row(i) * p.getCoefficients();
+            dist = *b_Ax_data;
 
             if (dist < NT(-tol)){
                 //Nudging correction
@@ -263,7 +266,7 @@ private :
                 shift.operator*=(eps_2);
                 p.operator+=(shift);
             }
-            b_data++;
+            b_Ax_data++;
         }
     }
 
