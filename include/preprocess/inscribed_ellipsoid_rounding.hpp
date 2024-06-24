@@ -70,8 +70,8 @@ template
     int ellipsopid_type = EllipsoidType::MAX_ELLIPSOID
 >
 std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
-                                                        unsigned int const max_iterations = 5,
-                                                        NT const max_eig_ratio = NT(6))
+                                                    unsigned int const max_iterations = 5,
+                                                    NT const max_eig_ratio = NT(6))
 {
     typedef typename Polytope::PointType Point;
     VT x = compute_feasible_point(P.get_mat(), P.get_vec());
@@ -88,9 +88,9 @@ template
     int ellipsopid_type = EllipsoidType::MAX_ELLIPSOID
 >
 std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
-                                                        Point const& InnerPoint,
-                                                        unsigned int const max_iterations = 5,
-                                                        NT const max_eig_ratio = NT(6))
+                                                    Point const& InnerPoint,
+                                                    unsigned int const max_iterations = 5,
+                                                    NT const max_eig_ratio = NT(6))
 {
     VT x0 = InnerPoint.getCoefficients(), center;
     MT E, L;
@@ -104,7 +104,7 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
 
     while (true)
     {
-        // compute the largest inscribed ellipsoid in P centered at x0
+        // compute the desired inscribed ellipsoid in P
         std::tie(E, center, converged) = 
                        inscribed_ellispoid<ellipsopid_type>::template compute<MT>(P.get_mat(), P.get_vec(),
                                                                                   x0, maxiter, tol, reg);
@@ -145,7 +145,6 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
         x0 = VT::Zero(d);
 
         // check the roundness of the polytope
-        std::cout<<"std::abs(R / r): "<<std::abs(R / r)<<std::endl;
         if(((std::abs(R / r) <= max_eig_ratio && converged) || iter >= max_iterations)){
             break;
         }
