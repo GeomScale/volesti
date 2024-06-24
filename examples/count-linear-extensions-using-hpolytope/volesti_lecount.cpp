@@ -10,7 +10,7 @@
 #include "volume_cooling_gaussians.hpp"
 #include "volume_cooling_balls.hpp"
 
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 

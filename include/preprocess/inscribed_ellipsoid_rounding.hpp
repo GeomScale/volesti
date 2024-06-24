@@ -8,8 +8,8 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MAX_ELLIPSOID_ROUNDING_HPP
-#define MAX_ELLIPSOID_ROUNDING_HPP
+#ifndef ELLIPSOID_ROUNDING_HPP
+#define ELLIPSOID_ROUNDING_HPP
 
 #include "max_inscribed_ellipsoid.hpp"
 #include "analytic_center_linear_ineq.h"
@@ -69,13 +69,13 @@ template
     typename Polytope,
     int ellipsopid_type = EllipsoidType::MAX_ELLIPSOID
 >
-std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
+std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
                                                         unsigned int const max_iterations = 5,
                                                         NT const max_eig_ratio = NT(6))
 {
     typedef typename Polytope::PointType Point;
     VT x = compute_feasible_point(P.get_mat(), P.get_vec());
-    return max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, Point(x), max_iterations, max_eig_ratio);
+    return inscribed_ellipsoid_rounding<MT, VT, NT>(P, Point(x), max_iterations, max_eig_ratio);
 }
 
 template 
@@ -87,7 +87,7 @@ template
     typename Point,
     int ellipsopid_type = EllipsoidType::MAX_ELLIPSOID
 >
-std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
+std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
                                                         Point const& InnerPoint,
                                                         unsigned int const max_iterations = 5,
                                                         NT const max_eig_ratio = NT(6))
@@ -105,7 +105,6 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
     while (true)
     {
         // compute the largest inscribed ellipsoid in P centered at x0
-        //std::tie(E, center, converged) = max_inscribed_ellipsoid<MT>(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         std::tie(E, center, converged) = 
                        inscribed_ellispoid<ellipsopid_type>::template compute<MT>(P.get_mat(), P.get_vec(),
                                                                                   x0, maxiter, tol, reg);

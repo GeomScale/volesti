@@ -22,7 +22,7 @@
 #include "volume/volume_cooling_balls.hpp"
 
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 
 #include "generators/known_polytope_generators.h"
@@ -110,7 +110,7 @@ void rounding_max_ellipsoid_test(Polytope &HP,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
     RNGType rng(d);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
     // Setup the parameters
     int walk_len = 1;
     NT e = 0.1;
@@ -148,7 +148,7 @@ void rounding_max_ellipsoid_sparse_test(double const& expectedBilliard,
     unsigned int maxiter = 500;
     auto [center, radius, converged] =  max_inscribed_ball(Asp, OP.get_vec(), maxiter, tol);
     CHECK(OP.is_in(Point(center)) == -1);
-    auto [E, x0, round_val] = max_inscribed_ellipsoid_rounding<MT, VT, NT>(OP, Point(center));
+    auto [E, x0, round_val] = inscribed_ellipsoid_rounding<MT, VT, NT>(OP, Point(center));
 
     MT A = MT(OP.get_mat());
     VT b = OP.get_vec();
@@ -186,7 +186,7 @@ void rounding_log_barrier_test(Polytope &HP,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
     RNGType rng(d);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point, EllipsoidType::LOG_BARRIER>(HP, InnerBall.first);
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point, EllipsoidType::LOG_BARRIER>(HP, InnerBall.first);
     // Setup the parameters
     int walk_len = 1;
     NT e = 0.1;
