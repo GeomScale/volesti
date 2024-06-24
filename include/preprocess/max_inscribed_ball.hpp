@@ -11,6 +11,8 @@
 #ifndef MAX_INNER_BALL
 #define MAX_INNER_BALL
 
+#include "cholesky_opoerator.h"
+
 /*
     This implmentation computes the largest inscribed ball in a given convex polytope P.
     The polytope has to be given in H-representation P = {x | Ax <= b} and the rows of A
@@ -26,10 +28,11 @@
             radius r
 */
 
-template <typename MT, typename VT, typename NT>
-void calcstep(MT const& A, MT const& A_trans, Eigen::LLT<MT> const& lltOfB, VT &s, 
-              VT &y, VT &r1, VT const& r2, NT const& r3, VT &r4,
-              VT &dx, VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
+template <typename MT, typename llt_type, typename VT, typename NT>
+void calcstep(MT const& A, MT const& A_trans, MT const& B,
+              llt_type const& llt, VT &s, VT &y, VT &r1,
+              VT const& r2, NT const& r3, VT &r4, VT &dx,
+              VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
 {
     int m = A.rows(), n = A.cols();
     NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(),
@@ -42,7 +45,7 @@ void calcstep(MT const& A, MT const& A_trans, Eigen::LLT<MT> const& lltOfB, VT &
     rhs.block(0,0,n,1).noalias() = r2 + A_trans * tmp;
     rhs(n) = r3 + tmp.sum();
 
-    VT dxdt = lltOfB.solve(rhs);
+    VT dxdt = cholesky_operator<MT>::solve(llt, B, rhs);
 
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
@@ -84,9 +87,11 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
     NT const tau0 = 0.995, power_num = 5.0 * std::pow(10.0, 15.0);
     NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
 
-    MT B(n + 1, n + 1), AtD(n, m), 
-       eEye = std::pow(10.0, -14.0) * MT::Identity(n + 1, n + 1),
-       A_trans = A.transpose();
+    MT B, AtD(n, m), A_trans = A.transpose();
+    //MT_dense eEye = std::pow(10.0, -14.0) * MT_dense::Identity(n + 1, n + 1);
+
+    cholesky_operator<MT>::init_Bmat(B, n, A_trans, A);
+    auto llt = cholesky_operator<MT>::initialize(B);
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
@@ -135,20 +140,24 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
             vec_iter3++;
             vec_iter2++;
         }
-        AtD.noalias() = A_trans*d.asDiagonal();
+        AtD = A_trans*d.asDiagonal(); //todo: optimize it in cholesky_operator
 
         AtDe.noalias() = AtD * e_m;
-        B.block(0, 0, n, n).noalias() = AtD * A;
-        B.block(0, n, n, 1).noalias() = AtDe;
-        B.block(n, 0, 1, n).noalias() = AtDe.transpose();
-        B(n, n) = d.sum();
-        B.noalias() += eEye;
+        //std::cout<<"starting update Bmat..\n"<<std::endl;
+        cholesky_operator<MT>::update_Bmat(B, AtDe, d, AtD, A);
+        //exit(-1);
+        //B.block(0, 0, n, n).noalias() = AtD * A;
+        //B.block(0, n, n, 1).noalias() = AtDe;
+        //B.block(n, 0, 1, n).noalias() = AtDe.transpose();
+        //B(n, n) = d.sum();
+        //B.noalias() += eEye;
+        //std::cout<<"B:\n"<<Eigen::MatrixXd(B)<<std::endl;
 
         // Cholesky decomposition
-        Eigen::LLT<MT> lltOfB(B);
+        //Eigen::LLT<MT> lltOfB(B);
 
         // predictor step & length
-        calcstep(A, A_trans, lltOfB, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
+        calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
 
         alphap = -1.0;
         alphad = -1.0;
@@ -175,7 +184,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
 
         // corrector and combined step & length
         mu_ds_dy.noalias() = e_m * mu - ds.cwiseProduct(dy);
-        calcstep(A, A_trans, lltOfB, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
+        calcstep(A, A_trans, B, llt, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
 
         dx += dxc;
         ds += dsc;

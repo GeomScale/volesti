@@ -14,6 +14,7 @@
 
 #include "max_inscribed_ball.hpp"
 #include "feasible_point.hpp"
+#include "cholesky_opoerator.h"
 
 template <typename VT, typename NT>
 NT get_max_step(VT const& Ad, VT const& b_Ax)
@@ -40,52 +41,8 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
     // Gradient of the log-barrier function
     grad.noalias() = A_trans * s;
     // Hessian of the log-barrier function
-    H = A_trans * s_sq.asDiagonal() * A;    
+    cholesky_operator<MT>::update_hessian_Atrans_D_A(H, A_trans, A, s_sq.asDiagonal());
 }
-
-template<typename MT>
-struct cholesky_operator
-{
-    inline static std::unique_ptr<Eigen::LLT<MT>>
-    initialize(MT const&) 
-    {
-        return std::unique_ptr<Eigen::LLT<MT>>(new Eigen::LLT<MT>());
-    }
-
-    template <typename VT>
-    inline static VT solve(std::unique_ptr<Eigen::LLT<MT>> const& lltmat, MT const& H, VT const& b)
-    {
-        lltmat->compute(H);
-        return lltmat->solve(b);
-    }
-
-    /*
-    TODO: update_hessian_Atrans_D_A()
-    */
-};
-
-template <typename NT>
-struct cholesky_operator<Eigen::SparseMatrix<NT>>
-{
-    inline static std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>
-    initialize(Eigen::SparseMatrix<NT> const& mat) 
-    {
-        std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>> lltmat = std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>(new Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>());
-        lltmat->analyzePattern(mat);
-        return lltmat;
-    }
-
-    template <typename VT>
-    inline static VT solve(std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>> const& lltmat, Eigen::SparseMatrix<NT> const& H, VT const& b)
-    {
-        lltmat->factorize(H);
-        return lltmat->solve(b);
-    }
-
-    /*
-    TODO: update_hessian_Atrans_D_A()
-    */
-};
 
 /*
     This implementation computes the analytic center of a polytope given 
@@ -122,14 +79,14 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
     bool converged = false;
     const NT tol_bnd = NT(0.01);
 
-    auto lltmat = cholesky_operator<MT>::initialize(A_trans*A);
+    auto llt = cholesky_operator<MT>::initialize(A_trans*A);
 
     get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
     
     do {
         iter++;
         // Compute the direction
-        d.noalias() = - cholesky_operator<MT>::solve(lltmat, H, grad);
+        d.noalias() = - cholesky_operator<MT>::solve(llt, H, grad);
         Ad.noalias() = A * d;
         // Compute the step length
         step = std::min((NT(1) - tol_bnd) * get_max_step<VT, NT>(Ad, b_Ax), NT(1));
@@ -168,7 +125,7 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
                                                             NT const grad_err_tol = 1e-08,
                                                             NT const rel_pos_err_tol = 1e-12) 
 {
-    VT x0 = compute_feasible_point(MT_dense(A), b);
+    VT x0 = compute_feasible_point(A, b);
     return analytic_center_linear_ineq<MT_dense, MT, VT, NT>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
 }
 

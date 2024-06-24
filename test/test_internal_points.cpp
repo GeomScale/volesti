@@ -22,6 +22,9 @@
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
 
+#include "convex_bodies/orderpolytope.h"
+#include "misc/poset.h"
+
 template <typename NT>
 void call_test_max_ball() {
     typedef Cartesian <NT> Kernel;
@@ -40,9 +43,57 @@ void call_test_max_ball() {
     NT tol = 1e-08;
     unsigned int maxiter = 500;
     auto [center, radius, converged] =  max_inscribed_ball(P.get_mat(), P.get_vec(), maxiter, tol);
-    
     CHECK(P.is_in(Point(center)) == -1);
     CHECK(std::abs(radius - InnerBall.second) <= 1e-03);
+    CHECK(converged);
+}
+
+template <typename NT>
+void call_test_max_ball_sparse() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    typedef boost::mt19937 PolyRNGType;
+    typedef typename OrderPolytope<Point>::VT VT;
+    typedef typename OrderPolytope<Point>::MT MT;
+    typedef typename Poset::RT RT;
+    typedef typename Poset::RV RV;
+    typedef Eigen::SparseMatrix<NT> SpMT;
+
+    // Create Poset, 4 elements, a0 <= a1, a0 <= a2, a1 <= a3
+    RV poset_data{{0, 1}, {0, 2}, {1, 3}};
+    Poset poset(4, poset_data);
+    
+    // Initialize order polytope from the poset
+    OrderPolytope<Point> OP(poset);
+    OP.normalize();
+    SpMT Asp = OP.get_mat();
+    std::cout<<"Asp:\n" <<Eigen::MatrixXd(Asp)<<std::endl;
+    MT A = MT(OP.get_mat());
+    VT b = OP.get_vec();
+
+    std::cout << "\n--- Testing Chebychev ball sparse for order Polytope" << std::endl;
+    std::pair<Point, NT> InnerBall = OP.ComputeInnerBall();
+
+    NT tol = 1e-08;
+    unsigned int maxiter = 500;
+    auto [center, radius, converged] =  max_inscribed_ball(Asp, b, maxiter, tol);
+    std::cout<<"sparse ended\n"<<std::endl;
+    auto [center2, radius2, converged2] =  max_inscribed_ball(A, b, maxiter, tol);
+    std::cout<<"lpsolve center: "<<InnerBall.first.getCoefficients().transpose()<<std::endl;
+    std::cout<<"lpsolve radius: "<<InnerBall.second<<std::endl;
+
+    std::cout<<"center1: "<<center.transpose()<<std::endl;
+    std::cout<<"radius1: "<<radius<<std::endl;
+    std::cout<<"converged1: "<<converged<<std::endl;
+    std::cout<<"center2: "<<center2.transpose()<<std::endl;
+    std::cout<<"radius2: "<<radius2<<std::endl;
+    std::cout<<"converged2: "<<converged2<<std::endl;
+    VT center_(4);
+    center_ << 0.207107, 0.5, 0.593398, 0.792893;
+    CHECK(OP.is_in(Point(center)) == -1);
+    CHECK((center - center_).norm() <= 1e-06);
+    CHECK(std::abs(radius - 0.207107) <= 1e-06);
     CHECK(converged);
 }
 
@@ -116,4 +167,8 @@ TEST_CASE("test_feasibility_point") {
 
 TEST_CASE("test_analytic_center") {
     call_test_analytic_center<double>();
+}
+
+TEST_CASE("test_max_ball_sparse") {
+    call_test_max_ball_sparse<double>();
 }
