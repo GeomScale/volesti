@@ -123,6 +123,52 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 }
 
 template <class Polytope>
+void rounding_max_ellipsoid_sparse_test(double const& expectedBilliard,
+                                        double const& expected)
+{
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+    typedef typename Poset::RT RT;
+    typedef typename Poset::RV RV;
+    typedef Eigen::SparseMatrix<NT> SpMT;
+
+    // Create Poset, 4 elements, a0 <= a1, a0 <= a2, a1 <= a3
+    RV poset_data{{0, 1}, {0, 2}, {1, 3}};
+    Poset poset(4, poset_data);
+    
+    // Initialize order polytope from the poset
+    OrderPolytope<Point> OP(poset);
+    OP.normalize();
+    SpMT Asp = OP.get_mat();
+    
+
+    NT tol = 1e-08;
+    unsigned int maxiter = 500;
+    auto [center, radius, converged] =  max_inscribed_ball(Asp, OP.get_vec(), maxiter, tol);
+    CHECK(OP.is_in(Point(center)) == -1);
+    auto [E, x0, round_val] = max_inscribed_ellipsoid_rounding<MT, VT, NT>(OP, Point(center));
+
+    MT A = MT(OP.get_mat());
+    VT b = OP.get_vec();
+    int d = OP.dimension();
+
+    Polytope HP(d, A, b);
+
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
+    // Setup the parameters
+    int walk_len = 1;
+    NT e = 0.1;
+
+    // Estimate the volume
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+
+    NT volume = round_val * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
+    test_values(volume, expectedBilliard, expected);
+}
+
+template <class Polytope>
 void rounding_log_barrier_test(Polytope &HP,
                                  double const& expectedBall,
                                  double const& expectedCDHR,
@@ -217,6 +263,16 @@ void call_test_max_ellipsoid() {
 }
 
 template <typename NT>
+void call_test_max_ellipsoid_sparse() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+
+    std::cout << "\n--- Testing max ellipsoid rounding of sparse Order Polytope" << std::endl;
+    rounding_max_ellipsoid_sparse_test<Hpolytope>(0.13979, 3070.64);
+}
+
+template <typename NT>
 void call_test_log_barrier() {
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point Point;
@@ -248,6 +304,10 @@ TEST_CASE("round_min_ellipsoid") {
 
 TEST_CASE("round_max_ellipsoid") {
     call_test_max_ellipsoid<double>();
+}
+
+TEST_CASE("round_max_ellipsoid_sparse") {
+    call_test_max_ellipsoid_sparse<double>();
 }
 
 TEST_CASE("round_log_barrier_test") {

@@ -68,27 +68,16 @@ void call_test_max_ball_sparse() {
     OrderPolytope<Point> OP(poset);
     OP.normalize();
     SpMT Asp = OP.get_mat();
-    std::cout<<"Asp:\n" <<Eigen::MatrixXd(Asp)<<std::endl;
     MT A = MT(OP.get_mat());
     VT b = OP.get_vec();
 
-    std::cout << "\n--- Testing Chebychev ball sparse for order Polytope" << std::endl;
-    std::pair<Point, NT> InnerBall = OP.ComputeInnerBall();
+    std::cout << "\n--- Testing Chebychev ball for sparse order Polytope" << std::endl;
 
     NT tol = 1e-08;
     unsigned int maxiter = 500;
     auto [center, radius, converged] =  max_inscribed_ball(Asp, b, maxiter, tol);
-    std::cout<<"sparse ended\n"<<std::endl;
     auto [center2, radius2, converged2] =  max_inscribed_ball(A, b, maxiter, tol);
-    std::cout<<"lpsolve center: "<<InnerBall.first.getCoefficients().transpose()<<std::endl;
-    std::cout<<"lpsolve radius: "<<InnerBall.second<<std::endl;
 
-    std::cout<<"center1: "<<center.transpose()<<std::endl;
-    std::cout<<"radius1: "<<radius<<std::endl;
-    std::cout<<"converged1: "<<converged<<std::endl;
-    std::cout<<"center2: "<<center2.transpose()<<std::endl;
-    std::cout<<"radius2: "<<radius2<<std::endl;
-    std::cout<<"converged2: "<<converged2<<std::endl;
     VT center_(4);
     center_ << 0.207107, 0.5, 0.593398, 0.792893;
 

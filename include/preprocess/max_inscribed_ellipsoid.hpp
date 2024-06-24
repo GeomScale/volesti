@@ -15,9 +15,6 @@
 
 #include <utility>
 #include <Eigen/Eigen>
-#include "Spectra/include/Spectra/SymEigsSolver.h"
-#include "Spectra/include/Spectra/Util/SelectionRule.h"
-#include "Spectra/include/Spectra/MatOp/DenseSymMatProd.h"
 #include "mat_computational_operator.h"
 
 
