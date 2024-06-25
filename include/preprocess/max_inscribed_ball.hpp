@@ -8,10 +8,10 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MAX_INNER_BALL
-#define MAX_INNER_BALL
+#ifndef MAX_INSCRIBED_BALL_HPP
+#define MAX_INSCRIBED_BALL_HPP
 
-#include "mat_computational_operator.h"
+#include "preprocess/mat_computational_operator.h"
 
 /*
     This implmentation computes the largest inscribed ball in a given convex polytope P.
@@ -214,4 +214,4 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
     return result;
 }
 
-#endif
+#endif // MAX_INSCRIBED_BALL_HPP

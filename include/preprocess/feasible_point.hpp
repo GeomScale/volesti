@@ -12,7 +12,7 @@
 
 #include <tuple>
 
-#include "max_inscribed_ball.hpp"
+#include "preprocess/max_inscribed_ball.hpp"
 
 // Using MT as to deal with both dense and sparse matrices
 template <typename MT, typename VT>

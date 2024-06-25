@@ -77,16 +77,12 @@ void sample_using_gaussian_billiard_walk(HPOLYTOPE& HP, RNGType& rng, unsigned i
     VT center;
     bool converged;
     std::tie(E, center, converged) = max_inscribed_ellipsoid<MT>(HP.get_mat(),
-                                                                 HP.get_vec(),
-                                                                 x0,
-                                                                 max_iter,
-                                                                 tol,
-                                                                 reg);
+        HP.get_vec(), x0, max_iter, tol, reg);
+
     if (!converged) // not converged
         throw std::runtime_error("max_inscribed_ellipsoid not converged");
 
-    MT A_ell = E;
-    EllipsoidType inscribed_ellipsoid(A_ell);
+    EllipsoidType inscribed_ellipsoid(E);
     // --------------------------------------------------------------------
 
     Generator::apply(HP, q, inscribed_ellipsoid, num_points, walk_len,

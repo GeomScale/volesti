@@ -289,17 +289,17 @@ add_executable (volume_cb_vpoly_intersection_vpoly volume_cb_vpoly_intersection_
 add_test(NAME volume_cb_vpoly_intersection_vpoly_random_vpoly_sphere
           COMMAND volume_cb_vpoly_intersection_vpoly -tc=random_vpoly_sphere)
 
-add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_round_min_ellipsoid
-          COMMAND new_rounding_test -tc=round_min_ellipsoid)
+          COMMAND rounding_test -tc=round_min_ellipsoid)
 add_test(NAME test_round_max_ellipsoid
-          COMMAND new_rounding_test -tc=round_max_ellipsoid)
+          COMMAND rounding_test -tc=round_max_ellipsoid)
 add_test(NAME test_round_svd
-          COMMAND new_rounding_test -tc=round_svd)
+          COMMAND rounding_test -tc=round_svd)
 add_test(NAME test_round_log_barrier_test
-          COMMAND new_rounding_test -tc=round_log_barrier_test)
+          COMMAND rounding_test -tc=round_log_barrier_test)
 add_test(NAME round_max_ellipsoid_sparse
-          COMMAND new_rounding_test -tc=round_max_ellipsoid_sparse)
+          COMMAND rounding_test -tc=round_max_ellipsoid_sparse)
 
 
 
@@ -388,7 +388,7 @@ TARGET_LINK_LIBRARIES(volume_cb_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_zonotopes lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(new_rounding_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(rounding_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mcmc_diagnostics_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mmcs_test lp_solve ${MKL_LINK} coverage_config)

@@ -7,8 +7,8 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MATRIX_COMPUTATIONAL_OPERATOR_H
-#define MATRIX_COMPUTATIONAL_OPERATOR_H
+#ifndef MAT_COMPUTATIONAL_OPERATOR_H
+#define MAT_COMPUTATIONAL_OPERATOR_H
 
 #include <memory>
 
@@ -68,18 +68,22 @@ struct matrix_computational_operator<Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dy
         H.noalias() = A * D;
     }
 
-    inline static std::unique_ptr<Spectra::DenseSymMatProd<NT>> get_mat_prod_op(MT const& E)
+    inline static std::unique_ptr<Spectra::DenseSymMatProd<NT>> 
+    get_mat_prod_op(MT const& E)
     {
-        return std::unique_ptr<Spectra::DenseSymMatProd<NT>>(new Spectra::DenseSymMatProd<NT>(E));
+        return std::make_unique<Spectra::DenseSymMatProd<NT>>(E);
     }
-
-    inline static std::unique_ptr<Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                  Spectra::DenseSymMatProd<NT>>> get_eigs_solver(std::unique_ptr<Spectra::DenseSymMatProd<NT>> const& op,
-                                                                                 int const n)
+    
+    inline static auto get_eigs_solver(std::unique_ptr<Spectra::DenseSymMatProd<NT>> const& op, int const n)
     {
-        return std::unique_ptr<Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                                      Spectra::DenseSymMatProd<NT>>>(new Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                                                                                                Spectra::DenseSymMatProd<NT>>(op.get(), 2, std::min(std::max(10, n/5), n)));
+        using SymDenseEigsSolver = Spectra::SymEigsSolver
+          <
+            NT, 
+            Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
+            Spectra::DenseSymMatProd<NT>
+          >;
+        // The value of ncv is chosen empirically
+        return std::make_unique<SymDenseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
     }
 
     inline static void init_Bmat(MT &B, int const n, MT const& , MT const& )
@@ -110,8 +114,7 @@ struct matrix_computational_operator<Eigen::SparseMatrix<NT>>
     inline static std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>
     initialize_chol(Eigen::SparseMatrix<NT> const& mat) 
     {
-        std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>> llt = 
-                std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>(new Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>());
+        auto llt = std::make_unique<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>();
         llt->analyzePattern(mat);
         return llt;
     }
@@ -163,13 +166,16 @@ struct matrix_computational_operator<Eigen::SparseMatrix<NT>>
         return std::unique_ptr<Spectra::SparseSymMatProd<NT>>(new Spectra::SparseSymMatProd<NT>(E));
     }
 
-    inline static std::unique_ptr<Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                  Spectra::SparseSymMatProd<NT>>> get_eigs_solver(std::unique_ptr<Spectra::SparseSymMatProd<NT>> const& op,
-                                                                                  int const n)
+    inline static auto get_eigs_solver(std::unique_ptr<Spectra::SparseSymMatProd<NT>> const& op, int const n)
     {
-        return std::unique_ptr<Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                                      Spectra::SparseSymMatProd<NT>>>(new Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-                                                                                                                 Spectra::SparseSymMatProd<NT>>(op.get(), 2, std::min(std::max(10, n/5), n)));
+        using SymSparseEigsSolver = Spectra::SymEigsSolver
+          <
+            NT, 
+            Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
+            Spectra::SparseSymMatProd<NT>
+          >;
+        // The value of ncv is chosen empirically
+        return std::make_unique<SymSparseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
     }
 
     inline static void init_Bmat(Eigen::SparseMatrix<NT> &B, 
@@ -249,4 +255,4 @@ struct matrix_computational_operator<Eigen::SparseMatrix<NT>>
 };
 
 
-#endif // MATRIX_COMPUTATIONAL_OPERATOR_H
+#endif // MAT_COMPUTATIONAL_OPERATOR_H
