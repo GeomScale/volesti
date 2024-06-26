@@ -10,6 +10,7 @@ if(COMMAND cmake_policy)
       cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")
 
 add_executable (read_write_sdpa_file read_write_sdpa_file.cpp)
 
