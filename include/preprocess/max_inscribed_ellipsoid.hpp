@@ -42,7 +42,7 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
                                                        NT const& tol, NT const& reg)
 {
     typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
-    typedef matrix_computational_operator<MT> mat_op;
+    //typedef matrix_computational_operator<MT> mat_op;
 
     int m = A.rows(), n = A.cols();
     bool converged = false;
@@ -71,15 +71,15 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
     A = (ones_m.cwiseProduct(bmAx0.cwiseInverse())).asDiagonal() * A, b = ones_m;
     MT A_trans = A.transpose(), E2(n,n);
 
-    auto llt = mat_op::initialize_chol(A_trans*A);
+    auto llt = initialize_chol<NT>(A_trans, A);
 
     int i = 1;
     while (i <= maxiter) {
 
         Y = y.asDiagonal();
 
-        mat_op::update_Atrans_Diag_A(E2, A_trans, A, Y);
-        Q.noalias() = A * mat_op::solve_mat(llt, E2, A_trans, logdetE2);
+        update_Atrans_Diag_A<NT>(E2, A_trans, A, Y);
+        Q.noalias() = A * solve_mat(llt, E2, A_trans, logdetE2);
         
         h = Q.diagonal();
         h = h.cwiseSqrt();
@@ -126,8 +126,8 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
             NT rel, Rel;
             
             // computing eigenvalues of E2
-            auto op = mat_op::get_mat_prod_op(E2);
-            auto eigs = mat_op::get_eigs_solver(op, n);
+            auto op = get_mat_prod_op<NT>(E2);
+            auto eigs = get_eigs_solver<NT>(op, n);
             eigs->init();
             int nconv = eigs->compute();
             if (eigs->info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
@@ -172,7 +172,7 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
         YQ.noalias() = Y * Q;
         G = YQ.cwiseProduct(YQ.transpose());
         y2h = 2.0 * yh;
-        mat_op::update_Diag_A(YA, Y, A); // YA = Y * A;
+        update_Diag_A<NT>(YA, Y, A); // YA = Y * A;
 
         vec_iter1 = y2h.data();
         vec_iter2 = z.data();

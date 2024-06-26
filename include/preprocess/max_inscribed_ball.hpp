@@ -45,7 +45,7 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     rhs.block(0,0,n,1).noalias() = r2 + A_trans * tmp;
     rhs(n) = r3 + tmp.sum();
 
-    VT dxdt = matrix_computational_operator<MT>::solve_vec(llt, B, rhs);
+    VT dxdt = solve_vec<NT>(llt, B, rhs);
 
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
@@ -65,7 +65,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
                                              unsigned int maxiter, NT tol,
                                              const bool feasibility_only = false) 
 {
-    typedef matrix_computational_operator<MT> mat_op;
+    //typedef matrix_computational_operator<MT> mat_op;
     int m = A.rows(), n = A.cols();
     bool converge = false;
 
@@ -90,8 +90,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
 
     MT B, AtD(n, m), A_trans = A.transpose();
 
-    mat_op::init_Bmat(B, n, A_trans, A);
-    auto llt = mat_op::initialize_chol(B);
+    init_Bmat<NT>(B, n, A_trans, A);
+    auto llt = initialize_chol<NT>(B);
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
@@ -140,10 +140,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
             vec_iter3++;
             vec_iter2++;
         }
-        mat_op::update_A_Diag(AtD, A_trans, d.asDiagonal()); // AtD = A_trans*d.asDiagonal()
+        update_A_Diag<NT>(AtD, A_trans, d.asDiagonal()); // AtD = A_trans*d.asDiagonal()
 
         AtDe.noalias() = AtD * e_m;
-        mat_op::update_Bmat(B, AtDe, d, AtD, A);
+        update_Bmat<NT>(B, AtDe, d, AtD, A);
 
         // predictor step & length
         calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);

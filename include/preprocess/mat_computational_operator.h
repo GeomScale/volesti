@@ -17,171 +17,211 @@
 #include "Spectra/include/Spectra/MatOp/SparseSymMatProd.h"
 
 
-template<typename MT>
-struct matrix_computational_operator {};
+template <typename T>
+struct AssertFalseType : std::false_type {};
 
-
-// Dense matrix operator
-template<typename NT>
-struct matrix_computational_operator<Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>>
+template <typename NT, typename MT>
+inline static auto
+initialize_chol(MT const& mat) 
 {
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-
-    inline static std::unique_ptr<Eigen::LLT<MT>>
-    initialize_chol(MT const&) 
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
     {
-        return std::unique_ptr<Eigen::LLT<MT>>(new Eigen::LLT<MT>());
+        return std::make_unique<Eigen::LLT<MT>>();
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        auto llt = std::make_unique<Eigen::SimplicialLLT<MT>>();
+        llt->analyzePattern(mat);
+        return llt;
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
+}
 
-    template <typename VT>
-    inline static VT solve_vec(std::unique_ptr<Eigen::LLT<MT>> const& llt,
-                               MT const& H, VT const& b)
+template <typename NT, typename MT>
+inline static auto
+initialize_chol(MT const& A_trans, MT const& A) 
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
+    {
+        return std::make_unique<Eigen::LLT<MT>>();
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        MT mat = A_trans * A;
+        return initialize_chol<NT>(mat);
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
+    }
+}
+
+template <typename NT, template<typename mat_type> typename Eigen_llt, typename MT, typename VT>
+inline static VT solve_vec(std::unique_ptr<Eigen_llt<MT>> const& llt,
+                           MT const& H, VT const& b)
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
     {
         llt->compute(H);
         return llt->solve(b);
-    }
-
-    inline static MT solve_mat(std::unique_ptr<Eigen::LLT<MT>> const& llt,
-                               MT const& E, MT const& mat, NT &logdetE)
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
     {
-        llt->compute(E);
+        llt->factorize(H);
+        return llt->solve(b);
+    } else
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
+    }
+}
+
+template <template<typename mat_type> typename Eigen_llt, typename MT, typename NT>
+inline static Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>
+solve_mat(std::unique_ptr<Eigen_llt<MT>> const& llt,
+          MT const& H, MT const& mat, NT &logdetE)
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
+    {
+        llt->compute(H);
         logdetE = llt->matrixL().toDenseMatrix().diagonal().array().log().sum();
         return llt->solve(mat);
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        llt->factorize(H);
+        logdetE = llt->matrixL().nestedExpression().diagonal().array().log().sum();
+        return llt->solve(mat);
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
+}
 
-    template <typename diag_MT>
-    inline static void update_Atrans_Diag_A(MT &H, MT const& A_trans,
-                                            MT const& A, diag_MT const& D)
+template <typename NT, typename MT, typename diag_MT>
+inline static void update_Atrans_Diag_A(MT &H, MT const& A_trans,
+                                        MT const& A, diag_MT const& D)
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
     {
         H.noalias() = A_trans * D * A;
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        H = A_trans * D * A;
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
+}
 
-    template <typename diag_MT>
-    inline static void update_Diag_A(MT &H, diag_MT const& D, MT const& A)
+template <typename NT, typename MT, typename diag_MT>
+inline static void update_Diag_A(MT &H, diag_MT const& D, MT const& A)
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
     {
         H.noalias() = D * A;
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        H = D * A;
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
+}
 
-    template <typename diag_MT>
-    inline static void update_A_Diag(MT &H, MT const& A, diag_MT const& D)
+template <typename NT, typename MT, typename diag_MT>
+inline static void update_A_Diag(MT &H, MT const& A, diag_MT const& D)
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
     {
         H.noalias() = A * D;
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        H = A * D;
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
+}
 
-    inline static std::unique_ptr<Spectra::DenseSymMatProd<NT>> 
-    get_mat_prod_op(MT const& E)
+template <typename NT, typename MT>
+inline static auto
+get_mat_prod_op(MT const& E)
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
     {
         return std::make_unique<Spectra::DenseSymMatProd<NT>>(E);
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        return std::make_unique<Spectra::SparseSymMatProd<NT>>(E);
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
-    
-    inline static auto get_eigs_solver(std::unique_ptr<Spectra::DenseSymMatProd<NT>> const& op, int const n)
+}
+
+template<typename NT, template<typename number_type> typename SpectraMatProd>
+inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProd<NT>> const& op, int const n)
+{
+    using DenseMatProd = Spectra::DenseSymMatProd<NT>;
+    using SparseMatProd = Spectra::SparseSymMatProd<NT>;
+    if constexpr (std::is_same<SpectraMatProd<NT>, DenseMatProd>::value)
     {
         using SymDenseEigsSolver = Spectra::SymEigsSolver
           <
             NT, 
             Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-            Spectra::DenseSymMatProd<NT>
+            DenseMatProd
           >;
         // The value of ncv is chosen empirically
         return std::make_unique<SymDenseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
-    }
-
-    inline static void init_Bmat(MT &B, int const n, MT const& , MT const& )
-    {
-        B.resize(n+1, n+1);
-    }
-    
-    template <typename VT>
-    inline static void update_Bmat(MT &B, VT const& AtDe, VT const& d,
-                                   MT const& AtD, MT const& A)
-    {
-        const int n = A.cols();
-        B.block(0, 0, n, n).noalias() = AtD * A;
-        B.block(0, n, n, 1).noalias() = AtDe;
-        B.block(n, 0, 1, n).noalias() = AtDe.transpose();
-        B(n, n) = d.sum();
-        B.noalias() += 1e-14 * MT::Identity(n + 1, n + 1);
-    }
-};
-
-
-// Sparse matrix operator
-template <typename NT>
-struct matrix_computational_operator<Eigen::SparseMatrix<NT>>
-{
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-
-    inline static std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>
-    initialize_chol(Eigen::SparseMatrix<NT> const& mat) 
-    {
-        auto llt = std::make_unique<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>>();
-        llt->analyzePattern(mat);
-        return llt;
-    }
-
-    template <typename VT>
-    inline static VT solve_vec(std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>> const& llt,
-                               Eigen::SparseMatrix<NT> const& H, VT const& b)
-    {
-        llt->factorize(H);
-        return llt->solve(b);
-    }
-
-    inline static MT solve_mat(std::unique_ptr<Eigen::SimplicialLLT<Eigen::SparseMatrix<NT>>> const& llt,
-                               Eigen::SparseMatrix<NT> const& E, Eigen::SparseMatrix<NT> const& mat, NT &logdetE)
-    {
-        llt->factorize(E);
-        logdetE = llt->matrixL().nestedExpression().diagonal().array().log().sum();
-        return llt->solve(mat);
-    }
-
-    template <typename diag_MT>
-    inline static void update_Atrans_Diag_A(Eigen::SparseMatrix<NT> &H,
-                                            Eigen::SparseMatrix<NT> const& A_trans,
-                                            Eigen::SparseMatrix<NT> const& A,
-                                            diag_MT const& D)
-    {
-        H = A_trans * D * A;
-    }
-
-    template <typename diag_MT>
-    inline static void update_Diag_A(Eigen::SparseMatrix<NT> &H,
-                                     diag_MT const& D,
-                                     Eigen::SparseMatrix<NT> const& A)
-    {
-        H = D * A;
-    }
-
-    template <typename diag_MT>
-    inline static void update_A_Diag(Eigen::SparseMatrix<NT> &H,
-                                     Eigen::SparseMatrix<NT> const& A,
-                                     diag_MT const& D)
-    {
-        H = A * D;
-    }
-
-    inline static std::unique_ptr<Spectra::SparseSymMatProd<NT>>
-    get_mat_prod_op(Eigen::SparseMatrix<NT> const& E)
-    {
-        return std::unique_ptr<Spectra::SparseSymMatProd<NT>>(new Spectra::SparseSymMatProd<NT>(E));
-    }
-
-    inline static auto get_eigs_solver(std::unique_ptr<Spectra::SparseSymMatProd<NT>> const& op, int const n)
+    } else if constexpr (std::is_same<SpectraMatProd<NT>, SparseMatProd>::value)  
     {
         using SymSparseEigsSolver = Spectra::SymEigsSolver
           <
             NT, 
             Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-            Spectra::SparseSymMatProd<NT>
+            SparseMatProd
           >;
         // The value of ncv is chosen empirically
         return std::make_unique<SymSparseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
+    } else 
+    {
+        static_assert(AssertFalseType<SpectraMatProd<NT>>::value,
+            "Matrix-vector multiplication multiplication is not supported.");
     }
+}
 
-    inline static void init_Bmat(Eigen::SparseMatrix<NT> &B, 
-                                 int const n,
-                                 Eigen::SparseMatrix<NT> const& A_trans,
-                                 Eigen::SparseMatrix<NT> const& A)
+template <typename NT, typename MT>
+inline static void
+init_Bmat(MT &B, int const n, MT const& A_trans, MT const& A) 
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    if constexpr (std::is_same<MT, DenseMT>::value)
+    {
+        B.resize(n+1, n+1);
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
     {
         // Initialize the structure of matrix B
         typedef Eigen::Triplet<NT> triplet;
@@ -194,37 +234,51 @@ struct matrix_computational_operator<Eigen::SparseMatrix<NT>>
         }
         trp.push_back(triplet(n, n, NT(1)));
         
-        Eigen::SparseMatrix<NT> ATA = A_trans * A;
+        MT ATA = A_trans * A;
         for (int k=0; k<ATA.outerSize(); ++k)
         {
-            for (typename Eigen::SparseMatrix<NT>::InnerIterator it(ATA,k); it; ++it)
+            for (typename MT::InnerIterator it(ATA,k); it; ++it)
             {
-                if (it.row() == it.col()) continue; // Diagonal element already allocated
+                if (it.row() == it.col()) continue; // Diagonal elements are already allocated
                 trp.push_back(triplet(it.row(), it.col(), NT(1)));
             }
         }
         B.resize(n+1, n+1);
         B.setFromTriplets(trp.begin(), trp.end());
-    }
-
-    template <typename VT>
-    inline static void update_Bmat(Eigen::SparseMatrix<NT> &B,
-                                   VT const& AtDe,
-                                   VT const& d,
-                                   Eigen::SparseMatrix<NT> const& AtD,
-                                   Eigen::SparseMatrix<NT> const& A)
+    } else 
     {
-        /* 
-          B is (n+1)x(n+1) and AtD_A is nxn.
-          We set B(1:n), 1:n) = AtD_A, B(n+1, :) = AtD^T, B(:, n+1) = AtD, B(n+1, n+1) = d.sum()
-        */
-        const int n = A.cols();
-        Eigen::SparseMatrix<NT> AtD_A = AtD * A;
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
+    }
+}
+
+template <typename NT, typename MT, typename VT>
+inline static void
+update_Bmat(MT &B, VT const& AtDe, VT const& d,
+            MT const& AtD, MT const& A) 
+{
+    using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+    using SparseMT = Eigen::SparseMatrix<NT>;
+    const int n = A.cols();
+    /* 
+        B is (n+1)x(n+1) and AtD_A is nxn.
+        We set B(1:n), 1:n) = AtD_A, B(n+1, :) = AtD^T, B(:, n+1) = AtD, B(n+1, n+1) = d.sum()
+    */
+    if constexpr (std::is_same<MT, DenseMT>::value)
+    {
+        B.block(0, 0, n, n).noalias() = AtD * A;
+        B.block(0, n, n, 1).noalias() = AtDe;
+        B.block(n, 0, 1, n).noalias() = AtDe.transpose();
+        B(n, n) = d.sum();
+        B.noalias() += 1e-14 * MT::Identity(n + 1, n + 1);
+    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    {
+        MT AtD_A = AtD * A;
         int k = 0;
         while(k < B.outerSize())
         {
-            typename Eigen::SparseMatrix<NT>::InnerIterator it2(AtD_A, k <= n-1 ? k : k-1);
-            for (typename Eigen::SparseMatrix<NT>::InnerIterator it1(B, k); it1; ++it1)
+            typename MT::InnerIterator it2(AtD_A, k <= n-1 ? k : k-1);
+            for (typename MT::InnerIterator it1(B, k); it1; ++it1)
             {                
                 if (it1.row() <= n-1 && it1.col() <= n-1)
                 {
@@ -251,8 +305,12 @@ struct matrix_computational_operator<Eigen::SparseMatrix<NT>>
             }
             k++;
         }
+    } else 
+    {
+        static_assert(AssertFalseType<MT>::value,
+            "Matrix type is not supported.");
     }
-};
+}
 
 
 #endif // MAT_COMPUTATIONAL_OPERATOR_H

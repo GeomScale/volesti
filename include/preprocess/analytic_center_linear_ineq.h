@@ -41,7 +41,7 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
     // Gradient of the log-barrier function
     grad.noalias() = A_trans * s;
     // Hessian of the log-barrier function
-    matrix_computational_operator<MT>::update_Atrans_Diag_A(H, A_trans, A, s_sq.asDiagonal());
+    update_Atrans_Diag_A<NT>(H, A_trans, A, s_sq.asDiagonal());
 }
 
 /*
@@ -71,7 +71,6 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
                                                             NT const grad_err_tol = 1e-08,
                                                             NT const rel_pos_err_tol = 1e-12) 
 {
-    typedef matrix_computational_operator<MT> mat_op;
     // Initialization
     VT x = x0;
     VT Ax = A * x;
@@ -83,14 +82,13 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
     bool converged = false;
     const NT tol_bnd = NT(0.01);
 
-    auto llt = mat_op::initialize_chol(A_trans*A);
-
+    auto llt = initialize_chol<NT>(A_trans, A);
     get_hessian_grad_logbarrier<MT, VT, NT>(A, A_trans, b, x, Ax, H, grad, b_Ax);
     
     do {
         iter++;
         // Compute the direction
-        d.noalias() = - mat_op::solve_vec(llt, H, grad);
+        d.noalias() = - solve_vec<NT>(llt, H, grad);
         Ad.noalias() = A * d;
         // Compute the step length
         step = std::min((NT(1) - tol_bnd) * get_max_step<VT, NT>(Ad, b_Ax), NT(1));
