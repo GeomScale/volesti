@@ -14,7 +14,7 @@
 
 #include "preprocess/max_inscribed_ball.hpp"
 #include "preprocess/feasible_point.hpp"
-#include "preprocess/mat_computational_operator.h"
+#include "preprocess/mat_computational_operators.h"
 
 template <typename VT, typename NT>
 NT get_max_step(VT const& Ad, VT const& b_Ax)

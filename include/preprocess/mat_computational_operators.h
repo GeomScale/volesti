@@ -7,8 +7,8 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MAT_COMPUTATIONAL_OPERATOR_H
-#define MAT_COMPUTATIONAL_OPERATOR_H
+#ifndef MAT_COMPUTATIONAL_OPERATORS_H
+#define MAT_COMPUTATIONAL_OPERATORS_H
 
 #include <memory>
 
@@ -61,8 +61,8 @@ initialize_chol(MT const& A_trans, MT const& A)
     }
 }
 
-template <typename NT, template<typename...> typename Eigen_llt, typename MT, typename VT>
-inline static VT solve_vec(std::unique_ptr<Eigen_llt<MT>> const& llt,
+template <typename NT, typename MT, typename Eigen_lltMT,  typename VT>
+inline static VT solve_vec(std::unique_ptr<Eigen_lltMT> const& llt,
                            MT const& H, VT const& b)
 {
     using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -82,9 +82,9 @@ inline static VT solve_vec(std::unique_ptr<Eigen_llt<MT>> const& llt,
     }
 }
 
-template <template<typename...> typename Eigen_llt, typename MT, typename NT>
+template <typename Eigen_lltMT, typename MT, typename NT>
 inline static Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>
-solve_mat(std::unique_ptr<Eigen_llt<MT>> const& llt,
+solve_mat(std::unique_ptr<Eigen_lltMT> const& llt,
           MT const& H, MT const& mat, NT &logdetE)
 {
     using DenseMT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
@@ -180,12 +180,12 @@ get_mat_prod_op(MT const& E)
     }
 }
 
-template<typename NT, template<typename...> typename SpectraMatProd>
-inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProd<NT>> const& op, int const n)
+template<typename NT, typename SpectraMatProdNT>
+inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProdNT> const& op, int const n)
 {
     using DenseMatProd = Spectra::DenseSymMatProd<NT>;
     using SparseMatProd = Spectra::SparseSymMatProd<NT>;
-    if constexpr (std::is_same<SpectraMatProd<NT>, DenseMatProd>::value)
+    if constexpr (std::is_same<SpectraMatProdNT, DenseMatProd>::value)
     {
         using SymDenseEigsSolver = Spectra::SymEigsSolver
           <
@@ -195,7 +195,7 @@ inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProd<NT>> const& op
           >;
         // The value of ncv is chosen empirically
         return std::make_unique<SymDenseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
-    } else if constexpr (std::is_same<SpectraMatProd<NT>, SparseMatProd>::value)  
+    } else if constexpr (std::is_same<SpectraMatProdNT, SparseMatProd>::value)  
     {
         using SymSparseEigsSolver = Spectra::SymEigsSolver
           <
@@ -207,7 +207,7 @@ inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProd<NT>> const& op
         return std::make_unique<SymSparseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
     } else 
     {
-        static_assert(AssertFalseType<SpectraMatProd<NT>>::value,
+        static_assert(AssertFalseType<SpectraMatProdNT>::value,
             "Matrix-vector multiplication multiplication is not supported.");
     }
 }
@@ -313,4 +313,4 @@ update_Bmat(MT &B, VT const& AtDe, VT const& d,
 }
 
 
-#endif // MAT_COMPUTATIONAL_OPERATOR_H
+#endif // MAT_COMPUTATIONAL_OPERATORS_H
