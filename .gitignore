@@ -9,3 +9,4 @@ test/Testing/Temporary/CTestCostData.txt
 build/
 .vscode
 .DS_Store
+test/.cache

@@ -20,6 +20,7 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
+#include "volume/rotating.hpp"
 
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
@@ -124,8 +125,9 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 }
 
 
-template <class Polytope>
+template <typename WalkTypePolicy, class Polytope>
 void rounding_svd_test(Polytope &HP,
+                       unsigned int const& walk_length,
                        double const& expectedBall,
                        double const& expectedCDHR,
                        double const& expectedRDHR,
@@ -143,7 +145,7 @@ void rounding_svd_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = svd_rounding<CDHRWalk, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
+    std::tuple<MT, VT, NT> res = svd_rounding<WalkTypePolicy, MT, VT>(HP, InnerBall, walk_length, rng);
 
     // Setup the parameters
     int walk_len = 1;
@@ -193,11 +195,32 @@ void call_test_svd() {
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point Point;
     typedef HPolytope <Point> Hpolytope;
+    typedef boost::mt19937 PolyRNGType;
+    typedef typename Hpolytope::MT MT;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+    start = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\n--- Testing rounding of H-skinny_cube5 using CDHR walk" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
-    rounding_svd_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
+    // P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(20, 130, true, NT(2000));
+    rounding_svd_test<CDHRWalk>(P, 1, 0, 3070.64, 3188.25, 3140.6, 3200.0);
+
+    stop = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> total_time = stop - start;
+    std::cout << "Done in " << total_time.count() << '\n';
+    start = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\n--- Testing rounding of H-skinny_cube5 using CRHMC walk" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    // P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(20, 130, true, NT(2000));
+    rounding_svd_test<CRHMCWalk>(P, 1, 0, 3070.64, 3188.25, 3140.6, 3200.0);
+
+    stop = std::chrono::high_resolution_clock::now();
+    total_time = stop - start;
+    std::cout << "Done in " << total_time.count() << '\n';
 }
 
 
@@ -212,4 +235,3 @@ TEST_CASE("round_max_ellipsoid") {
 TEST_CASE("round_svd") {
     call_test_svd<double>();
 }
-
