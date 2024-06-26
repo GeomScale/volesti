@@ -61,7 +61,7 @@ initialize_chol(MT const& A_trans, MT const& A)
     }
 }
 
-template <typename NT, template<typename mat_type> typename Eigen_llt, typename MT, typename VT>
+template <typename NT, template<typename...> typename Eigen_llt, typename MT, typename VT>
 inline static VT solve_vec(std::unique_ptr<Eigen_llt<MT>> const& llt,
                            MT const& H, VT const& b)
 {
@@ -82,7 +82,7 @@ inline static VT solve_vec(std::unique_ptr<Eigen_llt<MT>> const& llt,
     }
 }
 
-template <template<typename mat_type> typename Eigen_llt, typename MT, typename NT>
+template <template<typename...> typename Eigen_llt, typename MT, typename NT>
 inline static Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>
 solve_mat(std::unique_ptr<Eigen_llt<MT>> const& llt,
           MT const& H, MT const& mat, NT &logdetE)
@@ -180,7 +180,7 @@ get_mat_prod_op(MT const& E)
     }
 }
 
-template<typename NT, template<typename number_type> typename SpectraMatProd>
+template<typename NT, template<typename...> typename SpectraMatProd>
 inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProd<NT>> const& op, int const n)
 {
     using DenseMatProd = Spectra::DenseSymMatProd<NT>;
