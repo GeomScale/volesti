@@ -13,7 +13,7 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 
 #ifndef isnan
   using std::isnan;
@@ -121,7 +121,7 @@ Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_ro
     if (pre_rounding) {
         Point x0(dim);
         // run only one iteration
-        max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, x0, 1);
+        inscribed_ellipsoid_rounding<MT, VT, NT>(P, x0, 1);
     }
 
     MT cov = get_skinny_transformation<MT, VT, RNGType, NT>(dim, eig_ratio, seed);

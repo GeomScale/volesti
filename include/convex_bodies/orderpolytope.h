@@ -638,6 +638,12 @@ public:
         return false;
     }
 
+    // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
+    // This is most of the times for testing reasons because it might destroy the sparsity
+    void linear_transformIt(MT const& T)
+    {
+        _A = _A * T;
+    }
 
     // shift polytope by a point c
     void shift(VT const& c)

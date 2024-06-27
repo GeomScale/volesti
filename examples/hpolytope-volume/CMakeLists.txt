@@ -88,6 +88,7 @@ include_directories (BEFORE ../../include/nlp_oracles)
 include_directories (BEFORE ../../include/misc)
 include_directories (BEFORE ../../include/optimization)
 
+add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")
 add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
