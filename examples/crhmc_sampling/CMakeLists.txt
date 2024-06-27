@@ -113,7 +113,7 @@ else ()
   endif ()
 
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++17 standard
   set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
   add_definitions(${CMAKE_CXX_FLAGS} "-O3 -DTIME_KEEPING"  ${ADDITIONAL_FLAGS})  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")

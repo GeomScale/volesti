@@ -22,7 +22,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 
 #include "generators/known_polytope_generators.h"
 
@@ -64,7 +64,7 @@ void rounding_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
 
     // Setup the parameters
     int walk_len = 10;
