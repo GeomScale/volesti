@@ -17,6 +17,7 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "generators/h_polytopes_generator.h"
 #include "generators/order_polytope_generator.h"
+#include "diagnostics/effective_sample_size.hpp"
 #include "volume/sampling_policies.hpp"
 #include "ode_solvers/ode_solvers.hpp"
 #include "preprocess/crhmc/crhmc_input.h"
@@ -56,6 +57,30 @@ void sample_cdhr (Polytope &P, RandomNumberGenerator &rng, std::list<Point> &ran
                                     push_back_policy, rng);
 }
 
+template 
+<
+typename Polytope,
+typename Point,
+typename RandomNumberGenerator
+>
+void sample_aBW (Polytope &P, RandomNumberGenerator &rng, std::list<Point> &randPoints, unsigned int const&N)
+{
+        Point p = P.ComputeInnerBall().first;
+        typedef typename AcceleratedBilliardWalk::template Walk
+                <
+                        Polytope,
+                        RandomNumberGenerator
+                > walk;
+
+        typedef RandomPointGenerator <walk> RandomPointGenerator;
+        PushBackWalkPolicy push_back_policy;
+
+        RandomPointGenerator::apply(P, p, N, 1, randPoints,
+                                    push_back_policy, rng);
+}
+
+double duration, maxPsrf;
+unsigned int minEss;
 
 template <int simdLen>
 void sample_hpoly(int n_samples = 80000,
@@ -76,16 +101,16 @@ void sample_hpoly(int n_samples = 80000,
   RNG rng(dim);
   PolytopeType HP;
   if(order_poly) {
-    HP = random_orderpoly<PolytopeType, NT>(dim, m);
+    HP = random_orderpoly<PolytopeType, NT>(dim, m, 100);
     std::cout << "Sampling from Order Polytope" << std::endl;
   } else {
-    HP = skinny_random_hpoly<PolytopeType, NT, PolyRNGType>(dim, m, false, NT(4000));
+    HP = skinny_random_hpoly<PolytopeType, NT, PolyRNGType>(dim, m, true, NT(10000), 100);
     std::cout << "Sampling from Random skinny Polytope" << std::endl;
     // HP = generate_skinny_cube<PolytopeType>(20);
     // rotating<MT>(HP);
   }
 
-  // HP.print();
+  //HP.print();
   Func * f = new Func;
   Grad * g = new Grad;
   std::list<Point> PointList;
@@ -99,14 +124,15 @@ void sample_hpoly(int n_samples = 80000,
     execute_crhmc< PolytopeType, RNG, std::list<Point>, Grad, Func, Hess, CRHMCWalk, simdLen>(
       HP, rng, PointList, 1, n_samples, n_burns, g, f);
   } else {
-    std::cout << "Using CDHR walk" << std::endl;
-    sample_cdhr(HP, rng, PointList, n_samples);
+    std::cout << "Using aBW walk" << std::endl;
+    sample_aBW(HP, rng, PointList, n_samples);
   }
 
   stop = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> total_time = stop - start;
   std::cout << "Done in " << total_time.count() << '\n';
+  duration = total_time.count();
 
   MT samples = MT(dim, PointList.size());
   int i=0;
@@ -114,10 +140,19 @@ void sample_hpoly(int n_samples = 80000,
     samples.col(i) = (*it).getCoefficients();
     i++;
   }
-  std::cerr<<"max_psrf: "<< max_interval_psrf<NT,VT,MT>(samples)<<"\n";
+  unsigned int min_ess;
+  NT max_psrf;
+  effective_sample_size<NT, VT>(samples, min_ess);
+  max_psrf = max_interval_psrf<NT,VT,MT>(samples);
+  std::cerr << "min_ess: " << min_ess << '\n';
+  std::cerr<<"max_psrf: "<< max_psrf <<"\n";
+  minEss = min_ess;
+  maxPsrf = max_psrf;
+  /*
   std::ofstream samples_stream;
   samples_stream.open("CRHMC_SIMD_" + std::to_string(simdLen) + "_simplex" + "_samples.txt");
   samples_stream << samples.transpose() << std::endl;
+  */
   delete f;
   delete g;
 }
@@ -131,12 +166,48 @@ void run_main(int n_samples = 80000,
 }
 int main(int argc, char *argv[]) {
   if (argc != 8) {
+    if(argc == 9)
+    {
+
+      std::ofstream samples_stream;
+      samples_stream.open("aoutput_yay" + std::to_string(atoi(argv[1])) + ".txt");
+      for(int n = 20; n <= 100; n += 20)
+      {
+        std::cout << "\n\n" << n << '\n';
+        int m = n * 10;
+        double dur[2][2];
+        double psrf[2][2];
+        unsigned int ess[2][2];
+        for(int a = 0; a <= 1; ++a)
+          for(int b = 0; b <= 1; ++b) {
+            if(atoi(argv[1]) == 8)
+              run_main<8>(50*n, 0, n, m, a, b);
+            else if(atoi(argv[1]) == 16)
+              run_main<16>(50*n, 0, n, m, a, b);
+            dur[a][b] = duration;
+            psrf[a][b] = maxPsrf;
+            ess[a][b] = minEss;
+          }
+        samples_stream << "\n\n";
+        samples_stream << n << ' ' << m << "           order polytope          skinny polytope\n";
+        samples_stream << "CRHMC: time:         " << dur[1][1] << "             " << dur[0][1] << '\n';
+        samples_stream << "       psrf:         " << psrf[1][1] << "             " << psrf[0][1] << '\n';
+        samples_stream << "       ess:          " << ess[1][1] << "                 " << ess[0][1] << '\n';
+        samples_stream << '\n';
+        samples_stream << "ABW:   time:         " << dur[1][0] << "             " << dur[0][0] << '\n';
+        samples_stream << "       psrf:         " << psrf[1][0] << "             " << psrf[0][0] << '\n';
+        samples_stream << "       ess:          " << ess[1][0] << "                 " << ess[0][0] << '\n';
+        samples_stream << std::endl;
+      }
+      exit(1);
+    }
     std::cerr << "Example Usage: ./simple_crhmc "
                  "[simdLen] [n_samples] [n_burns] [dimension] [facets] [if_order_poly] [if_crhmc_walk]\n";
     std::cerr << "i.e.: ./simple_crhmc 4 1000 500 20 150 1 0\n";
     exit(1);
   }
-  std::cerr << "To plot: python3 ../python_utilities/plot_samples.py <CRHMC_SIMD_4_simplex_samples.txt --save"<<"\n";
+  // std::cerr << "To plot: python3 ../python_utilities/plot_samples.py <CRHMC_SIMD_4_simplex_samples.txt --save"<<"\n";
+
   if (atoi(argv[1]) == 1) {
     run_main<1>(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
   } else if (atoi(argv[1]) == 4) {
