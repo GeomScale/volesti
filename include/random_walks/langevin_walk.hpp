@@ -44,6 +44,13 @@ struct UnderdampedLangevinWalk {
       //                       pow(epsilon, 2.0 / 3) *
       //                       pow(log(1.0 / epsilon), - 1.0 / 3));
     }
+
+    parameters(NT const& L, unsigned int dim, NT epsilon_ = 1e-4)
+    {
+      epsilon = epsilon_;
+      u = 1.0 / L;
+      eta = 1.0 / (sqrt(20 * L));
+    }
   };
 
   template

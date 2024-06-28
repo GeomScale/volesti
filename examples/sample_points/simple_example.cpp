@@ -1,3 +1,4 @@
+#include <chrono>
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
@@ -32,12 +33,18 @@ void sample_points_eigen_matrix(PolytopeOrProblem const& HP, Point const& q, Wal
 {
     MT samples(q.dimension(), rnum);
 
+    auto start = std::chrono::steady_clock::now();
+
     sample_points(HP, q, walk, distr, rng, walk_len, rnum, nburns, samples);
+
+    auto end = std::chrono::steady_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << " time= " << time;
 
     // sample stats
     unsigned int min_ess;
     auto score = effective_sample_size<NT, VT, MT>(samples, min_ess);
-    std::cout << "ess=" << min_ess << std::endl;
+    std::cout << " ess= "  << min_ess << std::endl;
     //print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
 }
 
@@ -185,6 +192,7 @@ int main() {
 
     HamiltonianMonteCarloWalk hmc_walk;
     NutsHamiltonianMonteCarloWalk nhmc_walk;
+    UnderdampedLangevinWalk uld_walk;
     CRHMCWalk crhmc_walk;
 
     // Distributions
@@ -271,8 +279,11 @@ int main() {
     sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, uld_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
 
     sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
+    // The following will compile but segfauls since walk and distribution are not compatible
+    //sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
 
 

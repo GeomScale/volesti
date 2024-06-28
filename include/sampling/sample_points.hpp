@@ -212,7 +212,8 @@ void sample_points(Polytope& P, // TODO: make it a const&
         }
     }
     else if constexpr ((std::is_same<WalkType, HamiltonianMonteCarloWalk>::value
-                     || std::is_same<WalkType, NutsHamiltonianMonteCarloWalk>::value)
+                     || std::is_same<WalkType, NutsHamiltonianMonteCarloWalk>::value
+                     || std::is_same<WalkType, UnderdampedLangevinWalk>::value)
                     && std::is_same<Distribution, LogConcaveDistribution>::value)
     {
         using HPolytope = typename std::remove_const<Polytope>::type;
