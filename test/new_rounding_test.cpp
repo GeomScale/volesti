@@ -28,6 +28,7 @@
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
+#include "generators/order_polytope_generator.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -203,7 +204,9 @@ void call_test_svd() {
     start = std::chrono::high_resolution_clock::now();
 
     std::cout << "\n--- Testing rounding of H-skinny_cube5 using CDHR walk" << std::endl;
-    P = generate_skinny_cube<Hpolytope>(5);
+    // P = generate_skinny_cube<Hpolytope>(5)
+
+    P = random_orderpoly<Hpolytope, NT>(20, 150);
     // P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(20, 130, true, NT(2000));
     rounding_svd_test<CDHRWalk>(P, 1, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 
@@ -214,7 +217,8 @@ void call_test_svd() {
     start = std::chrono::high_resolution_clock::now();
 
     std::cout << "\n--- Testing rounding of H-skinny_cube5 using CRHMC walk" << std::endl;
-    P = generate_skinny_cube<Hpolytope>(5);
+    P = random_orderpoly<Hpolytope, NT>(20, 150);
+    // P = generate_skinny_cube<Hpolytope>(5);
     // P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(20, 130, true, NT(2000));
     rounding_svd_test<CRHMCWalk>(P, 1, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 

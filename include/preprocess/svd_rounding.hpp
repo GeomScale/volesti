@@ -29,6 +29,7 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
                    unsigned int const& walk_length, RandomNumberGenerator &rng)
 {
 
+    std::cout << "hello" << std::endl;
 
     using NT = double;
 
@@ -116,9 +117,26 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
 
 
 
+    } else {
+
+        typedef typename WalkTypePolicy::template Walk
+                <
+                        Polytope,
+                        RandomNumberGenerator
+                > walk;
+
+        typedef RandomPointGenerator <walk> RandomPointGenerator;
+        PushBackWalkPolicy push_back_policy;
+
+        RandomPointGenerator::apply(P, p, N, walk_length, randPoints,
+                                    push_back_policy, rng);
+    }
 
 
-        bool ok = true;
+
+
+
+    bool ok = true;
 
         for(auto pp:randPoints)
         {
@@ -144,23 +162,6 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
 
 
 
-
-
-    } else {
-
-        typedef typename WalkTypePolicy::template Walk
-                <
-                        Polytope,
-                        RandomNumberGenerator
-                > walk;
-
-        typedef RandomPointGenerator <walk> RandomPointGenerator;
-        PushBackWalkPolicy push_back_policy;
-
-        RandomPointGenerator::apply(P, p, N, walk_length, randPoints,
-                                    push_back_policy, rng);
-    }
-
     MT RetMat(N, P.dimension());
 
     int jj = 0;
@@ -168,6 +169,8 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
     {
         RetMat.row(jj) = (*rpit).getCoefficients().transpose();
     }
+
+    //std::cout << RetMat << std::endl;
 
     for (int i = 0; i < P.dimension(); ++i) {
         Means(i) = RetMat.col(i).mean();
@@ -225,7 +228,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
     bool done = false, last_round_under_p, fail;
 
-    unsigned int tries=0, num_rounding_steps = 10 * n, rounding_samples = 0, round_it;
+    unsigned int tries=0, num_rounding_steps = 50 * n, rounding_samples = 0, round_it;
     NT max_s, s_cutof, p_cutof, num_its, prev_max_s = std::numeric_limits<NT>::max(),
        s_cutoff, p_cutoff;
     MT V(n,n), S(n,n);
