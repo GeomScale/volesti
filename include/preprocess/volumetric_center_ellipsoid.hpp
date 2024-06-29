@@ -34,7 +34,6 @@ void get_hessian_grad_volumetric_barrier(MT const& A, MT const& A_trans, VT cons
     grad.noalias() = A_trans * (s.cwiseProduct(sigma));
     // Hessian of the volumetric barrier function
     update_Atrans_Diag_A<NT>(H, A_trans, A, s_sq.cwiseProduct(sigma).asDiagonal());
-    //std::cout<<"H:\n"<<H<<std::endl;
 }
 
 /*
@@ -106,14 +105,14 @@ std::tuple<MT_dense, VT, bool>  volumetric_center_ellipsoid_linear_ineq(MT const
         get_hessian_grad_volumetric_barrier<MT_dense>(A, A_trans, b, x, Ax, llt,
                                                       H, grad, b_Ax, obj_val);
         grad_err = grad.norm();
-        std::cout<<"iter: "<<iter<<", grad_err: "<<grad_err<<", obj_val: "<<obj_val<<"\n------------\n"<<std::endl;
+        //std::cout<<"iter: "<<iter<<", grad_err: "<<grad_err<<", obj_val: "<<obj_val<<"\n------------\n"<<std::endl;
 
         if (iter >= max_iters || grad_err <= grad_err_tol || rel_pos_err <= rel_pos_err_tol)
         {
             converged = true;
             break;
         }
-        step_iter *= NT(0.999);
+        step_iter *= (obj_val_prev <= obj_val - tol_obj) ? NT(0.9) : NT(0.999);
     } while (true);
     
     return std::make_tuple(MT_dense(H), x, converged);
@@ -126,7 +125,6 @@ std::tuple<MT_dense, VT, bool>  volumetric_center_ellipsoid_linear_ineq(MT const
                                                                         NT const rel_pos_err_tol = 1e-12) 
 {
     VT x0 = compute_feasible_point(A, b);
-    std::cout<<"x0: "<<x0.transpose()<<std::endl;
     return volumetric_center_ellipsoid_linear_ineq<MT_dense, MT, VT, NT>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
 }
 
