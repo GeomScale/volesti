@@ -7,29 +7,15 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef ANALYTIC_CENTER_H
-#define ANALYTIC_CENTER_H
+#ifndef ANALYTIC_CENTER_ELLIPSOID_HPP
+#define ANALYTIC_CENTER_ELLIPSOID_HPP
 
 #include <tuple>
 
 #include "preprocess/max_inscribed_ball.hpp"
 #include "preprocess/feasible_point.hpp"
-#include "preprocess/mat_computational_operators.h"
+#include "preprocess/mat_computational_operators.hpp"
 
-template <typename VT, typename NT>
-NT get_max_step(VT const& Ad, VT const& b_Ax)
-{
-    const int m = Ad.size();
-    NT max_element = std::numeric_limits<NT>::lowest(), max_element_temp;
-    for (int i = 0; i < m; i++) {
-        max_element_temp = Ad.coeff(i) / b_Ax.coeff(i);
-        if (max_element_temp > max_element) {
-            max_element = max_element_temp;
-        }
-    }
-
-    return NT(1) / max_element;
-}
 
 template <typename MT, typename VT, typename NT>
 void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b, 
@@ -66,10 +52,10 @@ void get_hessian_grad_logbarrier(MT const& A, MT const& A_trans, VT const& b,
     Note: Using MT as to deal with both dense and sparse matrices, MT_dense will be the type of result matrix
 */
 template <typename MT_dense, typename MT, typename VT, typename NT>
-std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b, VT const& x0,
-                                                            unsigned int const max_iters = 500,
-                                                            NT const grad_err_tol = 1e-08,
-                                                            NT const rel_pos_err_tol = 1e-12) 
+std::tuple<MT_dense, VT, bool>  analytic_center_ellipsoid_linear_ineq(MT const& A, VT const& b, VT const& x0,
+                                                                      unsigned int const max_iters = 500,
+                                                                      NT const grad_err_tol = 1e-08,
+                                                                      NT const rel_pos_err_tol = 1e-12)
 {
     // Initialization
     VT x = x0;
@@ -122,13 +108,13 @@ std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT cons
 }
 
 template <typename MT_dense, typename MT, typename VT, typename NT>
-std::tuple<MT_dense, VT, bool>  analytic_center_linear_ineq(MT const& A, VT const& b,
-                                                            unsigned int const max_iters = 500,
-                                                            NT const grad_err_tol = 1e-08,
-                                                            NT const rel_pos_err_tol = 1e-12) 
+std::tuple<MT_dense, VT, bool>  analytic_center_ellipsoid_linear_ineq(MT const& A, VT const& b,
+                                                                      unsigned int const max_iters = 500,
+                                                                      NT const grad_err_tol = 1e-08,
+                                                                      NT const rel_pos_err_tol = 1e-12) 
 {
     VT x0 = compute_feasible_point(A, b);
-    return analytic_center_linear_ineq<MT_dense, MT, VT, NT>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
+    return analytic_center_ellipsoid_linear_ineq<MT_dense, MT, VT, NT>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
 }
 
-#endif
+#endif // ANALYTIC_CENTER_ELLIPSOID_HPP

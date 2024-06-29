@@ -12,7 +12,7 @@
 #define INSCRIBED_ELLIPSOID_ROUNDING_HPP
 
 #include "preprocess/max_inscribed_ellipsoid.hpp"
-#include "preprocess/analytic_center_linear_ineq.h"
+#include "preprocess/analytic_center_ellipsoid.hpp"
 #include "preprocess/feasible_point.hpp"
 
 enum EllipsoidType
@@ -32,7 +32,7 @@ compute_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
         return max_inscribed_ellipsoid<MT>(A, b, x0, maxiter, tol, reg);
     } else if constexpr (ellipsoid_type == EllipsoidType::LOG_BARRIER)
     {
-        return analytic_center_linear_ineq<MT, Custom_MT, VT, NT>(A, b, x0);
+        return analytic_center_ellipsoid_linear_ineq<MT, Custom_MT, VT, NT>(A, b, x0);
     } else
     {
         std::runtime_error("Unknown rounding method.");

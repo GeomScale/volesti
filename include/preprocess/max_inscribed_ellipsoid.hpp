@@ -15,7 +15,7 @@
 
 #include <utility>
 #include <Eigen/Eigen>
-#include "preprocess/mat_computational_operators.h"
+#include "preprocess/mat_computational_operators.hpp"
 
 
 /*

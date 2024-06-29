@@ -7,8 +7,8 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MAT_COMPUTATIONAL_OPERATORS_H
-#define MAT_COMPUTATIONAL_OPERATORS_H
+#ifndef MAT_COMPUTATIONAL_OPERATORS_HPP
+#define MAT_COMPUTATIONAL_OPERATORS_HPP
 
 #include <memory>
 
@@ -19,6 +19,21 @@
 
 template <typename T>
 struct AssertFalseType : std::false_type {};
+
+template <typename VT, typename NT>
+NT get_max_step(VT const& Ad, VT const& b_Ax)
+{
+    const int m = Ad.size();
+    NT max_element = std::numeric_limits<NT>::lowest(), max_element_temp;
+    for (int i = 0; i < m; i++) {
+        max_element_temp = Ad.coeff(i) / b_Ax.coeff(i);
+        if (max_element_temp > max_element) {
+            max_element = max_element_temp;
+        }
+    }
+
+    return NT(1) / max_element;
+}
 
 template <typename NT, typename MT>
 inline static auto
@@ -313,4 +328,4 @@ update_Bmat(MT &B, VT const& AtDe, VT const& d,
 }
 
 
-#endif // MAT_COMPUTATIONAL_OPERATORS_H
+#endif // MAT_COMPUTATIONAL_OPERATORS_HPP

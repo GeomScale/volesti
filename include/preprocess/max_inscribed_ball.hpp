@@ -11,7 +11,7 @@
 #ifndef MAX_INSCRIBED_BALL_HPP
 #define MAX_INSCRIBED_BALL_HPP
 
-#include "preprocess/mat_computational_operators.h"
+#include "preprocess/mat_computational_operators.hpp"
 
 /*
     This implmentation computes the largest inscribed ball in a given convex polytope P.
