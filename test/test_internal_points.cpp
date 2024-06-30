@@ -132,8 +132,8 @@ void call_test_analytic_center() {
     P.normalize();
     
     auto [Hessian, analytic_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, MT, VT, NT>(P.get_mat(), P.get_vec());
-    SpMT Asp = P.get_mat().sparseView();
     
+    SpMT Asp = P.get_mat().sparseView();
     auto [Hessian_sp, analytic_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, SpMT, VT, NT>(Asp, P.get_vec());
 
     CHECK(P.is_in(Point(analytic_center)) == -1);
