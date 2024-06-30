@@ -1,14 +1,15 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2024 Vissarion Fisikopoulos
-// Copyright (c) 2024 Apostolos Chalkis
-// Copyright (c) 2024 Elias Tsigaridas
+// Copyright (c) 2012-2024 Vissarion Fisikopoulos
+// Copyright (c) 2018-2024 Apostolos Chalkis
+
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MAT_COMPUTATIONAL_OPERATORS_HPP
-#define MAT_COMPUTATIONAL_OPERATORS_HPP
+#ifndef ROUNDING_UTIL_FUNCTIONS_HPP
+#define ROUNDING_UTIL_FUNCTIONS_HPP
 
 #include <memory>
 
@@ -16,6 +17,16 @@
 #include "Spectra/include/Spectra/MatOp/DenseSymMatProd.h"
 #include "Spectra/include/Spectra/MatOp/SparseSymMatProd.h"
 
+
+enum EllipsoidType
+{
+  MAX_ELLIPSOID = 1,
+  LOG_BARRIER = 2,
+  VOLUMETRIC_BARRIER = 3
+};
+
+template <int T>
+struct AssertBarrierFalseType : std::false_type {};
 
 template <typename T>
 struct AssertFalseType : std::false_type {};
@@ -327,5 +338,64 @@ update_Bmat(MT &B, VT const& AtDe, VT const& d,
     }
 }
 
+template <int BarrierType, typename NT>
+std::tuple<NT, NT> init_step()
+{
+  if constexpr (BarrierType == EllipsoidType::LOG_BARRIER)
+  {
+    return {NT(1), NT(0.99)};
+  } else if constexpr (BarrierType == EllipsoidType::VOLUMETRIC_BARRIER)
+  {
+    return {NT(0.5), NT(0.4)};
+  } else {
+    static_assert(AssertBarrierFalseType<BarrierType>::value,
+            "Barrier type is not supported.");
+  }
+}
 
-#endif // MAT_COMPUTATIONAL_OPERATORS_HPP
+template <typename MT_dense, int BarrierType, typename MT, typename VT, typename llt_type, typename NT>
+void get_barrier_hessian_grad(MT const& A, MT const& A_trans, VT const& b, 
+                              VT const& x, VT const& Ax, llt_type const& llt,
+                              MT &H, VT &grad, VT &b_Ax, NT &obj_val)
+{
+  b_Ax.noalias() = b - Ax;
+  VT s = b_Ax.cwiseInverse();
+  VT s_sq = s.cwiseProduct(s);
+  // Hessian of the log-barrier function
+  update_Atrans_Diag_A<NT>(H, A_trans, A, s_sq.asDiagonal());
+  if constexpr (BarrierType == EllipsoidType::LOG_BARRIER)
+  {
+    grad.noalias() = A_trans * s;
+  } else if constexpr (BarrierType == EllipsoidType::VOLUMETRIC_BARRIER)
+  {
+    // Computing sigma(x)_i = (a_i^T H^{-1} a_i) / (b_i - a_i^Tx)^2
+    MT_dense HA = solve_mat(llt, H, A_trans, obj_val);
+    MT_dense aiHai = HA.transpose().cwiseProduct(A);
+    VT sigma = (aiHai.rowwise().sum()).cwiseProduct(s_sq);
+    // Gradient of the volumetric barrier function
+    grad.noalias() = A_trans * (s.cwiseProduct(sigma));
+    // Hessian of the volumetric barrier function
+    update_Atrans_Diag_A<NT>(H, A_trans, A, s_sq.cwiseProduct(sigma).asDiagonal());
+  } else {
+    static_assert(AssertBarrierFalseType<BarrierType>::value,
+            "Barrier type is not supported.");
+  }
+}
+
+template <int BarrierType, typename NT>
+void get_step_next_iteration(NT const obj_val_prev, NT const obj_val,
+                             NT const tol_obj, NT &step_iter)
+{
+  if constexpr (BarrierType == EllipsoidType::LOG_BARRIER)
+  {
+    step_iter = NT(1);
+  } else if constexpr (BarrierType == EllipsoidType::VOLUMETRIC_BARRIER)
+  {
+    step_iter *= (obj_val_prev <= obj_val - tol_obj) ? NT(0.9) : NT(0.999);
+  } else {
+    static_assert(AssertBarrierFalseType<BarrierType>::value,
+            "Barrier type is not supported.");
+  }
+}
+
+#endif // ROUNDING_UTIL_FUNCTIONS_HPP

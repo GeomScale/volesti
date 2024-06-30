@@ -15,7 +15,7 @@
 
 #include <utility>
 #include <Eigen/Eigen>
-#include "preprocess/mat_computational_operators.hpp"
+#include "preprocess/rounding_util_functions.hpp"
 
 
 /*

@@ -17,8 +17,9 @@
 #include "convex_bodies/hpolytope.h"
 
 #include "preprocess/max_inscribed_ball.hpp"
-#include "preprocess/analytic_center_ellipsoid.hpp"
-#include "preprocess/volumetric_center_ellipsoid.hpp"
+//#include "preprocess/analytic_center_ellipsoid.hpp"
+//#include "preprocess/volumetric_center_ellipsoid.hpp"
+#include "preprocess/barrier_center_ellipsoid.hpp"
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
@@ -130,10 +131,10 @@ void call_test_analytic_center() {
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     
-    auto [Hessian, analytic_center, converged] = analytic_center_ellipsoid_linear_ineq<MT, MT, VT, NT>(P.get_mat(), P.get_vec());
+    auto [Hessian, analytic_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, MT, VT, NT>(P.get_mat(), P.get_vec());
     SpMT Asp = P.get_mat().sparseView();
     
-    auto [Hessian_sp, analytic_center2, converged2] = analytic_center_ellipsoid_linear_ineq<MT, SpMT, VT, NT>(Asp, P.get_vec());
+    auto [Hessian_sp, analytic_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, SpMT, VT, NT>(Asp, P.get_vec());
 
     CHECK(P.is_in(Point(analytic_center)) == -1);
     CHECK(converged);
@@ -166,26 +167,21 @@ void call_test_volumetric_center() {
     NT max_min_eig_ratio = NT(100);
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
-    std::cout<<"A:\n"<<P.get_mat()<<std::endl;
-    std::cout<<"b:\n"<<P.get_vec()<<std::endl;
     
-    auto [Hessian, analytic_center, converged] = volumetric_center_ellipsoid_linear_ineq<MT, MT, VT, NT>(P.get_mat(), P.get_vec());
+    auto [Hessian, volumetric_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, MT, VT, NT>(P.get_mat(), P.get_vec());
     SpMT Asp = P.get_mat().sparseView();
-    
-    auto [Hessian_sp, analytic_center2, converged2] = volumetric_center_ellipsoid_linear_ineq<MT, SpMT, VT, NT>(Asp, P.get_vec());
-    std::cout<<"analytic_center: "<<analytic_center.transpose()<<std::endl;
-    std::cout<<"analytic_center_2: "<<analytic_center2.transpose()<<std::endl;
-    CHECK(P.is_in(Point(analytic_center)) == -1);
+    auto [Hessian_sp, volumetric_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, SpMT, VT, NT>(Asp, P.get_vec());
+    CHECK(P.is_in(Point(volumetric_center)) == -1);
     CHECK(converged);
-    CHECK(std::abs(analytic_center(0) + 4.75912) < 1e-04);
-    CHECK(std::abs(analytic_center(1) + 4.28762) < 1e-04);
-    CHECK(std::abs(analytic_center(2) - 7.54156) < 1e-04);
+    CHECK(std::abs(volumetric_center(0) + 1.49031) < 1e-04);
+    CHECK(std::abs(volumetric_center(1) + 1.51709) < 1e-04);
+    CHECK(std::abs(volumetric_center(2) - 2.49381) < 1e-04);
 
-    CHECK(P.is_in(Point(analytic_center2)) == -1);
+    CHECK(P.is_in(Point(volumetric_center2)) == -1);
     CHECK(converged2);
-    CHECK(std::abs(analytic_center(0) - analytic_center2(0)) < 1e-12);
-    CHECK(std::abs(analytic_center(1) - analytic_center2(1)) < 1e-12);
-    CHECK(std::abs(analytic_center(2) - analytic_center2(2)) < 1e-12);
+    CHECK(std::abs(volumetric_center(0) - volumetric_center2(0)) < 1e-12);
+    CHECK(std::abs(volumetric_center(1) - volumetric_center2(1)) < 1e-12);
+    CHECK(std::abs(volumetric_center(2) - volumetric_center2(2)) < 1e-12);
 
     CHECK((Hessian - Hessian_sp).norm() < 1e-12);
 }
