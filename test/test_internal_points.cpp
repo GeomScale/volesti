@@ -17,8 +17,6 @@
 #include "convex_bodies/hpolytope.h"
 
 #include "preprocess/max_inscribed_ball.hpp"
-//#include "preprocess/analytic_center_ellipsoid.hpp"
-//#include "preprocess/volumetric_center_ellipsoid.hpp"
 #include "preprocess/barrier_center_ellipsoid.hpp"
 
 #include "generators/known_polytope_generators.h"
