@@ -44,7 +44,7 @@ void sample_points_eigen_matrix(PolytopeOrProblem const& HP, Point const& q, Wal
     // sample stats
     unsigned int min_ess;
     auto score = effective_sample_size<NT, VT, MT>(samples, min_ess);
-    std::cout << " ess= "  << min_ess << std::endl;
+    std::cout << "\t ess= "  << min_ess << std::endl;
     //print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
 }
 
@@ -145,8 +145,11 @@ int main() {
 
     // Inputs:
 
+    int d = 100;
+    int rnum = 1000;
+
     // Generating a 3-dimensional cube centered at origin
-    HPolytopeType HP = generate_cube<HPolytopeType>(10, false);
+    HPolytopeType HP = generate_cube<HPolytopeType>(d, false);
     std::cout<<"Polytope: \n";
     HP.ComputeInnerBall();
     //HP.print();
@@ -240,62 +243,72 @@ int main() {
 
     LogConcaveDistribution logconcave_ref_gaus(g, f, params.L);
 
+    ZeroScalarFunctor<Point> f0;
+    ZeroFunctor<Point> g0;
+    ZeroFunctor<Point> h0;
+    LogConcaveDistribution logconcave_uniform(g0, f0, h0, params.L);
+    //LogConcaveDistribution logconcave_uniform2(g0, f0, params.L);
+
+
+
     // Sampling
 
     using NT = double;
     using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
     using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
 
-    int rnum = 20;
+    //int rnum = 110;
     int nburns = 5;
-    int walk_len = 2;
+    int walk_len = 1;
 
     MT samples(HP.dimension(), rnum);
 
     // 1. the eigen matrix interface
     std::cout << "uniform" << std::endl;
     sample_points_eigen_matrix(HP, q, abill_walk, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, abill_walk_custom, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, abill_walk_custom, udistr, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, ball_walk, udistr, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, cdhr_walk, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, dikin_walk, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, john_walk, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, dikin_walk, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, john_walk, udistr, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, rdhr_walk, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, vaidya_walk, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, vaidya_walk, udistr, rng, walk_len, rnum, nburns);
 
-    std::cout << "shperical gaussian" << std::endl;
-    sample_points_eigen_matrix(HP, q, gball_walk, sgdistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, gcdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, grdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, ghmc_walk, sgdistr, rng, walk_len, rnum, nburns);
+//    std::cout << "shperical gaussian" << std::endl;
+//    sample_points_eigen_matrix(HP, q, gball_walk, sgdistr, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, gcdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, grdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, ghmc_walk, sgdistr, rng, walk_len, rnum, nburns);
 
-    std::cout << "general gaussian" << std::endl;
-    sample_points_eigen_matrix(HP, q, gbill_walk, gdistr, rng, walk_len, rnum, nburns);
+//    std::cout << "general gaussian" << std::endl;
+//    sample_points_eigen_matrix(HP, q, gbill_walk, gdistr, rng, walk_len, rnum, nburns);
 
-    std::cout << "exponential" << std::endl;
-    sample_points_eigen_matrix(HP, q, ehmc_walk, edistr, rng, walk_len, rnum, nburns);
+//    std::cout << "exponential" << std::endl;
+//    sample_points_eigen_matrix(HP, q, ehmc_walk, edistr, rng, walk_len, rnum, nburns);
 
     std::cout << "logconcave" << std::endl;
-    sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, uld_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, uld_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
 
-    sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
     // The following will compile but segfauls since walk and distribution are not compatible
     //sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
+//    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
 
+    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(problem, q, nhmc_walk, logconcave_uniform2, rng, walk_len, rnum, nburns);
 
     std::cout << "fix the following" << std::endl;
     // TODO: fix
     // Does not converge because of the starting point
     // Also ess returns rnum instead of 0
-    sample_points_eigen_matrix(HP, q, bill_walk, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, bill_walk, udistr, rng, walk_len, rnum, nburns);
 
     // Does not compile because of walk-distribution combination
     //sample_points_eigen_matrix(HP, q, abill_walk, gdistr, rng, walk_len, rnum, nburns);
-
+/*
     std::cout << "std::vector interface" << std::endl;
     // 2. the std::vector interface
     std::vector<Point> points;
@@ -304,7 +317,8 @@ int main() {
     {
     //    std::cout << point.getCoefficients().transpose() << "\n";
     }
-
+*/
+/*
     // 3. the old interface
     // different billiard walks
     typedef BilliardWalk::template Walk<HPolytopeType, RNGType> BilliardWalkType;
@@ -317,7 +331,7 @@ int main() {
     {
     //    std::cout << point.getCoefficients().transpose() << "\n";
     }
-
+*/
 /*
     unsigned int walkL = 10, numpoints = 10000, nburns = 0, d = HP.dimension();
     Point StartingPoint(d);
