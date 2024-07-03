@@ -20,15 +20,13 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
-#include "volume/rotating.hpp"
 
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
-#include "generators/order_polytope_generator.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -112,8 +110,83 @@ void rounding_max_ellipsoid_test(Polytope &HP,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
     RNGType rng(d);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
+    // Setup the parameters
+    int walk_len = 1;
+    NT e = 0.1;
 
+    // Estimate the volume
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+
+    NT volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
+    test_values(volume, expectedBilliard, exact);
+}
+
+template <class Polytope>
+void rounding_max_ellipsoid_sparse_test(double const& expectedBilliard,
+                                        double const& expected)
+{
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+    typedef typename Poset::RT RT;
+    typedef typename Poset::RV RV;
+    typedef Eigen::SparseMatrix<NT> SpMT;
+
+    // Create Poset, 4 elements, a0 <= a1, a0 <= a2, a1 <= a3
+    RV poset_data{{0, 1}, {0, 2}, {1, 3}};
+    Poset poset(4, poset_data);
+    
+    // Initialize order polytope from the poset
+    OrderPolytope<Point> OP(poset);
+    OP.normalize();
+    SpMT Asp = OP.get_mat();
+    
+
+    NT tol = 1e-08;
+    unsigned int maxiter = 500;
+    auto [center, radius, converged] =  max_inscribed_ball(Asp, OP.get_vec(), maxiter, tol);
+    CHECK(OP.is_in(Point(center)) == -1);
+    auto [E, x0, round_val] = inscribed_ellipsoid_rounding<MT, VT, NT>(OP, Point(center));
+
+    MT A = MT(OP.get_mat());
+    VT b = OP.get_vec();
+    int d = OP.dimension();
+
+    Polytope HP(d, A, b);
+
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
+    // Setup the parameters
+    int walk_len = 1;
+    NT e = 0.1;
+
+    // Estimate the volume
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+
+    NT volume = round_val * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
+    test_values(volume, expectedBilliard, expected);
+}
+
+template <class Polytope>
+void rounding_log_barrier_test(Polytope &HP,
+                                 double const& expectedBall,
+                                 double const& expectedCDHR,
+                                 double const& expectedRDHR,
+                                 double const& expectedBilliard,
+                                 double const& exact)
+{
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+
+    int d = HP.dimension();
+
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
+    RNGType rng(d);
+    std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point, EllipsoidType::LOG_BARRIER>(HP, InnerBall.first);
     // Setup the parameters
     int walk_len = 1;
     NT e = 0.1;
@@ -126,9 +199,8 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 }
 
 
-template <typename WalkTypePolicy, class Polytope>
+template <class Polytope>
 void rounding_svd_test(Polytope &HP,
-                       unsigned int const& walk_length,
                        double const& expectedBall,
                        double const& expectedCDHR,
                        double const& expectedRDHR,
@@ -146,7 +218,7 @@ void rounding_svd_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = svd_rounding<WalkTypePolicy, MT, VT>(HP, InnerBall, walk_length, rng);
+    std::tuple<MT, VT, NT> res = svd_rounding<CDHRWalk, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
 
     // Setup the parameters
     int walk_len = 1;
@@ -167,11 +239,11 @@ void call_test_min_ellipsoid() {
     typedef HPolytope <Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
+    std::cout << "\n--- Testing min ellipsoid rounding of H-skinny_cube5" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
     rounding_min_ellipsoid_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
+    std::cout << "\n--- Testing min ellipsoid rounding of H-skinny_cube10" << std::endl;
 
     P = generate_skinny_cube<Hpolytope>(10);
     rounding_min_ellipsoid_test(P, 0, 122550, 108426, 105003.0, 102400.0);
@@ -185,9 +257,31 @@ void call_test_max_ellipsoid() {
     typedef HPolytope <Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
+    std::cout << "\n--- Testing max ellipsoid rounding of H-skinny_cube5" << std::endl;
     P = generate_skinny_cube<Hpolytope>(5);
     rounding_max_ellipsoid_test(P, 0, 3070.64, 3188.25, 3262.61, 3200.0);
+}
+
+template <typename NT>
+void call_test_max_ellipsoid_sparse() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+
+    std::cout << "\n--- Testing max ellipsoid rounding of sparse Order Polytope" << std::endl;
+    rounding_max_ellipsoid_sparse_test<Hpolytope>(0.13979, 3070.64);
+}
+
+template <typename NT>
+void call_test_log_barrier() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing log-barrier rounding of H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_log_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
 }
 
 
@@ -196,35 +290,11 @@ void call_test_svd() {
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point Point;
     typedef HPolytope <Point> Hpolytope;
-    typedef boost::mt19937 PolyRNGType;
-    typedef typename Hpolytope::MT MT;
     Hpolytope P;
 
-    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
-    start = std::chrono::high_resolution_clock::now();
-
-    std::cout << "\n--- Testing rounding of H-skinny_cube5 using CDHR walk" << std::endl;
-    // P = generate_skinny_cube<Hpolytope>(5)
-
-    P = random_orderpoly<Hpolytope, NT>(20, 150);
-    // P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(20, 130, true, NT(2000));
-    rounding_svd_test<CDHRWalk>(P, 1, 0, 3070.64, 3188.25, 3140.6, 3200.0);
-
-    stop = std::chrono::high_resolution_clock::now();
-
-    std::chrono::duration<double> total_time = stop - start;
-    std::cout << "Done in " << total_time.count() << '\n';
-    start = std::chrono::high_resolution_clock::now();
-
-    std::cout << "\n--- Testing rounding of H-skinny_cube5 using CRHMC walk" << std::endl;
-    P = random_orderpoly<Hpolytope, NT>(20, 150);
-    // P = generate_skinny_cube<Hpolytope>(5);
-    // P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(20, 130, true, NT(2000));
-    rounding_svd_test<CRHMCWalk>(P, 1, 0, 3070.64, 3188.25, 3140.6, 3200.0);
-
-    stop = std::chrono::high_resolution_clock::now();
-    total_time = stop - start;
-    std::cout << "Done in " << total_time.count() << '\n';
+    std::cout << "\n--- Testing SVD rounding of H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_svd_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 }
 
 
@@ -236,6 +306,15 @@ TEST_CASE("round_max_ellipsoid") {
     call_test_max_ellipsoid<double>();
 }
 
+TEST_CASE("round_max_ellipsoid_sparse") {
+    call_test_max_ellipsoid_sparse<double>();
+}
+
+TEST_CASE("round_log_barrier_test") {
+    call_test_log_barrier<double>();
+}
+
 TEST_CASE("round_svd") {
     call_test_svd<double>();
 }
+
