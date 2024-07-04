@@ -128,13 +128,15 @@ void sample_points(Polytope& P, // TODO: make it a const&
     {
         typename WalkType::template Walk<Polytope, RandomNumberGenerator>
             walk(P, starting_point, rng, walk_with_parameters.param);
+        //typename WalkType::template Walk<Polytope, RandomNumberGenerator>
+        //    walk(P, starting_point, rng);
 
         Point p = starting_point;
 
         // accelerated billiard walk variants in some cases need to compute a good starting point
         // otherwise the walk stuck in the first given point (e.g. with a cube and its center of mass)
-        if constexpr (std::is_same<WalkType, AcceleratedBilliardWalk>::value)
-            walk.template get_starting_point(P, p, p, 10, rng);
+        //if constexpr (std::is_same<WalkType, AcceleratedBilliardWalk>::value)
+        //    walk.template get_starting_point(P, p, p, 10, rng);
 
         for (unsigned int i = 0; i < nburns; ++i)
         {
@@ -379,19 +381,13 @@ void sample_points(Polytope const& P,
                    unsigned int const& nburns,
                    Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>& samples)
 {
-    std::vector<Point> random_point(1);
-    auto p = starting_point;
-    sample_points(P, p, walk_with_parameters, distribution, rng, walk_len, 0, nburns, random_point);
-    random_point.clear();
+    std::vector<Point> random_points;
+    sample_points(P, starting_point, walk_with_parameters, distribution, rng, walk_len, rnum, nburns, random_points);
 
     for (unsigned int i = 0; i < rnum; ++i)
     {
-        sample_points(P, p, walk_with_parameters, distribution, rng, walk_len, 1, 0, random_point);
-        auto point = random_point[0];
-        samples.col(i) = point.getCoefficients();
-        random_point.clear();
+        samples.col(i) = random_points[i].getCoefficients();
     }
-
 }
 
 #endif //SAMPLE_POINTS_HPP

@@ -37,7 +37,7 @@ compute_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
     return {};
 }
 
-template 
+template
 <
     typename MT,
     typename VT,
@@ -45,7 +45,7 @@ template
     typename Polytope,
     int ellipsoid_type = EllipsoidType::MAX_ELLIPSOID
 >
-std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
+std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
                                                     unsigned int const max_iterations = 5,
                                                     NT const max_eig_ratio = NT(6))
 {
@@ -54,7 +54,7 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
     return inscribed_ellipsoid_rounding<MT, VT, NT>(P, Point(x), max_iterations, max_eig_ratio);
 }
 
-template 
+template
 <
     typename MT,
     typename VT,
@@ -63,7 +63,7 @@ template
     typename Point,
     int ellipsoid_type = EllipsoidType::MAX_ELLIPSOID
 >
-std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
+std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
                                                     Point const& InnerPoint,
                                                     unsigned int const max_iterations = 5,
                                                     NT const max_eig_ratio = NT(6))
@@ -77,9 +77,9 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
     while (true)
     {
         // Compute the desired inscribed ellipsoid in P
-        std::tie(E, center, converged) = 
+        std::tie(E, center, converged) =
             compute_inscribed_ellipsoid<MT, ellipsoid_type>(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
-        
+
         E = (E + E.transpose()) / 2.0;
         E += MT::Identity(d, d)*std::pow(10, -8.0); //normalize E
 
@@ -89,7 +89,7 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
         // Computing eigenvalues of E
         Spectra::DenseSymMatProd<NT> op(E);
         // The value of ncv is chosen empirically
-        Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
+        Spectra::SymEigsSolver<NT, Spectra::SELECT_EIGENVALUE::BOTH_ENDS,
                                Spectra::DenseSymMatProd<NT>> eigs(&op, 2, std::min(std::max(10, int(d)/5), int(d)));
         eigs.init();
         int nconv = eigs.compute();
@@ -128,4 +128,4 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
     return result;
 }
 
-#endif 
+#endif

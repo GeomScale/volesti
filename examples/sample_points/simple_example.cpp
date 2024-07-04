@@ -26,6 +26,24 @@ using NT = double;
 using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
 using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
 
+using AcceleratedBilliardWalkType = AcceleratedBilliardWalk::template Walk<HPolytopeType, RNGType>;
+
+auto accelerated_billiard_walk(HPolytopeType& HP, RNGType& rng, unsigned int walk_len, unsigned int num_points)
+{
+    typedef RandomPointGenerator<AcceleratedBilliardWalkType> Generator;
+
+    MT Points(HP.dimension(), num_points);
+    Point q(HP.dimension()); // origin
+    AcceleratedBilliardWalkType walk(HP, q, rng);
+    walk.template get_starting_point(HP, q, q, 10, rng);
+    for (unsigned int i=0; i<num_points; ++i) {
+        walk.template apply(HP, q, 1, rng);
+        Points.col(i) = q.getCoefficients();
+    }
+
+    return Points;
+}
+
 template <typename PolytopeOrProblem, typename Walk, typename Distribution>
 void sample_points_eigen_matrix(PolytopeOrProblem const& HP, Point const& q, Walk const& walk,
                                 Distribution const& distr, RNGType rng, int walk_len, int rnum,
@@ -158,7 +176,7 @@ int main() {
     // Setup parameters for sampling
     Point q(HP.dimension());
     RNGType rng(HP.dimension());
-
+/*
     // Generating a sparse polytope/problem
     using SpMat = Eigen::SparseMatrix<NT>;
     using ConstraintProblem =constraint_problem<SpMat, Point>;
@@ -171,7 +189,7 @@ int main() {
     ConstraintProblem problem = ConstraintProblem(dimension);
     problem.set_equality_constraints(As, b);
     problem.set_bounds(lb, ub);
-
+*/
 
     // Walks
     AcceleratedBilliardWalk abill_walk;
@@ -265,14 +283,28 @@ int main() {
 
     // 1. the eigen matrix interface
     std::cout << "uniform" << std::endl;
-    sample_points_eigen_matrix(HP, q, abill_walk, udistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, abill_walk, udistr, rng, 1, rnum, nburns);
     //sample_points_eigen_matrix(HP, q, abill_walk_custom, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, ball_walk, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, cdhr_walk, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, ball_walk, udistr, rng, 2*d, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, cdhr_walk, udistr, rng, 2*d, rnum, nburns);
     //sample_points_eigen_matrix(HP, q, dikin_walk, udistr, rng, walk_len, rnum, nburns);
     //sample_points_eigen_matrix(HP, q, john_walk, udistr, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(HP, q, rdhr_walk, udistr, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(HP, q, rdhr_walk, udistr, rng, 2*d, rnum, nburns);
     //sample_points_eigen_matrix(HP, q, vaidya_walk, udistr, rng, walk_len, rnum, nburns);
+
+    //Compute chebychev ball
+    std::pair<Point,NT> CheBall;
+    //CheBall = HP.ComputeInnerBall();
+
+    // accelerated billiard
+    auto start = std::chrono::steady_clock::now();
+    samples = accelerated_billiard_walk(HP, rng, 1, rnum);
+    auto end = std::chrono::steady_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << " time= " << time;
+    unsigned int min_ess;
+    auto score = effective_sample_size<NT, VT, MT>(samples, min_ess);
+    std::cout << "\t ess= "  << min_ess << std::endl;
 
 //    std::cout << "shperical gaussian" << std::endl;
 //    sample_points_eigen_matrix(HP, q, gball_walk, sgdistr, rng, walk_len, rnum, nburns);
@@ -297,7 +329,8 @@ int main() {
     //sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
 //    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
 
-    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
+    //sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
     //sample_points_eigen_matrix(problem, q, nhmc_walk, logconcave_uniform2, rng, walk_len, rnum, nburns);
 
     std::cout << "fix the following" << std::endl;
