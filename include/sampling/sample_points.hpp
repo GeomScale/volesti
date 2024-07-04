@@ -104,7 +104,7 @@ template
     typename WalkType,
     typename Distribution,
     typename RandomNumberGenerator,
-    typename PointList
+    typename NT
 >
 void sample_points(Polytope& P, // TODO: make it a const&
                    Point const& starting_point,
@@ -114,7 +114,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
                    unsigned int const& walk_len,
                    unsigned int const& rnum,
                    unsigned int const& nburns,
-                   PointList& samples)
+                   Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>& samples)
 {
     if constexpr ((std::is_same<WalkType, AcceleratedBilliardWalk>::value
                 || std::is_same<WalkType, BallWalk>::value
@@ -128,26 +128,18 @@ void sample_points(Polytope& P, // TODO: make it a const&
     {
         typename WalkType::template Walk<Polytope, RandomNumberGenerator>
             walk(P, starting_point, rng, walk_with_parameters.param);
-        //typename WalkType::template Walk<Polytope, RandomNumberGenerator>
-        //    walk(P, starting_point, rng);
 
         Point p = starting_point;
-
-        // accelerated billiard walk variants in some cases need to compute a good starting point
-        // otherwise the walk stuck in the first given point (e.g. with a cube and its center of mass)
-        //if constexpr (std::is_same<WalkType, AcceleratedBilliardWalk>::value)
-        //    walk.template get_starting_point(P, p, p, 10, rng);
 
         for (unsigned int i = 0; i < nburns; ++i)
         {
             walk.apply(P, p, walk_len, rng);
         }
 
-        samples.reserve(rnum);
         for (unsigned int i = 0; i < rnum; ++i)
         {
             walk.apply(P, p, walk_len, rng);
-            samples.push_back(p);
+            samples.col(i) = p.getCoefficients();
         }
     }
     else if constexpr ((std::is_same<WalkType, GaussianBallWalk>::value
@@ -166,11 +158,10 @@ void sample_points(Polytope& P, // TODO: make it a const&
             walk.apply(P, p, distribution.variance, walk_len, rng);
         }
 
-        samples.reserve(rnum);
         for (unsigned int i = 0; i < rnum; ++i)
         {
             walk.apply(P, p, distribution.variance, walk_len, rng);
-            samples.push_back(p);
+            samples.col(i) = p.getCoefficients();
         }
     }
     else if constexpr (std::is_same<WalkType, GaussianAcceleratedBilliardWalk>::value
@@ -186,11 +177,10 @@ void sample_points(Polytope& P, // TODO: make it a const&
             walk.apply(P, p, distribution.ellipsoid, walk_len, rng);
         }
 
-        samples.reserve(rnum);
         for (unsigned int i = 0; i < rnum; ++i)
         {
             walk.apply(P, p, distribution.ellipsoid, walk_len, rng);
-            samples.push_back(p);
+            samples.col(i) = p.getCoefficients();
         }
     }
     else if constexpr (std::is_same<WalkType, ExponentialHamiltonianMonteCarloExactWalk>::value
@@ -206,11 +196,10 @@ void sample_points(Polytope& P, // TODO: make it a const&
             walk.apply(P, p, walk_len, rng);
         }
 
-        samples.reserve(rnum);
         for (unsigned int i = 0; i < rnum; ++i)
         {
             walk.apply(P, p, walk_len, rng);
-            samples.push_back(p);
+            samples.col(i) = p.getCoefficients();
         }
     }
     else if constexpr ((std::is_same<WalkType, HamiltonianMonteCarloWalk>::value
@@ -248,11 +237,10 @@ void sample_points(Polytope& P, // TODO: make it a const&
 
         //TODO: burnin for nuts
 
-        samples.reserve(rnum);
         for (int i = 0; i < rnum; i++)
         {
             walk.apply(rng, walk_len);
-            samples.push_back(walk.x);
+            samples.col(i) = walk.x.getCoefficients();
         }
     }
     else if constexpr ((std::is_same<WalkType, CRHMCWalk>::value)
@@ -262,7 +250,6 @@ void sample_points(Polytope& P, // TODO: make it a const&
         HPolytope HP = P; //TODO: avoid the copy
 
         constexpr int simdLen = 8; //TODO: input parameter
-        using NT = double;
 
         int dimension = HP.dimension();
 
@@ -329,7 +316,6 @@ void sample_points(Polytope& P, // TODO: make it a const&
             walk.apply(rng, walk_len);
         }
 
-        samples.reserve(rnum);
         bool raw_output = false; // TODO: check this
         for (unsigned int i = 0; i < std::ceil((float)rnum/simdLen); ++i)
         {
@@ -339,15 +325,15 @@ void sample_points(Polytope& P, // TODO: make it a const&
 
             if ((i + 1) * simdLen > rnum)
             {
-              for (int j = 0; j < rnum-simdLen*i; j++)
-              {
-                samples.push_back(Point(x.col(j)));
-              }
-              break;
+                for (int j = 0; j < rnum-simdLen*i; j++)
+                {
+                    samples.col(i+j) = x.col(j);
+                }
+                break;
             }
             for (int j = 0; j < x.cols(); j++)
             {
-              samples.push_back(Point(x.col(j)));
+                samples.col(i+j) =  x.col(j);
             }
         }
     }
@@ -359,35 +345,5 @@ void sample_points(Polytope& P, // TODO: make it a const&
     }
 }
 
-
-// this is a wrapper function for storing the samples in an Eigen matrix
-// it is inefficient in many ways (e.g. unneeded copies) and should be rewritten
-template
-<
-    typename Polytope,
-    typename Point,
-    typename WalkType,
-    typename Distribution,
-    typename RandomNumberGenerator,
-    typename NT
->
-void sample_points(Polytope const& P,
-                   Point const& starting_point,
-                   WalkType const& walk_with_parameters,
-                   Distribution const& distribution,
-                   RandomNumberGenerator& rng,
-                   unsigned int const& walk_len,
-                   unsigned int const& rnum,
-                   unsigned int const& nburns,
-                   Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>& samples)
-{
-    std::vector<Point> random_points;
-    sample_points(P, starting_point, walk_with_parameters, distribution, rng, walk_len, rnum, nburns, random_points);
-
-    for (unsigned int i = 0; i < rnum; ++i)
-    {
-        samples.col(i) = random_points[i].getCoefficients();
-    }
-}
 
 #endif //SAMPLE_POINTS_HPP
