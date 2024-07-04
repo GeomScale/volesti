@@ -130,7 +130,7 @@ template< typename SpMat, typename VT>
 void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
                         std::string problem_name) {
    {
-    std::string fileName("../crhmc_sampling/data/");
+    std::string fileName("./data/");
     fileName.append(problem_name);
     fileName.append(".mm");
     if(!exists_check(fileName)){
@@ -144,7 +144,7 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
     b = VT(X.col(dimension));
   }
   {
-    std::string fileName("../crhmc_sampling/data/");
+    std::string fileName("./data/");
     fileName.append(problem_name);
     fileName.append("_bounds.mm");
     if(!exists_check(fileName)){
@@ -159,12 +159,10 @@ void load_crhmc_problem(SpMat &A, VT &b, VT &lb, VT &ub, int &dimension,
 
 
 int main() {
-    // NEW INTERFACE Sampling
 
-    // Inputs:
+    // 1. Inputs:
 
-    int d = 100;
-    int rnum = 1000;
+    int d = 10;
 
     // Generating a 3-dimensional cube centered at origin
     HPolytopeType HP = generate_cube<HPolytopeType>(d, false);
@@ -176,7 +174,7 @@ int main() {
     // Setup parameters for sampling
     Point q(HP.dimension());
     RNGType rng(HP.dimension());
-/*
+
     // Generating a sparse polytope/problem
     using SpMat = Eigen::SparseMatrix<NT>;
     using ConstraintProblem =constraint_problem<SpMat, Point>;
@@ -189,9 +187,10 @@ int main() {
     ConstraintProblem problem = ConstraintProblem(dimension);
     problem.set_equality_constraints(As, b);
     problem.set_bounds(lb, ub);
-*/
 
-    // Walks
+
+    // 2. Walks
+
     AcceleratedBilliardWalk abill_walk;
     AcceleratedBilliardWalk abill_walk_custom(10); //user defined walk parameters
     BallWalk ball_walk;
@@ -216,12 +215,12 @@ int main() {
     UnderdampedLangevinWalk uld_walk;
     CRHMCWalk crhmc_walk;
 
-    // Distributions
+    // 3. Distributions
 
-    // 1. Uniform
+    // Uniform
     UniformDistribution udistr{};
 
-    // 2. Spherical
+    // Spherical Gaussian
     SphericalGaussianDistribution sgdistr{};
 
     MT A(2, 2);
@@ -230,12 +229,12 @@ int main() {
     Ellipsoid<Point> ell(A);    // origin centered ellipsoid
     GaussianDistribution gdistr(ell);
 
-    // 3. Exponential
+    // Exponential
     NT variance = 1.0;
     auto c = GetDirection<Point>::apply(HP.dimension(), rng, false);
     ExponentialDistribution edistr(c, variance);
 
-    // 4. LogConcave
+    // LogConcave
 
     std::pair<Point, NT> inner_ball = HP.ComputeInnerBall();
     Point x0 = inner_ball.first;
@@ -269,13 +268,13 @@ int main() {
 
 
 
-    // Sampling
+    // 4. Sampling
 
     using NT = double;
     using MT = Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>;
     using VT = Eigen::Matrix<NT,Eigen::Dynamic,1>;
 
-    //int rnum = 110;
+    int rnum = 100;
     int nburns = 5;
     int walk_len = 1;
 
@@ -284,52 +283,38 @@ int main() {
     // 1. the eigen matrix interface
     std::cout << "uniform" << std::endl;
     sample_points_eigen_matrix(HP, q, abill_walk, udistr, rng, 1, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, abill_walk_custom, udistr, rng, walk_len, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, ball_walk, udistr, rng, 2*d, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, cdhr_walk, udistr, rng, 2*d, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, dikin_walk, udistr, rng, walk_len, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, john_walk, udistr, rng, walk_len, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, rdhr_walk, udistr, rng, 2*d, rnum, nburns);
-    //sample_points_eigen_matrix(HP, q, vaidya_walk, udistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, abill_walk_custom, udistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, ball_walk, udistr, rng, 2*d, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, cdhr_walk, udistr, rng, 2*d, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, dikin_walk, udistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, john_walk, udistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, rdhr_walk, udistr, rng, 2*d, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, vaidya_walk, udistr, rng, walk_len, rnum, nburns);
 
-    //Compute chebychev ball
-    std::pair<Point,NT> CheBall;
-    //CheBall = HP.ComputeInnerBall();
 
-    // accelerated billiard
-    auto start = std::chrono::steady_clock::now();
-    samples = accelerated_billiard_walk(HP, rng, 1, rnum);
-    auto end = std::chrono::steady_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << " time= " << time;
-    unsigned int min_ess;
-    auto score = effective_sample_size<NT, VT, MT>(samples, min_ess);
-    std::cout << "\t ess= "  << min_ess << std::endl;
+    std::cout << "shperical gaussian" << std::endl;
+    sample_points_eigen_matrix(HP, q, gball_walk, sgdistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, gcdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, grdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, ghmc_walk, sgdistr, rng, walk_len, rnum, nburns);
 
-//    std::cout << "shperical gaussian" << std::endl;
-//    sample_points_eigen_matrix(HP, q, gball_walk, sgdistr, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(HP, q, gcdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(HP, q, grdhr_walk, sgdistr, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(HP, q, ghmc_walk, sgdistr, rng, walk_len, rnum, nburns);
+    std::cout << "general gaussian" << std::endl;
+    sample_points_eigen_matrix(HP, q, gbill_walk, gdistr, rng, walk_len, rnum, nburns);
 
-//    std::cout << "general gaussian" << std::endl;
-//    sample_points_eigen_matrix(HP, q, gbill_walk, gdistr, rng, walk_len, rnum, nburns);
-
-//    std::cout << "exponential" << std::endl;
-//    sample_points_eigen_matrix(HP, q, ehmc_walk, edistr, rng, walk_len, rnum, nburns);
+    std::cout << "exponential" << std::endl;
+    sample_points_eigen_matrix(HP, q, ehmc_walk, edistr, rng, walk_len, rnum, nburns);
 
     std::cout << "logconcave" << std::endl;
-//    sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(HP, q, uld_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, hmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_reflective, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, uld_walk, logconcave_ref_gaus, rng, walk_len, rnum, nburns);
 
-//    sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
     // The following will compile but segfauls since walk and distribution are not compatible
     //sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
-//    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
-
-    //sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
     //sample_points_eigen_matrix(problem, q, nhmc_walk, logconcave_uniform2, rng, walk_len, rnum, nburns);
 
