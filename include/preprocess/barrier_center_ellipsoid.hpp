@@ -42,7 +42,7 @@
     
     Note: Using MT as to deal with both dense and sparse matrices, MT_dense will be the type of result matrix
 */
-template <typename MT_dense, int BarrierType, typename MT, typename VT, typename NT>
+template <typename MT_dense, int BarrierType, typename NT, typename MT, typename VT>
 std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A, VT const& b, VT const& x0,
                                                                      unsigned int const max_iters = 500,
                                                                      NT const grad_err_tol = 1e-08,
@@ -102,14 +102,14 @@ std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A
     return std::make_tuple(MT_dense(H), x, converged);
 }
 
-template <typename MT_dense, int BarrierType, typename MT, typename VT, typename NT>
+template <typename MT_dense, int BarrierType, typename NT, typename MT, typename VT>
 std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A, VT const& b,
                                                                      unsigned int const max_iters = 500,
                                                                      NT const grad_err_tol = 1e-08,
                                                                      NT const rel_pos_err_tol = 1e-12) 
 {
     VT x0 = compute_feasible_point(A, b);
-    return barrier_center_ellipsoid_linear_ineq<MT_dense, BarrierType, MT, VT, NT>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
+    return barrier_center_ellipsoid_linear_ineq<MT_dense, BarrierType>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
 }
 
 #endif // BARRIER_CENTER_ELLIPSOID_HPP

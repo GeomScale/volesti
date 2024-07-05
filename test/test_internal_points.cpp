@@ -129,10 +129,10 @@ void call_test_analytic_center() {
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     
-    auto [Hessian, analytic_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, MT, VT, NT>(P.get_mat(), P.get_vec());
+    auto [Hessian, analytic_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, NT>(P.get_mat(), P.get_vec());
     
     SpMT Asp = P.get_mat().sparseView();
-    auto [Hessian_sp, analytic_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, SpMT, VT, NT>(Asp, P.get_vec());
+    auto [Hessian_sp, analytic_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, NT>(Asp, P.get_vec());
 
     CHECK(P.is_in(Point(analytic_center)) == -1);
     CHECK(converged);
@@ -166,9 +166,9 @@ void call_test_volumetric_center() {
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     
-    auto [Hessian, volumetric_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, MT, VT, NT>(P.get_mat(), P.get_vec());
+    auto [Hessian, volumetric_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, NT>(P.get_mat(), P.get_vec());
     SpMT Asp = P.get_mat().sparseView();
-    auto [Hessian_sp, volumetric_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, SpMT, VT, NT>(Asp, P.get_vec());
+    auto [Hessian_sp, volumetric_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, NT>(Asp, P.get_vec());
     CHECK(P.is_in(Point(volumetric_center)) == -1);
     CHECK(converged);
     CHECK(std::abs(volumetric_center(0) + 1.49031) < 1e-04);
