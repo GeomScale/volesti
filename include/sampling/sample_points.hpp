@@ -215,7 +215,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
         unsigned int i = 0;
         double t = 1.0;
 
-        typename WalkType::parameters
+        typename WalkType::template parameters
         <
             double,
             decltype(distribution.grad)
