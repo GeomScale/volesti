@@ -53,7 +53,7 @@ void sample_points_eigen_matrix(PolytopeOrProblem const& HP, Point const& q, Wal
 
     auto start = std::chrono::steady_clock::now();
 
-    sample_points(HP, q, walk, distr, rng, walk_len, rnum, nburns, samples);
+    sample_points<64>(HP, q, walk, distr, rng, walk_len, rnum, nburns, samples);
 
     auto end = std::chrono::steady_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -314,9 +314,12 @@ int main() {
     // The following will compile but segfauls since walk and distribution are not compatible
     //sample_points_eigen_matrix(HP, q, nhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
     sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_crhmc, rng, walk_len, rnum, nburns);
-    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
+    sample_points_eigen_matrix(problem, q, crhmc_walk, logconcave_uniform, rng, walk_len, 100000, nburns);
     sample_points_eigen_matrix(HP, q, crhmc_walk, logconcave_uniform, rng, walk_len, rnum, nburns);
     //sample_points_eigen_matrix(problem, q, nhmc_walk, logconcave_uniform2, rng, walk_len, rnum, nburns);
+
+    using NT_fromMT = VT::Scalar;
+    NT_fromMT test;
 
     std::cout << "fix the following" << std::endl;
     // TODO: fix

@@ -11,28 +11,31 @@
 #include "preprocess/crhmc/crhmc_problem.h"
 #include "sampling/sampling.hpp"
 
+template <typename NT = double>
 struct UniformDistribution
 {
-    using CartesianPoint = point<Cartesian<double>>;
+    using CartesianPoint = point<Cartesian<NT>>;
     using Func = ZeroScalarFunctor<CartesianPoint>;
     using Grad = ZeroFunctor<CartesianPoint>;
     using Hess = ZeroFunctor<CartesianPoint>;
 };
 
+template <typename NT = double>
 struct SphericalGaussianDistribution
 {
     SphericalGaussianDistribution()
         :   variance(1.0)
     {}
-    SphericalGaussianDistribution(double _variance)
+    SphericalGaussianDistribution(NT _variance)
         :   variance(_variance)
     {}
-    double variance;
+    NT variance;
 };
 
+template <typename NT = double>
 struct GaussianDistribution
 {
-    using CartesianEllipsoid = Ellipsoid<point<Cartesian<double>>>;
+    using CartesianEllipsoid = Ellipsoid<point<Cartesian<NT>>>;
 
     GaussianDistribution() {}
 
@@ -42,45 +45,46 @@ struct GaussianDistribution
     CartesianEllipsoid ellipsoid;
 };
 
+template <typename NT = double>
 struct ExponentialDistribution
 {
-    using CartesianPoint = point<Cartesian<double>>;
+    using CartesianPoint = point<Cartesian<NT>>;
 
     ExponentialDistribution() {}
 
-    ExponentialDistribution(CartesianPoint _c, double _T)
+    ExponentialDistribution(CartesianPoint _c, NT _T)
         :   c(_c)
         ,   T(_T)
     {}
     CartesianPoint c;
-    double T;
+    NT T;
 };
 
-
+template <typename NT = double>
 struct LogConcaveDistribution
 {
-    using CartesianPoint = point<Cartesian<double>>;
+    using CartesianPoint = point<Cartesian<NT>>;
 
     template <typename GradientFunctor, typename FunctionFunctor>
-    LogConcaveDistribution(GradientFunctor g, FunctionFunctor f, double _L)
+    LogConcaveDistribution(GradientFunctor g, FunctionFunctor f, NT _L)
         : grad(g)
         , func(f)
         , L(_L)
     {}
 
     template <typename GradientFunctor, typename FunctionFunctor, typename HessianFunctor>
-    LogConcaveDistribution(GradientFunctor g, FunctionFunctor f, HessianFunctor h, double _L)
+    LogConcaveDistribution(GradientFunctor g, FunctionFunctor f, HessianFunctor h, NT _L)
         : grad_point(g)
         , func(f)
         , hess(h)
         , L(_L)
     {}
 
-    std::function<CartesianPoint(unsigned int const&, std::vector<CartesianPoint> const&, double const&)> grad;
+    std::function<CartesianPoint(unsigned int const&, std::vector<CartesianPoint> const&, NT const&)> grad;
     std::function<CartesianPoint(CartesianPoint const&)> grad_point;
-    std::function<double(CartesianPoint const&)> func;
+    std::function<NT(CartesianPoint const&)> func;
     std::function<CartesianPoint(CartesianPoint const&)> hess;
-    double L;
+    NT L;
 };
 
 namespace detail
@@ -99,6 +103,7 @@ struct sample_points
 
 template
 <
+    int simdLen = 1,
     typename Polytope,
     typename Point,
     typename WalkType,
@@ -124,7 +129,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
                 || std::is_same<WalkType, JohnWalk>::value
                 || std::is_same<WalkType, RDHRWalk>::value
                 || std::is_same<WalkType, VaidyaWalk>::value)
-            && std::is_same<Distribution, UniformDistribution>::value)
+            && std::is_same<Distribution, UniformDistribution<NT>>::value)
     {
         typename WalkType::template Walk<Polytope, RandomNumberGenerator>
             walk(P, starting_point, rng, walk_with_parameters.param);
@@ -146,7 +151,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
                      || std::is_same<WalkType, GaussianCDHRWalk>::value
                      || std::is_same<WalkType, GaussianHamiltonianMonteCarloExactWalk>::value
                      || std::is_same<WalkType, GaussianRDHRWalk>::value)
-                    && std::is_same<Distribution, SphericalGaussianDistribution>::value)
+                    && std::is_same<Distribution, SphericalGaussianDistribution<NT>>::value)
     {
         typename WalkType::template Walk<Polytope, RandomNumberGenerator>
             walk(P, starting_point, distribution.variance, rng, walk_with_parameters.param);
@@ -165,7 +170,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
         }
     }
     else if constexpr (std::is_same<WalkType, GaussianAcceleratedBilliardWalk>::value
-                    && std::is_same<Distribution, GaussianDistribution>::value)
+                    && std::is_same<Distribution, GaussianDistribution<NT>>::value)
     {
         typename WalkType::template Walk<Polytope, RandomNumberGenerator>
             walk(P, starting_point, distribution.ellipsoid, rng, walk_with_parameters.param);
@@ -184,7 +189,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
         }
     }
     else if constexpr (std::is_same<WalkType, ExponentialHamiltonianMonteCarloExactWalk>::value
-                    && std::is_same<Distribution, ExponentialDistribution>::value)
+                    && std::is_same<Distribution, ExponentialDistribution<NT>>::value)
     {
         typename WalkType::template Walk<Polytope, RandomNumberGenerator>
             walk(P, starting_point, distribution.c, distribution.T, rng, walk_with_parameters.param);
@@ -205,19 +210,19 @@ void sample_points(Polytope& P, // TODO: make it a const&
     else if constexpr ((std::is_same<WalkType, HamiltonianMonteCarloWalk>::value
                      || std::is_same<WalkType, NutsHamiltonianMonteCarloWalk>::value
                      || std::is_same<WalkType, UnderdampedLangevinWalk>::value)
-                    && std::is_same<Distribution, LogConcaveDistribution>::value)
+                    && std::is_same<Distribution, LogConcaveDistribution<NT>>::value)
     {
         using HPolytope = typename std::remove_const<Polytope>::type;
 
-        using Solver = LeapfrogODESolver<Point, double, HPolytope, decltype(distribution.grad)>;
+        using Solver = LeapfrogODESolver<Point, NT, HPolytope, decltype(distribution.grad)>;
 
         std::vector<Point> xs;
         unsigned int i = 0;
-        double t = 1.0;
+        NT t = 1.0;
 
         typename WalkType::template parameters
         <
-            double,
+            NT,
             decltype(distribution.grad)
         > hmc_params(distribution.L, P.dimension());
 
@@ -244,12 +249,10 @@ void sample_points(Polytope& P, // TODO: make it a const&
         }
     }
     else if constexpr ((std::is_same<WalkType, CRHMCWalk>::value)
-                    && std::is_same<Distribution, LogConcaveDistribution>::value)
+                    && std::is_same<Distribution, LogConcaveDistribution<NT>>::value)
     {
         using HPolytope = typename std::remove_const<Polytope>::type;
         HPolytope HP = P; //TODO: avoid the copy
-
-        constexpr int simdLen = 8; //TODO: input parameter
 
         int dimension = HP.dimension();
 
@@ -270,11 +273,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
                 NegativeGradientFunctor,
                 HessianFunctor
             >;
-        Input input = convert2crhmc_input
-            <
-                Input, HPolytope, NegativeLogprobFunctor,
-                NegativeGradientFunctor, HessianFunctor
-            >(HP, F, G, H);
+        Input input = convert2crhmc_input<Input>(HP, F, G, H);
 
         using CrhmcProblem = crhmc_problem<Point, Input>;
         CrhmcProblem problem = CrhmcProblem(input);
@@ -283,7 +282,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
         using Solver = ImplicitMidpointODESolver
             <
                 Point, NT, CrhmcProblem,
-                decltype(distribution.grad_point), simdLen
+                NegativeGradientFunctor, simdLen
             >;
 
         using Walk = typename WalkType::template Walk
@@ -301,10 +300,10 @@ void sample_points(Polytope& P, // TODO: make it a const&
                     NegativeGradientFunctor
             >;
         Point p = Point(problem.center);
-        problem.options.simdLen=simdLen;
+        problem.options.simdLen = simdLen;
         WalkParams params(distribution.L, p.dimension(), problem.options);
 
-        // TODO: pass a usef defined eta to bypass the one created by the walk using L
+        // TODO: pass a user defined eta to bypass the one created by the walk using L
         //if (distribution.eta > 0) {
         //    params.eta = distribution.eta;
         // }
@@ -316,12 +315,11 @@ void sample_points(Polytope& P, // TODO: make it a const&
             walk.apply(rng, walk_len);
         }
 
-        bool raw_output = false; // TODO: check this
         for (unsigned int i = 0; i < std::ceil((float)rnum/simdLen); ++i)
         {
             walk.apply(rng, walk_len);
             if (walk.P.terminate) {return;}
-            auto x = raw_output ? walk.x : walk.getPoints();
+            auto x = walk.getPoints();
 
             if ((i + 1) * simdLen > rnum)
             {
@@ -333,7 +331,7 @@ void sample_points(Polytope& P, // TODO: make it a const&
             }
             for (int j = 0; j < x.cols(); j++)
             {
-                samples.col(i+j) =  x.col(j);
+                samples.col(i+j) = x.col(j);
             }
         }
     }
