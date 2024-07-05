@@ -459,7 +459,6 @@ public:
         return false;
     }
 
-
     /// Minimum positive eigenvalue of the generalized eigenvalue problem A - lB
     /// Use Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A) (faster)
     /// \param[in] A: symmetric positive definite matrix
