@@ -442,19 +442,17 @@ public:
     /// Check if a matrix is indeed a correlation matrix
     /// return true if input matrix is found to be a correlation matrix
     /// |param[in] matrix
-    bool is_correlation_matrix(const MT& matrix){
-
-        const double tol = 1e-8;
+    bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8){
     
         //check if all the diagonal elements are ones
-        for(int i=0 ; i<matrix.rows() ; i++){
-   	    if(std::abs(matrix(i, i)-1.0) > tol){
+        for (int i=0 ; i<matrix.rows() ; i++){
+   	    if (std::abs(matrix(i, i)-1.0) > tol){
    	        return false;
    	    }
         }
     
         //check if the matrix is positive definite
-        if(isPositiveSemidefinite(matrix)) return true;
+        if (isPositiveSemidefinite(matrix)) return true;
     
         return false;
     }
