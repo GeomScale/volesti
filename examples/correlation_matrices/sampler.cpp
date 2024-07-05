@@ -150,11 +150,13 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
 
     int valid_points = 0;
+    EigenvaluesProblems<NT, MT, Eigen::Matrix<NT, Eigen::Dynamic, 1>> solver;
     for(const auto& points : randPoints){
-    	if(is_correlation_matrix(points.mat)){
-    	    valid_points++;
-    	}
+        if(solver.is_correlation_matrix(points.mat)){
+            valid_points++;
+        }
     }
+
     std::cout << "Number of valid points = " << valid_points << std::endl;
 
     write_to_file<PointMT>(walkname + "_matrices_MT" + std::to_string(n) + ".txt", randPoints);
