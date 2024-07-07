@@ -69,7 +69,7 @@ std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A
         d.noalias() = - solve_vec<NT>(llt, H, grad);
         Ad.noalias() = A * d;
         // Compute the step length
-        step = std::min(max_step_multiplier * get_max_step<VT, NT>(Ad, b_Ax), step_iter);
+        step = std::min(max_step_multiplier * get_max_step(Ad, b_Ax), step_iter);
         step_d.noalias() = step*d;
         x_prev = x;
         x += step_d;

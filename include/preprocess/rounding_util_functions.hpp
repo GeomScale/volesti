@@ -31,9 +31,10 @@ struct AssertBarrierFalseType : std::false_type {};
 template <typename T>
 struct AssertFalseType : std::false_type {};
 
-template <typename VT, typename NT>
-NT get_max_step(VT const& Ad, VT const& b_Ax)
+template <typename VT>
+auto get_max_step(VT const& Ad, VT const& b_Ax)
 {
+    using NT = typename VT::Scalar;
     const int m = Ad.size();
     NT max_element = std::numeric_limits<NT>::lowest(), max_element_temp;
     for (int i = 0; i < m; i++) {
