@@ -300,6 +300,8 @@ add_test(NAME test_round_log_barrier_test
           COMMAND rounding_test -tc=round_log_barrier_test)
 add_test(NAME round_max_ellipsoid_sparse
           COMMAND rounding_test -tc=round_max_ellipsoid_sparse)
+add_test(NAME round_volumetric_barrier_test
+          COMMAND rounding_test -tc=round_volumetric_barrier_test)
 
 
 
@@ -363,7 +365,9 @@ add_test(NAME test_analytic_center
           COMMAND test_internal_points -tc=test_analytic_center)
 add_test(NAME test_max_ball_sparse
           COMMAND test_internal_points -tc=test_max_ball_sparse)
-          
+add_test(NAME test_volumetric_center
+          COMMAND test_internal_points -tc=test_volumetric_center)
+
           
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
