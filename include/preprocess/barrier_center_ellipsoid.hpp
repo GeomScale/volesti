@@ -27,7 +27,12 @@
     The volumetric center is the minimizer of the volumetric barrier function, i.e., the optimal
     solution of the following optimization problem,
 
-    \min logdet \nabla^2 f(x), where f(x) the log barrier function 
+    \min logdet \nabla^2 f(x), where f(x) the log barrier function
+
+    The Vaidya center is the minimizer of the Vaidya barrier function, i.e., the optimal
+    solution of the following optimization problem,
+
+    \min logdet \nabla^2 f(x) + d/m f(x), where f(x) the log barrier function.
     
     The function solves the problems by using the Newton method.
 
