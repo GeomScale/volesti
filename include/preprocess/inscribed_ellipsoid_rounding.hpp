@@ -26,7 +26,8 @@ compute_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
     {
         return max_inscribed_ellipsoid<MT>(A, b, x0, maxiter, tol, reg);
     } else if constexpr (ellipsoid_type == EllipsoidType::LOG_BARRIER ||
-                         ellipsoid_type == EllipsoidType::VOLUMETRIC_BARRIER)
+                         ellipsoid_type == EllipsoidType::VOLUMETRIC_BARRIER ||
+                         ellipsoid_type == EllipsoidType::VAIDYA_BARRIER)
     {
         return barrier_center_ellipsoid_linear_ineq<MT, ellipsoid_type, NT>(A, b, x0);
     } else
