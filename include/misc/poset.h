@@ -5,6 +5,7 @@
 // Copyright (c) 2020-2021 Vaibhav Thakkar
 
 // Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
+// Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
