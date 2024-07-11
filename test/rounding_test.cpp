@@ -363,4 +363,3 @@ TEST_CASE("round_volumetric_barrier_test") {
 TEST_CASE("round_svd") {
     call_test_svd<double>();
 }
-
