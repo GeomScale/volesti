@@ -541,7 +541,6 @@ public:
 
         NT lamda = 0;
         VT sum_nom;
-        unsigned int j;
         int m = num_of_hyperplanes(), facet;
 
         Ar.noalias() += lambda_prev*Av;
@@ -907,6 +906,19 @@ public:
 
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
+    }
+
+    template <typename update_parameters>
+    NT compute_reflection(Point &v, const Point &, MT const &AE, VT const &AEA, NT const &vEv, update_parameters const &params) const {
+
+            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+            VT x = v.getCoefficients();
+            NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x))
+                       + (4.0 * params.inner_vi_ak * params.inner_vi_ak) * AEA(params.facet_prev);
+            v += a;
+            NT coeff = std::sqrt(vEv / new_vEv);
+            v = v * coeff;
+            return coeff;
     }
 
     void update_position_internal(NT&){}
