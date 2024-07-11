@@ -24,6 +24,7 @@
 #include "random_walks/uniform_vaidya_walk.hpp"
 #include "random_walks/uniform_accelerated_billiard_walk.hpp"
 #include "random_walks/gaussian_accelerated_billiard_walk.hpp"
+#include "random_walks/new_gaussian_accelerated_billiard_walk.hpp"
 #include "random_walks/gaussian_hamiltonian_monte_carlo_exact_walk.hpp"
 #include "random_walks/exponential_hamiltonian_monte_carlo_exact_walk.hpp"
 #include "random_walks/uniform_accelerated_billiard_walk_parallel.hpp"
