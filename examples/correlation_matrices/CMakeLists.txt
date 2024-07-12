@@ -62,6 +62,16 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
+option(BUILTIN_AUTODIFF "Use autodiff from ../external" OFF)
+include("../../external/cmake-files/Autodiff.cmake")
+GetAutodiff()
+if (BUILTIN_AUTODIFF)
+    include_directories (BEFORE ../../external/_deps/Autodiff)
+else ()
+    include_directories(BEFORE /usr/local/include)
+endif(BUILTIN_AUTODIFF)
+add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17") #enable the c++17 support needed by autodiff
+
 include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
@@ -125,7 +135,6 @@ else ()
     add_compile_definitions("EIGEN_NO_DEBUG")
   endif ()
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")

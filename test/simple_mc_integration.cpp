@@ -10,18 +10,20 @@
 // Link to the Latte-Integrale Software: https://www.math.ucdavis.edu/~latte/software.php
 // Link to the tests: https://github.com/surajchoubey/latte-integrale-checks
 
-#include "doctest.h"
-#include "simple_MC_integration.hpp"
-#include "Eigen/Eigen"
 #include <vector>
+#include <iostream>
+#include <fstream>
+
+#include "doctest.h"
+
+#include "Eigen/Eigen"
+#include "integration/simple_MC_integration.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
 #include "generators/known_polytope_generators.h"
 #include "ode_solvers/oracle_functors.hpp"
 #include "random_walks/random_walks.hpp"
-#include <iostream>
-#include <fstream>
-#include "misc.h"
+#include "misc/misc.h"
 
 template <typename NT>
 NT exp_normsq(Point X) {

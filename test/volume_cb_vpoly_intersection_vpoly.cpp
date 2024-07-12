@@ -8,20 +8,22 @@
 #include "doctest.h"
 #include <fstream>
 #include <iostream>
-#include "misc.h"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+
+#include "misc/misc.h"
 
 #include "random_walks/random_walks.hpp"
 
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
-#include "known_polytope_generators.h"
 
-#include "v_polytopes_generators.h"
+#include "generators/known_polytope_generators.h"
+#include "generators/v_polytopes_generators.h"
 
 template <typename NT>
 NT factorial(NT n)

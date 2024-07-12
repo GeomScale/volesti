@@ -73,9 +73,9 @@ public:
 
     VT c = (ub + lb) / 2;
     VT bias1=VT::Ones(x2, 1) * unbounded_center_coord;
-    saxpy(c,lb,bias1,lowerIdx,lowerIdx);
+    volesti_saxpy(c,lb,bias1,lowerIdx,lowerIdx);
     VT bias2=-VT::Ones(x1, 1) * unbounded_center_coord;
-    saxpy(c,ub,bias2,upperIdx,upperIdx);
+    volesti_saxpy(c,ub,bias2,upperIdx,upperIdx);
     set(c, freeIdx, 0.0);
 
     center = c;

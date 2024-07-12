@@ -1,7 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2020 Vissarion Fisikopoulos
-// Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2012-2024 Vissarion Fisikopoulos
+// Copyright (c) 2018-2024 Apostolos Chalkis
 // Copyright (c) 2021 Vaibhav Thakkar
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
@@ -15,6 +15,7 @@
 
 #include <utility>
 #include <Eigen/Eigen>
+#include "preprocess/rounding_util_functions.hpp"
 
 
 /*
@@ -31,16 +32,17 @@
            tolerance parameters tol, reg
 
     Output: center of the ellipsoid y
-            matrix V = E_transpose * E
+            matrix E2^{-1} = E_transpose * E
 */
 
-// using Custom_MT as to deal with both dense and sparse matrices, MT will be the type of result matrix
-template <typename MT, typename Custom_MT, typename VT, typename NT>
-std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
-                                                            unsigned int const& maxiter,
-                                                            NT const& tol, NT const& reg)
+// Using MT as to deal with both dense and sparse matrices, MT_dense will be the type of result matrix
+template <typename MT_dense, typename MT, typename VT, typename NT>
+std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
+                                                       unsigned int const& maxiter,
+                                                       NT const& tol, NT const& reg)
 {
     typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
+    //typedef matrix_computational_operator<MT> mat_op;
 
     int m = A.rows(), n = A.cols();
     bool converged = false;
@@ -49,8 +51,8 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
        last_r1 = std::numeric_limits<NT>::lowest(),
        last_r2 = std::numeric_limits<NT>::lowest(),
        prev_obj = std::numeric_limits<NT>::lowest(),
-       gap, rmu, res, objval, r1, r2 ,r3, rel, Rel,
-       astep, ax, ay, az, tau;
+       gap, rmu, res, objval, r1, r2 ,r3, astep, ax,
+       ay, az, tau, logdetE2;
 
     NT const reg_lim = std::pow(10.0, -10.0), tau0 = 0.75, minmu = std::pow(10.0, -8.0);
 
@@ -62,21 +64,23 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
 
     VT const bmAx0 = b - A * x0, ones_m = VT::Ones(m);
 
-    MT Q(m, m), E2(n, n), YQ(m,m), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n);
+    MT_dense Q(m,m), YQ(m,m), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n);
     Diagonal_MT Y(m);
-    Custom_MT YA(m, n);
+    MT YA(m, n);
 
     A = (ones_m.cwiseProduct(bmAx0.cwiseInverse())).asDiagonal() * A, b = ones_m;
-    Custom_MT A_trans = A.transpose();
+    MT A_trans = A.transpose(), E2(n,n);
+
+    auto llt = initialize_chol<NT>(A_trans, A);
 
     int i = 1;
     while (i <= maxiter) {
 
         Y = y.asDiagonal();
 
-        E2.noalias() = MT(A_trans * Y * A).inverse();
-
-        Q.noalias() = A * E2 * A_trans;
+        update_Atrans_Diag_A<NT>(E2, A_trans, A, Y);
+        Q.noalias() = A * solve_mat(llt, E2, A_trans, logdetE2);
+        
         h = Q.diagonal();
         h = h.cwiseSqrt();
 
@@ -115,19 +119,35 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
 
         res = std::max(r1, r2);
         res = std::max(res, r3);
-        objval = std::log(E2.determinant()) / 2.0;
-
-        Eigen::SelfAdjointEigenSolver <MT> eigensolver(E2); // E2 is positive definite matrix
-        // computing eigenvalues of E2
-        rel = eigensolver.eigenvalues().minCoeff();
-        Rel = eigensolver.eigenvalues().maxCoeff();
+        objval = logdetE2; //logdet of E2 is already divided by 2
 
         if (i % 10 == 0) {
+            
+            NT rel, Rel;
+            
+            // computing eigenvalues of E2
+            auto op = get_mat_prod_op<NT>(E2);
+            auto eigs = get_eigs_solver<NT>(op, n);
+            eigs->init();
+            int nconv = eigs->compute();
+            if (eigs->info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
+                Rel = 1.0 / eigs->eigenvalues().coeff(1);
+                rel = 1.0 / eigs->eigenvalues().coeff(0);
+            } else {
+                Eigen::SelfAdjointEigenSolver<MT> eigensolver(E2); // E2 is positive definite matrix
+                if (eigensolver.info() == Eigen::ComputationInfo::Success) {
+                    Rel = 1.0 / eigensolver.eigenvalues().coeff(0);
+                    rel = 1.0 / eigensolver.eigenvalues().template tail<1>().value();
+                } else {
+                    std::runtime_error("Computations failed.");
+                }
+            }
 
             if (std::abs((last_r1 - r1) / std::min(NT(std::abs(last_r1)), NT(std::abs(r1)))) < 0.01 &&
                 std::abs((last_r2 - r2) / std::min(NT(abs(last_r2)), NT(std::abs(r2)))) < 0.01 &&
                 Rel / rel > 100.0 &&
                 reg > reg_lim) {
+                
                 converged = false;
                 //Stopped making progress
                 break;
@@ -138,9 +158,10 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
 
         // stopping criterion
         if ((res < tol * (1.0 + bnrm) && rmu <= minmu) ||
-                (i > 4 && prev_obj != std::numeric_limits<NT>::lowest() &&
-                ((std::abs(objval - prev_obj) <= tol * objval && std::abs(objval - prev_obj) <= tol * prev_obj) ||
-                (prev_obj >= (1.0 - tol) * objval || objval <= (1.0 - tol) * prev_obj) ) ) ) {
+            (i > 1 && prev_obj != std::numeric_limits<NT>::lowest() &&
+            (std::abs(objval - prev_obj) <= tol * std::min(std::abs(objval), std::abs(prev_obj)) ||
+             std::abs(prev_obj - objval) <= tol) ) ) {
+            
             //converged
             x += x0;
             converged = true;
@@ -151,7 +172,7 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
         YQ.noalias() = Y * Q;
         G = YQ.cwiseProduct(YQ.transpose());
         y2h = 2.0 * yh;
-        YA = Y * A;
+        update_Diag_A<NT>(YA, Y, A); // YA = Y * A;
 
         vec_iter1 = y2h.data();
         vec_iter2 = z.data();
@@ -165,11 +186,10 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
 
         G.diagonal() += y2h_z;
         h_z = h + z;
+        Eigen::PartialPivLU<MT_dense> luG(G);
+        T.noalias() = luG.solve(MT_dense(h_z.asDiagonal()*YA));
 
-        for (int j = 0; j < n; ++j) {
-            T.col(j) = G.colPivHouseholderQr().solve( VT(YA.col(j).cwiseProduct(h_z)) );
-        }
-        ATP.noalias() = MT(y2h.asDiagonal()*T - YA).transpose();
+        ATP.noalias() = MT_dense(y2h.asDiagonal()*T - YA).transpose();
 
         vec_iter1 = R3.data();
         vec_iter2 = y.data();
@@ -184,11 +204,11 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
         R23 = R2 - R3Dy;
         ATP_A.noalias() = ATP * A;
         ATP_A.diagonal() += ones_m * reg;
-        dx = ATP_A.colPivHouseholderQr().solve(R1 + ATP * R23); // predictor step
+        dx = ATP_A.lu().solve(R1 + ATP * R23); // predictor step
 
         // corrector and combined step & length
         Adx.noalias() = A * dx;
-        dyDy = G.colPivHouseholderQr().solve(y2h.cwiseProduct(Adx-R23));
+        dyDy = luG.solve(y2h.cwiseProduct(Adx-R23));
 
         dy = y.cwiseProduct(dyDy);
         dz = R3Dy - z.cwiseProduct(dyDy);
@@ -228,9 +248,13 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
         i++;
     }
 
-    return std::pair<std::pair<MT, VT>, bool>(std::pair<MT, VT>(E2, x), converged);
+    if (!converged) {
+        x += x0;
+    }
 
+    return std::make_tuple(E2, x, converged);
 }
 
 
 #endif
+

@@ -11,12 +11,19 @@
 #include "doctest.h"
 #include <fstream>
 #include <iostream>
+
+
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+
 #include "cartesian_geom/cartesian_kernel.h"
 #include "cartesian_geom/point.h"
-#include "poset.h"
-#include "orderpolytope.h"
-#include "misc.h"
-#include "random.hpp"
+#include "convex_bodies/orderpolytope.h"
+#include "misc/poset.h"
+#include "misc/misc.h"
+
 
 
 template <typename NT>
