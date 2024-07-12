@@ -27,6 +27,7 @@
 #include "generators/boost_random_number_generator.hpp"
 
 #include "convex_bodies/orderpolytope.h"
+#include "convex_bodies/hpolytope.h"
 
 
 // Instances taken from: https://github.com/ttalvitie/le-counting-practice
@@ -55,15 +56,18 @@ static const std::unordered_map<std::string, std::string> instances =
 // generates a Polytope from a poset
 /// @tparam Polytope Type of returned polytope
 template <class Polytope>
-Polytope get_orderpoly(Poset &poset) {
+Polytope get_orderpoly(Poset const &poset) {
     typedef typename Polytope::PointType Point;
 
     OrderPolytope<Point> OP(poset);
     if constexpr (std::is_same< Polytope, OrderPolytope<Point> >::value ) {
         return OP;
-    } else {
+    } else if constexpr (std::is_same<Polytope, HPolytope<Point> >::value ){
         Polytope HP(OP.dimension(), OP.get_full_mat(), OP.get_vec());
         return HP;
+    } else {
+        // TODO: implement functionality for more polytope types
+        throw "Unable to generate an Order Polytope of requested type";
     }
 }
 

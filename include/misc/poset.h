@@ -25,7 +25,7 @@ private:
     unsigned int n;  // elements will be from 0 to n-1
     RV order_relations;     // pairs of form a <= b
 
-    static void sorted_list(std::vector<unsigned int> &res, const unsigned int &n, const RV &relations)
+    static void sorted_list(const unsigned int &n, const RV &relations, std::vector<unsigned int> &res)
     {
         std::vector<std::vector<unsigned int> > adjList(n);
         std::vector<unsigned int> indegree(n, 0);
@@ -75,9 +75,9 @@ public:
         }
 
         std::vector<unsigned int> order;
-        sorted_list(order, n, relations);
+        sorted_list(n, relations, order);
         
-        if(order.size() < n) {
+        if(order.size() < n) { // TODO: accept cycles in the poset
             throw "corresponding DAG is not acyclic";
         }
 
@@ -132,7 +132,7 @@ public:
     std::vector<unsigned int> topologically_sorted_list() const
     {
         std::vector<unsigned int> res;
-        sorted_list(res, n, order_relations);
+        sorted_list(n, order_relations, res);
         return res;
     }
 };
