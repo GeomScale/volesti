@@ -66,7 +66,6 @@ Polytope get_orderpoly(Poset const &poset) {
         Polytope HP(OP.dimension(), OP.get_full_mat(), OP.get_vec());
         return HP;
     } else {
-        // TODO: implement functionality for more polytope types
         throw "Unable to generate an Order Polytope of requested type";
     }
 }
