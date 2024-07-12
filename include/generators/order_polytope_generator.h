@@ -98,7 +98,7 @@ Polytope random_orderpoly(unsigned int dim, unsigned int m, int seed = std::nume
 
     int rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     if (!isnan(seed)) {
-        int rng_seed = seed;
+        rng_seed = seed;
     }
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNG;
