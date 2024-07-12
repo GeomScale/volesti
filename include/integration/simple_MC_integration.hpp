@@ -16,16 +16,17 @@
 #include <fstream>
 #include <random>
 #include <vector>
-#include "convex_bodies/hpolytope.h"
+
 #include "Eigen/Eigen"
+#include "convex_bodies/hpolytope.h"
 #include "generators/known_polytope_generators.h"
-#include "boost_random_number_generator.hpp"
+#include "generators/boost_random_number_generator.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "random_walks/random_walks.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
-#include "misc.h"
+#include "misc/misc.h"
 
 typedef double NT;
 typedef Cartesian<NT> Kernel;

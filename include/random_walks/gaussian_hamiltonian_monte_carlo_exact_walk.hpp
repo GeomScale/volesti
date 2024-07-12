@@ -53,6 +53,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
     typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
 
     template <typename GenericPolytope>
     Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
@@ -80,7 +81,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void apply(GenericPolytope& P,
+    inline void apply(GenericPolytope const& P,
                       Point& p,
                       NT const& a_i,
                       unsigned int const& walk_length,
@@ -88,6 +89,9 @@ struct Walk
     {
         unsigned int n = P.dimension();
         NT T;
+
+        GenericPolytope P_normalized = P;
+        P_normalized.normalize();
 
         for (auto j=0u; j<walk_length; ++j)
         {
@@ -105,6 +109,7 @@ struct Walk
                 _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
+                nudge_in(P_normalized, _p);
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
@@ -120,7 +125,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void get_starting_point(GenericPolytope& P,
+    inline void get_starting_point(GenericPolytope const& P,
                                    Point const& center,
                                    Point &q,
                                    unsigned int const& walk_length,
@@ -141,7 +146,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void parameters_burnin(GenericPolytope& P,
+    inline void parameters_burnin(GenericPolytope const& P,
                                   Point const& center,
                                   unsigned int const& num_points,
                                   unsigned int const& walk_length,
@@ -191,7 +196,7 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope& P,
+    inline void initialize(GenericPolytope const& P,
                            Point const& p,
                            NT const& a_i,
                            RandomNumberGenerator &rng)
@@ -203,6 +208,9 @@ private :
 
         NT T = rng.sample_urdist() * _Len;
         int it = 0;
+
+        GenericPolytope P_normalized = P;
+        P_normalized.normalize();
 
         while (it <= _rho)
         {
@@ -218,28 +226,68 @@ private :
             }
             _lambda_prev = pbpair.first;
             update_position(_p, _v, _lambda_prev, _omega);
+            nudge_in(P_normalized, _p);
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
         }
     }
 
+    template
+    <
+        typename GenericPolytope
+    >
+    inline void nudge_in(GenericPolytope& P, Point& p, NT tol=NT(0))
+    {
+        MT A = P.get_mat();
+        VT b = P.get_vec();
+        int m = A.rows();
+
+        VT b_Ax = b - A * p.getCoefficients();
+        const NT* b_Ax_data = b_Ax.data();
+
+        NT dist;
+
+        for (int i = 0; i < m; i++) {
+
+            dist = *b_Ax_data;
+
+            if (dist < NT(-tol)){
+                //Nudging correction
+                NT eps = -1e-7;
+
+                NT eps_1 = -dist;
+                //A.row is already normalized, no need to do it again
+                VT A_i = A.row(i);
+                NT eps_2 = eps_1 + eps;
+
+                //Nudge the point inside with respect to the normal its vector
+                Point shift(A_i);
+                shift.operator*=(eps_2);
+                p.operator+=(shift);
+            }
+            b_Ax_data++;
+        }
+    }
+
     inline void update_position(Point &p, Point &v, NT const& T, NT const& omega)
     {
-        NT C, Phi;
-        for (size_t i = 0; i < p.dimension(); i++)
-        {
-            C = std::sqrt(p[i] * p[i] + (v[i] * v[i]) / (omega * omega));
-            Phi = std::atan((-v[i]) / (p[i] * omega));
-            if (v[i] < 0.0 && Phi < 0.0) {
-                Phi += M_PI;
-            } else if (v[i] > 0.0 && Phi > 0.0) {
-                Phi -= M_PI;
-            }
-            p.set_coord(i, C * std::cos(omega * T + Phi));
-            v.set_coord(i, -C * omega * std::sin(omega * T + Phi));
-        }
+        NT next_p, next_v;
 
+        NT sinVal = std::sin(omega * T);
+        NT cosVal = std::cos(omega * T);
+
+        NT factor1 = sinVal / omega;
+        NT factor2 = -omega * sinVal;
+
+        for (size_t i = 0; i < p.dimension(); i++) 
+        {
+            next_p = cosVal * p[i] + v[i] * factor1;
+            next_v = factor2 * p[i] + cosVal * v[i];
+
+            p.set_coord(i, next_p);
+            v.set_coord(i, next_v);
+        }
     }
 
     inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad)
@@ -272,4 +320,3 @@ private :
 
 
 #endif // RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
-

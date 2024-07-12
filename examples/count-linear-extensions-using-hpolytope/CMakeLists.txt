@@ -98,8 +98,7 @@ else ()
     add_compile_definitions("EIGEN_NO_DEBUG")
   endif ()
 
-
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")

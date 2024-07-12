@@ -1,6 +1,0 @@
-All files in src/external are taken from 
-(i) lpsolve (https://cran.r-project.org/src/contrib/Archive/lpSolveAPI) version 5.5.2.0, 
-(ii) bnmin1 (https://www.mrao.cam.ac.uk/~bn204/oof/bnmin1.html) version 1.11
-
-Copyrights and modification details are explicitly described at the beginning of each of those files.
-
