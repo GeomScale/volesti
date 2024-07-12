@@ -6,16 +6,13 @@ Installation Guide
 ### Compile C++ sources and run tests
 ---
 
-To compile the C++ code you need the [lp_solve](http://lpsolve.sourceforge.net/5.5/) library. For example, for Unix/Linux you need `liblpsolve55.so`. This is available from the library's [webpage](http://lpsolve.sourceforge.net/5.5/) as well as a package in several linux distributions e.g. [debian](https://packages.debian.org/stretch/liblpsolve55-dev) `sudo apt-get install lp-solve`.
-
-You have to specify the path to `liblpsolve55.so/dll/dylib`, by running, in folder test:
+To compile the tests of the C++ interface simply
 
 ```bash
 mkdir -p test/build && cd test/build
-cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ ..
+cmake ..
 make
 ```
-For example:  `-DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so`
 
 In WSL (Windows Subsystem Linux), you can run the following command to install libc6-dev-i386. This will be required for `ieeefp.h` which is used by `qd` library,
 
@@ -59,43 +56,7 @@ docker run -it -v $PWD:/volesti -w /volesti --name=volesti-dev volesti:dev /bin/
 
 ## R Interface
 
-### Install Rcpp package
----
-
-1. Install package-dependencies: ``Rcpp``, ``RcppEigen``, ``BH``.
-
-2. Then use ``devtools`` package to install ``volesti`` Rcpp package. From terminal go to folder ``/root/R-proj`` and run in terminal:
-
-```bash
-    Rscript -e 'Rcpp::compileAttributes()'
-    R CMD INSTALL --no-multiarch --with-keep.source .
-```
-
-3. You can use Rstudio as well to open ``volesti.Rproj`` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.
-
-### Generate CRAN version
----
-
-To generate the CRAN version of the R package follow the instructions below:
-
-1. From the command line navigate to folder ``/cran_gen``. Then Run:
-
-```r
-    source('genCRANpkg.R')
-```
-
-2. Open ``genCRANpkg.R`` script with `Rstudio` and run it.
-
-### Run volesti from R
----
-
-* The main function is ``volume()``. It can be used to approximate the volume of a convex polytope given as a set of linear inequalities or a set of vertices (d-dimensional points) or as a Minkowski sum of segments (zonotope). There are three algorithms that can be used (``SequenceOfBalls``, ``CoolingGaussian`` and ``CoolingBalls``).
-* The function ``sample_points()`` can be used to sample points from a convex polytope with uniform or spherical gaussian target distribution.
-* The function ``round_polytope()`` can be used to round a convex polytope.
-* The function ``rand_rotate()`` can be used to apply a random rotation to a convex polytope.
-
-For more details you can read the documentation in folder ``/inst/doc``.
-
+An ``R`` interface is available from the package [Rvolesti](https://github.com/GeomScale/Rvolesti).
 
 ## Python Interface
 

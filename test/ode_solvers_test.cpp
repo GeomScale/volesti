@@ -18,17 +18,19 @@
 #include <unistd.h>
 #include <vector>
 
-#include "Eigen/Eigen"
 #include "doctest.h"
 
+#include "Eigen/Eigen"
+
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+
 #include "generators/known_polytope_generators.h"
-#include "ode_solvers.hpp"
+#include "ode_solvers/ode_solvers.hpp"
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
-#include "random.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_int.hpp"
-#include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"

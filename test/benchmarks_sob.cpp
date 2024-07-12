@@ -21,7 +21,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 
-#include "exact_vols.h"
+#include "volume/exact_vols.h"
 #include "generators/known_polytope_generators.h"
 
 int main()

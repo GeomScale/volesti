@@ -8,11 +8,13 @@
 #include "doctest.h"
 #include <fstream>
 #include <iostream>
-#include "misc.h"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+
+#include "misc/misc.h"
 
 #include "random_walks/random_walks.hpp"
 
@@ -20,9 +22,9 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 
-#include "known_polytope_generators.h"
+#include "generators/known_polytope_generators.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -62,7 +64,7 @@ void rounding_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
 
     // Setup the parameters
     int walk_len = 10;

@@ -11,7 +11,7 @@
 #define MIN_ELLIPSOID_ROUNDING_HPP
 
 #include <Eigen/Eigen>
-#include "khach.h"
+#include "minimum_ellipsoid/khach.h"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"
 
