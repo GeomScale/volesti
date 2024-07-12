@@ -21,6 +21,10 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "cartesian_geom/point.h"
 #include "convex_bodies/orderpolytope.h"
+#include "convex_bodies/hpolytope.h"
+
+#include "generators/order_polytope_generator.h"
+
 #include "misc/poset.h"
 #include "misc/misc.h"
 
@@ -150,6 +154,16 @@ void call_test_basics() {
     CHECK(OP.is_in(Point(4, {0.5, 0.5, 0.0, 1.0})) == 0);   // a0 <= a2 violated
     CHECK(OP.is_in(Point(4, {-0.1, 0.5, 1.0, 1.0})) == 0);  // a0 >= 0 violated
     CHECK(OP.is_in(Point(4, {1.0, 0.5, 1.0, 1.1})) == 0);   // a3 <= 1 violated
+
+    // Create a random Order Polytope of dimension 10 with 30 facets as an Hpolytope class
+    HPolytope<Point> HP = random_orderpoly<HPolytope<Point>, NT>(10, 30);
+
+    d = HP.dimension();
+    m = HP.num_of_hyperplanes();
+
+    CHECK(d == 10);
+    CHECK(m == 30);
+    
 }
 
 
