@@ -53,10 +53,10 @@ struct AcceleratedBilliardWalkParallel
 
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
