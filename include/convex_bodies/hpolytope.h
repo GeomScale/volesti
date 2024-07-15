@@ -913,8 +913,7 @@ public:
 
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             VT x = v.getCoefficients();
-            NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x))
-                       + (4.0 * params.inner_vi_ak * params.inner_vi_ak) * AEA(params.facet_prev);
+            NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
             v += a;
             NT coeff = std::sqrt(vEv / new_vEv);
             v = v * coeff;

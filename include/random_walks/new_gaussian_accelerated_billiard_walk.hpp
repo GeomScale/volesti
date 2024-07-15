@@ -57,10 +57,10 @@ struct GABW
 
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
@@ -75,8 +75,7 @@ struct GABW
              RandomNumberGenerator &rng)
         {
             _update_parameters = update_parameters();
-            _Len = compute_diameter<GenericPolytope>
-                ::template compute<NT>(P);
+            _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
 
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
@@ -91,7 +90,7 @@ struct GABW
              parameters const& params)
         {
             _update_parameters = update_parameters();
-            _Len = params.set_L ? params.m_L
+            _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
             
@@ -116,7 +115,7 @@ struct GABW
 
             for (auto j=0u; j<walk_length; ++j)
             {
-                T = -std::log(rng.sample_urdist()) * _Len;
+                T = -std::log(rng.sample_urdist()) * _L;
 
 
                 Eigen::LLT<MT> lltOfE(E.inverse()); // compute the Cholesky decomposition of inv(E)
@@ -134,12 +133,10 @@ struct GABW
 
                 it = 0;
                 std::pair<NT, int> pbpair;
-                if(!was_reset)
-                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av,
-                                                                      _lambda_prev, _update_parameters);
-                else {
-                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas,
-                                                                     _Av, _update_parameters);
+                if(!was_reset) {
+                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                } else {
+                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
                     was_reset = false;
                 }                                                    
 
@@ -213,7 +210,7 @@ struct GABW
             _v = GetDirection<Point>::apply(n, rng, false);
             _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
 
-            NT T = -std::log(rng.sample_urdist()) * _Len;
+            NT T = -std::log(rng.sample_urdist()) * _L;
             Point p0 = _p;
             int it = 0;
             NT coef = 1.0;
@@ -256,7 +253,7 @@ struct GABW
             }
         }
 
-        NT _Len;
+        NT _L;
         Point _p;
         Point _v;
         NT _lambda_prev;

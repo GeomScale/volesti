@@ -49,10 +49,10 @@ struct AcceleratedBilliardWalk
 
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
@@ -105,12 +105,10 @@ struct AcceleratedBilliardWalk
 
                 it = 0;
                 std::pair<NT, int> pbpair;
-                if(!was_reset)
-                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av,
-                                                                      _lambda_prev, _update_parameters);
-                else {
-                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas,
-                                                                     _Av, _update_parameters);
+                if(!was_reset) {
+                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                } else {
+                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
                     was_reset = false;
                 }
                 
