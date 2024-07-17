@@ -184,6 +184,42 @@ void call_test_volumetric_center() {
     CHECK((Hessian - Hessian_sp).norm() < 1e-12);
 }
 
+template <typename NT>
+void call_test_vaidya_center() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    typedef typename Hpolytope::MT MT;
+    typedef typename Hpolytope::VT VT;
+    typedef boost::mt19937 PolyRNGType;
+    typedef Eigen::SparseMatrix<NT> SpMT;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing vaidya center for skinny H-polytope" << std::endl;
+    bool pre_rounding = true; // round random polytope before applying the skinny transformation 
+    NT max_min_eig_ratio = NT(100);
+    P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(3, 15, pre_rounding, max_min_eig_ratio, 127);
+    P.normalize();
+    
+    auto [Hessian, vaidya_center, converged] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VAIDYA_BARRIER, NT>(P.get_mat(), P.get_vec());
+    SpMT Asp = P.get_mat().sparseView();
+    auto [Hessian_sp, vaidya_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VAIDYA_BARRIER, NT>(Asp, P.get_vec());
+    
+    CHECK(P.is_in(Point(vaidya_center)) == -1);
+    CHECK(converged);
+    CHECK(std::abs(vaidya_center(0) + 2.4076) < 1e-04);
+    CHECK(std::abs(vaidya_center(1) + 2.34072) < 1e-04);
+    CHECK(std::abs(vaidya_center(2) - 3.97138) < 1e-04);
+
+    CHECK(P.is_in(Point(vaidya_center2)) == -1);
+    CHECK(converged2);
+    CHECK(std::abs(vaidya_center(0) - vaidya_center2(0)) < 1e-12);
+    CHECK(std::abs(vaidya_center(1) - vaidya_center2(1)) < 1e-12);
+    CHECK(std::abs(vaidya_center(2) - vaidya_center2(2)) < 1e-12);
+
+    CHECK((Hessian - Hessian_sp).norm() < 1e-12);
+}
+
 TEST_CASE("test_max_ball") {
     call_test_max_ball<double>();
 }
@@ -198,6 +234,10 @@ TEST_CASE("test_analytic_center") {
 
 TEST_CASE("test_volumetric_center") {
     call_test_volumetric_center<double>();
+}
+
+TEST_CASE("test_vaidya_center") {
+    call_test_vaidya_center<double>();
 }
 
 TEST_CASE("test_max_ball_sparse") {

@@ -302,6 +302,8 @@ add_test(NAME round_max_ellipsoid_sparse
           COMMAND rounding_test -tc=round_max_ellipsoid_sparse)
 add_test(NAME round_volumetric_barrier_test
           COMMAND rounding_test -tc=round_volumetric_barrier_test)
+add_test(NAME round_vaidya_barrier_test
+          COMMAND rounding_test -tc=round_vaidya_barrier_test)
 
 
 
@@ -367,6 +369,8 @@ add_test(NAME test_max_ball_sparse
           COMMAND test_internal_points -tc=test_max_ball_sparse)
 add_test(NAME test_volumetric_center
           COMMAND test_internal_points -tc=test_volumetric_center)
+add_test(NAME test_vaidya_center
+          COMMAND test_internal_points -tc=test_vaidya_center)
 
           
 

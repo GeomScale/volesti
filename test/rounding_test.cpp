@@ -228,6 +228,37 @@ void rounding_volumetric_barrier_test(Polytope &HP,
     test_values(volume, expectedBilliard, exact);
 }
 
+template <class Polytope>
+void rounding_vaidya_barrier_test(Polytope &HP,
+                                  double const& expectedBall,
+                                  double const& expectedCDHR,
+                                  double const& expectedRDHR,
+                                  double const& expectedBilliard,
+                                  double const& exact)
+{
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
+
+    int d = HP.dimension();
+
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
+    RNGType rng(d);
+    
+    VT x0(d);
+    x0 << 0.7566, 0.6374, 0.3981, 0.9248, 0.9828;
+    std::tuple<MT, VT, NT> res = inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point, EllipsoidType::VAIDYA_BARRIER>(HP, Point(x0));
+    // Setup the parameters
+    int walk_len = 1;
+    NT e = 0.1;
+
+    // Estimate the volume
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+
+    NT volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
+    test_values(volume, expectedBilliard, exact);
+}
 
 template <class Polytope>
 void rounding_svd_test(Polytope &HP,
@@ -326,6 +357,17 @@ void call_test_volumetric_barrier() {
     rounding_volumetric_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
 }
 
+template <typename NT>
+void call_test_vaidya_barrier() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point> Hpolytope;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing vaidya barrier rounding of H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_vaidya_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
+}
 
 template <typename NT>
 void call_test_svd() {
@@ -358,6 +400,10 @@ TEST_CASE("round_log_barrier_test") {
 
 TEST_CASE("round_volumetric_barrier_test") {
     call_test_volumetric_barrier<double>();
+}
+
+TEST_CASE("round_vaidya_barrier_test") {
+    call_test_vaidya_barrier<double>();
 }
 
 TEST_CASE("round_svd") {
