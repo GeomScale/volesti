@@ -261,6 +261,12 @@ class CorrelationSpectrahedron : public Spectrahedron<Point>{
     MT get_mat() const {
         return MT::Identity(this->d, this->d);
     }
+
+    bool is_normalized () {
+        return true;
+    }
+
+    void normalize() {}
 };
 
 #endif //VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_VOLESTI_CORRELATION_SPECTRAHEDRON_HPP

@@ -50,6 +50,12 @@ public:
         return P.get_vec();
     }
 
+    bool is_normalized () {
+        return true;
+    }
+
+    void normalize() {}
+
     int is_in(PointType const& p) const
     {
         if (B.is_in(p)==-1)
