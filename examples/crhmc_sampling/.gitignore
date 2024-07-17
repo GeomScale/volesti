@@ -5,3 +5,4 @@ CRHMC_SIMD_*
 sampling_functions
 simple_crhmc
 libQD_LIB.a
+liblp_solve.a
