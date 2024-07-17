@@ -2,6 +2,8 @@
 
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2021 Vaibhav Thakkar
+// Copyright (c) 2024 Luca Perju
 
 // Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
 // Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.

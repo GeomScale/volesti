@@ -6,6 +6,7 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+//Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
