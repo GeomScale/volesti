@@ -25,6 +25,36 @@ private:
     unsigned int n;  // elements will be from 0 to n-1
     RV order_relations;     // pairs of form a <= b
 
+    static void sorted_list(const unsigned int &n, const RV &relations, std::vector<unsigned int> &res)
+    {
+        std::vector<std::vector<unsigned int> > adjList(n);
+        std::vector<unsigned int> indegree(n, 0);
+
+        for(auto x: relations) {
+            adjList[x.first].push_back(x.second);
+            indegree[x.second] += 1;
+        }
+
+        std::queue<unsigned int> q;
+        for(unsigned int i=0; i<n; ++i) {
+            if(indegree[i] == 0)
+                q.push(i);
+        }
+
+        while(!q.empty()) {
+            unsigned int curr = q.front();
+            res.push_back(curr);
+            q.pop();
+
+            for(unsigned int i=0; i<adjList[curr].size(); ++i) {
+                unsigned int adj_idx = adjList[curr][i];
+                indegree[adj_idx] -= 1;
+                if(indegree[adj_idx] == 0)
+                    q.push(adj_idx);
+            }
+        }
+    }
+
 public:
     Poset() {}
 
@@ -44,7 +74,12 @@ public:
                 throw "invalid elements in order relations";
         }
 
-        // TODO: Check if corresponding DAG is actually acyclic
+        std::vector<unsigned int> order;
+        sorted_list(n, relations, order);
+        
+        if(order.size() < n) { // TODO: accept cycles in the poset
+            throw "corresponding DAG is not acyclic";
+        }
 
         return relations;
     }
@@ -96,34 +131,8 @@ public:
 
     std::vector<unsigned int> topologically_sorted_list() const
     {
-        std::vector<std::vector<unsigned int> > adjList(n);
-        std::vector<unsigned int> indegree(n, 0);
-
-        for(auto x: order_relations) {
-            adjList[x.first].push_back(x.second);
-            indegree[x.second] += 1;
-        }
-
-        std::queue<unsigned int> q;
-        for(unsigned int i=0; i<n; ++i) {
-            if(indegree[i] == 0)
-                q.push(i);
-        }
-
         std::vector<unsigned int> res;
-        while(!q.empty()) {
-            unsigned int curr = q.front();
-            res.push_back(curr);
-            q.pop();
-
-            for(unsigned int i=0; i<adjList[curr].size(); ++i) {
-                unsigned int adj_idx = adjList[curr][i];
-                indegree[adj_idx] -= 1;
-                if(indegree[adj_idx] == 0)
-                    q.push(adj_idx);
-            }
-        }
-
+        sorted_list(n, order_relations, res);
         return res;
     }
 };
