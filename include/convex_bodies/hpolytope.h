@@ -191,7 +191,6 @@ public:
     void set_vec(VT const& b2)
     {
         b = b2;
-        normalized = false;
     }
 
     Point get_mean_of_vertices() const
