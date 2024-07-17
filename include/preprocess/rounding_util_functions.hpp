@@ -389,13 +389,14 @@ void get_barrier_hessian_grad(MT const& A, MT const& A_trans, VT const& b,
   } else if constexpr (BarrierType == EllipsoidType::VAIDYA_BARRIER)
   {
     const int m = b.size(), d = x.size();
+    NT const d_m = NT(d) / NT(m);
     // Weighted gradient of the log barrier function
     grad.noalias() = A_trans * s;
-    grad *= NT(d) / NT(m);
+    grad *= d_m;
     // Add the gradient of the volumetric function
     grad.noalias() += A_trans * (s.cwiseProduct(sigma));
     // Weighted Hessian of the log barrier function
-    H *= NT(d) / NT(m);
+    H *= d_m;
     // Add the Hessian of the volumetric function
     MT Hvol(d, d);
     update_Atrans_Diag_A<NT>(Hvol, A_trans, A, s_sq.cwiseProduct(sigma).asDiagonal());
