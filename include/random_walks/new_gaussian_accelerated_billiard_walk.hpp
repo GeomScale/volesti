@@ -12,7 +12,6 @@
 
 #include <Eigen/Eigen>
 #include <cmath>
-#include <iomanip>
 #include "convex_bodies/orderpolytope.h"
 #include "convex_bodies/ellipsoid.h"
 #include "convex_bodies/ballintersectconvex.h"
@@ -76,10 +75,17 @@ struct GABW
         {
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
+            
+            Eigen::LLT<MT> lltOfE(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
+            if (lltOfE.info() != Eigen::Success) {
+                throw std::runtime_error("Cholesky decomposition failed!");
+            }
 
+            _L_cov = lltOfE.matrixL();
+            _E = E;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
-            initialize(P, p, E, rng);
+            initialize(P, p, rng);
         }
 
         template <typename GenericPolytope>
@@ -94,15 +100,21 @@ struct GABW
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
             
+            Eigen::LLT<MT> lltOfE(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
+            if (lltOfE.info() != Eigen::Success) {
+                throw std::runtime_error("Cholesky decomposition failed!");
+            }
+
+            _L_cov = lltOfE.matrixL();
+            _E = E;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
-            initialize(P, p, E, rng);
+            initialize(P, p, rng);
         }
 
         template <typename GenericPolytope>
         inline void apply(GenericPolytope& P,
                           Point &p,       // a point to return the result
-                          MT const& E,   // covariance matrix representing the Gaussian distribution
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
         {
@@ -117,17 +129,11 @@ struct GABW
             {
                 T = -std::log(rng.sample_urdist()) * _L;
 
-
-                Eigen::LLT<MT> lltOfE(E.inverse()); // compute the Cholesky decomposition of inv(E)
-                if (lltOfE.info() != Eigen::Success) {
-                    throw std::runtime_error("Cholesky decomposition failed!");
-                }
-                _L_cov = lltOfE.matrixL();
                 _v = GetDirection<Point>::apply(n, rng, false);
                 _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
                 coef = 1.0;
 
-                vEv = (_v.getCoefficients().transpose() * E.template selfadjointView<Eigen::Upper>()).dot(_v.getCoefficients());
+                vEv = (_v.getCoefficients().transpose() * _E.template selfadjointView<Eigen::Upper>()).dot(_v.getCoefficients());
 
                 Point p0 = _p;
 
@@ -151,7 +157,6 @@ struct GABW
                 T -= _lambda_prev;
                 coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
                 it++;
-
 
                 while (it < _rho)
                 {
@@ -186,7 +191,6 @@ struct GABW
         template <typename GenericPolytope>
         inline void initialize(GenericPolytope& P,
                                Point const& p,  // a point to start
-                               MT const& E,   // covariance matrix representing the Gaussian distribution
                                RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
@@ -195,18 +199,9 @@ struct GABW
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
-            _AE.noalias() = P.get_mat() * E;
-            _AEA.resize(P.num_of_hyperplanes());
-            for(int i = 0; i < P.num_of_hyperplanes(); ++i)
-            {
-                _AEA(i) = _AE.row(i).dot(P.get_mat().row(i));
-            }
+            _AE.noalias() = P.get_mat() * _E;
+            _AEA = _AE.cwiseProduct(P.get_mat()).rowwise().sum();
 
-            Eigen::LLT<MT> lltOfE(E.inverse()); // compute the Cholesky decomposition of inv(E)
-            if (lltOfE.info() != Eigen::Success) {
-                throw std::runtime_error("Cholesky decomposition failed!");
-            }
-            _L_cov = lltOfE.matrixL();
             _v = GetDirection<Point>::apply(n, rng, false);
             _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
 
@@ -214,7 +209,7 @@ struct GABW
             Point p0 = _p;
             int it = 0;
             NT coef = 1.0;
-            NT vEv = (_v.getCoefficients().transpose() * E.template selfadjointView<Eigen::Upper>()).dot(_v.getCoefficients());
+            NT vEv = (_v.getCoefficients().transpose() * _E.template selfadjointView<Eigen::Upper>()).dot(_v.getCoefficients());
 
             std::pair<NT, int> pbpair
                     = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
@@ -260,6 +255,7 @@ struct GABW
         MT _AA;
         MT _L_cov;   // LL' = inv(E)
         MT _AE;
+        MT _E;
         VT _AEA;
         unsigned int _rho;
         update_parameters _update_parameters;
