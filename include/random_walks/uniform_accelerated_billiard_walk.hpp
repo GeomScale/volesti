@@ -4,6 +4,7 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 // Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
