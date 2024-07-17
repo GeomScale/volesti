@@ -28,6 +28,8 @@ option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
 option(BUILTIN_AUTODIFF "Use autodiff from ../external" ON)
 option(USE_MKL "Use MKL library to build eigen" OFF)
+option(BUILTIN_AUTODIFF "Use autodiff from ../external" ON)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -282,6 +284,9 @@ add_test(NAME volume_cb_vpolytope_cube COMMAND volume_cb_vpolytope -tc=cube)
 add_test(NAME volume_cb_vpolytope_cross COMMAND volume_cb_vpolytope -tc=cross)
 add_test(NAME volume_cb_vpolytope_simplex COMMAND volume_cb_vpolytope -tc=simplex)
 
+add_executable (volume_cb_zonotopes volume_cb_zonotopes.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cb_zonotopes_uniform_zonotopes
+          COMMAND volume_cb_zonotopes -tc=uniform_zonotopes)
 add_executable (volume_cb_zonotopes volume_cb_zonotopes.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME volume_cb_zonotopes_uniform_zonotopes
           COMMAND volume_cb_zonotopes -tc=uniform_zonotopes)
