@@ -56,6 +56,7 @@ private:
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
+    bool                 normalized = false; // true if the polytope is normalized
 
 public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
@@ -68,7 +69,7 @@ public:
 
     // Copy constructor
     HPolytope(HPolytope<Point> const& p) :
-            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}
+            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}, normalized{p.normalized}
     {
     }
 
@@ -172,11 +173,17 @@ public:
         return b;
     }
 
+    bool is_normalized ()
+    {
+        return normalized;
+    }
+
 
     // change the matrix A
     void set_mat(MT const& A2)
     {
         A = A2;
+        normalized = false;
     }
 
 
@@ -184,6 +191,7 @@ public:
     void set_vec(VT const& b2)
     {
         b = b2;
+        normalized = false;
     }
 
     Point get_mean_of_vertices() const
@@ -821,6 +829,7 @@ public:
     void linear_transformIt(MT const& T)
     {
         A = A * T;
+        normalized = false;
     }
 
 
@@ -865,6 +874,7 @@ public:
             A.row(i) = A.row(i) / row_norm;
             b(i) = b(i) / row_norm;
         }
+        normalized = true;
     }
 
     void compute_reflection(Point& v, Point const&, int const& facet) const

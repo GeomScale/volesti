@@ -62,6 +62,9 @@ struct AcceleratedBilliardWalk
         template <typename GenericPolytope>
         Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
@@ -74,6 +77,9 @@ struct AcceleratedBilliardWalk
         Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng,
              parameters const& params)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _update_parameters = update_parameters();
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
@@ -194,8 +200,7 @@ struct AcceleratedBilliardWalk
 
                 apply(P, p, walk_length, rng);
                 max_dist = get_max_distance(pointset, p, rad);
-                if (max_dist > Lmax) 
-                {
+                if (max_dist > Lmax) {
                     Lmax = max_dist;
                 }
                 if (2.0*rad > Lmax) {
@@ -205,8 +210,7 @@ struct AcceleratedBilliardWalk
             }
 
             if (Lmax > _L) {
-                if (P.dimension() <= 2500) 
-                {
+                if (P.dimension() <= 2500) {
                     update_delta(Lmax);
                 }
                 else{
