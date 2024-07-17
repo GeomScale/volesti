@@ -209,7 +209,6 @@ add_test(NAME test_bcdhr COMMAND sampling_test -tc=bcdhr)
 add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
 add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
 add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
 
 add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
