@@ -216,7 +216,7 @@ void compute_annealing_schedule(Polytope& P,
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
         {
-            walk.template apply(rng, walk_length);
+            walk.apply(rng, walk_length);
             p = walk.getPoint();
 #ifdef VOLESTI_DEBUG
     std::cout<<"Walk point " << std::endl;
@@ -400,7 +400,7 @@ double volume_cooling_gaussians(Polytope& Pin,
 
         while (!done || (*itsIt)<min_steps)
         {
-            walk.template apply(rng, walk_length);
+            walk.apply(rng, walk_length);
             p = walk.getPoint();
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
