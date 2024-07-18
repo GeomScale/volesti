@@ -66,7 +66,7 @@ NT get_next_gaussian(Polytope& P,
     typedef CrhmcRandomPointGenerator<CRHMCWalkType> CRHMCRandomPointGenerator;
 
     CRHMCRandomPointGenerator::apply(problem, p, N, walk_length, randPoints,
-                                push_back_policy, rng, g, f, parameters, crhmc_walk, simdLen, raw_output);
+                                    push_back_policy, rng, g, f, parameters, crhmc_walk, simdLen, raw_output);
 
     while (!done)
     {
@@ -87,7 +87,8 @@ NT get_next_gaussian(Polytope& P,
                 k = k / 2;
             }
             done = true;
-        } else {
+        } 
+        else {
             k = 2 * k;
         }
         last_ratio = mv.first;
@@ -114,10 +115,9 @@ void compute_annealing_schedule(Polytope& P,
                                 std::vector<NT>& a_vals,
                                 RandomNumberGenerator& rng)
 {
-
     typedef typename Polytope::PointType Point;
-    
     typedef typename Polytope::MT 	MT;
+    
     typedef typename GaussianFunctor::FunctionFunctor<Point>    Func;
     typedef typename GaussianFunctor::GradientFunctor<Point>    Grad;
     typedef typename GaussianFunctor::HessianFunctor<Point>     Hess;
@@ -294,14 +294,10 @@ double volume_cooling_gaussians(Polytope& Pin,
     
     typedef CrhmcRandomPointGenerator<CRHMCWalkType> CRHMCRandomPointGenerator;
 
-    //const NT maxNT = std::numeric_limits<NT>::max();//1.79769e+308;
-    //const NT minNT = std::numeric_limits<NT>::min();//-1.79769e+308;
-
     auto P(Pin); //copy and work with P because we are going to shift
     unsigned int n = P.dimension();
     unsigned int m = P.num_of_hyperplanes();
     gaussian_annealing_parameters<NT> parameters(P.dimension());
-    //RandomNumberGenerator rng(n);
 
     // Consider Chebychev center as an internal point
     auto InnerBall = P.ComputeInnerBall();
