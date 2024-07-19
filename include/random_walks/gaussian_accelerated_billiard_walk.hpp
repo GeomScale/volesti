@@ -25,13 +25,13 @@
 #include "random_walks/compute_diameter.hpp"
 
 
-struct GABW
+struct GaussianAcceleratedBilliardWalk
 {
-    GABW(double L)
+    GaussianAcceleratedBilliardWalk(double L)
             :   param(L, true)
     {}
 
-    GABW()
+    GaussianAcceleratedBilliardWalk()
             :   param(0, false)
     {}
 

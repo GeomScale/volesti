@@ -95,7 +95,7 @@ struct MultivariateGaussianRandomPointGenerator
         Walk walk(P, p, E, rng, parameters);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, E, walk_length, rng);
+            walk.template apply(P, p, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }

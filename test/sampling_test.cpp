@@ -304,7 +304,7 @@ void call_test_ghmc(){
     CHECK(score.maxCoeff() < 2.2);
 }
 
-template <typename NT, typename WalkType = GABW>
+template <typename NT, typename WalkType = GaussianAcceleratedBilliardWalk>
 void call_test_gabw(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
@@ -325,7 +325,7 @@ void call_test_gabw(){
 
 
     Point p = P.ComputeInnerBall().first;
-    typedef typename GABW::template Walk
+    typedef typename GaussianAcceleratedBilliardWalk::template Walk
             <
                     Hpolytope,
                     RNGType
