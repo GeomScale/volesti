@@ -81,29 +81,29 @@ void check_output(PointList &randPoints, int num_points, int n){
 
 template<typename NT, typename VT, typename MT>
 void check_output_MT(std::list<MT> &randCorMatrices, int num_points, int n){
-	int d = n*(n-1)/2, count = 0;
-	MT A;
-	Eigen::LDLT<MT> mat_ldlt;
-	for(auto& mat : randCorMatrices){
-    	mat_ldlt = Eigen::LDLT<MT>(mat);
+    int d = n*(n-1)/2, count = 0;
+    MT A;
+    Eigen::LDLT<MT> mat_ldlt;
+    for(auto& mat : randCorMatrices){
+        mat_ldlt = Eigen::LDLT<MT>(mat);
     	if(mat_ldlt.info() == Eigen::NumericalIssue || !mat_ldlt.isPositive()){
-        	++count;
+            ++count;
     	}
-	}
-	std::cout << "Fails " << count << " / " << num_points << " samples\n";
-	CHECK(count == 0);
+    }
+    std::cout << "Fails " << count << " / " << num_points << " samples\n";
+    CHECK(count == 0);
 
-	MT samples(d, num_points);
-	unsigned int jj = 0;
-	for(const auto& mat : randCorMatrices){
-    	samples.col(jj) = getCoefficientsFromMatrix<NT, MT>(mat);
+    MT samples(d, num_points);
+    unsigned int jj = 0;
+    for(const auto& mat : randCorMatrices){
+        samples.col(jj) = getCoefficientsFromMatrix<NT, MT>(mat);
     	jj++;
-	}
+    }
 
-	VT score = univariate_psrf<NT, VT>(samples);
-	std::cout << "psrf = " << score.maxCoeff() << std::endl;
+    VT score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
-	CHECK(score.maxCoeff() < 1.1);
+    CHECK(score.maxCoeff() < 1.1);
 }
 
 template <typename NT>
