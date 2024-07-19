@@ -48,7 +48,7 @@ void uniform_correlation_sampling_MT(   const unsigned int &n,
                                         const unsigned int &walkL,
                                         const unsigned int &num_points,
                                         unsigned int const& nburns){
-    using PointList = std::vector<PointType>;
+    using PointList = std::list<PointType>;
     PointList randPoints;
     
     CorrelationSpectrahedron_MT<PointType> P(n);
@@ -100,7 +100,7 @@ void gaussian_correlation_sampling_MT(  const unsigned int &n,
                                         const unsigned int &num_points,
                                         const NT &a,
                                         unsigned int const& nburns = 0){
-    using PointList = std::vector<PointType>;
+    using PointList = std::list<PointType>;
     PointList randPoints;
     
     CorrelationSpectrahedron_MT<PointType> P(n);
@@ -157,7 +157,7 @@ void exponential_correlation_sampling_MT(   const unsigned int &n,
                                             const VT &c,
                                             const NT &T,
                                             unsigned int const& nburns = 0){
-    using PointList = std::vector<PointType>;
+    using PointList = std::list<PointType>;
     PointList randPoints;
     
     CorrelationSpectrahedron_MT<PointType> P(n);
