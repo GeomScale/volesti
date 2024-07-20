@@ -60,8 +60,8 @@ struct GaussianAcceleratedBilliardWalk
 
     template
     <
-            typename Polytope,
-            typename RandomNumberGenerator
+        typename Polytope,
+        typename RandomNumberGenerator
     >
     struct Walk
     {

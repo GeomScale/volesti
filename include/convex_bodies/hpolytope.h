@@ -41,7 +41,11 @@ bool is_inner_point_nan_inf(VT const& p)
 /// This class describes a polytope in H-representation or an H-polytope
 /// i.e. a polytope defined by a set of linear inequalities
 /// \tparam Point Point type
-template <typename Point>
+template 
+<
+    typename Point, 
+    typename AMat = Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic>
+>
 class HPolytope {
 public:
     typedef Point                                             PointType;
@@ -54,7 +58,7 @@ public:
 
 private:
     unsigned int         _d; //dimension
-    MT                   A; //matrix A
+    AMat                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
     bool                 normalized = false; // true if the polytope is normalized
@@ -63,7 +67,7 @@ public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
     HPolytope() {}
 
-    HPolytope(unsigned d_, MT const& A_, VT const& b_) :
+    HPolytope(unsigned d_, AMat const& A_, VT const& b_) :
         _d{d_}, A{A_}, b{b_}
     {
     }
