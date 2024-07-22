@@ -62,8 +62,8 @@ Polytope get_orderpoly(Poset const &poset) {
     OrderPolytope<Point> OP(poset);
     if constexpr (std::is_same< Polytope, OrderPolytope<Point> >::value ) {
         return OP;
-    } else if constexpr (std::is_same<Polytope, HPolytope<Point> >::value ){
-        Polytope HP(OP.dimension(), OP.get_full_mat(), OP.get_vec());
+    } else {
+        Polytope HP(OP.dimension(), OP.get_dense_mat(), OP.get_vec());
         return HP;
     } else {
         throw "Unable to generate an Order Polytope of requested type";

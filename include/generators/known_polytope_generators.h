@@ -19,7 +19,7 @@
 template <class Polytope>
 Polytope generate_cube(const unsigned int& dim, const bool& Vpoly,typename Polytope::NT  scale=1) {
 
-    typedef typename Polytope::MT    MT;
+    typedef typename Eigen::Matrix<typename Polytope::NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::VT    VT;
     MT A;
     VT b;
@@ -84,7 +84,7 @@ template <typename Polytope>
 Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 
     unsigned int m;
-    typedef typename Polytope::MT    MT;
+    typedef typename Eigen::Matrix<typename Polytope::NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::VT    VT;
 
     MT A;
@@ -145,7 +145,7 @@ Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 /// @tparam Polytope Type of returned polytope
 template <typename Polytope>
 Polytope generate_simplex(const unsigned int &dim, const bool &Vpoly){
-    typedef typename Polytope::MT    MT;
+    typedef typename Eigen::Matrix<typename Polytope::NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::VT    VT;
 
     MT A;
@@ -198,7 +198,7 @@ Polytope generate_prod_simplex(const unsigned int &dim, bool Vpoly = false){
         return Perr;
     }
 
-    typedef typename Polytope::MT    MT;
+    typedef typename Eigen::Matrix<typename Polytope::NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::VT    VT;
 
     MT A;
@@ -274,7 +274,7 @@ Polytope generate_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
         return Perr;
     }
 
-    typedef typename Polytope::MT    MT;
+    typedef typename Eigen::Matrix<typename Polytope::NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::VT    VT;
 
     MT A;
@@ -322,7 +322,7 @@ Polytope generate_birkhoff(unsigned int const& n) {
     unsigned int m = n * n;
     unsigned int d = n * n - 2 * n + 1;
 
-    typedef typename Polytope::MT MT;
+    typedef typename Eigen::Matrix<typename Polytope::NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef typename Polytope::VT VT;
 
     MT A = MT::Zero(m, d);

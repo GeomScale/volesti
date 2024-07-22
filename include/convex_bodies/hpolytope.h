@@ -44,7 +44,7 @@ bool is_inner_point_nan_inf(VT const& p)
 template 
 <
     typename Point, 
-    typename AMat = Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic>
+    typename MT_type = Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic>
 >
 class HPolytope {
 public:
@@ -53,12 +53,13 @@ public:
     typedef typename std::vector<NT>::iterator                viterator;
     //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     //typedef RowMatrixXd MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef MT_type                                           MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
 
 private:
     unsigned int         _d; //dimension
-    AMat                   A; //matrix A
+    MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
     bool                 normalized = false; // true if the polytope is normalized
@@ -67,13 +68,19 @@ public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
     HPolytope() {}
 
-    HPolytope(unsigned d_, AMat const& A_, VT const& b_) :
+    HPolytope(unsigned d_, MT const& A_, VT const& b_) :
         _d{d_}, A{A_}, b{b_}
     {
     }
 
+    template<typename T = DenseMT>
+    HPolytope(unsigned d_, DenseMT const& A_, VT const& b_, typename std::enable_if<!std::is_same<MT, T>::value, T>::type* = 0) :
+        _d{d_}, A{A_.sparseView()}, b{b_}
+    {
+    }
+
     // Copy constructor
-    HPolytope(HPolytope<Point> const& p) :
+    HPolytope(HPolytope<Point, MT> const& p) :
             _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}, normalized{p.normalized}
     {
     }
@@ -513,7 +520,7 @@ public:
         if(params.hit_ball) {
             Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
         } else {
-            Av.noalias() += (-2.0 * inner_prev) * AA.col(params.facet_prev);
+            Av.noalias() += (DenseMT)((-2.0 * inner_prev) * AA.col(params.facet_prev));
         }
         sum_nom.noalias() = b - Ar;
 
@@ -830,9 +837,14 @@ public:
 
 
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
-    void linear_transformIt(MT const& T)
+    template<typename T_type>
+    void linear_transformIt(T_type const& T)
     {
-        A = A * T;
+        if constexpr (std::is_same<MT, DenseMT>::value) {
+            A = A * T;
+        } else {
+            A = (A * T).sparseView();
+        }
         normalized = false;
     }
 
@@ -872,11 +884,28 @@ public:
     void normalize()
     {
         NT row_norm;
-        for (int i = 0; i < num_of_hyperplanes(); ++i)
-        {
-            row_norm = A.row(i).norm();
-            A.row(i) = A.row(i) / row_norm;
-            b(i) = b(i) / row_norm;
+        if constexpr (!std::is_same< MT, Eigen::SparseMatrix<NT> >::value ) {
+            for (int i = 0; i < num_of_hyperplanes(); ++i)
+            {
+                row_norm = A.row(i).norm();
+                A.row(i) = A.row(i) / row_norm;
+                b(i) = b(i) / row_norm;
+            }
+        } else {
+            for(int i = 0; i < num_of_hyperplanes(); ++i)
+            {
+                row_norm = 0.0;
+                for(typename Eigen::SparseMatrix<NT>::InnerIterator it(A, i); it; ++it) {
+                    row_norm += it.value() * it.value();
+                }
+                row_norm = std::sqrt(row_norm);
+                if(row_norm != 0.0) {
+                    for (typename Eigen::SparseMatrix<NT>::InnerIterator it(A, i); it; ++it) {
+                        it.valueRef() /= row_norm;
+                    }
+                    b(i) = b(i) / row_norm;
+                }
+            }
         }
         normalized = true;
     }

@@ -10,6 +10,7 @@
 
 #include <exception>
 #include <chrono>
+#include <Eigen/Eigen>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
@@ -25,9 +26,9 @@
 template <class Polytope, class RNGType>
 Polytope random_hpoly(unsigned int dim, unsigned int m, int seed = std::numeric_limits<int>::signaling_NaN()) {
 
-    typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
+    typedef typename Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::PointType Point;
 
     int rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -104,7 +105,7 @@ template <class Polytope, typename NT, class RNGType>
 Polytope skinny_random_hpoly(unsigned int dim, unsigned int m, const bool pre_rounding = false,
                              const NT eig_ratio = NT(1000.0), int seed = std::numeric_limits<int>::signaling_NaN()) {
 
-    typedef typename Polytope::MT    MT;
+    typedef typename Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::PointType Point;
 

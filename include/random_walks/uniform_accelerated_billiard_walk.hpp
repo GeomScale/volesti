@@ -12,6 +12,7 @@
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
 #include "sampling/sphere.hpp"
+#include <Eigen/Eigen>
 
 
 // Billiard walk which accelarates each step for uniform distribution
@@ -69,7 +70,11 @@ struct AcceleratedBilliardWalk
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT>>::value) {
+                _AA = P.get_mat() * P.get_mat().transpose();
+            } else {
+                _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            }
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -85,7 +90,11 @@ struct AcceleratedBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT>>::value) {
+                _AA = P.get_mat() * P.get_mat().transpose();
+            } else {
+                _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            }
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }

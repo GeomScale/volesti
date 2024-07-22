@@ -80,8 +80,8 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
         sum=NT(0);
         for(j=0; j<d; j++){
             colno[j] = j+1;
-            row[j] = A(i,j);
-            sum+=A(i,j)*A(i,j);
+            row[j] = A.coeff(i,j);
+            sum+=A.coeff(i,j)*A.coeff(i,j);
         }
         colno[d] = d+1; /* last column */
         row[d] = std::sqrt(sum);
