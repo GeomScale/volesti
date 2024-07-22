@@ -62,7 +62,7 @@ Polytope get_orderpoly(Poset const &poset) {
     OrderPolytope<Point> OP(poset);
     if constexpr (std::is_same< Polytope, OrderPolytope<Point> >::value ) {
         return OP;
-    } else {
+    } else if constexpr (std::is_same<Polytope, HPolytope<Point> >::value ){
         Polytope HP(OP.dimension(), OP.get_dense_mat(), OP.get_vec());
         return HP;
     } else {
