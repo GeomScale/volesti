@@ -120,32 +120,31 @@ public:
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point, NT> ComputeInnerBall()
+    std::pair<Point, NT> ComputeInnerBall(bool const &force = false)
     {
         normalize();
-        #ifndef DISABLE_LPSOLVE
-            _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
-        #else
+        if (force || _inner_ball.second <= NT(0)) {
 
-            if (_inner_ball.second <= NT(0)) {
+            NT const tol = 1e-08;
+            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 5000, tol);
 
-                NT const tol = 1e-08;
-                std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 5000, tol);
-
-                // check if the solution is feasible
-                if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < tol/2.0 ||
-                    std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
-                    is_inner_point_nan_inf(std::get<0>(inner_ball)))
-                {
+            // check if the solution is feasible
+            if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < tol/2.0 ||
+                std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+                is_inner_point_nan_inf(std::get<0>(inner_ball))) {
+                
+                std::cerr << "Failed to compute max inscribed ball, trying to use lpsolve" << std::endl;
+                #ifndef DISABLE_LPSOLVE
+                    _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+                #else
+                    std::cerr << "lpsolve is disabled, unable to compute inner ball";
                     _inner_ball.second = -1.0;
-                } else
-                {
-                    _inner_ball.first = Point(std::get<0>(inner_ball));
-                    _inner_ball.second = std::get<1>(inner_ball);
-                }
+                #endif
+            } else {
+                _inner_ball.first = Point(std::get<0>(inner_ball));
+                _inner_ball.second = std::get<1>(inner_ball);
             }
-        #endif
-
+        }
         return _inner_ball;
     }
 
@@ -221,7 +220,7 @@ public:
         std::cout << " " << A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                std::cout << A(i, j) << " ";
+                std::cout << A.coeff(i, j) << " ";
             }
             std::cout << "<= " << b(i) << std::endl;
         }
@@ -884,27 +883,11 @@ public:
     void normalize()
     {
         NT row_norm;
-        if constexpr (!std::is_same< MT, Eigen::SparseMatrix<NT> >::value ) {
-            for (int i = 0; i < num_of_hyperplanes(); ++i)
-            {
-                row_norm = A.row(i).norm();
-                A.row(i) = A.row(i) / row_norm;
-                b(i) = b(i) / row_norm;
-            }
-        } else {
-            for(int i = 0; i < num_of_hyperplanes(); ++i)
-            {
-                row_norm = 0.0;
-                for(typename Eigen::SparseMatrix<NT>::InnerIterator it(A, i); it; ++it) {
-                    row_norm += it.value() * it.value();
-                }
-                row_norm = std::sqrt(row_norm);
-                if(row_norm != 0.0) {
-                    for (typename Eigen::SparseMatrix<NT>::InnerIterator it(A, i); it; ++it) {
-                        it.valueRef() /= row_norm;
-                    }
-                    b(i) = b(i) / row_norm;
-                }
+        for (int i = 0; i < A.rows(); ++i) {
+            row_norm = A.row(i).norm();
+            if (row_norm != 0.0) {
+                A.row(i) /= row_norm;
+                b(i) /= row_norm;
             }
         }
         normalized = true;

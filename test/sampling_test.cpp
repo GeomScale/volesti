@@ -342,13 +342,53 @@ void call_test_gabw(){
 
     MT samples(d, numpoints);
     unsigned int jj = 0;
-    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit != randPoints.end(); rpit++, jj++)
         samples.col(jj) = (*rpit).getCoefficients();
 
     VT score = univariate_psrf<NT, VT>(samples);
     std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
     CHECK(score.maxCoeff() < 1.1);
+
+
+    typedef Eigen::SparseMatrix<NT> SparseMT;
+    typedef HPolytope<Point, SparseMT> SparseHpoly;
+    std::list<Point> Points;
+
+    SparseHpoly SP;
+    SP = generate_skinny_cube<SparseHpoly>(10);
+
+
+    std::cout << "--- Testing Gaussian Accelerated Billiard Walk for Sparse Skinny-H-cube10" << std::endl;
+
+
+    p = SP.ComputeInnerBall().first;
+    typedef typename GaussianAcceleratedBilliardWalk::template Walk
+            <
+                    SparseHpoly,
+                    RNGType
+            > sparsewalk;
+    typedef MultivariateGaussianRandomPointGenerator <sparsewalk> SparseRandomPointGenerator;
+
+
+    ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>
+    (SP.get_mat(), SP.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
+
+    const SparseMT SE = get<0>(ellipsoid).sparseView();
+
+    SparseRandomPointGenerator::apply(SP, p, SE, numpoints, 1, Points,
+                                push_back_policy, rng);
+
+    jj = 0;
+    MT samples2(d, numpoints);
+    for (typename std::list<Point>::iterator rpit = Points.begin(); rpit != Points.end(); rpit++, jj++)
+        samples2.col(jj) = (*rpit).getCoefficients();
+
+    VT score2 = univariate_psrf<NT, VT>(samples2);
+    std::cout << "psrf = " << score2.maxCoeff() << std::endl;
+
+    CHECK(score2.maxCoeff() < 1.1);
+
 }
 
 TEST_CASE("dikin") {
