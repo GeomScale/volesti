@@ -7,6 +7,7 @@
 #include "sampling/random_point_generators.hpp"
 #include "random_walks/random_walks.hpp"
 #include "preprocess/max_inscribed_ellipsoid.hpp"
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
 #include "convex_bodies/ellipsoid.h"
 #include "convex_bodies/hpolytope.h"
 
@@ -69,23 +70,18 @@ void sample_using_gaussian_billiard_walk(HPOLYTOPE& HP, RNGType& rng, unsigned i
     Point q(HP.dimension()); // origin
 
     // ----------- Get inscribed ellipsoid --------------------------------
-    typedef Ellipsoid<Point> EllipsoidType;
     unsigned int max_iter = 150;
     NT tol = std::pow(10, -6.0), reg = std::pow(10, -4.0);
     VT x0 = q.getCoefficients();
-    MT E;
     VT center;
     bool converged;
-    std::tie(E, center, converged) = max_inscribed_ellipsoid<MT>(HP.get_mat(),
-        HP.get_vec(), x0, max_iter, tol, reg);
-
-    if (!converged) // not converged
-        throw std::runtime_error("max_inscribed_ellipsoid not converged");
-
-    EllipsoidType inscribed_ellipsoid(E);
+    std::tuple<MT, VT, NT> ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::VOLUMETRIC_BARRIER>
+    (HP.get_mat(), HP.get_vec(), x0, max_iter, tol, reg);
+    
+    const MT E = get<0>(ellipsoid);
     // --------------------------------------------------------------------
 
-    Generator::apply(HP, q, inscribed_ellipsoid, num_points, walk_len,
+    Generator::apply(HP, q, E, num_points, walk_len,
                      randPoints, push_back_policy, rng);
     write_to_file(filename, randPoints);
 }

@@ -53,10 +53,10 @@ struct AcceleratedBilliardWalkParallel
 
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
@@ -66,6 +66,9 @@ struct AcceleratedBilliardWalkParallel
         template <typename GenericPolytope>
         Walk(GenericPolytope &P)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
@@ -76,6 +79,9 @@ struct AcceleratedBilliardWalkParallel
         template <typename GenericPolytope>
         Walk(GenericPolytope &P, NT const& L)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _L = L > NT(0) ? L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
@@ -190,8 +196,7 @@ struct AcceleratedBilliardWalkParallel
 
                 apply(P, params, walk_length, rng);
                 max_dist = get_max_distance(pointset, params.p, rad);
-                if (max_dist > Lmax) 
-                {
+                if (max_dist > Lmax) {
                     Lmax = max_dist;
                 }
                 if (2.0*rad > Lmax) {
@@ -200,10 +205,8 @@ struct AcceleratedBilliardWalkParallel
                 pointset.push_back(params.p);
             }
 
-            if (Lmax > _L) 
-            {
-                if (P.dimension() <= 2500) 
-                {
+            if (Lmax > _L) {
+                if (P.dimension() <= 2500) {
                     update_delta(Lmax);
                 }
                 else{

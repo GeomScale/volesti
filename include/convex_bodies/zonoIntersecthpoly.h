@@ -65,6 +65,12 @@ public:
         return HP.get_vec();
     }
 
+    bool is_normalized () {
+        return true;
+    }
+
+    void normalize() {}
+
     std::pair<PointType,NT> InnerBall() const
     {
         return Z.InnerBall();

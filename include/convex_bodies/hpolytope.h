@@ -6,6 +6,7 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+//Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -56,6 +57,7 @@ private:
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
+    bool                 normalized = false; // true if the polytope is normalized
 
 public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
@@ -68,7 +70,7 @@ public:
 
     // Copy constructor
     HPolytope(HPolytope<Point> const& p) :
-            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}
+            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}, normalized{p.normalized}
     {
     }
 
@@ -172,11 +174,17 @@ public:
         return b;
     }
 
+    bool is_normalized ()
+    {
+        return normalized;
+    }
+
 
     // change the matrix A
     void set_mat(MT const& A2)
     {
         A = A2;
+        normalized = false;
     }
 
 
@@ -541,7 +549,6 @@ public:
 
         NT lamda = 0;
         VT sum_nom;
-        unsigned int j;
         int m = num_of_hyperplanes(), facet;
 
         Ar.noalias() += lambda_prev*Av;
@@ -822,6 +829,7 @@ public:
     void linear_transformIt(MT const& T)
     {
         A = A * T;
+        normalized = false;
     }
 
 
@@ -866,6 +874,7 @@ public:
             A.row(i) = A.row(i) / row_norm;
             b(i) = b(i) / row_norm;
         }
+        normalized = true;
     }
 
     void compute_reflection(Point& v, Point const&, int const& facet) const
@@ -907,6 +916,18 @@ public:
 
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
+    }
+
+    template <typename update_parameters>
+    NT compute_reflection(Point &v, const Point &, MT const &AE, VT const &AEA, NT const &vEv, update_parameters const &params) const {
+
+            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+            VT x = v.getCoefficients();
+            NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
+            v += a;
+            NT coeff = std::sqrt(vEv / new_vEv);
+            v = v * coeff;
+            return coeff;
     }
 
     void update_position_internal(NT&){}

@@ -3,14 +3,18 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 // Copyright (c) 2021 Vaibhav Thakkar
+// Copyright (c) 2024 Luca Perju
 
 // Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
+// Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef RANDOM_WALKS_GAUSSIAN_ACCELERATED_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_ACCELERATED_BILLIARD_WALK_HPP
 
+#include <Eigen/Eigen>
+#include <cmath>
 #include "convex_bodies/orderpolytope.h"
 #include "convex_bodies/ellipsoid.h"
 #include "convex_bodies/ballintersectconvex.h"
@@ -20,8 +24,6 @@
 
 #include "random_walks/compute_diameter.hpp"
 
-// Billiard walk which accelarates each step for uniform distribution and also takes into account
-// the shape of the polytope for generating directions.
 
 struct GaussianAcceleratedBilliardWalk
 {
@@ -57,56 +59,67 @@ struct GaussianAcceleratedBilliardWalk
 
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        // typedef typename Polytope::MT MT;
+        typedef typename Polytope::MT MT;
+        typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
 
-        template <typename GenericPolytope, typename Ellipsoid>
+        template <typename GenericPolytope>
         Walk(GenericPolytope& P,
              Point const& p,
-             Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
+             MT const& E,   // covariance matrix representing the Gaussian distribution
              RandomNumberGenerator &rng)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _update_parameters = update_parameters();
-            _Len = compute_diameter<GenericPolytope>
-                ::template compute<NT>(P);
-
-            // Removed as will be used for sparse matrices only
-            // _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            initialize(P, p, E, rng);
+            _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
+            Eigen::LLT<MT> lltOfE(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
+            if (lltOfE.info() != Eigen::Success) {
+                throw std::runtime_error("Cholesky decomposition failed!");
+            }
+            _L_cov = lltOfE.matrixL();
+            _E = E;
+            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
+            initialize(P, p, rng);
         }
 
-        template <typename GenericPolytope, typename Ellipsoid>
+        template <typename GenericPolytope>
         Walk(GenericPolytope& P,
              Point const& p,
-             Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
+             MT const& E,   // covariance matrix representing the Gaussian distribution
              RandomNumberGenerator &rng,
              parameters const& params)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _update_parameters = update_parameters();
-            _Len = params.set_L ? params.m_L
+            _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-
-            // Removed as will be used for sparse matrices only
-            // _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            initialize(P, p, E, rng);
+            Eigen::LLT<MT> lltOfE(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
+            if (lltOfE.info() != Eigen::Success) {
+                throw std::runtime_error("Cholesky decomposition failed!");
+            }
+            _L_cov = lltOfE.matrixL();
+            _E = E;
+            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
+            initialize(P, p, rng);
         }
 
-        template
-                <
-                        typename GenericPolytope,
-                        typename Ellipsoid
-                >
+        template <typename GenericPolytope>
         inline void apply(GenericPolytope& P,
                           Point &p,       // a point to return the result
-                          Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
         {
@@ -114,25 +127,50 @@ struct GaussianAcceleratedBilliardWalk
             NT T;
             const NT dl = 0.995;
             int it;
+            NT coef = 1.0;
+            NT vEv;
 
             for (auto j=0u; j<walk_length; ++j)
             {
-                T = -std::log(rng.sample_urdist()) * _Len;
-                _v = GetGaussianDirection<Point>::apply(n, E, rng);
-                NT norm_v = _v.length();
-                _v /= norm_v;
+                T = -std::log(rng.sample_urdist()) * _L;
+
+                _v = GetDirection<Point>::apply(n, rng, false);
+                _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
+                coef = 1.0;
+
+                vEv = (_v.getCoefficients().transpose() * _E.template selfadjointView<Eigen::Upper>()).dot(_v.getCoefficients());
 
                 Point p0 = _p;
-                Point v0 = _v;
-                typename Point::Coeff lambdas0 = _lambdas;
-                typename Point::Coeff Av0 = _Av;
-                NT lambda_prev0 = _lambda_prev;
 
                 it = 0;
-                while (it < 100*n)
+                std::pair<NT, int> pbpair;
+                if(!was_reset) {
+                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                } else {
+                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
+                    was_reset = false;
+                }                                                    
+
+                if (T <= pbpair.first) {
+                    _p += (T * _v);
+                    _lambda_prev = T;
+                    continue;
+                }
+
+                _lambda_prev = dl * pbpair.first;
+                _p += (_lambda_prev * _v);
+                T -= _lambda_prev;
+                coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                it++;
+
+                while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
-                            = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
+                    _Av *= coef;
+                    _update_parameters.inner_vi_ak *= coef;
+                    pbpair.first /= coef;
+
                     if (T <= pbpair.first) {
                         _p += (T * _v);
                         _lambda_prev = T;
@@ -141,63 +179,42 @@ struct GaussianAcceleratedBilliardWalk
                     _lambda_prev = dl * pbpair.first;
                     _p += (_lambda_prev * _v);
                     T -= _lambda_prev;
-                    P.compute_reflection(_v, _p, _update_parameters);
+                    coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
                     it++;
                 }
-                if (it == 100*n)
-                {
+                if (it == _rho){
                     _p = p0;
-                    _lambdas = lambdas0;
-                    _Av = Av0;
-                    _lambda_prev = lambda_prev0;
-                }
-                else
-                {
-                    // metropolis filter
-                    NT u_logprob = log(rng.sample_urdist());
-                    NT accept_logprob = 0.5 * (norm_v * norm_v) * (E.mat_mult(v0) - E.mat_mult(_v));
-                    // std::cout << "diff: " << (accept_logprob - u_logprob) << std::endl;
-                    if(u_logprob > accept_logprob) {
-                        // reject
-                        _p = p0;
-                        _lambdas = lambdas0;
-                        _Av = Av0;
-                        _lambda_prev = lambda_prev0;
-                    }
+                    was_reset = true;
                 }
             }
-            p = _p;
-        }
 
-        inline void update_delta(NT L)
-        {
-            _Len = L;
+            p = _p;
         }
 
     private :
 
-        template
-                <
-                        typename GenericPolytope,
-                        typename Ellipsoid
-                >
+        template <typename GenericPolytope>
         inline void initialize(GenericPolytope& P,
                                Point const& p,  // a point to start
-                               Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                                RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
             const NT dl = 0.995;
+            was_reset = false;
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
-            _v = GetGaussianDirection<Point>::apply(n, E, rng);
-            NT norm_v = _v.length();
-            _v /= norm_v;
+            _AE.noalias() = P.get_mat() * _E;
+            _AEA = _AE.cwiseProduct(P.get_mat()).rowwise().sum();
 
-            NT T = -std::log(rng.sample_urdist()) * _Len;
+            _v = GetDirection<Point>::apply(n, rng, false);
+            _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
+
+            NT T = -std::log(rng.sample_urdist()) * _L;
             Point p0 = _p;
             int it = 0;
+            NT coef = 1.0;
+            NT vEv = (_v.getCoefficients().transpose() * _E.template selfadjointView<Eigen::Upper>()).dot(_v.getCoefficients());
 
             std::pair<NT, int> pbpair
                     = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
@@ -209,17 +226,21 @@ struct GaussianAcceleratedBilliardWalk
             _lambda_prev = dl * pbpair.first;
             _p += (_lambda_prev * _v);
             T -= _lambda_prev;
-            P.compute_reflection(_v, _p, _update_parameters);
+            coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
 
-            while (it <= 100*n)
+            while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
-                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
+                _Av *= coef;
+                _update_parameters.inner_vi_ak *= coef;
+                pbpair.first /= coef;
+
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
-                } else if (it == 100*n) {
+                } else if (it == _rho) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += (_lambda_prev * _v);
                     break;
@@ -227,19 +248,25 @@ struct GaussianAcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                P.compute_reflection(_v, _p, _update_parameters);
+                coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
                 it++;
             }
         }
 
-        NT _Len;
+        NT _L;
         Point _p;
         Point _v;
         NT _lambda_prev;
-        // MT _AA;  // Removed as will be used for sparse matrices only
+        MT _AA;
+        MT _L_cov;   // LL' = inv(E)
+        MT _AE;
+        MT _E;
+        VT _AEA;
+        unsigned int _rho;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;
+        bool was_reset;
     };
 
 };

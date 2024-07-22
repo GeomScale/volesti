@@ -341,6 +341,13 @@ public:
     {
         return MT::Identity(lmi.dimension(), lmi.dimension());
     }
+    
+    bool is_normalized ()
+    {
+        return true;
+    }
+
+    void normalize() {}
 
     void resetFlags()
     {
