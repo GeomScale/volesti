@@ -380,14 +380,13 @@ void call_test_gabw(){
                                 push_back_policy, rng);
 
     jj = 0;
-    MT samples2(d, numpoints);
     for (typename std::list<Point>::iterator rpit = Points.begin(); rpit != Points.end(); rpit++, jj++)
-        samples2.col(jj) = (*rpit).getCoefficients();
+        samples.col(jj) = (*rpit).getCoefficients();
 
-    VT score2 = univariate_psrf<NT, VT>(samples2);
-    std::cout << "psrf = " << score2.maxCoeff() << std::endl;
+    score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
-    CHECK(score2.maxCoeff() < 1.1);
+    CHECK(score.maxCoeff() < 1.1);
 
 }
 

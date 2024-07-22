@@ -36,7 +36,6 @@ struct compute_diameter<HPolytope<Point, MT>>
     template <typename NT>
     static NT compute(HPolytope<Point, MT> &P)
     {
-        std::cout << P.InnerBall().second << "<----" << std::endl;
         return NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
     }
 };
