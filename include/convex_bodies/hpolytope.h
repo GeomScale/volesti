@@ -195,6 +195,7 @@ public:
     {
         A = A2;
         normalized = false;
+        _inner_ball.second = -1.0;
     }
 
 
@@ -202,6 +203,7 @@ public:
     void set_vec(VT const& b2)
     {
         b = b2;
+        _inner_ball.second = -1.0;
     }
 
     Point get_mean_of_vertices() const
@@ -845,6 +847,7 @@ public:
             A = (A * T).sparseView();
         }
         normalized = false;
+        _inner_ball.second = -1.0;
     }
 
 
@@ -853,6 +856,7 @@ public:
     void shift(const VT &c)
     {
         b -= A*c;
+        _inner_ball.second = -1.0;
     }
 
 
