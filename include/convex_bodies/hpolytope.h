@@ -63,6 +63,7 @@ private:
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
     bool                 normalized = false; // true if the polytope is normalized
+    bool                 has_ball = false;
 
 public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
@@ -81,7 +82,7 @@ public:
 
     // Copy constructor
     HPolytope(HPolytope<Point, MT> const& p) :
-            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}, normalized{p.normalized}
+            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}, normalized{p.normalized}, has_ball{p.has_ball}
     {
     }
 
@@ -98,7 +99,7 @@ public:
                 A(i - 1, j - 1) = -Pin[i][j];
             }
         }
-        _inner_ball.second = -1;
+        has_ball = false;
         //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
@@ -111,6 +112,7 @@ public:
     void set_InnerBall(std::pair<Point,NT> const& innerball) //const
     {
         _inner_ball = innerball;
+        has_ball = true;
     }
 
     void set_interior_point(Point const& r)
@@ -120,11 +122,12 @@ public:
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point, NT> ComputeInnerBall(bool const &force = false)
+    std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
-        if (force || _inner_ball.second <= NT(0)) {
-
+        if (!has_ball) {
+            
+            has_ball = true;
             NT const tol = 1e-08;
             std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 5000, tol);
 
@@ -138,7 +141,7 @@ public:
                     _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
                 #else
                     std::cerr << "lpsolve is disabled, unable to compute inner ball";
-                    _inner_ball.second = -1.0;
+                    has_ball = false;
                 #endif
             } else {
                 _inner_ball.first = Point(std::get<0>(inner_ball));
@@ -195,7 +198,7 @@ public:
     {
         A = A2;
         normalized = false;
-        _inner_ball.second = -1.0;
+        has_ball = false;
     }
 
 
@@ -203,7 +206,7 @@ public:
     void set_vec(VT const& b2)
     {
         b = b2;
-        _inner_ball.second = -1.0;
+        has_ball = false;
     }
 
     Point get_mean_of_vertices() const
@@ -847,7 +850,7 @@ public:
             A = (A * T).sparseView();
         }
         normalized = false;
-        _inner_ball.second = -1.0;
+        has_ball = false;
     }
 
 
@@ -856,7 +859,7 @@ public:
     void shift(const VT &c)
     {
         b -= A*c;
-        _inner_ball.second = -1.0;
+        has_ball = false;
     }
 
 
@@ -886,6 +889,8 @@ public:
 
     void normalize()
     {
+        if(normalized)
+            return;
         NT row_norm;
         for (int i = 0; i < A.rows(); ++i) {
             row_norm = A.row(i).norm();
@@ -939,7 +944,7 @@ public:
     }
 
     template <typename update_parameters>
-    NT compute_reflection(Point &v, const Point &, MT const &AE, VT const &AEA, NT const &vEv, update_parameters const &params) const {
+    NT compute_reflection(Point &v, const Point &, DenseMT const &AE, VT const &AEA, NT const &vEv, update_parameters const &params) const {
 
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             VT x = v.getCoefficients();

@@ -349,7 +349,7 @@ void call_test_gabw(){
     std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
     CHECK(score.maxCoeff() < 1.1);
-
+    RNGType Srng(d);
 
     typedef Eigen::SparseMatrix<NT> SparseMT;
     typedef HPolytope<Point, SparseMT> SparseHpoly;
@@ -366,7 +366,8 @@ void call_test_gabw(){
     typedef typename GaussianAcceleratedBilliardWalk::template Walk
             <
                     SparseHpoly,
-                    RNGType
+                    RNGType,
+                    SparseMT
             > sparsewalk;
     typedef MultivariateGaussianRandomPointGenerator <sparsewalk> SparseRandomPointGenerator;
 
@@ -377,16 +378,20 @@ void call_test_gabw(){
     const SparseMT SE = get<0>(ellipsoid).sparseView();
 
     SparseRandomPointGenerator::apply(SP, p, SE, numpoints, 1, Points,
-                                push_back_policy, rng);
+                                push_back_policy, Srng);
 
     jj = 0;
+    MT Ssamples(d, numpoints);
     for (typename std::list<Point>::iterator rpit = Points.begin(); rpit != Points.end(); rpit++, jj++)
-        samples.col(jj) = (*rpit).getCoefficients();
+        Ssamples.col(jj) = (*rpit).getCoefficients();
 
-    score = univariate_psrf<NT, VT>(samples);
+    score = univariate_psrf<NT, VT>(Ssamples);
     std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
     CHECK(score.maxCoeff() < 1.1);
+    NT delta = (samples - Ssamples).maxCoeff();
+    std::cout << "\ndelta = " << delta << std::endl;
+    CHECK(delta < 0.00001);
 
 }
 
