@@ -4,6 +4,7 @@
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 // Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -49,10 +50,10 @@ struct AcceleratedBilliardWalk
 
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
@@ -62,6 +63,9 @@ struct AcceleratedBilliardWalk
         template <typename GenericPolytope>
         Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
@@ -74,6 +78,9 @@ struct AcceleratedBilliardWalk
         Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng,
              parameters const& params)
         {
+            if(!P.is_normalized()) {
+                P.normalize();
+            }
             _update_parameters = update_parameters();
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
@@ -104,8 +111,14 @@ struct AcceleratedBilliardWalk
                 Point p0 = _p;
 
                 it = 0;
-                std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av,
-                                                                      _lambda_prev, _update_parameters);
+                std::pair<NT, int> pbpair;
+                if(!was_reset) {
+                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                } else {
+                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
+                    was_reset = false;
+                }
+                
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
@@ -134,7 +147,10 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == _rho) _p = p0;
+                if (it == _rho) {
+                    _p = p0;
+                    was_reset = true;
+                }
             }
             p = _p;
         }
@@ -185,8 +201,7 @@ struct AcceleratedBilliardWalk
 
                 apply(P, p, walk_length, rng);
                 max_dist = get_max_distance(pointset, p, rad);
-                if (max_dist > Lmax) 
-                {
+                if (max_dist > Lmax) {
                     Lmax = max_dist;
                 }
                 if (2.0*rad > Lmax) {
@@ -196,8 +211,7 @@ struct AcceleratedBilliardWalk
             }
 
             if (Lmax > _L) {
-                if (P.dimension() <= 2500) 
-                {
+                if (P.dimension() <= 2500) {
                     update_delta(Lmax);
                 }
                 else{
@@ -231,6 +245,7 @@ struct AcceleratedBilliardWalk
         {
             unsigned int n = P.dimension();
             const NT dl = 0.995;
+            was_reset = false;
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
@@ -301,6 +316,7 @@ struct AcceleratedBilliardWalk
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;
+        bool was_reset;
     };
 
 };

@@ -28,6 +28,8 @@
 
 #include "diagnostics/univariate_psrf.hpp"
 
+#include "preprocess/inscribed_ellipsoid_rounding.hpp"
+
 
 template
 <
@@ -302,6 +304,53 @@ void call_test_ghmc(){
     CHECK(score.maxCoeff() < 2.2);
 }
 
+template <typename NT, typename WalkType = GaussianAcceleratedBilliardWalk>
+void call_test_gabw(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    Hpolytope P;
+    unsigned int d = 10;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+
+    unsigned int walkL = 10, numpoints = 10000, nburns = 0;
+    RNGType rng(d);
+    Point StartingPoint(d);
+    std::list<Point> randPoints;
+
+    std::cout << "--- Testing Gaussian Accelerated Billiard Walk for Skinny-H-cube10" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(10);
+
+
+    Point p = P.ComputeInnerBall().first;
+    typedef typename GaussianAcceleratedBilliardWalk::template Walk
+            <
+                    Hpolytope,
+                    RNGType
+            > walk;
+    typedef MultivariateGaussianRandomPointGenerator <walk> RandomPointGenerator;
+    PushBackWalkPolicy push_back_policy;
+
+    std::tuple<MT, VT, NT> ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>
+    (P.get_mat(), P.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
+    const MT E = get<0>(ellipsoid);
+
+    RandomPointGenerator::apply(P, p, E, numpoints, 1, randPoints,
+                                push_back_policy, rng);
+
+    MT samples(d, numpoints);
+    unsigned int jj = 0;
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+        samples.col(jj) = (*rpit).getCoefficients();
+
+    VT score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+    CHECK(score.maxCoeff() < 1.1);
+}
+
 TEST_CASE("dikin") {
     call_test_dikin<double>();
 }
@@ -332,4 +381,8 @@ TEST_CASE("gbaw") {
 
 TEST_CASE("ghmc") {
     call_test_ghmc<double>();
+}
+
+TEST_CASE("gabw") {
+    call_test_gabw<double>();
 }

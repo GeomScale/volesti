@@ -94,12 +94,22 @@ public:
         return _A.sparseView();
     }
 
+     // return the matrix A
+    MT get_full_mat() const
+    {
+        return _A;
+    }
+
 
     VT get_vec() const
     {
         return b;
     }
 
+    bool is_normalized ()
+    {
+        return _normalized;
+    }
 
     // print polytope in Ax <= b format
     void print() const

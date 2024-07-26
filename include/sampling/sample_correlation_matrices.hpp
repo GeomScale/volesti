@@ -41,19 +41,27 @@ template
     typename WalkTypePolicy,
     typename PointType,
     typename RNGType,
-    typename PointList
+    typename MT
 >
 void uniform_correlation_sampling_MT(   const unsigned int &n,
-                                        PointList &randPoints,
+                                        std::list<MT> &randCorMatrices,
                                         const unsigned int &walkL,
                                         const unsigned int &num_points,
                                         unsigned int const& nburns){
+    using PointList = std::list<PointType>;
+    PointList randPoints;
+    
     CorrelationSpectrahedron_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
 
     uniform_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, startingPoint, nburns);
+
+    for(const auto&p : randPoints){
+        MT final_cor_mat = p.mat + p.mat.transpose() - MT::Identity(n, n);
+    	randCorMatrices.push_back(final_cor_mat);
+    }
 }
 
 template
@@ -83,21 +91,29 @@ template
     typename WalkTypePolicy,
     typename PointType,
     typename RNGType,
-    typename PointList,
+    typename MT,
     typename NT
 >
 void gaussian_correlation_sampling_MT(  const unsigned int &n,
-                                        PointList &randPoints,
+                                        std::list<MT> &randCorMatrices,
                                         const unsigned int &walkL,
                                         const unsigned int &num_points,
                                         const NT &a,
                                         unsigned int const& nburns = 0){
+    using PointList = std::list<PointType>;
+    PointList randPoints;
+    
     CorrelationSpectrahedron_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
     RNGType rng(d);
 
     gaussian_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, a, startingPoint, nburns);
+
+    for(const auto&p : randPoints){
+        MT final_cor_mat = p.mat + p.mat.transpose() - MT::Identity(n, n);
+        randCorMatrices.push_back(final_cor_mat);
+    }
 }
 
 template
@@ -130,17 +146,20 @@ template
         typename WalkTypePolicy,
         typename PointType,
         typename RNGType,
-        typename PointList,
+        typename MT,
         typename NT,
         typename VT
 >
 void exponential_correlation_sampling_MT(   const unsigned int &n,
-                                            PointList &randPoints,
+                                            std::list<MT> &randCorMatrices,
                                             const unsigned int &walkL,
                                             const unsigned int &num_points,
                                             const VT &c,
                                             const NT &T,
                                             unsigned int const& nburns = 0){
+    using PointList = std::list<PointType>;
+    PointList randPoints;
+    
     CorrelationSpectrahedron_MT<PointType> P(n);
     const unsigned int d = P.dimension();
     PointType startingPoint(n);
@@ -148,6 +167,11 @@ void exponential_correlation_sampling_MT(   const unsigned int &n,
     PointType _c(c);
 
     exponential_sampling<WalkTypePolicy>(randPoints, P, rng, walkL, num_points, _c, T, startingPoint, nburns);
+
+    for(const auto&p : randPoints){
+        MT final_cor_mat = p.mat + p.mat.transpose() - MT::Identity(n, n);
+        randCorMatrices.push_back(final_cor_mat);
+    }
 }
 
 #endif //VOLESTI_SAMPLING_SAMPLE_CORRELATION_MATRICES_HPP

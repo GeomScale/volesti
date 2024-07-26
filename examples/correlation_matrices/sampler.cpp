@@ -92,28 +92,6 @@ void write_to_file(std::string filename, std::vector<PointType> const& randPoint
     std::cout.rdbuf(coutbuf);
 }
 
-bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8){
-    //check if all the diagonal elements are ones
-    for(int i=0 ; i<matrix.rows() ; i++)
-    {
-        if(std::abs(matrix(i, i)-1.0) > tol)
-	{
-	    return false;
-	}
-    }
-
-    //check if the matrix is positive semidefinite
-    using NT = double;
-    using MatrixType = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
-    EigenvaluesProblems<NT, MatrixType, Eigen::Matrix<NT, Eigen::Dynamic, 1>> solver;
-
-    if(solver.isPositiveSemidefinite(matrix))
-    {
-        return true;
-    }
-    return false;
-}
-
 template<typename WalkType>
 void correlation_matrix_uniform_sampling(const unsigned int n, const unsigned int num_points, std::string walkname){
 
@@ -140,12 +118,12 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
     std::cout << walkname << " samples uniformly "<< num_points << " correlation matrices of size " << n << " with matrix PointType" << std::endl;
     std::chrono::steady_clock::time_point start, end;
     double time;
-    std::vector<PointMT> randPoints;
+    std::list<MT> randCorMatrices;
     unsigned int walkL = 1;
 
     start = std::chrono::steady_clock::now();
 
-    uniform_correlation_sampling_MT<WalkType, PointMT, RNGType>(n, randPoints, walkL, num_points, 0);
+    uniform_correlation_sampling_MT<WalkType, PointMT, RNGType>(n, randCorMatrices, walkL, num_points, 0);
 
     end = std::chrono::steady_clock::now();
     time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -153,13 +131,21 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
 
     int valid_points = 0;
     EigenvaluesProblems<NT, MT, Eigen::Matrix<NT, Eigen::Dynamic, 1>> solver;
-    for(const auto& points : randPoints){
-        if(solver.is_correlation_matrix(points.mat)){
+    for(const auto& matrix : randCorMatrices){
+    	if(solver.is_correlation_matrix(matrix)){
             valid_points++;
-        }
+    	}
     }
+
     std::cout << "Number of valid points = " << valid_points << std::endl;
 
+    std::vector<PointMT> randPoints;
+    for(const auto &mat : randCorMatrices){
+        PointMT p;
+    	p.mat = mat;
+    	randPoints.push_back(p);
+    }
+	
     write_to_file<PointMT>(walkname + "_matrices_MT" + std::to_string(n) + ".txt", randPoints);
 }
 

@@ -92,6 +92,10 @@ public:
         return P1.get_vec();
     }
 
+    bool is_normalized () {
+        return true;
+    }
+
     MT get_T() const {
         return P1.get_mat();
     }

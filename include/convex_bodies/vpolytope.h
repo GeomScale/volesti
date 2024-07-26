@@ -213,6 +213,10 @@ public:
         return b;
     }
 
+    bool is_normalized () {
+        return true;
+    }
+
     // change the matrix V
     void set_mat(const MT &V2) {
         V = V2;
