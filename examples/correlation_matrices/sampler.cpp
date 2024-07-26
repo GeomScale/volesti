@@ -180,7 +180,7 @@ void tune_walkL(const std::vector<unsigned int>& walkL_values, const std::vector
     	    //calculate ess
             unsigned int min_ess = 0;
             VT ess_vector = effective_sample_size<NT, VT, MT>(samples, min_ess);
-            std::cout << "Minimum Ess = " << min_ess << std::endl;
+            std::cout << "Minimum Effective sample space = " << min_ess/num_matrices << std::endl;
 
             // Clear the matrices for the next iteration
             randCorMatrices.clear();
