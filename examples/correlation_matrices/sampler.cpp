@@ -18,6 +18,8 @@
 #include "random_walks/random_walks.hpp"
 #include "sampling/sample_correlation_matrices.hpp"
 #include "matrix_operations/EigenvaluesProblems.h"
+#include "diagnostics/effective_sample_size.hpp"
+#include "diagnostics/univariate_psrf.hpp"
 
 typedef double                                              NT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
@@ -160,6 +162,46 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
 
     write_to_file<PointMT>(walkname + "_matrices_MT" + std::to_string(n) + ".txt", randPoints);
 }
+
+template<typename WalkTypePolicy, typename PointType, typename RNGType, typename MT>
+void tune_walkL(const std::vector<unsigned int>& walkL_values, const std::vector<unsigned int>& dimensions, const unsigned int num_points,
+            	const unsigned int nburns, const unsigned int num_matrices){
+    for (unsigned int n : dimensions) {
+    	std::list<MT> randCorMatrices;
+   	 
+    	for (unsigned int walkL : walkL_values) {
+            std::chrono::steady_clock::time_point start, end;
+            double time;
+            start = std::chrono::steady_clock::now();
+
+            uniform_correlation_sampling_MT<WalkTypePolicy, PointType, RNGType>(n, randCorMatrices, walkL, num_points, 0);
+
+            end = std::chrono::steady_clock::now();
+            time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
+
+            VT samples(n, randCorMatrices.size());
+            int idx = 0;
+            for (const auto& matrix : randCorMatrices) {
+                samples.col(idx++) = matrix;
+            }
+       	 
+            //calculate psrf
+            VT psrf = univariate_psrf<NT, VT, MT>(samples);
+            double max_psrf = psrf.maxCoeff();
+       	    std::cout << "Maximum psrf = " << max_psrf << std::endl;
+   	 
+    	    //calculate ess
+            unsigned int min_ess = 0;
+            VT ess_vector = effective_sample_size<NT, VT, MT>(samples, min_ess);
+            std::cout << "Minimum Ess = " << min_ess << std::endl;
+
+            // Clear the matrices for the next iteration
+            randCorMatrices.clear();
+    	}
+    }
+}
+
 
 int main(int argc, char const *argv[]){
 
