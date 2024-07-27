@@ -96,7 +96,7 @@ public:
         for (unsigned int i = 1; i < Pin.size(); i++) {
             b(i - 1) = Pin[i][0];
             for (unsigned int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = -Pin[i][j];
+                A.coeffRef(i - 1, j - 1) = -Pin[i][j];
             }
         }
         has_ball = false;
@@ -645,12 +645,12 @@ public:
 
         int m = num_of_hyperplanes();
 
-        lamdas.noalias() += A.col(rand_coord_prev)
-                         * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+        lamdas.noalias() += (DenseMT)(A.col(rand_coord_prev)
+                         * (r_prev[rand_coord_prev] - r[rand_coord_prev]));
         NT* data = lamdas.data();
 
         for (int i = 0; i < m; i++) {
-            NT a = A(i, rand_coord);
+            NT a = A.coeff(i, rand_coord);
 
             if (a == NT(0)) {
                 //std::cout<<"div0"<<std::endl;

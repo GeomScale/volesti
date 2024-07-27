@@ -251,6 +251,32 @@ void call_test_skinny_cube() {
     //test_volume(P, 104857600, 104857600.0);
 }
 
+template <typename NT>
+void call_test_sparse_simplex() {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+
+    typedef HPolytope<Point, Eigen::SparseMatrix<NT>> Hpolytope;
+    Hpolytope SP;
+
+    std::cout << "--- Testing volume of sparse H-simplex10" << std::endl;
+    SP = generate_simplex<Hpolytope>(10, false);
+    test_volume(SP,
+                2.14048 * std::pow(10,-7),
+                2.70598 * std::pow(10,-7),
+                2.53893e-07,
+                1.0 / factorial(10.0));
+
+    std::cout << "--- Testing volume of sparse H-simplex20" << std::endl;
+    SP = generate_simplex<Hpolytope>(20, false);
+    test_volume(SP,
+                2.00646 * std::pow(10,-21),
+                4.16845 * std::pow(10,-19),
+                5.0348e-19,
+                1.0 / factorial(20.0));
+}
+
+
 
 TEST_CASE("cube") {
     call_test_cube<double>();
@@ -275,4 +301,8 @@ TEST_CASE("simplex") {
 
 TEST_CASE("skinny_cube") {
     call_test_skinny_cube<double>();
+}
+
+TEST_CASE("sparse_simplex") {
+    call_test_sparse_simplex<double>();
 }
