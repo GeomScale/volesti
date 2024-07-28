@@ -60,6 +60,21 @@ Spectrahedron<Point> prepare_input(int n){
     return spectra;
 }
 
+template<typename NT, typename MT>
+Eigen::Matrix<NT, Eigen::Dynamic, 1> getCoefficientsFromMatrix(const MT& mat) {
+	int n = mat.rows();
+	int d = n * (n - 1) / 2;
+	Eigen::Matrix<NT, Eigen::Dynamic, 1> coeffs(d);
+	int k = 0;
+	for (int i = 0; i < n; ++i) {
+    	for (int j = 0; j < i; ++j) {
+        	coeffs(k) = mat(i, j);
+        	++k;
+    	}
+	}
+	return coeffs;
+}
+
 template<typename WalkType>
 void old_uniform_sampling(const unsigned int n, const unsigned int num_points){
 
@@ -153,9 +168,9 @@ template<typename WalkTypePolicy, typename PointType, typename RNGType, typename
 void tune_walkL(const std::vector<unsigned int>& walkL_values, const std::vector<unsigned int>& dimensions, const unsigned int num_points,
             	const unsigned int nburns, const unsigned int num_matrices){
     for (unsigned int n : dimensions) {
-    	std::list<MT> randCorMatrices;
+        std::list<MT> randCorMatrices;
    	 
-    	for (unsigned int walkL : walkL_values) {
+        for (unsigned int walkL : walkL_values) {
             std::chrono::steady_clock::time_point start, end;
             double time;
             start = std::chrono::steady_clock::now();
@@ -164,30 +179,32 @@ void tune_walkL(const std::vector<unsigned int>& walkL_values, const std::vector
 
             end = std::chrono::steady_clock::now();
             time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-            std::cout << "Elapsed time : " << time << " (ms)" << std::endl;
-
-            VT samples(n, randCorMatrices.size());
-            int idx = 0;
-            for (const auto& matrix : randCorMatrices) {
-                samples.col(idx++) = matrix;
+            std::cout << "Elapsed time : " << time << " (ms) for dimension: " << n << std::endl;
+		
+            int d = n*(n-1)/2;
+            MT samples(d, num_points);
+            unsigned int jj = 0;
+            for(auto& mat : randCorMatrices){
+                samples.col(jj) = getCoefficientsFromMatrix<NT, MT>(mat);
+            	jj++;
             }
        	 
             //calculate psrf
             VT psrf = univariate_psrf<NT, VT, MT>(samples);
             double max_psrf = psrf.maxCoeff();
-       	    std::cout << "Maximum psrf = " << max_psrf << std::endl;
+       	    std::cout << "PSRF = " << max_psrf << std::endl;
    	 
     	    //calculate ess
             unsigned int min_ess = 0;
             VT ess_vector = effective_sample_size<NT, VT, MT>(samples, min_ess);
-            std::cout << "Minimum Effective sample space = " << min_ess/num_matrices << std::endl;
+	    std::cout << "Effective Sample Size = " << min_ess << std::endl;
+            std::cout << "Average Effective Sample Size = " << min_ess/num_matrices << std::endl;
 
             // Clear the matrices for the next iteration
             randCorMatrices.clear();
     	}
     }
 }
-
 
 int main(int argc, char const *argv[]){
 
