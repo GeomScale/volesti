@@ -16,7 +16,7 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "random_walks/random_walks.hpp"
-#include "random_walks/uniform_billiard_walk.hpp"
+#include "random_walks/uniform_accelerated_billiard_walk.hpp"
 #include "sampling/sample_correlation_matrices.hpp"
 #include "matrix_operations/EigenvaluesProblems.h"
 #include "diagnostics/effective_sample_size.hpp"
@@ -157,12 +157,6 @@ void tune_parameter_L(const int walkL, const int choice, const std::vector<unsig
         std::list<MT> randCorMatrices;
    	 
     	int d = n*(n-1)/2;
-        MT samples(d, num_points);
-        unsigned int jj = 0;
-        for(auto& mat : randCorMatrices){
-            samples.col(jj) = getCoefficientsFromMatrix<NT, MT>(mat);
-            jj++;
-        }
         double _L;
     	switch(choice){
             case 1:  _L = sqrt(d);
@@ -187,6 +181,13 @@ void tune_parameter_L(const int walkL, const int choice, const std::vector<unsig
         end = std::chrono::steady_clock::now();
         time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         std::cout << "Elapsed time : " << time << " (ms) for dimension: "<< n << std::endl;
+
+	MT samples(d, num_points);
+        unsigned int jj = 0;
+        for(auto& mat : randCorMatrices){
+            samples.col(jj) = getCoefficientsFromMatrix<NT, MT>(mat);
+            jj++;
+        }
       	 
         //calculate psrf
         VT psrf = univariate_psrf<NT, VT, MT>(samples);
