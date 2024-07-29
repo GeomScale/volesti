@@ -60,21 +60,6 @@ Spectrahedron<Point> prepare_input(int n){
     return spectra;
 }
 
-template<typename NT, typename MT>
-Eigen::Matrix<NT, Eigen::Dynamic, 1> getCoefficientsFromMatrix(const MT& mat) {
-    int n = mat.rows();
-    int d = n * (n - 1) / 2;
-    Eigen::Matrix<NT, Eigen::Dynamic, 1> coeffs(d);
-    int k = 0;
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < i; ++j) {
-            coeffs(k) = mat(i, j);
-            ++k;
-    	}
-    }
-    return coeffs;
-}
-
 template<typename WalkType>
 void old_uniform_sampling(const unsigned int n, const unsigned int num_points){
 
