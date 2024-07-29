@@ -15,7 +15,7 @@
 #include <sampling/sampling.hpp>
 
 template<typename NT, typename MT>
-Eigen::Matrix<NT, Eigen::Dynamic, 1> getCoefficientsFromMatrix(const MT& mat) {
+MT getCoefficientsFromMatrix(const MT& mat) {
     int n = mat.rows();
     int d = n * (n - 1) / 2;
     Eigen::Matrix<NT, Eigen::Dynamic, 1> coeffs(d);
