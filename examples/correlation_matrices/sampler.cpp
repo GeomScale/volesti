@@ -153,30 +153,31 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
 template<typename WalkTypePolicy, typename PointType, typename RNGType, typename MT>
 void tune_parameter_L(const int choice, const std::vector<unsigned int>& dimensions, const unsigned int num_points,
             	      const unsigned int walkL=1, const unsigned int nburns=0){
+    using NT = typename MT::Scalar;
     for (unsigned int n : dimensions) {
         std::list<MT> randCorMatrices;
    	int d = n*(n-1)/2;
        	double _L;
     	switch(choice){
             case 1:  
-                _L = sqrt(d);
+                _L = sqrt(NT(d));
             	std::cout << "The value of L = sqrt(d) = " << _L << std::endl;
             	break;
             case 2:
-                _L = 2*sqrt(d);
+                _L = 2 * sqrt(NT(d));
             	std::cout << "The value of L = 2 * sqrt(d) = " << _L << std::endl;
             	break;
             case 3:  
-            	_L=4*sqrt(d);
+            	_L = 4 * sqrt(NT(d));
             	std::cout << "The value of L = 4 * sqrt(d) = " << _L << std::endl;
             	break;
             case 4:
-             	_L=d/4;
-             	std::cout << "The value of L = d / 4 = " << _L << std::endl;
+             	_L = NT(d) / 4.0;
+             	std::cout << "The value of L = d / 4.0 = " << _L << std::endl;
             	break;
             default:
-            	_L=d/10;
-            	std::cout << "The value of L = d / 10 = " << _L << std::endl;
+            	_L = NT(d) / 10.0;
+            	std::cout << "The value of L = d / 10.0 = " << _L << std::endl;
             	break;
         }
     	std::cout<< "Testing L = " << _L << std::endl;
