@@ -151,58 +151,68 @@ void correlation_matrix_uniform_sampling_MT(const unsigned int n, const unsigned
 }
 
 template<typename WalkTypePolicy, typename PointType, typename RNGType, typename MT>
-void tune_parameter_L(const int walkL, const int choice, const std::vector<unsigned int>& dimensions, const unsigned int num_points,
-            	      const unsigned int nburns, const unsigned int num_matrices){
-    for (unsigned int n : dimensions){
+void tune_parameter_L(const int choice, const std::vector<unsigned int>& dimensions, const unsigned int num_points,
+            	      const unsigned int walkL=1, const unsigned int nburns=0){
+    for (unsigned int n : dimensions) {
         std::list<MT> randCorMatrices;
-   	 
-    	int d = n*(n-1)/2;
-        double _L;
+   	int d = n*(n-1)/2;
+       	double _L;
     	switch(choice){
-            case 1:  _L = sqrt(d);
-            break;
-            case 2: _L = 2*sqrt(d);
-            break;
-            case 3:  _L=4*sqrt(d);
-            break;
-            case 4:  _L=d/4;
-            break;
-            default: _L=d/10;
-            break;
-	}
+            case 1:  
+                _L = sqrt(d);
+            	std::cout << "The value of L = sqrt(d) = " << _L << std::endl;
+            	break;
+            case 2:
+                _L = 2*sqrt(d);
+            	std::cout << "The value of L = 2 * sqrt(d) = " << _L << std::endl;
+            	break;
+            case 3:  
+            	_L=4*sqrt(d);
+            	std::cout << "The value of L = 4 * sqrt(d) = " << _L << std::endl;
+            	break;
+            case 4:
+             	_L=d/4;
+             	std::cout << "The value of L = d / 4 = " << _L << std::endl;
+            	break;
+            default:
+            	_L=d/10;
+            	std::cout << "The value of L = d / 10 = " << _L << std::endl;
+            	break;
+        }
     	std::cout<< "Testing L = " << _L << std::endl;
     	WalkTypePolicy walk(_L);
-        std::chrono::steady_clock::time_point start, end;
+        
+	std::chrono::steady_clock::time_point start, end;
         double time;
         start = std::chrono::steady_clock::now();
 
-        uniform_correlation_sampling_MT<WalkTypePolicy, PointType, RNGType>(n, randCorMatrices, walkL, num_points, 0);
+        uniform_correlation_sampling_MT<WalkTypePolicy, PointType, RNGType>(n, randCorMatrices, walkL, num_points, nburns);
 
         end = std::chrono::steady_clock::now();
         time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         std::cout << "Elapsed time : " << time << " (ms) for dimension: "<< n << std::endl;
-
-	MT samples(d, num_points);
+       	 
+        MT samples(d, num_points);
         unsigned int jj = 0;
         for(auto& mat : randCorMatrices){
             samples.col(jj) = getCoefficientsFromMatrix<NT, MT>(mat);
             jj++;
-        }
-      	 
+        }       	 
+       	 
         //calculate psrf
         VT psrf = univariate_psrf<NT, VT, MT>(samples);
-        double max_psrf = psrf.maxCoeff();
- 	std::cout << "PSRF = " << max_psrf << std::endl;
+        double max_psrf = psrf.maxCoeff(); 
+        std::cout << "PSRF = " << max_psrf << std::endl;
    	 
     	//calculate ess
         unsigned int min_ess = 0;
         VT ess_vector = effective_sample_size<NT, VT, MT>(samples, min_ess);
         std::cout << "Effective Sample Size = " << min_ess << std::endl;
-        std::cout << "Average Effective Sample Size = " << min_ess/num_matrices << std::endl;
+        std::cout << "Average Effective Sample Size = " << min_ess/(double)num_points << std::endl;
         std::cout << std::endl;
 
         // Clear the matrices for the next iteration
-        randCorMatrices.clear();	 
+        randCorMatrices.clear();   	 
     }
 }
 
