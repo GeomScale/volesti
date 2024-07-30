@@ -116,6 +116,11 @@ public:
     void set_interior_point(Point const& r)
     {
         _inner_ball.first = r;
+        if(!is_in(r)) {
+            std::cerr << "point outside of polytope was set as interior point" << std::endl;
+            has_ball = false;
+            return;
+        }
         if(is_normalized()) {
             _inner_ball.second = (b - A * r.getCoefficients()).minCoeff();
         } else {
