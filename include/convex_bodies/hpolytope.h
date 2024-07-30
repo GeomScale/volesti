@@ -116,7 +116,18 @@ public:
     void set_interior_point(Point const& r)
     {
         _inner_ball.first = r;
-        has_ball = false;
+        if(is_normalized()) {
+            _inner_ball.second = (b - A * r.getCoefficients()).minCoeff();
+        } else {
+            _inner_ball.second = std::numeric_limits<NT>::max();
+            for(int i = 0; i < num_of_hyperplanes(); ++i) {
+                NT dist = (b(i) - A.row(i).dot(r.getCoefficients()) ) / A.row(i).norm();
+                if(dist < _inner_ball.second) {
+                    _inner_ball.second = dist;
+                }
+            }
+        }
+        has_ball = true;
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b

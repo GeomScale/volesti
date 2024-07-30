@@ -58,7 +58,7 @@ struct AcceleratedBilliardWalk
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        typedef typename Polytope::DenseMT MT;
+        typedef typename Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic> MT;
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope>
