@@ -67,7 +67,6 @@ struct GaussianAcceleratedBilliardWalk
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        typedef typename Polytope::MT A_type;
         typedef typename Polytope::DenseMT DenseMT;
         typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
@@ -111,11 +110,7 @@ struct GaussianAcceleratedBilliardWalk
             _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
             computeLcov(E);
             _E = E;
-            if constexpr (std::is_same<A_type, Eigen::SparseMatrix<NT>>::value) {
-                _AA = P.get_mat() * P.get_mat().transpose();
-            } else {
-                _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            }
+            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -136,11 +131,7 @@ struct GaussianAcceleratedBilliardWalk
                                 ::template compute<NT>(P);
             computeLcov(E);
             _E = E;
-            if constexpr (std::is_same<A_type, Eigen::SparseMatrix<NT>>::value) {
-                _AA = P.get_mat() * P.get_mat().transpose();
-            } else {
-                _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            }
+            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -291,7 +282,7 @@ struct GaussianAcceleratedBilliardWalk
         Point _p;
         Point _v;
         NT _lambda_prev;
-        A_type _AA;
+        DenseMT _AA;
         E_type _L_cov;   // LL' = inv(E)
         DenseMT _AE;
         E_type _E;

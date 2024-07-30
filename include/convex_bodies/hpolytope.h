@@ -51,8 +51,6 @@ public:
     typedef Point                                             PointType;
     typedef typename Point::FT                                NT;
     typedef typename std::vector<NT>::iterator                viterator;
-    //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-    //typedef RowMatrixXd MT;
     typedef MT_type                                           MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
@@ -118,10 +116,12 @@ public:
     void set_interior_point(Point const& r)
     {
         _inner_ball.first = r;
+        has_ball = false;
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
-    //Use LpSolve library
+    //First try using max_inscribed_ball
+    //Use LpSolve library if it fails
     std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
@@ -508,7 +508,7 @@ public:
                                                      VT& Ar,
                                                      VT& Av,
                                                      NT const& lambda_prev,
-                                                     MT const& AA,
+                                                     DenseMT const& AA,
                                                      update_parameters& params) const
     {
 
@@ -524,7 +524,7 @@ public:
         if(params.hit_ball) {
             Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
         } else {
-            Av.noalias() += (DenseMT)((-2.0 * inner_prev) * AA.col(params.facet_prev));
+            Av.noalias() += ((-2.0 * inner_prev) * AA.col(params.facet_prev));
         }
         sum_nom.noalias() = b - Ar;
 
