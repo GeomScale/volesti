@@ -342,10 +342,101 @@ void call_test_gabw(){
 
     MT samples(d, numpoints);
     unsigned int jj = 0;
-    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit != randPoints.end(); rpit++, jj++)
         samples.col(jj) = (*rpit).getCoefficients();
 
     VT score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+    CHECK(score.maxCoeff() < 1.1);
+    RNGType Srng(d);
+
+    typedef Eigen::SparseMatrix<NT> SparseMT;
+    typedef HPolytope<Point, SparseMT> SparseHpoly;
+    std::list<Point> Points;
+
+    SparseHpoly SP;
+    SP = generate_skinny_cube<SparseHpoly>(10);
+
+
+    std::cout << "--- Testing Gaussian Accelerated Billiard Walk for Sparse Skinny-H-cube10" << std::endl;
+
+
+    p = SP.ComputeInnerBall().first;
+    typedef typename GaussianAcceleratedBilliardWalk::template Walk
+            <
+                    SparseHpoly,
+                    RNGType,
+                    SparseMT
+            > sparsewalk;
+    typedef MultivariateGaussianRandomPointGenerator <sparsewalk> SparseRandomPointGenerator;
+
+
+    ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>
+    (SP.get_mat(), SP.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
+
+    const SparseMT SE = get<0>(ellipsoid).sparseView();
+
+    SparseRandomPointGenerator::apply(SP, p, SE, numpoints, 1, Points,
+                                push_back_policy, Srng);
+
+    jj = 0;
+    MT Ssamples(d, numpoints);
+    for (typename std::list<Point>::iterator rpit = Points.begin(); rpit != Points.end(); rpit++, jj++)
+        Ssamples.col(jj) = (*rpit).getCoefficients();
+
+    score = univariate_psrf<NT, VT>(Ssamples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+    CHECK(score.maxCoeff() < 1.1);
+    NT delta = (samples - Ssamples).maxCoeff();
+    std::cout << "\ndelta = " << delta << std::endl;
+    CHECK(delta < 0.00001);
+
+}
+
+template <typename NT>
+void call_test_sparse(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point, Eigen::SparseMatrix<NT>> Hpolytope;
+    typedef typename Hpolytope::MT MT;
+    typedef typename Hpolytope::DenseMT DenseMT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    Hpolytope P;
+    unsigned int d = 10;
+
+    std::cout << "--- Testing ABW for sparse H-cube10" << std::endl;
+    P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    DenseMT samples = get_samples<DenseMT, AcceleratedBilliardWalk>(P);
+
+    VT score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+    CHECK(score.maxCoeff() < 1.1);
+
+
+    std::cout << "--- Testing CDHR for sparse H-cube10" << std::endl;
+    P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    samples = get_samples<DenseMT, CDHRWalk>(P);
+
+    score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+
+    CHECK(score.maxCoeff() < 1.1);
+
+
+    std::cout << "--- Testing RDHR for sparse H-cube10" << std::endl;
+    P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    samples = get_samples<DenseMT, RDHRWalk>(P);
+
+    score = univariate_psrf<NT, VT>(samples);
     std::cout << "psrf = " << score.maxCoeff() << std::endl;
 
     CHECK(score.maxCoeff() < 1.1);
@@ -385,4 +476,8 @@ TEST_CASE("ghmc") {
 
 TEST_CASE("gabw") {
     call_test_gabw<double>();
+}
+
+TEST_CASE("sparse") {
+    call_test_sparse<double>();
 }

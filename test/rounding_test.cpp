@@ -57,7 +57,7 @@ void rounding_min_ellipsoid_test(Polytope &HP,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef typename Polytope::MT MT;
+    typedef typename Polytope::DenseMT MT;
     typedef typename Polytope::VT VT;
 
     int d = HP.dimension();
@@ -102,7 +102,7 @@ void rounding_max_ellipsoid_test(Polytope &HP,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef typename Polytope::MT MT;
+    typedef typename Polytope::DenseMT MT;
     typedef typename Polytope::VT VT;
 
     int d = HP.dimension();
@@ -178,7 +178,7 @@ void rounding_log_barrier_test(Polytope &HP,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef typename Polytope::MT MT;
+    typedef typename Polytope::DenseMT MT;
     typedef typename Polytope::VT VT;
 
     int d = HP.dimension();
@@ -208,7 +208,7 @@ void rounding_volumetric_barrier_test(Polytope &HP,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef typename Polytope::MT MT;
+    typedef typename Polytope::DenseMT MT;
     typedef typename Polytope::VT VT;
 
     int d = HP.dimension();
@@ -238,7 +238,7 @@ void rounding_vaidya_barrier_test(Polytope &HP,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef typename Polytope::MT MT;
+    typedef typename Polytope::DenseMT MT;
     typedef typename Polytope::VT VT;
 
     int d = HP.dimension();
@@ -381,6 +381,39 @@ void call_test_svd() {
     rounding_svd_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 }
 
+template <typename NT>
+void call_test_sparse() {
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope <Point, Eigen::SparseMatrix<NT>> Hpolytope;
+    Hpolytope P;
+
+    //std::cout << "\n--- Testing SVD rounding of sparse H-skinny_cube5" << std::endl;
+    //P = generate_skinny_cube<Hpolytope>(5);
+    //rounding_svd_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
+
+    std::cout << "\n--- Testing log-barrier rounding of sparse H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_log_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
+
+    std::cout << "\n--- Testing volumetric barrier rounding of sparse H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_volumetric_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
+
+    std::cout << "\n--- Testing vaidya barrier rounding of sparse H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_vaidya_barrier_test(P, 0, 3070.64, 3188.25, 3262.77, 3200.0);
+
+    std::cout << "\n--- Testing min ellipsoid rounding of sparse H-skinny_cube10" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(10);
+    rounding_min_ellipsoid_test(P, 0, 122550, 108426, 105003.0, 102400.0);
+
+    std::cout << "\n--- Testing max ellipsoid rounding of sparse H-skinny_cube5" << std::endl;
+    P = generate_skinny_cube<Hpolytope>(5);
+    rounding_max_ellipsoid_test(P, 0, 3070.64, 3188.25, 3262.61, 3200.0);
+}
+
+
 
 TEST_CASE("round_min_ellipsoid") {
     call_test_min_ellipsoid<double>();
@@ -410,3 +443,6 @@ TEST_CASE("round_svd") {
     call_test_svd<double>();
 }
 
+TEST_CASE("round_sparse") {
+    call_test_sparse<double>();
+}

@@ -210,6 +210,7 @@ add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
 add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
 add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
 add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
+add_test(NAME test_sparse COMMAND sampling_test -tc=sparse)
 
 add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
@@ -263,6 +264,7 @@ add_test(NAME volume_cg_hpolytope_birkhoff COMMAND volume_cg_hpolytope -tc=birk)
 add_test(NAME volume_cg_hpolytope_prod_simplex COMMAND volume_cg_hpolytope -tc=prod_simplex)
 add_test(NAME volume_cg_hpolytope_simplex COMMAND volume_cg_hpolytope -tc=simplex)
 add_test(NAME volume_cg_hpolytope_skinny_cube COMMAND volume_cg_hpolytope -tc=skinny_cube)
+add_test(NAME volume_cg_hpolytope_sparse_simplex COMMAND volume_cg_hpolytope -tc=sparse_simplex)
 
 add_executable (volume_cg_vpolytope volume_cg_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME volume_cg_vpolytope_cube COMMAND volume_cg_vpolytope -tc=cube)
@@ -305,6 +307,8 @@ add_test(NAME round_volumetric_barrier_test
           COMMAND rounding_test -tc=round_volumetric_barrier_test)
 add_test(NAME round_vaidya_barrier_test
           COMMAND rounding_test -tc=round_vaidya_barrier_test)
+add_test(NAME round_sparse_test
+          COMMAND rounding_test -tc=round_sparse)
 
 
 

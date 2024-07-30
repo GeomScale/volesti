@@ -12,6 +12,7 @@
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
 #include "sampling/sphere.hpp"
+#include <Eigen/Eigen>
 
 
 // Billiard walk which accelarates each step for uniform distribution
@@ -57,7 +58,7 @@ struct AcceleratedBilliardWalk
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        typedef typename Polytope::MT MT;
+        typedef typename Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic> MT;
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope>
@@ -69,7 +70,7 @@ struct AcceleratedBilliardWalk
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _AA.noalias() = (MT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -85,7 +86,7 @@ struct AcceleratedBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _AA.noalias() = (MT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }

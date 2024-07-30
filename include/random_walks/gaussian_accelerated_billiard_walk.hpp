@@ -60,20 +60,47 @@ struct GaussianAcceleratedBilliardWalk
 
     template
     <
-            typename Polytope,
-            typename RandomNumberGenerator
+        typename Polytope,
+        typename RandomNumberGenerator,
+        typename E_type = typename Polytope::DenseMT
     >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        typedef typename Polytope::MT MT;
+        typedef typename Polytope::DenseMT DenseMT;
         typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
+
+        void computeLcov(const E_type E)
+        {
+            if constexpr (std::is_same<E_type, Eigen::SparseMatrix<NT> >::value) {
+                Eigen::SimplicialLLT<E_type> lltofE;
+                lltofE.compute(E);
+                if (lltofE.info() != Eigen::Success) {
+                    throw std::runtime_error("First Cholesky decomposition failed for sparse matrix!");
+                }
+                Eigen::SparseMatrix<NT> I(E.cols(), E.cols());
+                I.setIdentity();
+                Eigen::SparseMatrix<NT> E_inv = lltofE.solve(I);
+                Eigen::SimplicialLLT<E_type> lltofEinv;
+                lltofEinv.compute(E_inv);
+                if (lltofE.info() != Eigen::Success) {
+                    throw std::runtime_error("Second Cholesky decomposition failed for sparse matrix!");
+                }
+                _L_cov = lltofEinv.matrixL();
+            } else {
+                Eigen::LLT<E_type> lltOfE(E.llt().solve(E_type::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
+                if (lltOfE.info() != Eigen::Success) {
+                    throw std::runtime_error("Cholesky decomposition failed for dense matrix!");
+                }
+                _L_cov = lltOfE.matrixL();
+            }
+        }
 
         template <typename GenericPolytope>
         Walk(GenericPolytope& P,
              Point const& p,
-             MT const& E,   // covariance matrix representing the Gaussian distribution
+             E_type const& E,   // covariance matrix representing the Gaussian distribution
              RandomNumberGenerator &rng)
         {
             if(!P.is_normalized()) {
@@ -81,13 +108,9 @@ struct GaussianAcceleratedBilliardWalk
             }
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
-            Eigen::LLT<MT> lltOfE(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
-            if (lltOfE.info() != Eigen::Success) {
-                throw std::runtime_error("Cholesky decomposition failed!");
-            }
-            _L_cov = lltOfE.matrixL();
+            computeLcov(E);
             _E = E;
-            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -95,7 +118,7 @@ struct GaussianAcceleratedBilliardWalk
         template <typename GenericPolytope>
         Walk(GenericPolytope& P,
              Point const& p,
-             MT const& E,   // covariance matrix representing the Gaussian distribution
+             E_type const& E,   // covariance matrix representing the Gaussian distribution
              RandomNumberGenerator &rng,
              parameters const& params)
         {
@@ -106,13 +129,9 @@ struct GaussianAcceleratedBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            Eigen::LLT<MT> lltOfE(E.llt().solve(MT::Identity(E.cols(), E.cols()))); // compute the Cholesky decomposition of inv(E)
-            if (lltOfE.info() != Eigen::Success) {
-                throw std::runtime_error("Cholesky decomposition failed!");
-            }
-            _L_cov = lltOfE.matrixL();
+            computeLcov(E);
             _E = E;
-            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -204,8 +223,14 @@ struct GaussianAcceleratedBilliardWalk
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
-            _AE.noalias() = P.get_mat() * _E;
-            _AEA = _AE.cwiseProduct(P.get_mat()).rowwise().sum();
+            _AE.noalias() = (DenseMT)(P.get_mat() * _E);
+            _AEA = _AE.cwiseProduct((DenseMT)P.get_mat()).rowwise().sum();
+            /*
+            _AEA.resize(P.num_of_hyperplanes());
+            for(int i = 0; i < P.num_of_hyperplanes(); ++i)
+            {
+                _AEA(i) = _AE.row(i).dot(P.get_mat().row(i));
+            }*/
 
             _v = GetDirection<Point>::apply(n, rng, false);
             _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
@@ -257,10 +282,10 @@ struct GaussianAcceleratedBilliardWalk
         Point _p;
         Point _v;
         NT _lambda_prev;
-        MT _AA;
-        MT _L_cov;   // LL' = inv(E)
-        MT _AE;
-        MT _E;
+        DenseMT _AA;
+        E_type _L_cov;   // LL' = inv(E)
+        DenseMT _AE;
+        E_type _E;
         VT _AEA;
         unsigned int _rho;
         update_parameters _update_parameters;
