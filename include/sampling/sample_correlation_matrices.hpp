@@ -14,6 +14,21 @@
 
 #include <sampling/sampling.hpp>
 
+template<typename NT, typename MT>
+MT getCoefficientsFromMatrix(const MT& mat) {
+    int n = mat.rows();
+    int d = n * (n - 1) / 2;
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> coeffs(d);
+    int k = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < i; ++j) {
+            coeffs(k) = mat(i, j);
+            ++k;
+    	}
+    }
+    return coeffs;
+}
+
 // New implementations for sampling correlation matrices with CorrelationSpectrahedron and CorrelationSpectrahedron_MT
 
 template
