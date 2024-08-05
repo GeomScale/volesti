@@ -136,16 +136,16 @@ struct AcceleratedBilliardWalk
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev,
-                                                        _AA, _update_parameters);
+                                                        _AA, _update_parameters); //
                     if (T <= pbpair.first) {
-                        _p += (T * _v);
+                        _p += (T * _v);//
                         _lambda_prev = T;
                         break;
                     }
                     _lambda_prev = dl * pbpair.first;
-                    _p += (_lambda_prev * _v);
+                    _p += (_lambda_prev * _v);//
                     T -= _lambda_prev;
-                    P.compute_reflection(_v, _p, _update_parameters);
+                    P.compute_reflection(_v, _p, _update_parameters);//
                     it++;
                 }
                 if (it == _rho) {

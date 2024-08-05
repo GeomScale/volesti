@@ -525,7 +525,7 @@ public:
                                                      VT& Av,
                                                      NT const& lambda_prev,
                                                      DenseMT const& AA,
-                                                     update_parameters& params) const
+                                                     update_parameters& params) const //
     {
 
         NT min_plus  = std::numeric_limits<NT>::max();
@@ -954,9 +954,15 @@ public:
 
     template <typename update_parameters>
     void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
-
-            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
-            v += a;
+            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) { // is faster only if MT is RowMajor
+                NT* v_data = v.pointerToData();
+                for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
+                    *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                }
+            } else {
+                Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+                v += a;
+            }
     }
 
     template <typename update_parameters>
