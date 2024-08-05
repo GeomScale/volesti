@@ -525,7 +525,7 @@ public:
                                                      VT& Av,
                                                      NT const& lambda_prev,
                                                      DenseMT const& AA,
-                                                     update_parameters& params) const //
+                                                     update_parameters& params) const//
     {
 
         NT min_plus  = std::numeric_limits<NT>::max();
@@ -918,7 +918,7 @@ public:
         normalized = true;
     }
 
-    void compute_reflection(Point& v, Point const&, int const& facet) const
+    void compute_reflection(Point& v, Point& p, int const& facet) const
     {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
@@ -953,11 +953,13 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
-            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) { // is faster only if MT is RowMajor
+    void compute_reflection(Point &v, Point &p, update_parameters const& params) const {
+            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) { // is faster only if MT is in RowMajor format
                 NT* v_data = v.pointerToData();
+                NT* p_data = p.pointerToData();
                 for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
                     *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                    *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
                 }
             } else {
                 Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));

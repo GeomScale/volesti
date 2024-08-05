@@ -39,12 +39,13 @@ struct AcceleratedBilliardWalk
     struct update_parameters
     {
         update_parameters()
-                :   facet_prev(0), hit_ball(false), inner_vi_ak(0.0), ball_inner_norm(0.0)
+                :   facet_prev(0), hit_ball(false), inner_vi_ak(0.0), ball_inner_norm(0.0), moved_dist(0.0)
         {}
         int facet_prev;
         bool hit_ball;
         double inner_vi_ak;
         double ball_inner_norm;
+        double moved_dist;
     };
 
     parameters param;
@@ -58,7 +59,8 @@ struct AcceleratedBilliardWalk
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        typedef typename Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic> MT;
+        typedef typename Polytope::MT MT;
+        typedef typename Polytope::DenseMT DenseMT;
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope>
@@ -70,7 +72,7 @@ struct AcceleratedBilliardWalk
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            _AA.noalias() = (MT)(P.get_mat() * P.get_mat().transpose());
+                _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -86,7 +88,7 @@ struct AcceleratedBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            _AA.noalias() = (MT)(P.get_mat() * P.get_mat().transpose());
+                _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -132,22 +134,30 @@ struct AcceleratedBilliardWalk
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
+                _update_parameters.moved_dist = 0.0;
+
                 while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev,
                                                         _AA, _update_parameters); //
                     if (T <= pbpair.first) {
-                        _p += (T * _v);//
+                        _p += (T * _v);
                         _lambda_prev = T;
                         break;
                     }
                     _lambda_prev = dl * pbpair.first;
-                    _p += (_lambda_prev * _v);//
+                    if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
+                        _update_parameters.moved_dist += _lambda_prev;
+                    } else {
+                        _p += (_lambda_prev * _v);// done
+                    }
                     T -= _lambda_prev;
-                    P.compute_reflection(_v, _p, _update_parameters);//
+                    P.compute_reflection(_v, _p, _update_parameters);// done
                     it++;
                 }
+                _p += _update_parameters.moved_dist * _v;
+                _update_parameters.moved_dist = 0.0;
                 if (it == _rho) {
                     _p = p0;
                     was_reset = true;
@@ -312,7 +322,7 @@ struct AcceleratedBilliardWalk
         Point _p;
         Point _v;
         NT _lambda_prev;
-        MT _AA;
+        DenseMT _AA;
         unsigned int _rho;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
