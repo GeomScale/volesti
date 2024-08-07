@@ -152,7 +152,7 @@ struct AcceleratedBilliardWalk
                     _p += (_lambda_prev * _v);
                 }
                 T -= _lambda_prev;
-                P.compute_reflection(_v, _p, _update_parameters);
+                P.compute_reflection_abw(_v, _p, _update_parameters);
                 it++;
 
                 while (it < _rho)
@@ -177,7 +177,7 @@ struct AcceleratedBilliardWalk
                         _p += (_lambda_prev * _v);
                     }
                     T -= _lambda_prev;
-                    P.compute_reflection(_v, _p, _update_parameters);
+                    P.compute_reflection_abw(_v, _p, _update_parameters);
                     it++;
                 }
                 _p += _update_parameters.moved_dist * _v;
@@ -298,7 +298,7 @@ struct AcceleratedBilliardWalk
             _lambda_prev = dl * pbpair.first;
             _p += (_lambda_prev * _v);
             T -= _lambda_prev;
-            P.compute_reflection(_v, _p, _update_parameters);
+            P.compute_reflection_abw(_v, _p, _update_parameters);
 
             while (it <= _rho)
             {
@@ -316,7 +316,7 @@ struct AcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                P.compute_reflection(_v, _p, _update_parameters);
+                P.compute_reflection_abw(_v, _p, _update_parameters);
                 it++;
             }
         }
