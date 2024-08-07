@@ -61,7 +61,7 @@ struct AcceleratedBilliardWalk
     {
         typedef typename Polytope::PointType Point;
         typedef typename Polytope::MT MT;
-        typedef typename Polytope::DenseMT DenseMT;
+        typedef typename Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
         typedef typename Point::FT NT;
         using AA_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>>, typename Eigen::SparseMatrix<NT>, DenseMT >; 
         // AA is sparse colMajor if MT is sparse rowMajor, and Dense otherwise
@@ -152,7 +152,7 @@ struct AcceleratedBilliardWalk
                     _p += (_lambda_prev * _v);
                 }
                 T -= _lambda_prev;
-                P.compute_reflection_abw(_v, _p, _update_parameters);
+                P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
                 while (it < _rho)
@@ -177,7 +177,7 @@ struct AcceleratedBilliardWalk
                         _p += (_lambda_prev * _v);
                     }
                     T -= _lambda_prev;
-                    P.compute_reflection_abw(_v, _p, _update_parameters);
+                    P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
                 _p += _update_parameters.moved_dist * _v;
@@ -298,7 +298,7 @@ struct AcceleratedBilliardWalk
             _lambda_prev = dl * pbpair.first;
             _p += (_lambda_prev * _v);
             T -= _lambda_prev;
-            P.compute_reflection_abw(_v, _p, _update_parameters);
+            P.compute_reflection(_v, _p, _update_parameters);
 
             while (it <= _rho)
             {
@@ -316,7 +316,7 @@ struct AcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                P.compute_reflection_abw(_v, _p, _update_parameters);
+                P.compute_reflection(_v, _p, _update_parameters);
                 it++;
             }
         }

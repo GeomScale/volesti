@@ -1015,17 +1015,13 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection_abw(Point &v, Point &p, update_parameters const& params) const {
-            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) { // MT must be in RowMajor format
-                NT* v_data = v.pointerToData();
-                NT* p_data = p.pointerToData();
-                for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
-                    *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
-                    *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
-                }
-            } else {
-                Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
-                v += a;
+    auto compute_reflection(Point &v, Point &p, update_parameters const& params) const
+         -> std::enable_if_t<std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>> && !std::is_same_v<update_parameters, int>, void> { // MT must be in RowMajor format
+            NT* v_data = v.pointerToData();
+            NT* p_data = p.pointerToData();
+            for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
+                *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
             }
     }
 
