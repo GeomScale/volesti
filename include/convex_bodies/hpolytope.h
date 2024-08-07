@@ -525,7 +525,7 @@ public:
                                                      VT& Av,
                                                      NT const& lambda_prev,
                                                      DenseMT const& AA,
-                                                     update_parameters& params) const//
+                                                     update_parameters& params) const
     {
 
         NT min_plus  = std::numeric_limits<NT>::max();
@@ -564,6 +564,62 @@ public:
         }
         params.facet_prev = facet;
         return std::pair<NT, int>(min_plus, facet);
+    }
+
+
+
+    template <typename update_parameters, typename set_type, typename AA_type>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     VT& distances_vec,
+                                                     set_type& distances_set,
+                                                     AA_type const& AA,
+                                                     update_parameters& params) const
+    {
+        NT inner_prev = params.inner_vi_ak;
+
+        // real Ar            = Ar + params.moved_dist * Av
+        // real r             = r + params.moved_dist * v
+        // real distances_vec = distances_vec - params.moved_dist
+        
+        NT* Av_data = Av.data();
+        NT* Ar_data = Ar.data();
+        NT* dvec_data = distances_vec.data();
+        const NT* b_data = b.data();
+        for (Eigen::SparseMatrix<double>::InnerIterator it(AA, params.facet_prev); it; ++it) {
+
+            *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
+            *(Ar_data + it.row()) -= (-2.0 * inner_prev * params.moved_dist) * it.value();
+
+            distances_set.erase(std::make_pair(*(dvec_data + it.row()), it.row()));
+            
+            *(dvec_data + it.row()) = (*(b_data + it.row()) - *(Ar_data + it.row())) / *(Av_data + it.row());
+
+            if(*(dvec_data + it.row()) > params.moved_dist)
+                distances_set.insert(std::make_pair(*(dvec_data + it.row()), it.row()));
+        }
+
+        auto it = distances_set.upper_bound(std::make_pair(params.moved_dist, 0));
+
+        if(it == distances_set.end()) {
+            std::cout << "something went wrong when trying to get lowest positive value" << std::endl;
+            throw "all values from the set were negative";
+        }
+
+        std::pair<NT, int> ans = (*it);
+        ans.first -= params.moved_dist;
+
+        params.inner_vi_ak = *(Av_data + ans.second);
+        params.facet_prev = ans.second;
+
+        /*if(ans.first < 0.00000001) {
+            std::cout << "distance of 0 found" << std::endl;
+            exit(0);
+        }*/
+
+        return ans;
     }
 
 
@@ -954,7 +1010,7 @@ public:
 
     template <typename update_parameters>
     void compute_reflection(Point &v, Point &p, update_parameters const& params) const {
-            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) { // is faster only if MT is in RowMajor format
+            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) { // MT must be in RowMajor format
                 NT* v_data = v.pointerToData();
                 NT* p_data = p.pointerToData();
                 for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
