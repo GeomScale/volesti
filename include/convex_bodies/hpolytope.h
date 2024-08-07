@@ -570,9 +570,9 @@ public:
 
     template <typename update_parameters, typename set_type, typename AA_type>
     std::pair<NT, int> line_positive_intersect(Point const& r,
-                                                     Point const& v,
                                                      VT& Ar,
                                                      VT& Av,
+                                                     NT const& lambda_prev,
                                                      VT& distances_vec,
                                                      set_type& distances_set,
                                                      AA_type const& AA,
@@ -593,7 +593,8 @@ public:
             *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
             *(Ar_data + it.row()) -= (-2.0 * inner_prev * params.moved_dist) * it.value();
 
-            distances_set.erase(std::make_pair(*(dvec_data + it.row()), it.row()));
+            if(*(dvec_data + it.row()) > params.moved_dist - lambda_prev)
+                distances_set.erase(std::make_pair(*(dvec_data + it.row()), it.row()));
             
             *(dvec_data + it.row()) = (*(b_data + it.row()) - *(Ar_data + it.row())) / *(Av_data + it.row());
 
