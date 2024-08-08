@@ -233,19 +233,12 @@ struct AcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
                     _update_parameters.moved_dist = _lambda_prev;
-                    //_distances_set.clear();
-                    _distances_vec.setZero(P.num_of_hyperplanes());
                     typename Point::Coeff b = P.get_vec();
                     NT* b_data = b.data();
-                    //NT* dvec_data = _distances_vec.data();
                     NT* Ar_data = _lambdas.data();
                     NT* Av_data = _Av.data();
                     for(int i = 0; i < P.num_of_hyperplanes(); ++i) {
                         _distances_set.vec[i].first = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
-                        //std::cout << _distances_set.vec[i].first << ' ';
-                        //*(dvec_data + i) = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
-                        //if(*(dvec_data + i) > _update_parameters.moved_dist)
-                        //    _distances_set.insert(std::make_pair(*(dvec_data + i), i));
                     }
                     _distances_set.rebuild(_update_parameters.moved_dist);
                 } else {
@@ -259,7 +252,7 @@ struct AcceleratedBilliardWalk
                 {   
                     std::pair<NT, int> pbpair;
                     if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
-                        pbpair = P.line_positive_intersect(_p, _lambdas, _Av, _lambda_prev, _distances_vec,
+                        pbpair = P.line_positive_intersect(_p, _lambdas, _Av, _lambda_prev,
                                                            _distances_set, _AA, _update_parameters);
                     } else {
                         pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev,
@@ -450,9 +443,7 @@ struct AcceleratedBilliardWalk
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;
-        typename Point::Coeff _distances_vec;
         Heap<NT> _distances_set;
-        //std::set<std::pair<NT, int>> _distances_set;
     };
 
 };

@@ -573,61 +573,23 @@ public:
                                                      VT& Ar,
                                                      VT& Av,
                                                      NT const& lambda_prev,
-                                                     VT& distances_vec,
                                                      set_type& distances_set,
                                                      AA_type const& AA,
                                                      update_parameters& params) const
     {
         NT inner_prev = params.inner_vi_ak;
-
-        // real Ar            = Ar + params.moved_dist * Av
-        // real r             = r + params.moved_dist * v
-        // real distances_vec = distances_vec - params.moved_dist
         
         NT* Av_data = Av.data();
-        //NT* Ar_data = Ar.data();
-        //NT* dvec_data = distances_vec.data();
         const NT* b_data = b.data();
 
         for (Eigen::SparseMatrix<double>::InnerIterator it(AA, params.facet_prev); it; ++it) {
 
-            // NT old_Av = *(Av_data + it.row());
-
             *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
-            //*(Ar_data + it.row()) -= (-2.0 * inner_prev * params.moved_dist) * it.value();
-
-            //if(*(dvec_data + it.row()) > params.moved_dist - lambda_prev)
-            //    distances_set.erase(std::make_pair(*(dvec_data + it.row()), it.row()));
-            
-            // *(dvec_data + it.row()) = (*(b_data + it.row()) - *(Ar_data + it.row())) / *(Av_data + it.row());
-            // *(dvec_data + it.row()) = (*(dvec_data + it.row()) - params.moved_dist) * old_Av / *(Av_data + it.row()) + params.moved_dist;
-            // *(dvec_data + it.row()) += (*(dvec_data + it.row()) - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
-
             NT val = distances_set.get_val(it.row());
             val += (val - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
             distances_set.change_val(it.row(), val, params.moved_dist);
-
-            //if(*(dvec_data + it.row()) > params.moved_dist)
-            //    distances_set.insert(std::make_pair(*(dvec_data + it.row()), it.row()));
         }
-        /*
-        std::cout << "got here post!!" << std::endl;
-        std::cout << std::endl;
-        std::cout << distances_set.heap_size << std::endl;
-        std::cout << params.moved_dist << std::endl;
-        std::cout << lambda_prev << std::endl;
-        for(int i = 0; i < num_of_hyperplanes(); ++i) {
-            std::cout << distances_set.heap[i].first << ' ';
-        }
-        std::cout << std::endl << std::endl;*/
-
-        /*auto it = distances_set.upper_bound(std::make_pair(-9999999, 0));
-
-        if(it == distances_set.end()) {
-            std::cout << "something went wrong when trying to get lowest positive value" << std::endl;
-            throw "all values from the set were negative";
-        }
-        */
+        
         std::pair<NT, int> ans = distances_set.get_min();
         ans.first -= params.moved_dist;
 
