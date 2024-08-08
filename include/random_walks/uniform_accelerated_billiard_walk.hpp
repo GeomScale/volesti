@@ -14,6 +14,103 @@
 #include "sampling/sphere.hpp"
 #include <Eigen/Eigen>
 #include <set>
+#include <vector>
+
+template<typename NT>
+class Heap {
+public:
+    int n, heap_size;
+    std::vector<std::pair<NT, int>> heap;
+    std::vector<std::pair<NT, int>> vec;
+
+private:
+    void siftDown(int index) {
+        while((index << 1) + 1 < heap_size) {
+            int child = (index << 1) + 1;
+            if(child + 1 < heap_size && heap[child + 1].first < heap[child].first) {
+                child += 1;
+            }
+            if(heap[child].first < heap[index].first)
+            {
+                std::swap(heap[child], heap[index]);
+                std::swap(vec[heap[child].second].second, vec[heap[index].second].second);
+                index = child;
+            } else {
+                return;
+            }
+        }
+    }
+
+    void siftUp(int index) {
+        while(index > 0 && heap[(index - 1) >> 1].first > heap[index].first) {
+            std::swap(heap[(index - 1) >> 1], heap[index]);
+            std::swap(vec[heap[(index - 1) >> 1].second].second, vec[heap[index].second].second);
+            index = (index - 1) >> 1;
+        }
+    }
+
+public:
+    Heap() {}
+
+    Heap(int n) : n(n), heap_size(0) {
+        heap.resize(n);
+        vec.resize(n);
+    }
+
+    void rebuild (const NT &moved_dist) {
+        heap_size = 0;
+        for(int i = 0; i < n; ++i) {
+            vec[i].second = -1;
+            if(vec[i].first > moved_dist) {
+                vec[i].second = heap_size;
+                heap[heap_size++] = {vec[i].first, i};
+            }
+        }
+        for(int i = heap_size - 1; i >= 0; --i) {
+            siftDown(i);
+        }
+    }
+
+    NT get_val (const int &index) {
+        return vec[index].first;
+    }
+
+    std::pair<NT, int> get_min () {
+        return heap[0];
+    }
+
+    void remove (const int index) { // takes the index from the heap
+        if(index == -1) {
+            return;
+        }
+        std::swap(heap[heap_size - 1], heap[index]);
+        std::swap(vec[heap[heap_size - 1].second].second, vec[heap[index].second].second);
+        vec[heap[heap_size - 1].second].second = -1;
+        heap_size -= 1;
+        siftDown(index);
+    }
+
+    void insert (const std::pair<NT, int> val) {
+        heap[heap_size++] = val;
+        siftUp(heap_size - 1);
+    }
+
+    void change_val(const int& index, const NT& new_val, const NT& moved_dist) { // takes the index from the vec
+        if(new_val < moved_dist) { // should not be inserted into the heap
+            remove(vec[index].second);
+        } else { // should be inserted into the heap
+            if(vec[index].second == -1) {
+                vec[index].second = heap_size;
+                insert({new_val, index});
+            } else {
+                heap[vec[index].second].first = new_val;
+                siftDown(vec[index].second);
+                siftUp(vec[index].second);
+            }
+        }
+        vec[index].first = new_val;
+    }
+};
 
 
 // Billiard walk which accelarates each step for uniform distribution
@@ -136,18 +233,21 @@ struct AcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
                     _update_parameters.moved_dist = _lambda_prev;
-                    _distances_set.clear();
+                    //_distances_set.clear();
                     _distances_vec.setZero(P.num_of_hyperplanes());
                     typename Point::Coeff b = P.get_vec();
                     NT* b_data = b.data();
-                    NT* dvec_data = _distances_vec.data();
+                    //NT* dvec_data = _distances_vec.data();
                     NT* Ar_data = _lambdas.data();
                     NT* Av_data = _Av.data();
                     for(int i = 0; i < P.num_of_hyperplanes(); ++i) {
-                        *(dvec_data + i) = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
-                        if(*(dvec_data + i) > _update_parameters.moved_dist)
-                            _distances_set.insert(std::make_pair(*(dvec_data + i), i));
+                        _distances_set.vec[i].first = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
+                        //std::cout << _distances_set.vec[i].first << ' ';
+                        //*(dvec_data + i) = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
+                        //if(*(dvec_data + i) > _update_parameters.moved_dist)
+                        //    _distances_set.insert(std::make_pair(*(dvec_data + i), i));
                     }
+                    _distances_set.rebuild(_update_parameters.moved_dist);
                 } else {
                     _p += (_lambda_prev * _v);
                 }
@@ -283,6 +383,7 @@ struct AcceleratedBilliardWalk
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
             _v = GetDirection<Point>::apply(n, rng);
+            _distances_set = Heap<NT>(P.num_of_hyperplanes());
 
             NT T = -std::log(rng.sample_urdist()) * _L;
             Point p0 = _p;
@@ -350,7 +451,8 @@ struct AcceleratedBilliardWalk
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;
         typename Point::Coeff _distances_vec;
-        std::set<std::pair<NT, int>> _distances_set;
+        Heap<NT> _distances_set;
+        //std::set<std::pair<NT, int>> _distances_set;
     };
 
 };
