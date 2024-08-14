@@ -65,7 +65,7 @@ public:
         heap_size = 0;
         for(int i = 0; i < n; ++i) {
             vec[i].second = -1;
-            if(vec[i].first > moved_dist) {
+            if(vec[i].first - eps > moved_dist) {
                 vec[i].second = heap_size;
                 heap[heap_size++] = {vec[i].first, i};
             }
@@ -83,7 +83,8 @@ public:
         return heap[0];
     }
 
-    void remove (int index) { // takes the index from the heap
+    void remove (int index) { // takes the index from the vec
+        index = vec[index].second;
         if(index == -1) {
             return;
         }
@@ -96,24 +97,26 @@ public:
     }
 
     void insert (const std::pair<NT, int> val) {
+        vec[val.second].second = heap_size;
+        vec[val.second].first = val.first;
         heap[heap_size++] = val;
         siftUp(heap_size - 1);
     }
 
     void change_val(const int& index, const NT& new_val, const NT& moved_dist) { // takes the index from the vec
-        if(new_val < moved_dist) { // should not be inserted into the heap
-            remove(vec[index].second);
-        } else { // should be inserted into the heap
+        if(new_val < moved_dist - eps) {
+            vec[index].first = new_val;
+            remove(index);
+        } else {
             if(vec[index].second == -1) {
-                vec[index].second = heap_size;
                 insert({new_val, index});
             } else {
                 heap[vec[index].second].first = new_val;
+                vec[index].first = new_val;
                 siftDown(vec[index].second);
                 siftUp(vec[index].second);
             }
         }
-        vec[index].first = new_val;
     }
 };
 
