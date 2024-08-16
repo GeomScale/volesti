@@ -79,9 +79,9 @@ private:
     }
 
 public:
-    Heap() {}
+    BoundaryOracleHeap() {}
 
-    Heap(int n) : n(n), heap_size(0) {
+    BoundaryOracleHeap(int n) : n(n), heap_size(0) {
         heap.resize(n);
         vec.resize(n);
     }
@@ -398,7 +398,7 @@ struct AcceleratedBilliardWalk
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
             _v = GetDirection<Point>::apply(n, rng);
-            _distances_set = Heap<NT>(P.num_of_hyperplanes());
+            _distances_set = BoundaryOracleHeap<NT>(P.num_of_hyperplanes());
 
             NT T = -std::log(rng.sample_urdist()) * _L;
             Point p0 = _p;
