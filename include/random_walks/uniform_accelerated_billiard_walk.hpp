@@ -235,9 +235,11 @@ struct AcceleratedBilliardWalk
             NT T;
             const NT dl = 0.995;
             int it;
+            typename Point::Coeff b;
+            NT* b_data;
             if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
-                typename Point::Coeff b = P.get_vec();
-                NT* b_data = b.data();
+                b = P.get_vec();
+                b_data = b.data();
             }
 
             for (auto j=0u; j<walk_length; ++j)
