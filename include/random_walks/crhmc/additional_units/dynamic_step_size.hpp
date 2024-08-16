@@ -50,7 +50,7 @@ public:
     consecutiveBadStep = IVT::Zero(simdLen);
     rejectSinceShrink = VT::Zero(simdLen);
 
-    if (options.warmUpStep > 0) {
+    if (options.warmUpStep > 0 && options.etaInitialize) {
       eta = 1e-3;
     } else {
       warmupFinished = true;

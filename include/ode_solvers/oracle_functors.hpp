@@ -394,4 +394,77 @@ struct HessianFunctor {
 
 };
 
+struct NonSphericalGaussianFunctor {
+  template <typename NT, typename Point>
+  struct parameters {
+    Point x0;
+    NT a;
+    NT eta;
+    unsigned int order;
+    NT L;
+    NT m;
+    NT kappa;
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> inv_covariance_matrix;
+    
+    parameters(Point x0_, NT a_, NT eta_, Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> inv_covariance_matrix_)
+        : x0(x0_), a(a_), eta(eta_), order(2),
+          L(a_), m(a_), kappa(1),
+          inv_covariance_matrix(inv_covariance_matrix_) {};
+  };
+
+  template <typename Point>
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point>& params;
+
+    GradientFunctor(parameters<NT, Point>& params_) : params(params_) {};
+
+    Point operator()(unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+          Point y = xs[0] - params.x0;
+          Eigen::Matrix<NT, Eigen::Dynamic, 1> result = -2.0 * params.a * params.inv_covariance_matrix * y.getCoefficients();
+          return Point(result);
+      } else {
+          return xs[i + 1];
+      }
+    }
+    Point operator()(Point const& x) {
+      Point y = x - params.x0;
+      Eigen::Matrix<NT, Eigen::Dynamic, 1> result = -2.0 * params.a * params.inv_covariance_matrix * y.getCoefficients();
+      return Point(result);
+    }
+  };
+
+  template <typename Point>
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point>& params;
+
+    FunctionFunctor(parameters<NT, Point>& params_) : params(params_) {};
+
+    NT operator()(Point const& x) const {
+      Point y = x - params.x0;
+      Eigen::Matrix<NT, Eigen::Dynamic, 1> y_coeffs = y.getCoefficients();
+      return params.a * y_coeffs.dot(params.inv_covariance_matrix * y_coeffs);
+    }
+  };
+
+  template <typename Point>
+  struct HessianFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point>& params;
+
+    HessianFunctor(parameters<NT, Point>& params_) : params(params_) {};
+
+    Point operator()(Point const& x) const {
+        Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> result =   2.0 * params.a *  params.inv_covariance_matrix;
+        return Point(result);
+    }
+  };
+};
+
 #endif

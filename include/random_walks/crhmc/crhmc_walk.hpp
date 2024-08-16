@@ -164,6 +164,9 @@ struct CRHMCWalk {
     inline void disable_adaptive(){
       update_modules=false;
     }
+    NT get_current_eta() const {
+        return solver->get_eta();
+    }
     inline void apply(RandomNumberGenerator &rng,
       int walk_length = 1,
       bool metropolis_filter = true)
