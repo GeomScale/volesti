@@ -578,28 +578,40 @@ public:
                                                      update_parameters& params) const
     {
         NT inner_prev = params.inner_vi_ak;
-        
         NT* Av_data = Av.data();
-        const NT* b_data = b.data();
+
+        // Av += (-2.0 * inner_prev) * AA.col(params.facet_prev)
 
         for (Eigen::SparseMatrix<double>::InnerIterator it(AA, params.facet_prev); it; ++it) {
 
+
+            // val(row) = (b(row) - Ar(row)) / Av(row) + params.moved_dist
+            // (val(row) - params.moved_dist) = (b(row) - Ar(row)) / Av(row)
+            // (val(row) - params.moved_dist) * Av(row) = b(row) - Ar(row)
+
             *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
+
+            // b(row) - Ar(row) = (old_val(row) - params.moved_dist) * old_Av(row) 
+            // new_val(row) = (b(row) - Ar(row)                                ) / new_Av(row) + params.moved_dist 
+            // new_val(row) = ((old_val(row) - params.moved_dist) * old_Av(row)) / new_Av(row) + params.moved_dist
+            
+            // new_val(row) = (old_val(row) - params.moved_dist) * old_Av(row)                                   / new_Av(row) + params.moved_dist;
+            // new_val(row) = (old_val(row) - params.moved_dist) * (new_Av(row) + 2.0 * inner_prev * it.value()) / new_Av(row) + params.moved_dist;
+            // new_val(row) = (old_val(row) - params.moved_dist) * (1 + (2.0 * inner_prev * it.value()) / new_Av(row) ) + params.moved_dist;
+
+            // new_val(row) = old_val(row) + (old_val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / new_Av(row)
+
+            // val(row) += (val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
+
             NT val = distances_set.get_val(it.row());
             val += (val - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
             distances_set.change_val(it.row(), val, params.moved_dist);
         }
-        
+
         std::pair<NT, int> ans = distances_set.get_min();
         ans.first -= params.moved_dist;
-
         params.inner_vi_ak = *(Av_data + ans.second);
         params.facet_prev = ans.second;
-
-        /*if(ans.first < 0.00000001) {
-            std::cout << "distance of 0 found" << std::endl;
-            exit(0);
-        }*/
 
         return ans;
     }
@@ -996,6 +1008,8 @@ public:
             v += a;
     }
 
+    // updates the velocity vector v and the position vector p after a reflection
+    // the real value of p is given by p + moved_dist * v
     template <typename update_parameters>
     auto compute_reflection(Point &v, Point &p, update_parameters const& params) const
          -> std::enable_if_t<std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>> && !std::is_same_v<update_parameters, int>, void> { // MT must be in RowMajor format
