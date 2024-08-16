@@ -24,77 +24,6 @@
 // Gaussian Anealling
 
 // Compute a_{i+1} when a_i is given
-template
-<
-    typename CRHMCWalkType,
-    typename crhmc_walk_params,
-    int simdLen,
-    typename Grad,
-    typename Func,
-    typename CrhmcProblem,
-    typename Polytope,
-    typename Point,
-    typename NT,
-    typename MT,
-    typename RandomNumberGenerator
->
-NT get_next_gaussian(Polytope& P,
-                    Point &p,
-                    NT const& a,
-                    const unsigned int &N,
-                    const NT &ratio,
-                    const NT &C,
-                    const unsigned int& walk_length,
-                    RandomNumberGenerator& rng,
-                    Grad& g,
-                    Func& f,
-                    crhmc_walk_params& parameters,
-                    CrhmcProblem& problem,
-                    CRHMCWalkType& crhmc_walk,
-                    MT const& inv_covariance_matrix) 
-{
-    NT last_a = a;
-    NT last_ratio = 0.1;
-    NT k = 1.0;
-    const NT tol = 0.00001;
-    bool done = false;
-    std::vector<NT> fn(N, NT(0.0));
-    std::list<Point> randPoints;
-
-    // sample N points
-    PushBackWalkPolicy push_back_policy;
-    bool raw_output = false;
-    typedef CrhmcRandomPointGenerator<CRHMCWalkType> CRHMCRandomPointGenerator;
-
-    CRHMCRandomPointGenerator::apply(problem, p, N, walk_length, randPoints,
-                                    push_back_policy, rng, g, f, parameters, crhmc_walk, simdLen, raw_output);
-
-    while (!done) {
-        NT new_a = last_a * std::pow(ratio, k);
-
-        auto fnit = fn.begin();
-        for (auto pit = randPoints.begin(); pit != randPoints.end(); ++pit, fnit++) {
-            *fnit = eval_exp(*pit, inv_covariance_matrix, new_a, last_a);
-        }
-
-        std::pair<NT, NT> mv = get_mean_variance(fn);
-
-        // Compute a_{i+1}
-        if (mv.second / (mv.first * mv.first) >= C || mv.first / last_ratio < 1.0 + tol) {
-            if (k != 1.0) {
-                k = k / 2;
-            }
-            done = true;
-        } else {
-            k = 2 * k;
-        }
-
-        last_ratio = mv.first;
-    }
-
-    // Return the new a value as a scalar
-    return last_a * std::pow(ratio, k);
-}
 
 template
 <
@@ -130,6 +59,127 @@ void burnIn(Point &p,
 
 }
 
+
+template
+<
+    int simdLen,
+    typename Polytope,
+    typename Point,
+    typename NT,
+    typename MT,
+    typename RandomNumberGenerator
+>
+NT get_next_gaussian(Polytope& P,
+                    Point& p,
+                    NT const& a,
+                    const unsigned int &N,
+                    const NT &ratio,
+                    const NT &C,
+                    const unsigned int& walk_length,
+                    RandomNumberGenerator& rng,
+                    MT const& inv_covariance_matrix) 
+{
+    typedef typename NonSphericalGaussianFunctor::FunctionFunctor<Point>    Func;
+    typedef typename NonSphericalGaussianFunctor::GradientFunctor<Point>    Grad;
+    typedef typename NonSphericalGaussianFunctor::HessianFunctor<Point>     Hess;
+    typedef typename NonSphericalGaussianFunctor::parameters<NT, Point>     func_params;
+
+    typedef crhmc_input<MT, Point, Func, Grad, ZeroFunctor<Point>> Input;
+    //typedef crhmc_input<MT, Point, Func, Grad, Hess> Input;
+
+    typedef crhmc_problem<Point, Input> CrhmcProblem;   
+
+    typedef ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad, simdLen> Solver;
+
+    typedef typename CRHMCWalk::template Walk
+            <
+                    Point,
+                    CrhmcProblem,
+                    RandomNumberGenerator,
+                    Grad,
+                    Func,
+                    Solver
+            > CRHMCWalkType;
+
+    typedef typename CRHMCWalk::template parameters
+          <
+                  NT,
+                  Grad
+          > crhmc_walk_params;
+
+    typedef CrhmcRandomPointGenerator<CRHMCWalkType> CRHMCRandomPointGenerator;
+
+    // Create the CRHMC problem for this variance
+    int dimension = P.dimension();
+    func_params f_params = func_params(Point(dimension), a, -1, inv_covariance_matrix);
+
+    Func f(f_params);
+    Grad g(f_params);
+    Hess h(f_params);
+    ZeroFunctor<Point> zerof;
+
+    Input input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(P, f, g, zerof);
+
+    //Input input = convert2crhmc_input<Input, Polytope, Func, Grad, Hess>(P, f, g, h);
+
+    typedef crhmc_problem<Point, Input> CrhmcProblem;
+    
+    CrhmcProblem problem = CrhmcProblem(input);
+
+    if(problem.terminate) { return 0;}
+
+    problem.options.simdLen = simdLen;
+
+    crhmc_walk_params params(input.df, p.dimension(), problem.options);
+
+    // Create the walk object for this problem
+    CRHMCWalkType walk = CRHMCWalkType(problem, p, input.df, input.f, params);
+
+    burnIn<CRHMCWalkType, crhmc_walk_params, simdLen, Grad, Func, CrhmcProblem>(
+        p, walk_length, rng, g, f, params, problem, walk, 2.5 * N);
+
+    NT last_a = a;
+    NT last_ratio = 0.1;
+    NT k = 1.0;
+    const NT tol = 0.00001;
+    bool done = false;
+    std::vector<NT> fn(N, NT(0.0));
+    std::list<Point> randPoints;
+
+    // sample N points
+    PushBackWalkPolicy push_back_policy;
+    bool raw_output = false;
+    typedef CrhmcRandomPointGenerator<CRHMCWalkType> CRHMCRandomPointGenerator;
+
+    CRHMCRandomPointGenerator::apply(problem, p, N, walk_length, randPoints,
+                                    push_back_policy, rng, g, f, params, walk, simdLen, raw_output);
+
+    while (!done) {
+        NT new_a = last_a * std::pow(ratio, k);
+
+        auto fnit = fn.begin();
+        for (auto pit = randPoints.begin(); pit != randPoints.end(); ++pit, fnit++) {
+            *fnit = eval_exp(*pit, inv_covariance_matrix, new_a, last_a);
+        }
+
+        std::pair<NT, NT> mv = get_mean_variance(fn);
+
+        // Compute a_{i+1}
+        if (mv.second / (mv.first * mv.first) >= C || mv.first / last_ratio < 1.0 + tol) {
+            if (k != 1.0) {
+                k = k / 2;
+            }
+            done = true;
+        } else {
+            k = 2 * k;
+        }
+
+        last_ratio = mv.first;
+    }
+
+    // Return the new a value as a scalar
+    return last_a * std::pow(ratio, k);
+}
 
 // Compute the sequence of non spherical gaussians
 template<
@@ -188,7 +238,6 @@ void compute_annealing_schedule(Polytope Pin_copy,
     auto ball = P_copy.ComputeInnerBall();
     P_copy.shift(ball.first.getCoefficients()); // when using max_ellipsoid for rounding this center is the origin, but if we use other covariances this is different than the origin
     get_first_gaussian(P_copy, frac, ball.second, error, a_vals); // the function included from volume_cooling_gaussians.hpp (spherical gaussians)
-
 #ifdef VOLESTI_DEBUG
     std::cout << "first gaussian computed " << a_vals[0] << std::endl;
 #endif
@@ -213,9 +262,9 @@ void compute_annealing_schedule(Polytope Pin_copy,
     Func initial_f(initial_f_params);
     Grad initial_g(initial_f_params);
     Hess initial_h(initial_f_params);
-    ZeroFunctor<Point> zerof;
+    ZeroFunctor<Point> initial_zerof;
 
-    Input initial_input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(Pin_copy, initial_f, initial_g, zerof);
+    Input initial_input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(Pin_copy, initial_f, initial_g, initial_zerof);
     CrhmcProblem initial_problem = CrhmcProblem(initial_input);
 
     Point initial_p = Point(initial_problem.center);
@@ -234,7 +283,11 @@ void compute_annealing_schedule(Polytope Pin_copy,
 
     while (true) {
 
-        
+        // Compute the next gaussian
+        NT next_a = get_next_gaussian<simdLen>(
+            Pin_copy, start_point, a_vals[it], N, ratio, C, walk_length, rng, inv_covariance_matrix);
+
+        // Decide if this is the last one
         NT curr_fn = 0;
         NT curr_its = 0;
         auto steps = totalSteps;
@@ -248,6 +301,7 @@ void compute_annealing_schedule(Polytope Pin_copy,
         Func f(f_params);
         Grad g(f_params);
         Hess h(f_params);
+        ZeroFunctor<Point> zerof;
 
         Input input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(Pin_copy, f, g, zerof);
 
@@ -269,11 +323,6 @@ void compute_annealing_schedule(Polytope Pin_copy,
 
         // Create the walk object for this problem
         CRHMCWalkType walk = CRHMCWalkType(problem, start_point, input.df, input.f, params);
-
-        // Compute the next gaussian
-        NT next_a = get_next_gaussian<CRHMCWalkType, crhmc_walk_params, simdLen, Grad, Func, CrhmcProblem>(
-            Pin_copy, start_point, a_vals[it], N, ratio, C, walk_length, rng, g, f, params, problem, walk, inv_covariance_matrix);
-
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned int j = 0; j < steps; j++) 
@@ -399,6 +448,7 @@ double non_spherical_crhmc_volume_cooling_gaussians(Polytope& Pin,
     Eigen::LLT<MT> lltOfA(covariance_matrix);
     auto L = lltOfA.matrixL();
     P.linear_transformIt(L);
+
 
     // Initialize the gaussian_annealing_parameters struct
     non_gaussian_annealing_parameters<NT> parameters(P.dimension());

@@ -26,6 +26,7 @@ typedef double NT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
 typedef BoostRandomNumberGenerator<boost::mt11213b, NT, FIXED_SEED> RandomNumberGenerator;
+typedef boost::mt19937 PolyRNGType;
 typedef HPolytope<Point> HPOLYTOPE;
 
 NT nonspherical_crhmc_volume(HPOLYTOPE& polytope) {
@@ -65,5 +66,16 @@ int main() {
     std::cout << "Calculated Volume With CRHMC: " << nonspherical_crhmc_volume(skinnycube3) << "\n";
     std::cout << "Expected Volume: " << 200 * std::pow(2, 2) << "\n\n";
 
+    HPOLYTOPE P3 = random_hpoly<HPOLYTOPE, PolyRNGType>(3, 12, false);
+    std::cout << "Random 3D Hpoly \n";
+    std::cout << "Calculated Volume With Gaussian CDHR: " << spherical_gaussians_volume(P3) << "\n";
+    std::cout << "Calculated Volume With CRHMC: " << nonspherical_crhmc_volume(P3) << "\n";
+    std::cout << "Expected Volume: " << "N/A" << "\n\n";
+    
+    HPOLYTOPE P4 = random_hpoly<HPOLYTOPE, PolyRNGType>(4, 16, false);
+    std::cout << "Random 4D Hpoly \n";
+    std::cout << "Calculated Volume With Gaussian CDHR: " << spherical_gaussians_volume(P4) << "\n";
+    std::cout << "Calculated Volume With CRHMC: " << nonspherical_crhmc_volume(P4) << "\n";
+    std::cout << "Expected Volume: " << "N/A" << "\n\n";
     return 0;
 }
