@@ -85,7 +85,6 @@ NT get_next_gaussian(Polytope& P,
     typedef typename NonSphericalGaussianFunctor::parameters<NT, Point>     func_params;
 
     typedef crhmc_input<MT, Point, Func, Grad, ZeroFunctor<Point>> Input;
-    //typedef crhmc_input<MT, Point, Func, Grad, Hess> Input;
 
     typedef crhmc_problem<Point, Input> CrhmcProblem;   
 
@@ -119,8 +118,6 @@ NT get_next_gaussian(Polytope& P,
     ZeroFunctor<Point> zerof;
 
     Input input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(P, f, g, zerof);
-
-    //Input input = convert2crhmc_input<Input, Polytope, Func, Grad, Hess>(P, f, g, h);
 
     typedef crhmc_problem<Point, Input> CrhmcProblem;
     
@@ -209,7 +206,6 @@ void compute_annealing_schedule(Polytope Pin_copy,
     typedef typename NonSphericalGaussianFunctor::parameters<NT, Point>     func_params;
 
     typedef crhmc_input<MT, Point, Func, Grad, ZeroFunctor<Point>> Input;
-    //typedef crhmc_input<MT, Point, Func, Grad, Hess> Input;
 
     typedef crhmc_problem<Point, Input> CrhmcProblem;   
 
@@ -261,7 +257,6 @@ void compute_annealing_schedule(Polytope Pin_copy,
     func_params initial_f_params = func_params(Point(dimension), a_vals[0], -1, inv_covariance_matrix);
     Func initial_f(initial_f_params);
     Grad initial_g(initial_f_params);
-    Hess initial_h(initial_f_params);
     ZeroFunctor<Point> initial_zerof;
 
     Input initial_input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(Pin_copy, initial_f, initial_g, initial_zerof);
@@ -300,12 +295,9 @@ void compute_annealing_schedule(Polytope Pin_copy,
 
         Func f(f_params);
         Grad g(f_params);
-        Hess h(f_params);
         ZeroFunctor<Point> zerof;
 
         Input input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(Pin_copy, f, g, zerof);
-
-        //Input input = convert2crhmc_input<Input, Polytope, Func, Grad, Hess>(P, f, g, h);
 
         typedef crhmc_problem<Point, Input> CrhmcProblem;
         
@@ -334,8 +326,7 @@ void compute_annealing_schedule(Polytope Pin_copy,
         }
 
         //restore the new eta and start point, by looking at the walk after its operations
-        initial_eta = walk.get_current_eta();
-        //start_point = walk.getPoint();        
+        initial_eta = walk.get_current_eta();  
 
         // Remove the last gaussian.
         // Set the last a_i equal to zero
@@ -393,11 +384,9 @@ double non_spherical_crhmc_volume_cooling_gaussians(Polytope& Pin,
     typedef typename Polytope::MT  MT;
     typedef typename NonSphericalGaussianFunctor::FunctionFunctor<Point>    Func;
     typedef typename NonSphericalGaussianFunctor::GradientFunctor<Point>    Grad;
-    typedef typename NonSphericalGaussianFunctor::HessianFunctor<Point>     Hess;
     typedef typename NonSphericalGaussianFunctor::parameters<NT, Point>     func_params;
 
     typedef crhmc_input<MT, Point, Func, Grad, ZeroFunctor<Point>> Input;
-    //typedef crhmc_input<MT, Point, Func, Grad, Hess> Input;   
     typedef crhmc_problem<Point, Input> CrhmcProblem;   
 
     typedef ImplicitMidpointODESolver<Point, NT, CrhmcProblem, Grad, simdLen> Solver;
@@ -417,10 +406,6 @@ double non_spherical_crhmc_volume_cooling_gaussians(Polytope& Pin,
                   NT,
                   Grad
           > crhmc_walk_params;
-
-    // auto P(Pin); //copy and work with P because we are going to shift
-    // auto newP(Pin);
-
 
     typedef HPolytope<Point> HPOLYTOPE;
 
@@ -526,14 +511,11 @@ double non_spherical_crhmc_volume_cooling_gaussians(Polytope& Pin,
 
         Func f(f_params);
         Grad g(f_params);
-        Hess h(f_params);
 
         ZeroFunctor<Point> zerof;
 
         //create the crhmc problem
         Input input = convert2crhmc_input<Input, Polytope, Func, Grad, ZeroFunctor<Point>>(newPin, f, g, zerof);
-        //Input input = convert2crhmc_input<Input, Polytope, Func, Grad, Hess>(P, f, g, h);
-
 
         typedef crhmc_problem<Point, Input> CrhmcProblem;
         CrhmcProblem problem = CrhmcProblem(input);
