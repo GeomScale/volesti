@@ -16,7 +16,7 @@
 #include <set>
 #include <vector>
 
-const double eps = 0.0000000001;
+const double eps = 1e-10;
 
 // data structure which maintains the values of (b - Ar)/Av, and can extract the minimum positive value and the facet associated with it
 // vec[i].first contains the value of (b(i) - Ar(i))/Av(i) + moved_dist, where moved_dist is the total distance that the point has travelled so far
