@@ -399,7 +399,7 @@ template <typename NT>
 void call_test_sparse(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
-    typedef HPolytope<Point, Eigen::SparseMatrix<NT>> Hpolytope;
+    typedef HPolytope<Point, Eigen::SparseMatrix<NT, Eigen::RowMajor>> Hpolytope;
     typedef typename Hpolytope::MT MT;
     typedef typename Hpolytope::DenseMT DenseMT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;

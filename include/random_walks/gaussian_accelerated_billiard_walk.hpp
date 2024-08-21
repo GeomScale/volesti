@@ -73,7 +73,7 @@ struct GaussianAcceleratedBilliardWalk
 
         void computeLcov(const E_type E)
         {
-            if constexpr (std::is_same<E_type, Eigen::SparseMatrix<NT> >::value) {
+            if constexpr (std::is_base_of<Eigen::SparseMatrixBase<E_type>, E_type >::value) {
                 Eigen::SimplicialLLT<E_type> lltofE;
                 lltofE.compute(E);
                 if (lltofE.info() != Eigen::Success) {

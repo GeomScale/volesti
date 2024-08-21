@@ -57,7 +57,7 @@ initialize_chol(MT const& mat)
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         return std::make_unique<Eigen::LLT<MT>>();
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         auto llt = std::make_unique<Eigen::SimplicialLLT<MT>>();
         llt->analyzePattern(mat);
@@ -78,7 +78,7 @@ initialize_chol(MT const& A_trans, MT const& A)
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         return std::make_unique<Eigen::LLT<MT>>();
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         MT mat = A_trans * A;
         return initialize_chol<NT>(mat);
@@ -99,7 +99,7 @@ inline static VT solve_vec(std::unique_ptr<Eigen_lltMT> const& llt,
     {
         llt->compute(H);
         return llt->solve(b);
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         llt->factorize(H);
         return llt->solve(b);
@@ -122,7 +122,7 @@ solve_mat(std::unique_ptr<Eigen_lltMT> const& llt,
         llt->compute(H);
         logdetE = llt->matrixL().toDenseMatrix().diagonal().array().log().sum();
         return llt->solve(mat);
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         llt->factorize(H);
         logdetE = llt->matrixL().nestedExpression().diagonal().array().log().sum();
@@ -143,7 +143,7 @@ inline static void update_Atrans_Diag_A(MT &H, MT const& A_trans,
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         H.noalias() = A_trans * D * A;
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         H = A_trans * D * A;
     } else 
@@ -161,7 +161,7 @@ inline static void update_Diag_A(MT &H, diag_MT const& D, MT const& A)
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         H.noalias() = D * A;
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         H = D * A;
     } else 
@@ -179,7 +179,7 @@ inline static void update_A_Diag(MT &H, MT const& A, diag_MT const& D)
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         H.noalias() = A * D;
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         H = A * D;
     } else 
@@ -198,7 +198,7 @@ get_mat_prod_op(MT const& E)
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         return std::make_unique<Spectra::DenseSymMatProd<NT>>(E);
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         return std::make_unique<Spectra::SparseSymMatProd<NT>>(E);
     } else 
@@ -249,7 +249,7 @@ init_Bmat(MT &B, int const n, MT const& A_trans, MT const& A)
     if constexpr (std::is_same<MT, DenseMT>::value)
     {
         B.resize(n+1, n+1);
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         // Initialize the structure of matrix B
         typedef Eigen::Triplet<NT> triplet;
@@ -299,7 +299,7 @@ update_Bmat(MT &B, VT const& AtDe, VT const& d,
         B.block(n, 0, 1, n).noalias() = AtDe.transpose();
         B(n, n) = d.sum();
         B.noalias() += 1e-14 * MT::Identity(n + 1, n + 1);
-    } else if constexpr (std::is_same<MT, SparseMT>::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
         MT AtD_A = AtD * A;
         int k = 0;

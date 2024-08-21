@@ -567,6 +567,56 @@ public:
     }
 
 
+
+    template <typename update_parameters, typename set_type, typename AA_type>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     NT const& lambda_prev,
+                                                     set_type& distances_set,
+                                                     AA_type const& AA,
+                                                     update_parameters& params) const
+    {
+        NT inner_prev = params.inner_vi_ak;
+        NT* Av_data = Av.data();
+
+        // Av += (-2.0 * inner_prev) * AA.col(params.facet_prev)
+
+        for (Eigen::SparseMatrix<double>::InnerIterator it(AA, params.facet_prev); it; ++it) {
+
+
+            // val(row) = (b(row) - Ar(row)) / Av(row) + params.moved_dist
+            // (val(row) - params.moved_dist) = (b(row) - Ar(row)) / Av(row)
+            // (val(row) - params.moved_dist) * Av(row) = b(row) - Ar(row)
+
+            *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
+
+            // b(row) - Ar(row) = (old_val(row) - params.moved_dist) * old_Av(row) 
+            // new_val(row) = (b(row) - Ar(row)                                ) / new_Av(row) + params.moved_dist 
+            // new_val(row) = ((old_val(row) - params.moved_dist) * old_Av(row)) / new_Av(row) + params.moved_dist
+            
+            // new_val(row) = (old_val(row) - params.moved_dist) * old_Av(row)                                   / new_Av(row) + params.moved_dist;
+            // new_val(row) = (old_val(row) - params.moved_dist) * (new_Av(row) + 2.0 * inner_prev * it.value()) / new_Av(row) + params.moved_dist;
+            // new_val(row) = (old_val(row) - params.moved_dist) * (1 + (2.0 * inner_prev * it.value()) / new_Av(row) ) + params.moved_dist;
+
+            // new_val(row) = old_val(row) + (old_val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / new_Av(row)
+
+            // val(row) += (val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
+
+            NT val = distances_set.get_val(it.row());
+            val += (val - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
+            distances_set.change_val(it.row(), val, params.moved_dist);
+        }
+
+        std::pair<NT, int> ans = distances_set.get_min();
+        ans.first -= params.moved_dist;
+        params.inner_vi_ak = *(Av_data + ans.second);
+        params.facet_prev = ans.second;
+
+        return ans;
+    }
+
+
     template <typename update_parameters>
     std::pair<NT, int> line_positive_intersect(Point const& r,
                                                Point const& v,
@@ -953,10 +1003,22 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
-
+    void compute_reflection(Point &v, Point const&, update_parameters const& params) const {
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
+    }
+
+    // updates the velocity vector v and the position vector p after a reflection
+    // the real value of p is given by p + moved_dist * v
+    template <typename update_parameters>
+    auto compute_reflection(Point &v, Point &p, update_parameters const& params) const
+         -> std::enable_if_t<std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>> && !std::is_same_v<update_parameters, int>, void> { // MT must be in RowMajor format
+            NT* v_data = v.pointerToData();
+            NT* p_data = p.pointerToData();
+            for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
+                *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
+            }
     }
 
     template <typename update_parameters>
