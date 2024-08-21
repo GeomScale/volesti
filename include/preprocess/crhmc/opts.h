@@ -44,6 +44,7 @@ public:
   bool DynamicWeight = true; //Enable the use of dynamic weights for each variable when sampling
   bool DynamicStepSize = true;  // Enable adaptive step size that avoids low acceptance probability
   bool DynamicRegularizer = true; //Enable the addition of a regularization term
+  bool etaInitialize = true; // enable eta initialization
   Type regularization_factor=1e-20;
   /*Dynamic step choices*/
   Type warmUpStep = 10;

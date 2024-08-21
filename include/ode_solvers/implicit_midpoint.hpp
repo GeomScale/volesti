@@ -172,6 +172,8 @@ struct ImplicitMidpointODESolver {
       stream << '\n';
     }
   }
+
+  NT get_eta() const { return eta; }
 };
 
 #endif
