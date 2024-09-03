@@ -179,16 +179,20 @@ struct GaussianAcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
+                
+                T = T * coef;
                 coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                T = T / coef;
+
                 it++;
 
                 while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
-                    _Av *= coef;
-                    _update_parameters.inner_vi_ak *= coef;
-                    pbpair.first /= coef;
+                    //_Av *= coef;
+                    //_update_parameters.inner_vi_ak *= coef;
+                    //pbpair.first /= coef;
 
                     if (T <= pbpair.first) {
                         _p += (T * _v);
@@ -198,7 +202,11 @@ struct GaussianAcceleratedBilliardWalk
                     _lambda_prev = dl * pbpair.first;
                     _p += (_lambda_prev * _v);
                     T -= _lambda_prev;
+                    
+                    T = T * coef;
                     coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                    T = T / coef;
+
                     it++;
                 }
                 if (it == _rho){
@@ -251,15 +259,18 @@ struct GaussianAcceleratedBilliardWalk
             _lambda_prev = dl * pbpair.first;
             _p += (_lambda_prev * _v);
             T -= _lambda_prev;
+            
+            T = T * coef;
             coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+            T = T / coef;
 
             while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
-                _Av *= coef;
-                _update_parameters.inner_vi_ak *= coef;
-                pbpair.first /= coef;
+                //_Av *= coef;
+                //_update_parameters.inner_vi_ak *= coef;
+                //pbpair.first /= coef;
 
                 if (T <= pbpair.first) {
                     _p += (T * _v);
@@ -273,7 +284,11 @@ struct GaussianAcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
+
+                T = T * coef;
                 coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                T = T / coef;
+                
                 it++;
             }
         }

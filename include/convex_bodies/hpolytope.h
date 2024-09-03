@@ -1022,14 +1022,15 @@ public:
     }
 
     template <typename update_parameters>
-    NT compute_reflection(Point &v, const Point &, DenseMT const &AE, VT const &AEA, NT const &vEv, update_parameters const &params) const {
+    NT compute_reflection(Point &v, const Point &, DenseMT const &AE, VT const &AEA, NT &vEv, update_parameters const &params) const {
 
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             VT x = v.getCoefficients();
             NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
             v += a;
             NT coeff = std::sqrt(vEv / new_vEv);
-            v = v * coeff;
+            // v = v * coeff;
+            vEv = new_vEv;
             return coeff;
     }
 
