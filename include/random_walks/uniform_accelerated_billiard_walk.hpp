@@ -275,7 +275,7 @@ struct AcceleratedBilliardWalk
                 it++;
 
                 while (it < _rho)
-                {   
+                {
                     std::pair<NT, int> pbpair;
                     if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
                         pbpair = P.line_positive_intersect(_p, _lambdas, _Av, _lambda_prev,

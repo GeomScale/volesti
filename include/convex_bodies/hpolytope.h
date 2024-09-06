@@ -1010,9 +1010,10 @@ public:
 
     // updates the velocity vector v and the position vector p after a reflection
     // the real value of p is given by p + moved_dist * v
+    // MT must be sparse, in RowMajor format
     template <typename update_parameters>
     auto compute_reflection(Point &v, Point &p, update_parameters const& params) const
-         -> std::enable_if_t<std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>> && !std::is_same_v<update_parameters, int>, void> { // MT must be in RowMajor format
+         -> std::enable_if_t<std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>> && !std::is_same_v<update_parameters, int>, void> {
             NT* v_data = v.pointerToData();
             NT* p_data = p.pointerToData();
             for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
@@ -1021,15 +1022,38 @@ public:
             }
     }
 
-    template <typename update_parameters>
-    NT compute_reflection(Point &v, const Point &, DenseMT const &AE, VT const &AEA, NT &vEv, update_parameters const &params) const {
+    // function to compute reflection for GaBW random walk
+    // compatible when the polytope is both dense or sparse
+    template <typename AE_type, typename update_parameters>
+    NT compute_reflection(Point &v, Point &p, AE_type const &AE, VT const &AEA, NT &vEv, update_parameters const &params) const {
 
-            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
-            VT x = v.getCoefficients();
-            NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
-            v += a;
+            NT new_vEv;
+            if constexpr (!std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
+                Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+                VT x = v.getCoefficients();
+                new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
+                v += a;
+            } else {
+                
+                if constexpr(!std::is_same_v<AE_type, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
+                    VT x = v.getCoefficients();
+                    new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
+                } else {
+                    new_vEv = vEv + 4.0 * params.inner_vi_ak * params.inner_vi_ak * AEA(params.facet_prev);
+                    NT* v_data = v.pointerToData();
+                    for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(AE, params.facet_prev); it; ++it) {
+                        new_vEv -= 4.0 * params.inner_vi_ak * it.value() * *(v_data + it.col());
+                    }
+                }
+
+                NT* v_data = v.pointerToData();
+                NT* p_data = p.pointerToData();
+                for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
+                    *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                    *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
+                }
+            }
             NT coeff = std::sqrt(vEv / new_vEv);
-            // v = v * coeff;
             vEv = new_vEv;
             return coeff;
     }
