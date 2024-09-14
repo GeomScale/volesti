@@ -21,6 +21,7 @@
 #include "generators/boost_random_number_generator.hpp"
 #include "sampling/ellipsoid.hpp"
 #include "random_walks/uniform_billiard_walk.hpp"
+#include "random_walks/accelerated_billiard_walk_utils.hpp"
 
 #include "random_walks/compute_diameter.hpp"
 
@@ -47,12 +48,13 @@ struct GaussianAcceleratedBilliardWalk
     struct update_parameters
     {
         update_parameters()
-                :   facet_prev(0), hit_ball(false), inner_vi_ak(0.0), ball_inner_norm(0.0)
+                :   facet_prev(0), hit_ball(false), inner_vi_ak(0.0), ball_inner_norm(0.0), moved_dist(0.0)
         {}
         int facet_prev;
         bool hit_ball;
         double inner_vi_ak;
         double ball_inner_norm;
+        double moved_dist;
     };
 
     parameters param;
@@ -67,9 +69,14 @@ struct GaussianAcceleratedBilliardWalk
     struct Walk
     {
         typedef typename Polytope::PointType Point;
-        typedef typename Polytope::DenseMT DenseMT;
+        typedef typename Polytope::MT MT;
+        typedef typename Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
         typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
+        // AA is sparse colMajor if MT is sparse rowMajor, and Dense otherwise
+        using AA_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>>, typename Eigen::SparseMatrix<NT>, DenseMT >; 
+        // AE is sparse rowMajor if (MT is sparse rowMajor and E is sparse), and Dense otherwise
+        using AE_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>> && std::is_base_of<Eigen::SparseMatrixBase<E_type>, E_type>::value, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>, DenseMT >; 
 
         void computeLcov(const E_type E)
         {
@@ -110,7 +117,11 @@ struct GaussianAcceleratedBilliardWalk
             _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
             computeLcov(E);
             _E = E;
-            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
+            if constexpr (std::is_same<AA_type, Eigen::SparseMatrix<NT>>::value) {
+                _AA = (P.get_mat() * P.get_mat().transpose());
+            } else {
+                _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
+            }
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -131,7 +142,11 @@ struct GaussianAcceleratedBilliardWalk
                                 ::template compute<NT>(P);
             computeLcov(E);
             _E = E;
-            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
+            if constexpr (std::is_same<AA_type, Eigen::SparseMatrix<NT>>::value) {
+                _AA = (P.get_mat() * P.get_mat().transpose());
+            } else {
+                _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
+            }
             _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
@@ -162,13 +177,7 @@ struct GaussianAcceleratedBilliardWalk
                 Point p0 = _p;
 
                 it = 0;
-                std::pair<NT, int> pbpair;
-                if(!was_reset) {
-                    pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
-                } else {
-                    pbpair = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
-                    was_reset = false;
-                }                                                    
+                std::pair<NT, int> pbpair = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
 
                 if (T <= pbpair.first) {
                     _p += (T * _v);
@@ -177,18 +186,40 @@ struct GaussianAcceleratedBilliardWalk
                 }
 
                 _lambda_prev = dl * pbpair.first;
-                _p += (_lambda_prev * _v);
+                if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
+                    typename Point::Coeff b;
+                    NT* b_data;
+                    b = P.get_vec();
+                    b_data = b.data();
+                    _update_parameters.moved_dist = _lambda_prev;
+                    NT* Ar_data = _lambdas.data();
+                    NT* Av_data = _Av.data();
+                    for(int i = 0; i < P.num_of_hyperplanes(); ++i) {
+                        _distances_set.vec[i].first = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
+                    }
+                    // rebuild the heap with the new values of (b - Ar) / Av
+                    _distances_set.rebuild(_update_parameters.moved_dist);
+                } else {
+                    _p += (_lambda_prev * _v);
+                }
                 T -= _lambda_prev;
-                coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                
+                T = T * coef;
+                coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
+                T = T / coef;
+
                 it++;
 
                 while (it < _rho)
                 {
-                    std::pair<NT, int> pbpair
-                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
-                    _Av *= coef;
-                    _update_parameters.inner_vi_ak *= coef;
-                    pbpair.first /= coef;
+                    std::pair<NT, int> pbpair;
+                    if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
+                        pbpair = P.line_positive_intersect(_p, _lambdas, _Av, _lambda_prev,
+                                                           _distances_set, _AA, _update_parameters);
+                    } else {
+                        pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev,
+                                                           _AA, _update_parameters);
+                    }
 
                     if (T <= pbpair.first) {
                         _p += (T * _v);
@@ -196,14 +227,23 @@ struct GaussianAcceleratedBilliardWalk
                         break;
                     }
                     _lambda_prev = dl * pbpair.first;
-                    _p += (_lambda_prev * _v);
+                    if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
+                        _update_parameters.moved_dist += _lambda_prev;
+                    } else {
+                        _p += (_lambda_prev * _v);
+                    }
                     T -= _lambda_prev;
-                    coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                    
+                    T = T * coef;
+                    coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
+                    T = T / coef;
+
                     it++;
                 }
+                _p += _update_parameters.moved_dist * _v;
+                _update_parameters.moved_dist = 0.0;
                 if (it == _rho){
                     _p = p0;
-                    was_reset = true;
                 }
             }
 
@@ -219,21 +259,24 @@ struct GaussianAcceleratedBilliardWalk
         {
             unsigned int n = P.dimension();
             const NT dl = 0.995;
-            was_reset = false;
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
-            _AE.noalias() = (DenseMT)(P.get_mat() * _E);
-            _AEA = _AE.cwiseProduct((DenseMT)P.get_mat()).rowwise().sum();
-            /*
-            _AEA.resize(P.num_of_hyperplanes());
-            for(int i = 0; i < P.num_of_hyperplanes(); ++i)
             {
-                _AEA(i) = _AE.row(i).dot(P.get_mat().row(i));
-            }*/
+                DenseMT temp_AE;
+                temp_AE.noalias() = (DenseMT)(P.get_mat() * _E);
+                _AEA = temp_AE.cwiseProduct((DenseMT)P.get_mat()).rowwise().sum();
+                if constexpr (std::is_same_v<AE_type, DenseMT>)
+                    _AE = temp_AE;
+                else
+                    _AE = temp_AE.sparseView();
+            }
+            _distances_set = BoundaryOracleHeap<NT>(P.num_of_hyperplanes());
+
 
             _v = GetDirection<Point>::apply(n, rng, false);
             _v = Point(_L_cov.template triangularView<Eigen::Lower>() * _v.getCoefficients());
+            
 
             NT T = -std::log(rng.sample_urdist()) * _L;
             Point p0 = _p;
@@ -251,15 +294,15 @@ struct GaussianAcceleratedBilliardWalk
             _lambda_prev = dl * pbpair.first;
             _p += (_lambda_prev * _v);
             T -= _lambda_prev;
-            coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+            
+            T = T * coef;
+            coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
+            T = T / coef;
 
             while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
-                _Av *= coef;
-                _update_parameters.inner_vi_ak *= coef;
-                pbpair.first /= coef;
 
                 if (T <= pbpair.first) {
                     _p += (T * _v);
@@ -273,7 +316,11 @@ struct GaussianAcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+
+                T = T * coef;
+                coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
+                T = T / coef;
+
                 it++;
             }
         }
@@ -282,16 +329,16 @@ struct GaussianAcceleratedBilliardWalk
         Point _p;
         Point _v;
         NT _lambda_prev;
-        DenseMT _AA;
+        AA_type _AA;
         E_type _L_cov;   // LL' = inv(E)
-        DenseMT _AE;
+        AE_type _AE;
         E_type _E;
         VT _AEA;
         unsigned int _rho;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;
-        bool was_reset;
+        BoundaryOracleHeap<NT> _distances_set;
     };
 
 };
