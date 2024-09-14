@@ -21,6 +21,7 @@
 #include "generators/boost_random_number_generator.hpp"
 #include "sampling/ellipsoid.hpp"
 #include "random_walks/uniform_billiard_walk.hpp"
+#include "random_walks/accelerated_billiard_walk_utils.hpp"
 
 #include "random_walks/compute_diameter.hpp"
 
@@ -72,11 +73,10 @@ struct GaussianAcceleratedBilliardWalk
         typedef typename Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
         typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
-        using AA_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>>, typename Eigen::SparseMatrix<NT>, DenseMT >; 
         // AA is sparse colMajor if MT is sparse rowMajor, and Dense otherwise
-        using AE_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>> && std::is_base_of<Eigen::SparseMatrixBase<E_type>, E_type>::value, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>, DenseMT >; 
-      //                                  (               (                                (                   ))                   (                       (      )        )                                     (                   )          )
+        using AA_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>>, typename Eigen::SparseMatrix<NT>, DenseMT >; 
         // AE is sparse rowMajor if (MT is sparse rowMajor and E is sparse), and Dense otherwise
+        using AE_type = std::conditional_t< std::is_same_v<MT, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>> && std::is_base_of<Eigen::SparseMatrixBase<E_type>, E_type>::value, typename Eigen::SparseMatrix<NT, Eigen::RowMajor>, DenseMT >; 
 
         void computeLcov(const E_type E)
         {
@@ -163,12 +163,6 @@ struct GaussianAcceleratedBilliardWalk
             int it;
             NT coef = 1.0;
             NT vEv;
-            typename Point::Coeff b;
-            NT* b_data;
-            if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
-                b = P.get_vec();
-                b_data = b.data();
-            }
 
             for (auto j=0u; j<walk_length; ++j)
             {
@@ -193,6 +187,10 @@ struct GaussianAcceleratedBilliardWalk
 
                 _lambda_prev = dl * pbpair.first;
                 if constexpr (std::is_same<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>::value) {
+                    typename Point::Coeff b;
+                    NT* b_data;
+                    b = P.get_vec();
+                    b_data = b.data();
                     _update_parameters.moved_dist = _lambda_prev;
                     NT* Ar_data = _lambdas.data();
                     NT* Av_data = _Av.data();
@@ -207,7 +205,7 @@ struct GaussianAcceleratedBilliardWalk
                 T -= _lambda_prev;
                 
                 T = T * coef;
-                coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
                 T = T / coef;
 
                 it++;
@@ -237,7 +235,7 @@ struct GaussianAcceleratedBilliardWalk
                     T -= _lambda_prev;
                     
                     T = T * coef;
-                    coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                    coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
                     T = T / coef;
 
                     it++;
@@ -298,7 +296,7 @@ struct GaussianAcceleratedBilliardWalk
             T -= _lambda_prev;
             
             T = T * coef;
-            coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+            coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
             T = T / coef;
 
             while (it <= _rho)
@@ -320,7 +318,7 @@ struct GaussianAcceleratedBilliardWalk
                 T -= _lambda_prev;
 
                 T = T * coef;
-                coef = P.compute_reflection(_v, _p, _AE, _AEA, vEv, _update_parameters);
+                coef = P.compute_reflection(_v, _p, vEv, _AE, _AEA, _update_parameters);
                 T = T / coef;
 
                 it++;

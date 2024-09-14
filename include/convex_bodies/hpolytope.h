@@ -1024,8 +1024,8 @@ public:
 
     // function to compute reflection for GaBW random walk
     // compatible when the polytope is both dense or sparse
-    template <typename AE_type, typename update_parameters>
-    NT compute_reflection(Point &v, Point &p, AE_type const &AE, VT const &AEA, NT &vEv, update_parameters const &params) const {
+    template <typename DenseSparseMT, typename update_parameters>
+    NT compute_reflection(Point &v, Point &p, NT &vEv, DenseSparseMT const &AE, VT const &AEA, update_parameters const &params) const {
 
             NT new_vEv;
             if constexpr (!std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
@@ -1035,7 +1035,7 @@ public:
                 v += a;
             } else {
                 
-                if constexpr(!std::is_same_v<AE_type, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
+                if constexpr(!std::is_same_v<DenseSparseMT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
                     VT x = v.getCoefficients();
                     new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
                 } else {
