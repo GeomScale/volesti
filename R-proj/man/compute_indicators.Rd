@@ -13,21 +13,21 @@ compute_indicators(
 \item{returns}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
 
 \item{parameters}{A list to set a parameterization.
-\itemize{
-\item{win_length }{ The length of the sliding window. The default value is 60.}
-\item{m } { The number of slices for the copula. The default value is 100.}
-\item{n }{ The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
-\item{nwarning }{ The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.}
-\item{ncrisis }{ The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.}
-\item{seed }{ A fixed seed for the number generator.}
+\describe{
+\item{win_length}{The length of the sliding window. The default value is 60.}
+\item{m}{The number of slices for the copula. The default value is 100.}
+\item{n}{The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+\item{nwarning}{The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.}
+\item{ncrisis}{The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.}
+\item{seed}{A fixed seed for the number generator.}
 }}
 }
 \value{
 A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
 }
 \description{
-Given a matrix that contains row-wise the assets' returns and a sliding window \code{win_length}, this function computes an approximation of the joint distribution (copula, e.g. see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}) between portfolios' return and volatility in each time period defined by \code{win_len}. 
-For each copula it computes an indicator: If the indicator is large it corresponds to a crisis period and if it is small it corresponds to a normal period. 
+Given a matrix that contains row-wise the assets' returns and a sliding window \code{win_length}, this function computes an approximation of the joint distribution (copula, e.g. see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}) between portfolios' return and volatility in each time period defined by \code{win_len}.
+For each copula it computes an indicator: If the indicator is large it corresponds to a crisis period and if it is small it corresponds to a normal period.
 In particular, the periods over which the indicator is greater than 1 for more than 60 consecutive sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
 }
 \examples{

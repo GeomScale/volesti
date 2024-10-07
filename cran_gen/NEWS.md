@@ -54,3 +54,7 @@
 # volesti 1.1.2-7
 
 - Fix valgrind reporting a realloc(3) call with size = 0 (lpsolve)
+
+# volesti 1.1.2-8
+
+- Fix Wmissing-template-arg-list-after-template-kw error (clang-19)

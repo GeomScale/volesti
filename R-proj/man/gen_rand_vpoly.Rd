@@ -12,7 +12,7 @@ gen_rand_vpoly(dimension, nvertices, generator = list(body = "sphere"))
 \item{nvertices}{The number of the vertices.}
 
 \item{generator}{A list that could contain two elements.
-\itemize{
+\describe{
 \item{body }{ the body that the generator samples uniformly the vertices from: (i) 'cube' or (ii) 'sphere', the default value is 'sphere'.}
 \item{seed }{ Optional. A fixed seed for the number generator.}
 }}

@@ -18,12 +18,12 @@ A list that contains the rotated polytope and the matrix \eqn{T} of the linear t
 Given a convex H- or V- polytope or a zonotope or an intersection of two V-polytopes as input, this function applies (a) a random rotation or (b) a given rotation by an input matrix \eqn{T}.
 }
 \details{
-Let \eqn{P} be the given polytope and \eqn{Q} the rotated one and \eqn{T} be the matrix of the linear transformation. 
+Let \eqn{P} be the given polytope and \eqn{Q} the rotated one and \eqn{T} be the matrix of the linear transformation.
 \itemize{
-\item{If \eqn{P} is in H-representation and \eqn{A} is the matrix that contains the normal vectors of the facets of \eqn{Q} then \eqn{AT} contains the normal vactors of the facets of \eqn{P}.}
-\item{If \eqn{P} is in V-representation and \eqn{V} is the matrix that contains column-wise the vertices of \eqn{Q} then \eqn{T^TV} contains the vertices of \eqn{P}.}
-\item{If \eqn{P} is a zonotope and \eqn{G} is the matrix that contains column-wise the generators of \eqn{Q} then \eqn{T^TG} contains the generators of \eqn{P}.}
-\item{If \eqn{M} is a matrix that contains column-wise points in \eqn{Q} then \eqn{T^TM} contains points in \eqn{P}.}
+\item If \eqn{P} is in H-representation and \eqn{A} is the matrix that contains the normal vectors of the facets of \eqn{Q} then \eqn{AT} contains the normal vactors of the facets of \eqn{P}.
+\item If \eqn{P} is in V-representation and \eqn{V} is the matrix that contains column-wise the vertices of \eqn{Q} then \eqn{T^TV} contains the vertices of \eqn{P}.
+\item If \eqn{P} is a zonotope and \eqn{G} is the matrix that contains column-wise the generators of \eqn{Q} then \eqn{T^TG} contains the generators of \eqn{P}.
+\item If \eqn{M} is a matrix that contains column-wise points in \eqn{Q} then \eqn{T^TM} contains points in \eqn{P}.
 }
 }
 \examples{

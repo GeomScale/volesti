@@ -36,7 +36,7 @@ struct RandomPointGenerator
         Walk walk(P, p, rng, parameters);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, walk_length, rng);
+            walk.apply(P, p, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -60,7 +60,7 @@ struct RandomPointGenerator
         Walk walk(P, p, rng);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, walk_length, rng);
+            walk.apply(P, p, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -93,7 +93,7 @@ struct GaussianRandomPointGenerator
         Walk walk(P, p, a_i, rng);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, a_i, walk_length, rng);
+            walk.apply(P, p, a_i, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -122,7 +122,7 @@ struct GaussianRandomPointGenerator
 
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, a_i, walk_length, rng);
+            walk.apply(P, p, a_i, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -153,7 +153,7 @@ struct BoundaryRandomPointGenerator
         Point p1(P.dimension()), p2(P.dimension());
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p1, p2, walk_length, rng);
+            walk.apply(P, p1, p2, walk_length, rng);
             policy.apply(randPoints, p1);
             policy.apply(randPoints, p2);
         }

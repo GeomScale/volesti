@@ -86,7 +86,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //'
 //' @param P A convex polytope. It is an object from class a) Hpolytope or b) Vpolytope or c) Zonotope or d) VpolytopeIntersection.
 //' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
-//' \itemize{
+//' \describe{
 //' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm is \code{'CB'}.}
 //' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for SOB algorithm and \eqn{0.1} otherwise.}
 //' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations. For CG algorithm the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
@@ -135,7 +135,7 @@ double volume (Rcpp::Reference P,
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
- 
+
     unsigned int n, walkL, type_num;
     std::string type = Rcpp::as<std::string>(P.slot("type"));
 
@@ -164,7 +164,7 @@ double volume (Rcpp::Reference P,
     bool CG = false, CB = false, cdhr = false, rdhr = false, ball_walk = false,
              hpoly = false, billiard = false;
     unsigned int win_len = 4*n*n+500;
-    
+
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {

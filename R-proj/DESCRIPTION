@@ -2,9 +2,11 @@ Package: volesti
 Type: Package
 License: LGPL-3
 Title: Volume Approximation and Sampling of Convex Polytopes
-Author: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com> [aut, cph, cre],
-  Apostolos Chalkis <tolis.chal@gmail.com> [cph, aut],
-  contributors in file inst/AUTHORS
+Authors@R: c(
+    person("Vissarion", "Fisikopoulos", , "vissarion.fisikopoulos@gmail.com", role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-0780-666X")),
+    person("Apostolos", "Chalkis", , "tolis.chal@gmail.com", role = c("aut", "cph"),
+           comment = c(ORCID = "0000-0002-4628-1907")))
 Copyright: file inst/COPYRIGHTS
 Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes estimations of volume
              of polytopes given by (i) a set of points, (ii) linear inequalities or (iii) Minkowski sum of segments
@@ -12,13 +14,13 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
              for sampling, rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for
              estimating copulas useful in computational finance. Methods implemented in 'volesti' are described
              in A. Chalkis and V. Fisikopoulos (2022) <doi:10.32614/RJ-2021-077> and references therein.
-Version: 1.1.2-7
-Date: 2023-10-18
+Version: 1.1.2-8
+Date: 2024-10-7
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods, stats
 LinkingTo: Rcpp, RcppEigen, BH
 Suggests: testthat
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 BugReports: https://github.com/GeomScale/volesti/issues

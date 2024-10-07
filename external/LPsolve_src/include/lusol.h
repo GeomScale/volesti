@@ -1,4 +1,5 @@
 // Copyright(c) 2016-2018 Kjell Konis <kjell.konis@me.com>.
+// Copyright(c) 2024 Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>.
 // Version: 5.5.2.0-17
 // Description: The lpSolveAPI package provides an R interface to 'lp_solve',
 // a Mixed Integer Linear Programming (MILP) solver with support for pure
@@ -32,7 +33,7 @@
 #else
   #define LUSOL_MALLOC(bytesize)        malloc(bytesize)
   #define LUSOL_CALLOC(count, recsize)  calloc(count, recsize)
-  #define LUSOL_REALLOC(ptr, bytesize)  realloc((void *) ptr, bytesize)
+  #define LUSOL_REALLOC(ptr, bytesize)  realloc((void *) ptr, (unsigned int)bytesize)
   #define LUSOL_FREE(ptr)               {free(ptr); ptr=NULL;}
 #endif
 

@@ -16,7 +16,7 @@ zonotope_approximation(
 \item{fit_ratio}{Optional. A boolean parameter to request the computation of the ratio of fitness.}
 
 \item{settings}{Optional. A list that declares the values of the parameters of CB algorithm as follows:
-\itemize{
+\describe{
 \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{0.1}.}
 \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{1}.}
 \item{\code{win_len} }{ The length of the sliding window for CB algorithm. The default value is \eqn{250}.}

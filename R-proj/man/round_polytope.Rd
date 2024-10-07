@@ -9,8 +9,8 @@ round_polytope(P, settings = list())
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{settings}{Optional. A list to parameterize the method by the random walk. 
-\itemize{
+\item{settings}{Optional. A list to parameterize the method by the random walk.
+\describe{
 \item{\code{random_walk} }{  The random walk to sample uniformly distributed points: (a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, (b) \code{'RDHR'} for Random Directions Hit-and-Run or (c) \code{'BiW'} for Billiard walk. The default random walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the rest of the representations.}
 \item{\code{walk_length} }{ The walk length of the random walk. The default value is \eqn{10 + 10d} for \code{'CDHR'} or \code{'RDHR'} and 2 for \code{'BiW'}.}
 \item{\code{seed} }{ Optional. A fixed seed for the number generator.}
