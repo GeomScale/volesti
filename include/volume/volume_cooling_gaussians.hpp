@@ -241,7 +241,7 @@ void compute_annealing_schedule(Polytope& P,
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
         {
-            walk.template apply(P, p, a_vals[it], walk_length, rng);
+            walk.apply(P, p, a_vals[it], walk_length, rng);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
         }
@@ -398,7 +398,7 @@ double volume_cooling_gaussians(Polytope& Pin,
 
         while (!done || (*itsIt)<min_steps)
         {
-            walk.template apply(P, p, *avalsIt, walk_length, rng);
+            walk.apply(P, p, *avalsIt, walk_length, rng);
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);

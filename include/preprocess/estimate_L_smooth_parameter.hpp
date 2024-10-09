@@ -21,7 +21,7 @@ template
     typename NegativeGradientFunctor,
     typename RandomNumberGenerator
 >
-double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length, 
+double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length,
                          NegativeGradientFunctor F, RandomNumberGenerator &rng)
 {
     typedef typename Point::FT NT;
@@ -44,11 +44,11 @@ double estimate_L_smooth(Polytope &P, Point &p, unsigned int const& walk_length,
     RandomWalk walk(P, p, rng);
     for (unsigned int i=0; i<rnum; ++i)
     {
-        walk.template apply(P, p, walk_length, rng);
+        walk.apply(P, p, walk_length, rng);
         randPoints[0] = p;
         listOfPoints.push_back(randPoints);
     }
-    
+
     NT L = std::numeric_limits<NT>::lowest(), Ltemp;
 
     for (auto pit=listOfPoints.begin(); pit!=(listOfPoints.end()-1); ++pit)
