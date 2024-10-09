@@ -126,7 +126,7 @@ bool perform_parallel_mmcs_step(Polytope &P,
             walk.template get_starting_point(P, p, thread_random_walk_parameters, 10, rng);
             for (int i = 0; i < window; i++)
             {
-                walk.template apply(P, thread_random_walk_parameters, walk_length, rng);
+                walk.apply(P, thread_random_walk_parameters, walk_length, rng);
                 winPoints_per_thread[thread_index].col(i) = thread_random_walk_parameters.p.getCoefficients();
             }
 

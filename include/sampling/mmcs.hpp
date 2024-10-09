@@ -81,7 +81,7 @@ bool perform_mmcs_step(Polytope &P,
         walk.template get_starting_point(P, p, q, 10, rng);
         for (int i = 0; i < window; i++)
         {
-            walk.template apply(P, q, walk_length, rng);
+            walk.apply(P, q, walk_length, rng);
             winPoints.col(i) = q.getCoefficients();
         }
         estimator.update_estimator(winPoints);

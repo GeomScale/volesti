@@ -466,7 +466,7 @@ NT estimate_ratio(PolyBall1 &Pb1,
 
     do
     {
-        walk.template apply(Pb1, p, walk_length, rng);
+        walk.apply(Pb1, p, walk_length, rng);
     } while(!estimate_ratio_generic(Pb2, p, error, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
@@ -674,14 +674,14 @@ NT estimate_ratio_interval(PolyBall1 &Pb1,
 
     for (int i = 0; i < ratio_parameters.W; ++i)
     {
-        walk.template apply(Pb1, p, walk_length, rng);
+        walk.apply(Pb1, p, walk_length, rng);
         full_sliding_window(Pb2, p, ratio_parameters);
     }
 
     ratio_parameters.mean = ratio_parameters.sum / NT(ratio_parameters.W);
 
     do {
-        walk.template apply(Pb1, p, walk_length, rng);
+        walk.apply(Pb1, p, walk_length, rng);
     } while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
