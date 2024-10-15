@@ -99,6 +99,7 @@ else ()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++17 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
+  add_definitions(${CMAKE_CXX_FLAGS} "-g")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
@@ -108,13 +109,11 @@ else ()
 
   find_package(OpenMP REQUIRED)
 
-  add_executable (skinny_cube_10_dim skinny_cube_10_dim.cpp)
-  add_executable (random_hpoly_50_dim random_hpoly_50_dim.cpp)
-  add_executable (random_hpoly_50_dim_parallel random_hpoly_50_dim_parallel.cpp)
+  add_executable (simple simple.cpp)
+  add_executable (parallel parallel.cpp)
 
-  TARGET_LINK_LIBRARIES(skinny_cube_10_dim ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(random_hpoly_50_dim ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(random_hpoly_50_dim_parallel ${LP_SOLVE} OpenMP::OpenMP_CXX)
-
+  TARGET_LINK_LIBRARIES(simple ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(parallel ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(parallel ${LP_SOLVE} OpenMP::OpenMP_CXX)
 
 endif()
