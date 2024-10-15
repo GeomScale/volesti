@@ -108,13 +108,11 @@ else ()
 
   find_package(OpenMP REQUIRED)
 
-  add_executable (skinny_cube_10_dim skinny_cube_10_dim.cpp)
-  add_executable (random_hpoly_50_dim random_hpoly_50_dim.cpp)
-  add_executable (random_hpoly_50_dim_parallel random_hpoly_50_dim_parallel.cpp)
+  add_executable (simple simple.cpp)
+  add_executable (parallel parallel.cpp)
 
-  TARGET_LINK_LIBRARIES(skinny_cube_10_dim ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(random_hpoly_50_dim ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(random_hpoly_50_dim_parallel ${LP_SOLVE} OpenMP::OpenMP_CXX)
-
+  TARGET_LINK_LIBRARIES(simple ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(parallel ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(parallel ${LP_SOLVE} OpenMP::OpenMP_CXX)
 
 endif()
