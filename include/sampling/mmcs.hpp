@@ -125,4 +125,184 @@ bool perform_mmcs_step(Polytope &P,
     return false;
 }
 
+template
+<
+    typename Polytope,
+    typename MT
+>
+void mmcs(Polytope const& Pin,
+          int const& Neff,
+          MT& S,
+          int& total_neff)
+{
+    mmcs(Pin, Neff, S, total_neff, 1);
+}
+
+template
+<
+    typename Polytope,
+    typename MT
+>
+void mmcs(Polytope const& Pin,
+          int const& Neff,
+          MT& S,
+          int& total_neff,
+          unsigned int const& walk_length)
+{
+    using RNGType = BoostRandomNumberGenerator<boost::mt19937, typename Polytope::NT>;
+    RNGType rng(Pin.dimension());
+    mmcs(Pin, Neff, S, total_neff, walk_length, rng);
+}
+
+template
+<
+    typename Polytope,
+    typename MT,
+    typename RandomNumberGenerator
+>
+void mmcs(Polytope const& Pin,
+          int const& Neff,
+          MT& S,
+          int& total_neff,
+          unsigned int const& walk_length,
+          RandomNumberGenerator &rng)
+{
+    using NT = typename Polytope::NT;
+    using VT = typename Polytope::VT;
+    using Point = typename Polytope::PointType;
+
+    auto P = Pin;
+    const int n = P.dimension();
+    MT T = MT::Identity(n, n);
+    VT T_shift = VT::Zero(n);
+
+    unsigned int current_Neff = Neff;
+    unsigned int round_it = 1;
+    unsigned int num_rounding_steps = 20 * n;
+    unsigned int num_its = 20;
+    unsigned int phase = 0;
+    unsigned int window = 100;
+    unsigned int max_num_samples = 100 * n;
+    unsigned int total_samples;
+    unsigned int nburns;
+    unsigned int total_number_of_samples_in_P0 = 0;
+
+    NT max_s;
+    NT s_cutoff = 3.0;
+    NT L;
+    bool complete = false;
+    bool request_rounding = true;
+    bool rounding_completed = false;
+    bool req_round_temp = request_rounding;
+
+    std::pair<Point, NT> InnerBall;
+
+    std::cout << "target effective sample size = " << current_Neff << "\n" << std::endl;
+
+    while(true)
+    {
+        phase++;
+        if (request_rounding && rounding_completed)
+        {
+            req_round_temp = false;
+        }
+
+        if (req_round_temp)
+        {
+            nburns = num_rounding_steps / window + 1;
+        }
+        else
+        {
+            nburns = max_num_samples / window + 1;
+        }
+
+        InnerBall = P.ComputeInnerBall();
+        L = NT(6) * std::sqrt(NT(n)) * InnerBall.second;
+        AcceleratedBilliardWalk WalkType(L);
+
+        unsigned int Neff_sampled;
+        MT TotalRandPoints;
+        complete = perform_mmcs_step(P, rng, walk_length, current_Neff, max_num_samples, window,
+                                     Neff_sampled, total_samples, num_rounding_steps, TotalRandPoints,
+                                     InnerBall.first, nburns, req_round_temp, WalkType);
+
+        current_Neff -= Neff_sampled;
+        std::cout << "phase " << phase << ": number of correlated samples = " << total_samples << ", effective sample size = " << Neff_sampled;
+        total_neff += Neff_sampled;
+        Neff_sampled = 0;
+
+        MT Samples = TotalRandPoints.transpose(); //do not copy TODO!
+        for (int i = 0; i < total_samples; i++)
+        {
+            Samples.col(i) = T * Samples.col(i) + T_shift;
+        }
+
+        S.conservativeResize(P.dimension(), total_number_of_samples_in_P0 + total_samples);
+        S.block(0, total_number_of_samples_in_P0, P.dimension(), total_samples) = Samples.block(0, 0, P.dimension(), total_samples);
+        total_number_of_samples_in_P0 += total_samples;
+        if (!complete)
+        {
+            if (request_rounding && !rounding_completed)
+            {
+                VT shift(n), s(n);
+                MT V(n,n), S(n,n), round_mat;
+                for (int i = 0; i < P.dimension(); ++i)
+                {
+                    shift(i) = TotalRandPoints.col(i).mean();
+                }
+
+                for (int i = 0; i < total_samples; ++i)
+                {
+                    TotalRandPoints.row(i) = TotalRandPoints.row(i) - shift.transpose();
+                }
+
+                Eigen::BDCSVD<MT> svd(TotalRandPoints, Eigen::ComputeFullV);
+                s = svd.singularValues() / svd.singularValues().minCoeff();
+
+                if (s.maxCoeff() >= 2.0)
+                {
+                    for (int i = 0; i < s.size(); ++i)
+                    {
+                        if (s(i) < 2.0)
+                        {
+                            s(i) = 1.0;
+                        }
+                    }
+                    V = svd.matrixV();
+                }
+                else
+                {
+                    s = VT::Ones(P.dimension());
+                    V = MT::Identity(P.dimension(), P.dimension());
+                }
+                max_s = s.maxCoeff();
+                S = s.asDiagonal();
+                round_mat = V * S;
+
+                round_it++;
+                P.shift(shift);
+                P.linear_transformIt(round_mat);
+                T_shift += T * shift;
+                T = T * round_mat;
+
+                std::cout << ", ratio of the maximum singilar value over the minimum singular value = " << max_s << std::endl;
+
+                if (max_s <= s_cutoff || round_it > num_its)
+                {
+                    rounding_completed = true;
+                }
+            }
+            else
+            {
+                std::cout<<"\n";
+            }
+        }
+        else
+        {
+            std::cout<<"\n\n";
+            break;
+        }
+    }
+}
+
 #endif
