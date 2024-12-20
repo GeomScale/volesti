@@ -24,10 +24,7 @@
 
 template <typename GenericPolytope>
 struct compute_diameter
-{
-    template <typename NT>
-    static NT compute(GenericPolytope) {return NT(0);}
-};
+{};
 
 
 template <typename Point, typename MT>
@@ -35,6 +32,16 @@ struct compute_diameter<HPolytope<Point, MT>>
 {
     template <typename NT>
     static NT compute(HPolytope<Point, MT> &P)
+    {
+        return NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
+    }
+};
+
+template <typename Point>
+struct compute_diameter<const HPolytope<Point>>
+{
+    template <typename NT>
+    static NT compute(HPolytope<Point> const& P)
     {
         return NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
     }

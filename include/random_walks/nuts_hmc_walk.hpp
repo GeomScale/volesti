@@ -8,7 +8,7 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Matthew D. Hoffman, Andrew Gelman. "The No-U-Turn Sampler: 
+// Matthew D. Hoffman, Andrew Gelman. "The No-U-Turn Sampler:
 // Adaptively Setting Path Lengths in Hamiltonian Monte Carlo", 2011.
 
 // Comment: Compared to [Matthew D. Hoffman, Andrew Gelman, 2011]
@@ -41,6 +41,12 @@ struct NutsHamiltonianMonteCarloWalk {
     {
       epsilon = epsilon_;
       eta = F.params.L > 0 ? 10.0 / (dim * sqrt(F.params.L)) : 0.005;
+    }
+
+    parameters(NT const& L, unsigned int dim, NT epsilon_ = 2)
+    {
+      epsilon = epsilon_;
+      eta = L > 0 ? 10.0 / (dim * sqrt(L)) : 0.005;
     }
   };
 
@@ -149,7 +155,7 @@ struct NutsHamiltonianMonteCarloWalk {
       Point p = x;
       NT L;
 
-      if ((solver->get_bounds())[0] == NULL) 
+      if ((solver->get_bounds())[0] == NULL)
       {
         L = (NT(100) / NT(dim)) * (NT(100) / NT(dim));
       }
@@ -181,12 +187,12 @@ struct NutsHamiltonianMonteCarloWalk {
 
       // Pick a random velocity
       v = GetDirection<Point>::apply(dim, rng, false);
-      
+
       v_pl = v;
       v_min = NT(-1) * v;
       X_pl = x;
       X_min = x;
-      
+
       NT h1 = hamiltonian(x, v);
 
       NT uu = std::log(rng.sample_urdist()) - h1;
@@ -203,14 +209,14 @@ struct NutsHamiltonianMonteCarloWalk {
       while (s)
       {
         j++;
-        
+
         if (burnin)
         {
           na = std::pow(NT(2), NT(j));
         }
 
         NT dir = rng.sample_urdist();
-                
+
         if (dir > 0.5)
         {
           v = v_pl;
@@ -222,7 +228,7 @@ struct NutsHamiltonianMonteCarloWalk {
           X = X_min;
         }
         X_rnd_j = X;
-                
+
         int x_counting = 0;
         int num_samples = int(std::pow(NT(2), NT(j)));
         accepted = false;
@@ -256,76 +262,76 @@ struct NutsHamiltonianMonteCarloWalk {
           }
 
           bool pos_state = false;
-          if (uu < -hj) 
+          if (uu < -hj)
           {
             pos_state = true;
             pos_state_single = true;
             x_counting = x_counting + 1;
             x_counting_total = x_counting_total + 1;
           }
-                 
-          if (k == 1) 
+
+          if (k == 1)
           {
-            if (dir > 0.5) 
+            if (dir > 0.5)
             {
               X_min_j = X;
               v_min_j = v;
-            } 
-            else 
+            }
+            else
             {
               X_pl_j = X;
               v_pl_j = v;
             }
           }
-          if (k == num_samples) 
+          if (k == num_samples)
           {
-            if (dir > 0.5) 
+            if (dir > 0.5)
             {
               x_pl_min = X - X_min_j;
-              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_min_j) < 0)) 
+              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_min_j) < 0))
               {
                 s = false;
               }
-            } 
-            else 
+            }
+            else
             {
               x_pl_min = X_pl_j - X;
-              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_pl_j) < 0)) 
+              if ((x_pl_min.dot(v) < 0) || (x_pl_min.dot(v_pl_j) < 0))
               {
                 s = false;
               }
             }
           }
-          if ((rng.sample_urdist() < (1/NT(x_counting))) && pos_state) 
+          if ((rng.sample_urdist() < (1/NT(x_counting))) && pos_state)
           {
             X_rnd_j = X;
           }
         }
 
-        if (dir > 0.5) 
+        if (dir > 0.5)
         {
           X_pl = X;
           v_pl = v;
-        } 
-        else 
+        }
+        else
         {
           X_min = X;
           v_min = v;
         }
-                
-        if (s && (rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total)))) 
+
+        if (s && (rng.sample_urdist() < (NT(x_counting) / NT(x_counting_total))))
         {
           x = X_rnd_j;
           if (pos_state_single)
-          { 
+          {
             updated = true;
           }
         }
-                
-        if (s) 
+
+        if (s)
         {
           x_pl_min = X_pl - X_min;
-          if ((x_pl_min.dot(v_min) < 0) || (x_pl_min.dot(v_pl) < 0)) 
+          if ((x_pl_min.dot(v_min) < 0) || (x_pl_min.dot(v_pl) < 0))
           {
               s = false;
           }

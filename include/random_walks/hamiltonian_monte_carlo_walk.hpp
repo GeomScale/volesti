@@ -40,6 +40,12 @@ struct HamiltonianMonteCarloWalk {
       // eta = 1.0 /
       //   (sqrt(20 * F.params.L * pow(dim, 3)));
     }
+
+    parameters(NT const& L, unsigned int dim, NT epsilon_ = 2)
+    {
+      epsilon = epsilon_;
+      eta = 1.0 / (dim * sqrt(L));
+    }
   };
 
   template

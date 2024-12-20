@@ -49,20 +49,22 @@ struct JohnWalk
         typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
 
-        Walk(Polytope &P, Point &p, RandomNumberGenerator &)
+        template <typename GenericPolytope>
+        Walk(GenericPolytope& P, Point const& p, RandomNumberGenerator &)
         {
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
-            NT r = P.ComputeInnerBall().second;
+            NT r = P.InnerBall().second;
             johnw = JohnWalker<NT>(p0, A, b, r);
         }
 
-        Walk(Polytope &P, Point & p, RandomNumberGenerator &, parameters const& params)
+        template <typename GenericPolytope>
+        Walk(GenericPolytope& P, Point const& p, RandomNumberGenerator &, parameters const& params)
         {
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
             NT r = params.set_L ? params.m_L
-                          : P.ComputeInnerBall().second;
+                          : P.InnerBall().second;
             johnw = JohnWalker<NT>(p0, A, b, r);
         }
 

@@ -84,7 +84,7 @@ struct Walk
     {}
 
     Walk(Polytope&, Point const&, NT const&, RandomNumberGenerator&,
-         parameters&)
+         parameters const&)
     {}
 
     template

@@ -25,7 +25,9 @@
 #include "random.hpp"
 #include <vector>
 #include "random_walks/random_walks.hpp"
+#include "preprocess/analytic_center_linear_ineq.h"
 #include "generators/known_polytope_generators.h"
+#include "generators/h_polytopes_generator.h"
 #include "helper_functions.hpp"
 
 template <int simdLen>

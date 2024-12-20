@@ -87,7 +87,7 @@ struct Walk
          Point const& p,
          NT const& a_i,
          RandomNumberGenerator& rng,
-         parameters&)
+         parameters const&)
     {
         initialize(P, p, a_i, rng);
     }
