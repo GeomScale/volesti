@@ -6,7 +6,7 @@
 # Contributed and/or modified by Vaibhav Thakkar
 # Contributed and/or modified by Ioannis Iakovidis
 # Licensed under GNU LGPL.3, see LICENCE file
-
+cmake_minimum_required(VERSION 3.10)
 project( VolEsti )
 
 enable_testing()
