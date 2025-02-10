@@ -10,3 +10,4 @@ build/
 .vscode
 .DS_Store
 .cache
+shell.nix

@@ -320,8 +320,11 @@ void call_test_gabw(){
     Point StartingPoint(d);
     std::list<Point> randPoints;
 
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+    start = std::chrono::high_resolution_clock::now();
+
     std::cout << "--- Testing Gaussian Accelerated Billiard Walk for Skinny-H-cube10" << std::endl;
-    P = generate_skinny_cube<Hpolytope>(10);
+    P = generate_skinny_cube<Hpolytope>(d);
 
 
     Point p = P.ComputeInnerBall().first;
@@ -340,6 +343,11 @@ void call_test_gabw(){
     RandomPointGenerator::apply(P, p, E, numpoints, 1, randPoints,
                                 push_back_policy, rng);
 
+    stop = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> total_time = stop - start;
+    std::cout << "Done in " << total_time.count() << '\n';
+
     MT samples(d, numpoints);
     unsigned int jj = 0;
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit != randPoints.end(); rpit++, jj++)
@@ -352,11 +360,11 @@ void call_test_gabw(){
     RNGType Srng(d);
 
     typedef Eigen::SparseMatrix<NT> SparseMT;
-    typedef HPolytope<Point, SparseMT> SparseHpoly;
+    typedef HPolytope<Point, Eigen::SparseMatrix<NT, Eigen::RowMajor>> SparseHpoly;
     std::list<Point> Points;
 
     SparseHpoly SP;
-    SP = generate_skinny_cube<SparseHpoly>(10);
+    SP = generate_skinny_cube<SparseHpoly>(d);
 
 
     std::cout << "--- Testing Gaussian Accelerated Billiard Walk for Sparse Skinny-H-cube10" << std::endl;
@@ -371,14 +379,20 @@ void call_test_gabw(){
             > sparsewalk;
     typedef MultivariateGaussianRandomPointGenerator <sparsewalk> SparseRandomPointGenerator;
 
+    start = std::chrono::high_resolution_clock::now();
 
     ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>
-    (SP.get_mat(), SP.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
+    ((SparseMT)SP.get_mat(), SP.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
 
     const SparseMT SE = get<0>(ellipsoid).sparseView();
 
     SparseRandomPointGenerator::apply(SP, p, SE, numpoints, 1, Points,
                                 push_back_policy, Srng);
+
+    stop = std::chrono::high_resolution_clock::now();
+
+    total_time = stop - start;
+    std::cout << "Done in " << total_time.count() << '\n';
 
     jj = 0;
     MT Ssamples(d, numpoints);

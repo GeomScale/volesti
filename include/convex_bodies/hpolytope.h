@@ -580,17 +580,23 @@ public:
         NT inner_prev = params.inner_vi_ak;
         NT* Av_data = Av.data();
 
+        // Updating Av due to the change in direction caused by the previous reflection
         // Av += (-2.0 * inner_prev) * AA.col(params.facet_prev)
 
         for (Eigen::SparseMatrix<double>::InnerIterator it(AA, params.facet_prev); it; ++it) {
 
+            // val(row) - params.moved_dist = The distance until we would hit the facet given by row
+            // all those values are stored inside distances_set for quick retrieval of the minimum
 
+            // Before updating Av(row)
             // val(row) = (b(row) - Ar(row)) / Av(row) + params.moved_dist
             // (val(row) - params.moved_dist) = (b(row) - Ar(row)) / Av(row)
             // (val(row) - params.moved_dist) * Av(row) = b(row) - Ar(row)
+            // b(row) - Ar(row) = (val(row) - params.moved_dist) * Av(row)
 
             *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
 
+            // After updating Av(row)
             // b(row) - Ar(row) = (old_val(row) - params.moved_dist) * old_Av(row) 
             // new_val(row) = (b(row) - Ar(row)                                ) / new_Av(row) + params.moved_dist 
             // new_val(row) = ((old_val(row) - params.moved_dist) * old_Av(row)) / new_Av(row) + params.moved_dist
@@ -608,8 +614,12 @@ public:
             distances_set.change_val(it.row(), val, params.moved_dist);
         }
 
+        // Finding the distance to the closest facet and its row
         std::pair<NT, int> ans = distances_set.get_min();
+
+        // Subtract params.moved_dist to obtain the actual distance to the facet
         ans.first -= params.moved_dist;
+
         params.inner_vi_ak = *(Av_data + ans.second);
         params.facet_prev = ans.second;
 
@@ -1002,34 +1012,59 @@ public:
       return total;
     }
 
+    // Updates the velocity vector v and the position vector p after a reflection
     template <typename update_parameters>
     void compute_reflection(Point &v, Point const&, update_parameters const& params) const {
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
     }
 
-    // updates the velocity vector v and the position vector p after a reflection
-    // the real value of p is given by p + moved_dist * v
+    // Only to be called when MT is in RowMajor format
+    // The real value of p is given by p + params.moved_dist * v
     template <typename update_parameters>
-    auto compute_reflection(Point &v, Point &p, update_parameters const& params) const
-         -> std::enable_if_t<std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>> && !std::is_same_v<update_parameters, int>, void> { // MT must be in RowMajor format
-            NT* v_data = v.pointerToData();
-            NT* p_data = p.pointerToData();
-            for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
-                *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
-                *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
-            }
+    auto compute_reflection_abw_sparse(Point &v, Point &p, update_parameters const& params) const
+    {
+        NT* v_data = v.pointerToData();
+        NT* p_data = p.pointerToData();
+        for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
+            *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+            *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
+        }
     }
 
-    template <typename update_parameters>
-    NT compute_reflection(Point &v, const Point &, DenseMT const &AE, VT const &AEA, NT const &vEv, update_parameters const &params) const {
+    // function to compute reflection for GaBW random walk
+    // compatible when the polytope is both dense or sparse
+    template <typename DenseSparseMT, typename update_parameters>
+    NT compute_reflection(Point &v, Point &p, NT &vEv, DenseSparseMT const &AE, VT const &AEA, update_parameters const &params) const {
 
-            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
-            VT x = v.getCoefficients();
-            NT new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
-            v += a;
+            NT new_vEv;
+            if constexpr (!std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
+                Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+                VT x = v.getCoefficients();
+                new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
+                v += a;
+            } else {
+                
+                if constexpr(!std::is_same_v<DenseSparseMT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>) {
+                    VT x = v.getCoefficients();
+                    new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
+                } else {
+                    new_vEv = vEv + 4.0 * params.inner_vi_ak * params.inner_vi_ak * AEA(params.facet_prev);
+                    NT* v_data = v.pointerToData();
+                    for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(AE, params.facet_prev); it; ++it) {
+                        new_vEv -= 4.0 * params.inner_vi_ak * it.value() * *(v_data + it.col());
+                    }
+                }
+
+                NT* v_data = v.pointerToData();
+                NT* p_data = p.pointerToData();
+                for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
+                    *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                    *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
+                }
+            }
             NT coeff = std::sqrt(vEv / new_vEv);
-            v = v * coeff;
+            vEv = new_vEv;
             return coeff;
     }
 
