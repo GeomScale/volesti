@@ -8,7 +8,9 @@
 //(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
 
 #pragma once
-#include <immintrin.h>
+#if defined(__x86_64__) || defined(__i386__)
+    #include <immintrin.h>
+#endif
 #include <random>
 #include <type_traits>
 namespace PackedCSparse {

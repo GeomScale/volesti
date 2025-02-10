@@ -1,6 +1,8 @@
 set(LP_SOLVE_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(GetLPSolve)
+if(NOT APPLE)
   find_path(LP_SOLVE_DIR NAMES lpsolve.h PATHS ${LP_SOLVE_CMAKE_DIR}/../_deps/lpsolve-src)
+endif(NOT APPLE)
 
   if (NOT LP_SOLVE_DIR)
       include(FetchContent)

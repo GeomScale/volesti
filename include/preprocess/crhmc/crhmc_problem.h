@@ -330,23 +330,23 @@ public:
   void simplify() {
 #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     rescale();
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     rescale_duration += end - start;
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     splitDenseCols(options.maxNZ);
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     sparsify_duration += end - start;
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     reorder();
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     reordering_duration += end - start;
 #endif
     int changed = 1;
@@ -354,32 +354,32 @@ public:
       while (changed) {
         changed = 0;
 #ifdef TIME_KEEPING
-        start = std::chrono::system_clock::now();
+        start = std::chrono::high_resolution_clock::now();
 #endif
         changed += remove_dependent_rows();
 #ifdef TIME_KEEPING
-        end = std::chrono::system_clock::now();
+        end = std::chrono::high_resolution_clock::now();
         rm_rows_duration += end - start;
-        start = std::chrono::system_clock::now();
+        start = std::chrono::high_resolution_clock::now();
 #endif
         changed += remove_fixed_variables();
 #ifdef TIME_KEEPING
-        end = std::chrono::system_clock::now();
+        end = std::chrono::high_resolution_clock::now();
         rm_fixed_vars_duration += end - start;
-        start = std::chrono::system_clock::now();
+        start = std::chrono::high_resolution_clock::now();
 #endif
         reorder();
 #ifdef TIME_KEEPING
-        end = std::chrono::system_clock::now();
+        end = std::chrono::high_resolution_clock::now();
         reordering_duration += end - start;
 #endif
       }
 #ifdef TIME_KEEPING
-      start = std::chrono::system_clock::now();
+      start = std::chrono::high_resolution_clock::now();
 #endif
       changed += extract_collapsed_variables();
 #ifdef TIME_KEEPING
-      end = std::chrono::system_clock::now();
+      end = std::chrono::high_resolution_clock::now();
       ex_collapsed_vars_duration += end - start;
 #endif
     }
@@ -546,7 +546,7 @@ public:
     simplify();
 #ifdef TIME_KEEPING
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     if (isempty_center) {
       std::tie(center, std::ignore, std::ignore) =
@@ -555,7 +555,7 @@ public:
     }
     shift_barrier(center);
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     shift_barrier_duration += end - start;
 #endif
     reorder();
@@ -564,7 +564,7 @@ public:
     //  Recenter again and make sure it is feasible
     VT hess;
 #ifdef TIME_KEEPING
-    start = std::chrono::system_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 #endif
     std::tie(center, std::ignore, std::ignore, w_center) =
         lewis_center<Crhmc_problem, SpMat, Opts, MT, VT, NT>(Asp, b, *this, options, center);
@@ -578,7 +578,7 @@ public:
     solver.solve((Tx *)input.data(), (Tx *)out.data());
     center = center + (Asp.transpose() * out).cwiseProduct(Hinv);
 #ifdef TIME_KEEPING
-    end = std::chrono::system_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     lewis_center_duration += end - start;
 #endif
     if ((center.array() > barrier.ub.array()).any() ||
