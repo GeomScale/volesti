@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: '4.1.2'}
+#          - {os: macOS-latest,   r: '4.2.0'} # Error: Package required but not available: ‘RcppEigen’
 #          - {os: macOS-latest,   r: 'devel'} # Error in library(devtools) : there is no package called ‘devtools’
           - {os: macOS-latest,   r: 'release'}
 
@@ -39,20 +39,25 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: Install dependencies
-        run: Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat', 'downloader', 'xfun'))";
+        run: |
+          Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org'))"
+          Rscript -e "install.packages('devtools', dependencies=TRUE, repos='https://cloud.r-project.org')"
+          Rscript -e "install.packages(c('rcmdcheck', 'Rcpp', 'RcppEigen', 'BH', 'testthat', 'downloader', 'xfun'), repos='https://cloud.r-project.org')"
 
       - name: Checkout Rvolesti repository
         run: git clone https://github.com/GeomScale/Rvolesti.git;
 
       - name: Upgrade with current develop of volesti
-        run: cp -rf include Rvolesti/src/volesti;
-             cp -rf external Rvolesti/src;
+        run: |
+          cp -rf include Rvolesti/src/volesti
+          cp -rf external Rvolesti/src
 
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-        run: cd Rvolesti/;
-             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'warning', check_dir = 'check')"
+        run: |
+          cd Rvolesti/
+          Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'warning', check_dir = 'check')"
 
       - name: Upload check results
         if: failure()
