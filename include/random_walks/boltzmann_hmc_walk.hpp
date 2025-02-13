@@ -194,8 +194,8 @@ public:
                 v += (lambda * 2) * a;
 
                 // compute reflected direction
-                point<Cartesian<double>> v_point(v);
-                point<Cartesian<double>> p_point(p);
+                Point v_point(v);
+                Point p_point(p);
 
                 convexbody.compute_reflection(v_point, p_point);
 
