@@ -395,6 +395,21 @@ public:
     /// Computes the reflected direction at a point on the boundary of the spectrahedron.
     /// \param[in] r A point on the boundary of the spectrahedron
     /// \param[in] v The direction of the trajectory as it hits the boundary
+    void compute_reflection(PointType &v, PointType const& r ) const
+    {
+        VT grad(d);
+        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
+
+        // compute reflected direction
+        // if v is original direction and s the surface normal,
+        // reflected direction = v - 2 <v,s>*s
+        NT dot = 2 * v.dot(grad);
+        v += -dot * PointType(grad);
+    }
+
+    /// Computes the reflected direction at a point on the boundary of the spectrahedron.
+    /// \param[in] r A point on the boundary of the spectrahedron
+    /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
     template <typename update_parameters>
     void compute_reflection(PointType &v, PointType const& r, update_parameters& ) const

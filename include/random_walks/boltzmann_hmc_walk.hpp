@@ -194,7 +194,12 @@ public:
                 v += (lambda * 2) * a;
 
                 // compute reflected direction
-                convexbody.compute_reflection(v, p);
+                Point v_point(v);
+                Point p_point(p);
+
+                convexbody.compute_reflection(v_point, p_point);
+
+                v = v_point.getCoefficients();
             }
 
             // if the #reflections exceeded the limit, don't move

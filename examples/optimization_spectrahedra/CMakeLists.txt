@@ -14,10 +14,10 @@ add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")
 
 add_executable (read_write_sdpa_file read_write_sdpa_file.cpp)
 
-include("Eigen.cmake")
+include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("Boost.cmake")
+include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
 include_directories (BEFORE ../../external)
@@ -48,7 +48,8 @@ IF (OPENBLAS_LIB)
         message( STATUS "ARPACK_LIB found: ${ARPACK_LIB}" )
 
         # Query gfortran to get the libgfortran path
-        FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/9/)
+        file(GLOB GCC_VERSION_DIRS LIST_DIRECTORIES true "/usr/lib/gcc/x86_64-linux-gnu/*")
+        find_library(GFORTRAN_LIB NAMES libgfortran.so PATHS ${GCC_VERSION_DIRS})
 
         # Find libgfortran (static preferred)
         # Query gfortran to get the libgfortran path
@@ -79,12 +80,11 @@ IF (OPENBLAS_LIB)
         IF (GFORTRAN_LIB)
             message( STATUS "GFORTRAN_LIB found: ${GFORTRAN_LIB}" )
 
-            # These are not compiling, see issue https://github.com/GeomScale/volesti/issues/264
-            #add_executable (boltzmann_hmc_walk boltzmann_hmc_walk.cpp)
-            #TARGET_LINK_LIBRARIES(boltzmann_hmc_walk ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
+            add_executable (boltzmann_hmc_walk boltzmann_hmc_walk.cpp)
+            TARGET_LINK_LIBRARIES(boltzmann_hmc_walk ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
 
-            #add_executable (solve_sdp solve_sdp.cpp)
-            #TARGET_LINK_LIBRARIES(solve_sdp ${GFORTRAN_LIB} ${LAPACK_LIBRARIES} ${ARPACK_LIB})
+            add_executable (solve_sdp solve_sdp.cpp)
+            TARGET_LINK_LIBRARIES(solve_sdp ${GFORTRAN_LIB} ${LAPACK_LIBRARIES} ${ARPACK_LIB})
 
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")
