@@ -7,11 +7,12 @@
 # Contributed and/or modified by Ioannis Iakovidis
 # Licensed under GNU LGPL.3, see LICENCE file
 
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
+
 project( VolEsti )
 
 enable_testing()
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
