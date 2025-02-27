@@ -4,19 +4,32 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Apple Clang 16 - macOS 14 (ARM64)
+    name: ${{ matrix.config.os }} - ${{ matrix.config.compiler }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-12, compiler: clang++}
+          - {os: macos-12, compiler: clang++-13}
+          - {os: macos-12, compiler: clang++-14}
+          - {os: macos-13, compiler: clang++}
+          - {os: macos-13, compiler: clang++-15}
+          - {os: macos-14, compiler: clang++}
+          - {os: macos-14, compiler: clang++-16}
+          - {os: macos-14, compiler: clang++-17}
 
-    runs-on: macos-14
+    runs-on: ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Verify Compiler
+      - name: Verify System & Compiler
         run: |
-          clang --version
-          clang++ --version
-          echo "Target Architecture:"
-          uname -m
+          echo "System Info:"
+          uname -a
+          echo "Using Clang version:"
+          ${{ matrix.config.compiler }} --version
 
       - name: Build and Test
         run: |
@@ -30,10 +43,11 @@ jobs:
             CXX_FLAGS="-fsanitize=memory -fsanitize=undefined -g"
           fi
           
-          cmake -D CMAKE_CXX_COMPILER=clang++ \
+          cmake -D CMAKE_CXX_COMPILER=${{ matrix.config.compiler }} \
                 -D CMAKE_CXX_FLAGS="${CXX_FLAGS}" \
                 -D DISABLE_NLP_ORACLES=ON \
                 -D USE_MKL=OFF \
                 ../test
           make
           ctest --verbose
+
