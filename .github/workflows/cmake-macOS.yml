@@ -1,0 +1,32 @@
+name: cmake-macOS
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Apple Clang 16 - macOS 14 (ARM64)
+
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify Compiler
+        run: |
+          clang --version
+          clang++ --version
+          echo "Target Architecture:"
+          uname -m
+
+      - name: Build and Test
+        run: |
+          rm -rf build
+          mkdir build
+          cd build
+          cmake -D CMAKE_CXX_COMPILER=clang++ \
+                -D CMAKE_CXX_FLAGS="-fsanitize=memory -fsanitize=undefined -g" \
+                -D DISABLE_NLP_ORACLES=ON \
+                -D USE_MKL=OFF \
+                ../test
+          make
+          ctest --verbose
