@@ -24,48 +24,54 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
       
-      # Install Clang versions first (for all jobs that need them)
-      - name: Install Clang 15
-        if: contains(matrix.config.compiler, 'clang++-15')
-        run: |
-          brew install llvm@15
-          echo "/opt/homebrew/opt/llvm@15/bin" >> $GITHUB_PATH
-          echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.zshrc
-          sudo ln -sf /opt/homebrew/opt/llvm@15/bin/clang++ /usr/local/bin/clang++-15
-      
-      - name: Install Clang 16
-        if: contains(matrix.config.compiler, 'clang++-16')
-        run: |
-          brew install llvm@16
-          echo "/opt/homebrew/opt/llvm@16/bin" >> $GITHUB_PATH
-          echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.zshrc
-          sudo ln -sf /opt/homebrew/opt/llvm@16/bin/clang++ /usr/local/bin/clang++-16
-      
-      - name: Install Clang 17
-        if: contains(matrix.config.compiler, 'clang++-17') 
-        run: |
-          brew install llvm@17
-          echo "/opt/homebrew/opt/llvm@17/bin" >> $GITHUB_PATH
-          echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.zshrc
-          sudo ln -sf /opt/homebrew/opt/llvm@17/bin/clang++ /usr/local/bin/clang++-17
-
-      # Verify system and compiler
-      - name: Verify System & Compiler
+      # Prepare LLVM compilers before trying to use them
+      - name: Install LLVM Compilers
         run: |
           echo "System Info:"
           uname -a
-          echo "Using Clang version:"
           
-          # Use the compiler directly without the conditional check
-          # This works because we've installed the compilers and added them to the path
-          ${{ matrix.config.compiler }} --version
-
+          # Install required compiler based on matrix configuration
+          if [[ "${{ matrix.config.compiler }}" == "clang++-15" ]]; then
+            brew install llvm@15
+            # Make sure path exists before verification/build steps
+            echo "COMPILER_PATH=/opt/homebrew/opt/llvm@15/bin/clang++" >> $GITHUB_ENV
+            echo "/opt/homebrew/opt/llvm@15/bin" >> $GITHUB_PATH
+          elif [[ "${{ matrix.config.compiler }}" == "clang++-16" ]]; then
+            brew install llvm@16
+            echo "COMPILER_PATH=/opt/homebrew/opt/llvm@16/bin/clang++" >> $GITHUB_ENV
+            echo "/opt/homebrew/opt/llvm@16/bin" >> $GITHUB_PATH
+          elif [[ "${{ matrix.config.compiler }}" == "clang++-17" ]]; then
+            brew install llvm@17
+            echo "COMPILER_PATH=/opt/homebrew/opt/llvm@17/bin/clang++" >> $GITHUB_ENV
+            echo "/opt/homebrew/opt/llvm@17/bin" >> $GITHUB_PATH
+          else
+            echo "COMPILER_PATH=${{ matrix.config.compiler }}" >> $GITHUB_ENV
+          fi
+      
+      # Verify the compiler is available
+      - name: Verify Compiler
+        run: |
+          echo "Using Clang version:"
+          # Use the environment variable set in previous step
+          ${{ env.COMPILER_PATH }} --version
+      
       # Build and test
       - name: Build and Test
         run: |
+          # Create a test file
+          cat > main.cpp << 'EOF'
+          #include <iostream>
+          int main() {
+            std::cout << "Hello from C++!" << std::endl;
+            return 0;
+          }
+          EOF
+          
+          # Test compiler with a simple file
+          ${{ env.COMPILER_PATH }} -std=c++17 -o output main.cpp
+          ./output
+          
+          # Build and test the main project
           rm -rf build
           mkdir build
           cd build
@@ -76,7 +82,7 @@ jobs:
             CXX_FLAGS="-fsanitize=memory -fsanitize=undefined -g"
           fi
           
-          cmake -D CMAKE_CXX_COMPILER="${{ matrix.config.compiler }}" \
+          cmake -D CMAKE_CXX_COMPILER="${{ env.COMPILER_PATH }}" \
                 -D CMAKE_CXX_FLAGS="${CXX_FLAGS}" \
                 -D DISABLE_NLP_ORACLES=ON \
                 -D USE_MKL=OFF \
@@ -84,32 +90,3 @@ jobs:
           make
           ctest --verbose
 
-      # For testing specific Clang versions with a test file
-      - name: Create Test File
-        run: |
-          cat > main.cpp << 'EOF'
-          #include <iostream>
-          int main() {
-            std::cout << "Hello from C++!" << std::endl;
-            return 0;
-          }
-          EOF
-
-      # Only run these tests when the specific compiler is used in the matrix
-      - name: Build and Test with Clang 15
-        if: contains(matrix.config.compiler, 'clang++-15')
-        run: |
-          clang++-15 -std=c++17 -o output15 main.cpp
-          ./output15
-          
-      - name: Build and Test with Clang 16
-        if: contains(matrix.config.compiler, 'clang++-16')
-        run: |
-          clang++-16 -std=c++17 -o output16 main.cpp
-          ./output16
-          
-      - name: Build and Test with Clang 17
-        if: contains(matrix.config.compiler, 'clang++-17')
-        run: |
-          clang++-17 -std=c++17 -o output17 main.cpp
-          ./output17
