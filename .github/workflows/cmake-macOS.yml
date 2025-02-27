@@ -50,4 +50,40 @@ jobs:
                 ../test
           make
           ctest --verbose
+      - name: Install Clang 15, 16, and 17
+        run: |
+          brew install llvm@15 llvm@16 llvm@17
+          echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.bash_profile
+          echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.bash_profile
+          echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.bash_profile
+          echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.zshrc
+          echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.zshrc
+          echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.zshrc
+          source $HOME/.bash_profile
+
+      - name: Verify Installed Clang Versions
+        run: |
+          echo "Clang 15 version:"
+          /opt/homebrew/opt/llvm@15/bin/clang++ --version || echo "Clang 15 not found"
+          
+          echo "Clang 16 version:"
+          /opt/homebrew/opt/llvm@16/bin/clang++ --version || echo "Clang 16 not found"
+          
+          echo "Clang 17 version:"
+          /opt/homebrew/opt/llvm@17/bin/clang++ --version || echo "Clang 17 not found"
+
+      - name: Build and Test with Clang 15
+        run: |
+          /opt/homebrew/opt/llvm@15/bin/clang++ -std=c++17 -o output15 main.cpp
+          ./output15
+          
+      - name: Build and Test with Clang 16
+        run: |
+          /opt/homebrew/opt/llvm@16/bin/clang++ -std=c++17 -o output16 main.cpp
+          ./output16
+          
+      - name: Build and Test with Clang 17
+        run: |
+          /opt/homebrew/opt/llvm@17/bin/clang++ -std=c++17 -o output17 main.cpp
+          ./output17
 
