@@ -17,20 +17,57 @@ jobs:
           - {os: macos-14, compiler: clang++}
           - {os: macos-14, compiler: clang++-16}
           - {os: macos-14, compiler: clang++-17}
-
+    
     runs-on: ${{ matrix.config.os }}
-
+    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      
+      # Install Clang versions first
+      - name: Install Required Clang Versions
+        run: |
+          if [[ "${{ matrix.config.compiler }}" == *"clang++-15"* ]]; then
+            brew install llvm@15
+            echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.bash_profile
+            echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.zshrc
+            source $HOME/.bash_profile
+            ln -s /opt/homebrew/opt/llvm@15/bin/clang++ /usr/local/bin/clang++-15 || true
+          fi
+          
+          if [[ "${{ matrix.config.compiler }}" == *"clang++-16"* ]]; then
+            brew install llvm@16
+            echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.bash_profile
+            echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.zshrc
+            source $HOME/.bash_profile
+            ln -s /opt/homebrew/opt/llvm@16/bin/clang++ /usr/local/bin/clang++-16 || true
+          fi
+          
+          if [[ "${{ matrix.config.compiler }}" == *"clang++-17"* ]]; then
+            brew install llvm@17
+            echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.bash_profile
+            echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.zshrc
+            source $HOME/.bash_profile
+            ln -s /opt/homebrew/opt/llvm@17/bin/clang++ /usr/local/bin/clang++-17 || true
+          fi
 
+      # Verify system and compiler after installation
       - name: Verify System & Compiler
         run: |
           echo "System Info:"
           uname -a
           echo "Using Clang version:"
-          ${{ matrix.config.compiler }} --version
+          if [[ "${{ matrix.config.compiler }}" == *"clang++-15"* ]]; then
+            /opt/homebrew/opt/llvm@15/bin/clang++ --version
+          elif [[ "${{ matrix.config.compiler }}" == *"clang++-16"* ]]; then
+            /opt/homebrew/opt/llvm@16/bin/clang++ --version
+          elif [[ "${{ matrix.config.compiler }}" == *"clang++-17"* ]]; then
+            /opt/homebrew/opt/llvm@17/bin/clang++ --version
+          else
+            ${{ matrix.config.compiler }} --version
+          fi
 
+      # Build and test
       - name: Build and Test
         run: |
           rm -rf build
@@ -43,47 +80,50 @@ jobs:
             CXX_FLAGS="-fsanitize=memory -fsanitize=undefined -g"
           fi
           
-          cmake -D CMAKE_CXX_COMPILER=${{ matrix.config.compiler }} \
+          # Use the correct compiler path for LLVM versions
+          COMPILER="${{ matrix.config.compiler }}"
+          if [[ "$COMPILER" == "clang++-15" ]]; then
+            COMPILER="/opt/homebrew/opt/llvm@15/bin/clang++"
+          elif [[ "$COMPILER" == "clang++-16" ]]; then
+            COMPILER="/opt/homebrew/opt/llvm@16/bin/clang++"
+          elif [[ "$COMPILER" == "clang++-17" ]]; then
+            COMPILER="/opt/homebrew/opt/llvm@17/bin/clang++"
+          fi
+          
+          cmake -D CMAKE_CXX_COMPILER="$COMPILER" \
                 -D CMAKE_CXX_FLAGS="${CXX_FLAGS}" \
                 -D DISABLE_NLP_ORACLES=ON \
                 -D USE_MKL=OFF \
                 ../test
           make
           ctest --verbose
-      - name: Install Clang 15, 16, and 17
-        run: |
-          brew install llvm@15 llvm@16 llvm@17
-          echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"' >> $HOME/.zshrc
-          echo 'export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"' >> $HOME/.zshrc
-          echo 'export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"' >> $HOME/.zshrc
-          source $HOME/.bash_profile
 
-      - name: Verify Installed Clang Versions
+      # For testing specific Clang versions with a test file
+      - name: Create Test File
         run: |
-          echo "Clang 15 version:"
-          /opt/homebrew/opt/llvm@15/bin/clang++ --version || echo "Clang 15 not found"
-          
-          echo "Clang 16 version:"
-          /opt/homebrew/opt/llvm@16/bin/clang++ --version || echo "Clang 16 not found"
-          
-          echo "Clang 17 version:"
-          /opt/homebrew/opt/llvm@17/bin/clang++ --version || echo "Clang 17 not found"
+          cat > main.cpp << 'EOF'
+          #include <iostream>
+          int main() {
+            std::cout << "Hello from C++!" << std::endl;
+            return 0;
+          }
+          EOF
 
+      # Only run these tests when the specific compiler is used in the matrix
       - name: Build and Test with Clang 15
+        if: matrix.config.compiler == 'clang++-15'
         run: |
           /opt/homebrew/opt/llvm@15/bin/clang++ -std=c++17 -o output15 main.cpp
           ./output15
           
       - name: Build and Test with Clang 16
+        if: matrix.config.compiler == 'clang++-16'
         run: |
           /opt/homebrew/opt/llvm@16/bin/clang++ -std=c++17 -o output16 main.cpp
           ./output16
           
       - name: Build and Test with Clang 17
+        if: matrix.config.compiler == 'clang++-17'
         run: |
           /opt/homebrew/opt/llvm@17/bin/clang++ -std=c++17 -o output17 main.cpp
           ./output17
-
