@@ -1,0 +1,54 @@
+name: cmake-mac
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.config.os }} - ${{ matrix.config.compiler }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-12, compiler_pkg: llvm@10, compiler: clang++-10}
+          - {os: macos-12, compiler_pkg: llvm@11, compiler: clang++-11}
+          - {os: macos-12, compiler_pkg: llvm@12, compiler: clang++-12}
+          - {os: macos-12, compiler_pkg: llvm@13, compiler: clang++-13}
+          - {os: macos-12, compiler_pkg: llvm@14, compiler: clang++-14}
+          - {os: macos-12, compiler_pkg: llvm@15, compiler: clang++-15}
+          - {os: macos-13, compiler_pkg: llvm@10, compiler: clang++-10}
+          - {os: macos-13, compiler_pkg: llvm@11, compiler: clang++-11}
+          - {os: macos-13, compiler_pkg: llvm@12, compiler: clang++-12}
+          - {os: macos-13, compiler_pkg: llvm@13, compiler: clang++-13}
+          - {os: macos-13, compiler_pkg: llvm@14, compiler: clang++-14}
+          - {os: macos-13, compiler_pkg: llvm@15, compiler: clang++-15}
+          - {os: macos-14, compiler_pkg: llvm@10, compiler: clang++-10}
+          - {os: macos-14, compiler_pkg: llvm@11, compiler: clang++-11}
+          - {os: macos-14, compiler_pkg: llvm@12, compiler: clang++-12}
+          - {os: macos-14, compiler_pkg: llvm@13, compiler: clang++-13}
+          - {os: macos-14, compiler_pkg: llvm@14, compiler: clang++-14}
+          - {os: macos-14, compiler_pkg: llvm@15, compiler: clang++-15}
+
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Clang
+        run: |
+          brew install ${{ matrix.config.compiler_pkg }}
+          echo "Using Clang version:"
+          ${{ matrix.config.compiler }} --version
+
+      - name: Build and Test
+        run: |
+          rm -rf build
+          mkdir build
+          cd build
+          cmake -D CMAKE_CXX_COMPILER=${{ matrix.config.compiler }} \
+                -D CMAKE_CXX_FLAGS="-fsanitize=memory -fsanitize=undefined -g" \
+                -D DISABLE_NLP_ORACLES=ON \
+                -D USE_MKL=OFF \
+                ../test
+          make
+          ctest --verbose
