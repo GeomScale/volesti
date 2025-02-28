@@ -1,7 +1,5 @@
 name: CI-macOS-AppleClang
-
 on: [push, pull_request]
-
 jobs:
   build:
     name: ${{ matrix.config.os }} - ${{ matrix.config.compiler }}
@@ -17,48 +15,42 @@ jobs:
           - {os: macos-14, compiler: clang++}
           - {os: macos-14, compiler: clang++-16}
           - {os: macos-14, compiler: clang++-17}
-    
     runs-on: ${{ matrix.config.os }}
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      
-      # Prepare LLVM compilers before trying to use them
+
       - name: Install LLVM Compilers
         run: |
           echo "System Info:"
           uname -a
-          
+
           # Install required compiler based on matrix configuration
-          if [[ "${{ matrix.config.compiler }}" == "clang++-15" ]]; then
-            brew install llvm@15
-            # Make sure path exists before verification/build steps
-            echo "COMPILER_PATH=/opt/homebrew/opt/llvm@15/bin/clang++" >> $GITHUB_ENV
-            echo "/opt/homebrew/opt/llvm@15/bin" >> $GITHUB_PATH
-          elif [[ "${{ matrix.config.compiler }}" == "clang++-16" ]]; then
-            brew install llvm@16
-            echo "COMPILER_PATH=/opt/homebrew/opt/llvm@16/bin/clang++" >> $GITHUB_ENV
-            echo "/opt/homebrew/opt/llvm@16/bin" >> $GITHUB_PATH
-          elif [[ "${{ matrix.config.compiler }}" == "clang++-17" ]]; then
-            brew install llvm@17
-            echo "COMPILER_PATH=/opt/homebrew/opt/llvm@17/bin/clang++" >> $GITHUB_ENV
-            echo "/opt/homebrew/opt/llvm@17/bin" >> $GITHUB_PATH
-          else
-            echo "COMPILER_PATH=${{ matrix.config.compiler }}" >> $GITHUB_ENV
-          fi
-      
-      # Verify the compiler is available
+          case "${{ matrix.config.compiler }}" in
+            clang++-13) brew install llvm@13 ;;
+            clang++-14) brew install llvm@14 ;;
+            clang++-15) brew install llvm@15 ;;
+            clang++-16) brew install llvm@16 ;;
+            clang++-17) brew install llvm@17 ;;
+            *) brew install llvm ;;  # Default to latest LLVM
+          esac
+
+          # Set correct compiler path dynamically
+          LLVM_PATH="$(brew --prefix llvm)/bin/clang++"
+          echo "COMPILER_PATH=$LLVM_PATH" >> $GITHUB_ENV
+          echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+
       - name: Verify Compiler
         run: |
           echo "Using Clang version:"
-          # Use the environment variable set in previous step
+          if [ ! -f "${{ env.COMPILER_PATH }}" ]; then
+            echo "Error: Clang++ not found at ${{ env.COMPILER_PATH }}"
+            exit 1
+          fi
           ${{ env.COMPILER_PATH }} --version
-      
-      # Build and test
+
       - name: Build and Test
         run: |
-          # Create a test file
           cat > main.cpp << 'EOF'
           #include <iostream>
           int main() {
@@ -66,22 +58,20 @@ jobs:
             return 0;
           }
           EOF
-          
-          # Test compiler with a simple file
+
           ${{ env.COMPILER_PATH }} -std=c++17 -o output main.cpp
           ./output
-          
-          # Build and test the main project
+
           rm -rf build
           mkdir build
           cd build
-          
+
           if [[ "$(uname -s)" == "Darwin" ]]; then
-            CXX_FLAGS="-fsanitize=undefined -g"   # No memory sanitizer on macOS
+            CXX_FLAGS="-fsanitize=undefined -g"
           else
             CXX_FLAGS="-fsanitize=memory -fsanitize=undefined -g"
           fi
-          
+
           cmake -D CMAKE_CXX_COMPILER="${{ env.COMPILER_PATH }}" \
                 -D CMAKE_CXX_FLAGS="${CXX_FLAGS}" \
                 -D DISABLE_NLP_ORACLES=ON \
@@ -89,4 +79,3 @@ jobs:
                 ../test
           make
           ctest --verbose
-
