@@ -72,12 +72,8 @@ MT get_skinny_transformation(const int d, NT const eig_ratio, int const seed)
     RNGType rng(seed);
     
     MT W(d, d);
-    for (int i = 0; i < d; i++) {
-        for (int j = 0; j < d; j++) {
-            W(i, j) = gdist(rng);
-        }
-    }
-    
+    // performance boost instead of using for loops for randomizing
+    W = MT::NullaryExpr(d, d, [&](){ return gdist(rng); });
     Eigen::HouseholderQR<MT> qr(W);
     MT Q = qr.householderQ();
     
