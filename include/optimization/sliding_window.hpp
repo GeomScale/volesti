@@ -41,8 +41,8 @@ public:
         numEntries = 0;
     }
 
-    /// Adds an approximation in the window
-    /// \param[in] approximation The new approximation
+    /// Adds an approximation in the window to the front of the list
+    /// \param[in] approximation The new approximation 
     void push(NT approximation) {
         // if window is full, remove the oldest value
         if (numEntries >= windowSize) {
@@ -51,14 +51,14 @@ public:
         else
             numEntries++;
 
-        approximation.push_front(approximation);
+        approximations.push_front(approximation);
     }
 
     /// \return The relative error between the youngest and oldest approximations
     double getRelativeError() {
         if (numEntries < windowSize)
             return 1;
-
+        
         return relativeError(approximations.back(), approximations.front());
     }
 };
