@@ -4,6 +4,9 @@
 
 `volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
 
+**Note:** This tutorial is based on package version **1.1.2** from CRAN.  
+Please ensure you have the latest version installed for compatibility.
+
 We can download the `R` package from the [CRAN webpage](https://CRAN.R-project.org/package=volesti).
 
 ```r
@@ -22,7 +25,7 @@ help("sample_points")
 Let’s try our first volesti command to estimate the volume of a 3-dimensional cube $\{-1\leq x_i \leq 1,x_i \in \mathbb R\ |\ i=1,2,3\}$
 
 ```r
-P <- GenCube(3,'H')
+P <- gen_cube(3,'H')
 print(volume(P))
 ```
 
@@ -125,7 +128,7 @@ library(ggplot2)
 library(volesti)
 for (step in c(1,20,100,150)){
   for (walk in c("CDHR", "RDHR", "BW")){
-    P <- GenCube(100, 'H')
+    P <- gen_cube(100, 'H')
     points1 <- sample_points(P, WalkType = walk, walk_step = step, N=1000)
     g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
 geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
@@ -151,7 +154,7 @@ Now let's compute our first example. The volume of the 3-dimensional cube.
 ```r
 library(geometry)
 
-PV <- GenCube(3,'V')
+PV <- gen_cube(3,'V')
 str(PV)
 
 #P = GenRandVpoly(3, 6, body = 'cube')
@@ -165,7 +168,7 @@ cat(sprintf("exact vol = %f\napprx vol = %f\nrelative error = %f\n",
 Now try a higher dimensional example. By setting the `error` parameter we can control the apporximation of the algorithm.
 
 ```r
-PH = GenCube(10,'H')
+PH = gen_cube(10,'H')
 volumes <- list()
 for (i in 1:10) {
   # default parameters
@@ -308,7 +311,7 @@ adaptIntegrate(f, lowerLimit = c(-1, -1, -1), upperLimit = c(1, 1, 1))$integral
 
 # Simple Monte Carlo integration
 # https://en.wikipedia.org/wiki/Monte_Carlo_integration
-P = GenCube(3, 'H')
+P = gen_cube(3, 'H')
 num_of_points <- 10000
 points1 <- sample_points(P, WalkType = "RDHR", walk_step = 100, N=num_of_points)
 int<-0
