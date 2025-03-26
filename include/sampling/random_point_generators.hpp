@@ -10,11 +10,12 @@
 
 template
 <
-    typename Walk
+    typename Walk,
+    bool storeValue = true
 >
 struct RandomPointGenerator
 {
-    template
+    template 
     <
         typename Polytope,
         typename Point,
@@ -36,7 +37,10 @@ struct RandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p, walk_length, rng);
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 
@@ -60,7 +64,10 @@ struct RandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p, walk_length, rng);
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 };
@@ -68,7 +75,8 @@ struct RandomPointGenerator
 
 template
 <
-    typename Walk
+    typename Walk,
+    bool storeValue = true
 >
 struct MultivariateGaussianRandomPointGenerator
 {
@@ -96,7 +104,10 @@ struct MultivariateGaussianRandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p, walk_length, rng);
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 
@@ -122,7 +133,10 @@ struct MultivariateGaussianRandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p, walk_length, rng);
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 };
@@ -130,7 +144,8 @@ struct MultivariateGaussianRandomPointGenerator
 
 template
 <
-    typename Walk
+    typename Walk,
+    bool storeValue = true
 >
 struct GaussianRandomPointGenerator
 {
@@ -156,7 +171,10 @@ struct GaussianRandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p, a_i, walk_length, rng);
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 
@@ -185,14 +203,21 @@ struct GaussianRandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p, a_i, walk_length, rng);
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 };
 
 
 
-template <typename Walk>
+template 
+<
+    typename Walk,
+    bool storeValue = true
+>
 struct BoundaryRandomPointGenerator
 {
     template
@@ -216,8 +241,11 @@ struct BoundaryRandomPointGenerator
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.apply(P, p1, p2, walk_length, rng);
-            policy.apply(randPoints, p1);
-            policy.apply(randPoints, p2);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p1);
+                policy.apply(randPoints, p2);
+            }
         }
     }
 };
@@ -225,7 +253,8 @@ struct BoundaryRandomPointGenerator
 
 template
 <
-    typename Walk
+    typename Walk,
+    bool storeValue = true
 >
 struct LogconcaveRandomPointGenerator
 {
@@ -250,14 +279,18 @@ struct LogconcaveRandomPointGenerator
             walk.apply(rng, walk_length);
 
             // Use PushBackWalkPolicy
-            policy.apply(randPoints, walk.x);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, walk.x);
+            } 
         }
     }
 };
 
 template
 <
-    typename Walk
+    typename Walk,
+    bool storeValue = true
 >
 struct CrhmcRandomPointGenerator
 {
@@ -302,14 +335,20 @@ struct CrhmcRandomPointGenerator
             if((i + 1) * simdLen > rnum){
               for(int j = 0; j < rnum-simdLen*i; j++){
                 Point p = Point(x.col(j));
+                if constexpr (storeValue)  // Only store points if storeValue is true
+            {
                 policy.apply(randPoints, p);
+            }
               }
               break;
             }
             // Use PushBackWalkPolicy
             for(int j=0; j<x.cols();j++){
               Point p = Point(x.col(j));
-              policy.apply(randPoints, p);
+              if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
             }
         }
     }
@@ -317,7 +356,8 @@ struct CrhmcRandomPointGenerator
 
 template
 <
-    typename Walk
+    typename Walk,
+    bool storeValue = true
 >
 struct ExponentialRandomPointGenerator
 {
@@ -349,7 +389,10 @@ struct ExponentialRandomPointGenerator
                 //return;
                 throw std::range_error("A generated point is outside polytope");
             }
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 
@@ -384,7 +427,10 @@ struct ExponentialRandomPointGenerator
                 //return;
                 throw std::range_error("A generated point is outside polytope");
             }
-            policy.apply(randPoints, p);
+            if constexpr (storeValue)  // Only store points if storeValue is true
+            {
+                policy.apply(randPoints, p);
+            }
         }
     }
 
