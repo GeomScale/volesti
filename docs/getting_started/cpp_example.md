@@ -37,7 +37,7 @@ int main() {
 }
 ```
 
-Then create a `CMakeList.txt` file with the following text:
+Then create a `CMakeLists.txt` file with the following text:
 
 ```cmake
 project( VolEsti-cpp-example )
