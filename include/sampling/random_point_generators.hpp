@@ -390,6 +390,13 @@ struct ExponentialRandomPointGenerator
 
 };
 
+// Policy that doesn't store points (for burn-in phase)
+struct NoOpWalkPolicy {
+    template<typename PointList, typename Point>
+    void apply(PointList &randPoints, Point const& p) {
+        // Do nothing - don't store the point
+    }
+};
 
 
 #endif // SAMPLERS_RANDOM_POINT_GENERATORS_HPP

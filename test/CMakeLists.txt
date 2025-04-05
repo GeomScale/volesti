@@ -420,3 +420,7 @@ TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTH
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
+
+add_executable (burn_in_efficiency_test burn_in_efficiency_test.cpp $<TARGET_OBJECTS:test_main>)
+target_link_libraries (burn_in_efficiency_test lp_solve ${MKL_LINK} coverage_config)
+add_test(NAME burn_in_efficiency_test COMMAND burn_in_efficiency_test)
