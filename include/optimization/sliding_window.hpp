@@ -42,7 +42,7 @@ public:
     }
 
     /// Adds an approximation in the window to the front of the list
-    /// \param[in] approximation The new approximation 
+    /// \param[in] approximation The new approximation
     void push(NT approximation) {
         // if window is full, remove the oldest value
         if (numEntries >= windowSize) {
@@ -58,7 +58,7 @@ public:
     double getRelativeError() {
         if (numEntries < windowSize)
             return 1;
-        
+
         return relativeError(approximations.back(), approximations.front());
     }
 };
