@@ -45,7 +45,7 @@ Clone the repository,
 
 the last command should tell you that you are in `develop` branch.
 
-To compile the `C++` code you have to specify the path to external library `liblpsolve55.so/dll/dylib` (see [here](doc/cpp_interface.md) more detail), by running, in folder test:
+To compile the `C++` code you have to specify the path to external library `liblpsolve55.so/dll/dylib` (see [here](docs/getting_started/install.md) more detail), by running, in folder test:
 
     mkdir -p test/build && cd test/build
     cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ ..
@@ -108,7 +108,7 @@ For now you should see exactly the same commits as in `volesti` repository.
 
 ### GitFlow workflow
 
-Volesit is using the [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/) workflow.
+Volesti is using the [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/) workflow.
 It's because it is very well suited to collaboration and scaling the development team.
 Each repository using this model should contain two main branches:
 
@@ -171,7 +171,7 @@ Alternatively, your newly created remote branch is also available on GitHub
 
 ## Modify the branch (implement, implement, implement)
 
-Before contributiong to a library by adding a new feature, or a bugfix, or improving documentation,
+Before contributing to a library by adding a new feature, or a bugfix, or improving documentation,
 it is always wise to interact with the community of developers, for example by opening an issue.
 
 ### Tests
