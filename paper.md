@@ -56,7 +56,7 @@ The focus of `volesti` is scalability in high dimensions,
 that, depending on the problem at hand, could range from hundreds to thousands of dimensions.
 Another novelty is the ability to handle a variety of different inputs
 for the constrained support of the various distributions.
-`volesti` supports three different types of polyhedra [@Ziegler:1995], spectrahedra [@Ramana:1999]
+`volesti` supports three different types of polyhedra [@Ziegler:1995], spectrahedra [@Ramana:1999],
 and general non-linear convex objects.
 
 `volesti` relies on `Eigen` library [@eigen] for linear algebra but also supports `MKL` optimizations [@mkl].
@@ -79,14 +79,15 @@ to be amenable to efficient implementations.
 Remarkably, these algorithms, and the corresponding implementations,
 also meet the requirements for high accuracy results
 [@Emiris:2014; @Cousins:2015; @Chalkis_volume:2023; @Kook:2022];
-however several existing published methods are available as part of propertiary packages (MATLAB) [@Cousins:2015; @Kook:2022].
+however several existing published methods are only available as part of propertiary packages (MATLAB) [@Cousins:2015; @Kook:2022].
 
 Our open-source package -- `volesti` -- offers all of the aforementioned functionality, together with the support of sampling from general log-concave densities [@Chalkis_hmc:2023], and uniform sampling from spectrahedra [@Chalkis_spectra:2022].
 
 Our implementation:
+
 1. supports various sampling techniques based on geometric walks; roughly speaking these are a continuous version of MCMC algorithms, such as Billard walk, Hamiltonian walk and others,
 2. gives the user the ability to sample from  various distributions, like uniform, exponential, Gaussian, and general log-concave densities,
-3. allows to consider the distributions constrained in various convex domains, such as hypercubes, zonotopes, general polytopes (defined either as a set of linear inequalities or as a convex hull of a pointset), spectrahedra (feasible sets of semidefinite programs), and,
+3. allows to consider the distributions constrained in various convex domains, such as hypercubes, zonotopes, general polytopes (defined either as a set of linear inequalities or as a convex hull of a pointset), spectrahedra (feasible sets of semidefinite programs), and
 4. can perform volume computations, integration, and solve problems from real life applications in very high dimensions.
 
 # Impact
@@ -94,13 +95,13 @@ Our implementation:
 `volesti` has been used extensively in various research and engineering projects coauthored by the authors of this paper.
 In particular, for the problem of sampling the flux space of metabolic networks
 we were able to sample from the  most complicated human metabolic network accessible today, Recon3D [@cftz-socg021],
-used to model financial crises [@ccef-crises-j],
+to model financial crises [@ccef-crises-j],
 to detect low volatility anomalies in stock markets [@bcft-aistats-23],
-   to introduce randomized control in asset pricing and portfolio performance evaluation [@bcft-arxiv-24]), but also to sample from (and compute the volume of) spectrahedra [@Chalkis_spectra:2022], the feasible regions of semidefinite programs.
+   to introduce randomized control in asset pricing and portfolio performance evaluation [@bcft-arxiv-24]), and also to sample from (and compute the volume of) spectrahedra [@Chalkis_spectra:2022], the feasible regions of semidefinite programs.
 
-Even more, `volesti` has been used by other research teams in conducting research in electric power systems [@Venzke:2019], for problems in probabilistic inference [@Spallitta:2024],
+`volesti` has also been used by other research teams in conducting research in electric power systems [@Venzke:2019], for problems in probabilistic inference [@Spallitta:2024],
 to perform resource analysis on programs [@pham-phd-2024];
-but also for more theoretical and mathematical challenges, like the computation of topological invariants [@co-alenex-2021], and persistent homology [@vm-fods-2022].
+and also for more theoretical and mathematical challenges, like the computation of topological invariants [@co-alenex-2021] and persistent homology [@vm-fods-2022].
 
 # Acknowledgements
 
