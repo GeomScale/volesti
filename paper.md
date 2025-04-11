@@ -26,13 +26,13 @@ authors:
 affiliations:
  - name: National & Kapodistrian University of Athens, Greece
    index: 1
- - name: Quantagonia
+ - name: Quantagonia, Germany
    index: 2
- - name: Inria Paris and IMJ-PRG, Sorbonne Université
+ - name: Inria Paris and IMJ-PRG, Sorbonne Université, France
    index: 3
- - name: GeomScale
+ - name: GeomScale, Greece
    index: 4
- - name: Cornell University
+ - name: Cornell University, U.S.A.
    index: 5
 date: 11 March 2024
 bibliography: paper.bib
