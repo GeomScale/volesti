@@ -7,6 +7,7 @@
 ![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
 [![Documentation Status](https://readthedocs.org/projects/volesti/badge/?version=latest)](https://volesti.readthedocs.io/en/latest/?badge=latest)
 [![Chat](https://badges.gitter.im/boostorg/geometry.png)](https://gitter.im/GeomScale/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.07886/status.svg)](https://doi.org/10.21105/joss.07886)
 
 ### 🧪 Test results
 
