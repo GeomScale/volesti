@@ -45,14 +45,14 @@ Sampling from (constrained) high-dimensional distributions and volume approximat
 bodies are fundamental operations that appear in optimization, finance,
 engineering, artificial intelligence, and machine learning.
 We present `volesti`, a C++ library that delivers efficient implementations of  state-of-the-art, mainly randomized, algorithms
-to sample from general logconcave distributions.
+to sample from general logarithmically concave (or log-concave) distributions.
 Based on these routines, we can estimate the volume of convex bodies in high dimensions,
 round them, and compute multidimensional integrals over them.
 The backbone of our library consists of Monte Carlo algorithms,
 which are randomized algorithms, the output of which can be incorrect with (usually very small) error probability; thus, we also provide several
 high-dimensional statistical tests to certify and verify the output.
 
-The focus of `volesti`' is scalability in high dimensions,
+The focus of `volesti` is scalability in high dimensions,
 that, depending on the problem at hand, could range from hundreds to thousands of dimensions.
 Another novelty is the ability to handle a variety of different inputs
 for the constrained support of the various distributions.
@@ -81,11 +81,11 @@ also meet the requirements for high accuracy results
 [@Emiris:2014; @Cousins:2015; @Chalkis_volume:2023; @Kook:2022];
 however several existing published methods are available as part of propertiary packages (MATLAB) [@Cousins:2015; @Kook:2022].
 
-Our open-source package -- volesti -- offers all of the aforementioned functionality, together with the support of sampling from general log-concave densities @Chalkis_hmc:2023, and uniform sampling from spectrahedra @Chalkis_spectra:2022.
+Our open-source package -- `volesti` -- offers all of the aforementioned functionality, together with the support of sampling from general log-concave densities [@Chalkis_hmc:2023], and uniform sampling from spectrahedra [@Chalkis_spectra:2022].
 
-Our implementation supports:
-1. support various sampling techniques based on geometric walks, roughly speaking these are a continuous version of MCMC algorithms, such as Billard walk, Hamiltonian walk and others,
-2. give the user the ability to sample from  various distributions, like uniform, exponential, Gaussian, and general log-concave densities,
+Our implementation:
+1. supports various sampling techniques based on geometric walks; roughly speaking these are a continuous version of MCMC algorithms, such as Billard walk, Hamiltonian walk and others,
+2. gives the user the ability to sample from  various distributions, like uniform, exponential, Gaussian, and general log-concave densities,
 3. allows to consider the distributions constrained in various convex domains, such as hypercubes, zonotopes, general polytopes (defined either as a set of linear inequalities or as a convex hull of a pointset), spectrahedra (feasible sets of semidefinite programs), and,
 4. can perform volume computations, integration, and solve problems from real life applications in very high dimensions.
 
