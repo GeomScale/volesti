@@ -1,0 +1,48 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Chalkis
+  given-names: Apostolos
+  orcid: "https://orcid.org/0000-0002-4628-1907"
+- family-names: Fisikopoulos
+  given-names: Vissarion
+  orcid: "https://orcid.org/0000-0002-0780-666X"
+- family-names: Papachristou
+  given-names: Marios
+  orcid: "https://orcid.org/0000-0002-1728-0729"
+- family-names: Tsigaridas
+  given-names: Elias
+contact:
+- family-names: Fisikopoulos
+  given-names: Vissarion
+  orcid: "https://orcid.org/0000-0002-0780-666X"
+doi: 10.5281/zenodo.15146338
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Chalkis
+    given-names: Apostolos
+    orcid: "https://orcid.org/0000-0002-4628-1907"
+  - family-names: Fisikopoulos
+    given-names: Vissarion
+    orcid: "https://orcid.org/0000-0002-0780-666X"
+  - family-names: Papachristou
+    given-names: Marios
+    orcid: "https://orcid.org/0000-0002-1728-0729"
+  - family-names: Tsigaridas
+    given-names: Elias
+  date-published: 2025-04-11
+  doi: 10.21105/joss.07886
+  issn: 2475-9066
+  issue: 108
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 7886
+  title: "volesti: A C++ library for sampling and volume computation on
+    convex bodies"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.07886"
+  volume: 10
+title: "volesti: A C++ library for sampling and volume computation on
+  convex bodies"
