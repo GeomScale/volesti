@@ -861,63 +861,15 @@ double timeNow(void)
 
 /* List a vector of INT values for the given index range */
 void blockWriteINT(FILE *output, char *label, int *myvector, int first, int last)
-{
-  int i, k = 0;
-
-  fprintf(output, "%s", label);
-  fprintf(output, "\n");
-  for(i = first; i <= last; i++) {
-    fprintf(output, " %5d", myvector[i]);
-    k++;
-    if(k % 12 == 0) {
-      fprintf(output, "\n");
-      k = 0;
-    }
-  }
-  if(k % 12 != 0)
-    fprintf(output, "\n");
-}
+{}
 
 /* List a vector of MYBOOL values for the given index range */
 void blockWriteBOOL(FILE *output, char *label, MYBOOL *myvector, int first, int last, MYBOOL asRaw)
-{
-  int i, k = 0;
-
-  fprintf(output, "%s", label);
-  fprintf(output, "\n");
-  for(i = first; i <= last; i++) {
-    if(asRaw)
-      fprintf(output, " %1d", myvector[i]);
-    else
-      fprintf(output, " %5s", my_boolstr(myvector[i]));
-    k++;
-    if(k % 36 == 0) {
-      fprintf(output, "\n");
-      k = 0;
-    }
-  }
-  if(k % 36 != 0)
-    fprintf(output, "\n");
-}
+{}
 
 /* List a vector of LPSREAL values for the given index range */
 void blockWriteREAL(FILE *output, char *label, LPSREAL *myvector, int first, int last)
-{
-  int i, k = 0;
-
-  fprintf(output, "%s", label);
-  fprintf(output, "\n");
-  for(i = first; i <= last; i++) {
-    fprintf(output, " %18g", myvector[i]);
-    k++;
-    if(k % 4 == 0) {
-      fprintf(output, "\n");
-      k = 0;
-    }
-  }
-  if(k % 4 != 0)
-    fprintf(output, "\n");
-}
+{}
 
 
 /* CONSOLE vector and matrix printing routines */
@@ -926,13 +878,6 @@ void printvec( int n, LPSREAL *x, int modulo )
   int i;
 
   if (modulo <= 0) modulo = 5;
-  for (i = 1; i<=n; i++) {
-    if(mod(i, modulo) == 1)
-      printf("\n%2d:%12g", i, x[i]);
-    else
-      printf(" %2d:%12g", i, x[i]);
-  }
-  if(i % modulo != 0) printf("\n");
 }
 
 

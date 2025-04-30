@@ -3610,42 +3610,7 @@ STATIC MYBOOL presolve_finalize(presolverec *psdata)
 
 STATIC MYBOOL presolve_debugdump(lprec *lp, presolverec *psdata, char *filename, MYBOOL doappend)
 {
-  FILE   *output = stdout;
-  int   size;
-  MYBOOL ok;
-
-  ok = (MYBOOL) ((filename == NULL) || ((output = fopen(filename, my_if(doappend, "a", "w"))) != NULL));
-  if(!ok)
-    return(ok);
-  if((filename == NULL) && (lp->outstream != NULL))
-    output = lp->outstream;
-
-  fprintf(output, "\nPRESOLVE - Status at loop %d:%d:%d\n",
-                  psdata->outerloops, psdata->middleloops, psdata->innerloops);
-  fprintf(output, "Model size:     %d rows (%d equalities, %d less than), %d columns\n",
-                  psdata->rows->varmap->count, psdata->EQmap->count, psdata->LTmap->count, psdata->cols->varmap->count);
-
-  fprintf(output, "\nMAPPERS\n-------\n\n");
-  size = 1;
-  blockWriteINT(output,  "colmap", psdata->cols->varmap->map, 0, size*psdata->cols->varmap->size);
-  blockWriteINT(output,  "rowmap", psdata->rows->varmap->map, 0, size*psdata->rows->varmap->size);
-  blockWriteINT(output,  "EQmap",  psdata->EQmap->map,  0, size*psdata->EQmap->size);
-  blockWriteINT(output,  "LTmap",  psdata->LTmap->map,  0, size*psdata->LTmap->size);
-
-  fprintf(output, "\nCOUNTS\n------\n\n");
-  blockWriteINT(output, "plucount",  psdata->rows->plucount,  0, lp->rows);
-  blockWriteINT(output, "negcount",  psdata->rows->negcount,  0, lp->rows);
-  blockWriteINT(output, "pluneg",    psdata->rows->pluneg,    0, lp->rows);
-
-  fprintf(output, "\nSUMS\n----\n\n");
-  blockWriteREAL(output, "pluupper", psdata->rows->pluupper, 0, lp->rows);
-  blockWriteREAL(output, "negupper", psdata->rows->negupper, 0, lp->rows);
-  blockWriteREAL(output, "plulower", psdata->rows->pluupper, 0, lp->rows);
-  blockWriteREAL(output, "neglower", psdata->rows->negupper, 0, lp->rows);
-
-  if(filename != NULL)
-    fclose(output);
-  return(ok);
+  return 1;
 }
 
 int CMP_CALLMODEL compRedundant(const UNIONTYPE QSORTrec *current, const UNIONTYPE QSORTrec *candidate)
@@ -4790,7 +4755,7 @@ STATIC int presolve_SOS1(presolverec *psdata, int *nCoeffChanged, int *nConRemov
 
         /* Define a new SOS instance */
         ix = SOS_count(lp) + 1;
-        sprintf(SOSname, "SOS_%d", ix);
+        //sprintf(SOSname, "SOS_%d", ix);
         ix = add_SOS(lp, SOSname, 1, ix, 0, NULL, NULL);
         if(jx == EQ)
           SOS_set_GUB(lp->SOS, ix, TRUE);
@@ -5760,14 +5725,6 @@ write_lp(lp, "test_in.lp");    /* Write to lp-formatted file for debugging */
       }
       else if((status == RUNNING) && (i >= NORMAL)) {
         char lonum[20], upnum[20];
-        if(my_infinite(lp, Value1))
-          sprintf(lonum, "%13s", "-Inf");
-        else
-          sprintf(lonum, "%+12g", Value1);
-        if(my_infinite(lp, Value2))
-          sprintf(upnum, "%-13s", "Inf");
-        else
-          sprintf(upnum, "%+-12g", Value2);
         report(lp, i,    "%20s [ %s < Z < %s ]\n", "", lonum, upnum);
       }
 

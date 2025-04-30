@@ -227,7 +227,7 @@
   #define my_precision(val, eps) restoreINT(val, eps)
 #endif
 #define my_reldiff(x, y)       (((x) - (y)) / (1.0 + fabs((LPSREAL) (y))))
-#define my_boundstr(x)         (fabs(x) < lp->infinite ? sprintf("%g",x) : ((x) < 0 ? "-Inf" : "Inf") )
+#define my_boundstr(x)         (fabs(x) < lp->infinite ? ;/*sprintf("%g",x)*/ : ((x) < 0 ? "-Inf" : "Inf") )
 #ifndef my_boolstr
   #define my_boolstr(x)          (!(x) ? "FALSE" : "TRUE")
 #endif

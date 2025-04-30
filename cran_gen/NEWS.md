@@ -58,3 +58,9 @@
 # volesti 1.1.2-8
 
 - Fix Wmissing-template-arg-list-after-template-kw error (clang-19)
+
+# volesti 1.1.2-9
+
+- Remove lpsolve code that call entry points which might terminate R or
+  write to stdout/stderr instead of to the console
+

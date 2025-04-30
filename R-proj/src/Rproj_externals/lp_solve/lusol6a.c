@@ -327,11 +327,11 @@ void LU6CHK(LUSOLrec *LUSOL, int MODE, int LENA2, int *INFORM)
   if(LUSOL->luparm[LUSOL_IP_SINGULARITIES]>0) {
     *INFORM = LUSOL_INFORM_LUSINGULAR;
     NDEFIC = LUSOL->n-NRANK;
-    if((LUSOL->outstream!=NULL) && (LPRINT>=LUSOL_MSG_SINGULARITY)) {
-      LUSOL_report(LUSOL, 0, "Singular(m%cn)  rank:%9d  n-rank:%8d  nsing:%9d\n",
-                             relationChar(LUSOL->m, LUSOL->n),NRANK,NDEFIC,
-                             LUSOL->luparm[LUSOL_IP_SINGULARITIES]);
-    }
+    //if((LUSOL->outstream!=NULL) && (LPRINT>=LUSOL_MSG_SINGULARITY)) {
+    //  LUSOL_report(LUSOL, 0, "Singular(m%cn)  rank:%9d  n-rank:%8d  nsing:%9d\n",
+    //                         relationChar(LUSOL->m, LUSOL->n),NRANK,NDEFIC,
+    //                         LUSOL->luparm[LUSOL_IP_SINGULARITIES]);
+    //}
   }
 /*      Exit. */
   LUSOL->luparm[LUSOL_IP_INFORM] = *INFORM;
@@ -583,8 +583,8 @@ void LU6LT(LUSOLrec *LUSOL, int *INFORM, LPSREAL V[], int NZidx[])
 #else
         TEMP = V[LUSOL->indr[L1]] + SUM;
         SUM += LUSOL->a[L]*V[J];
-        printf("V[%3d] = V[%3d] + L[%d,%d]*V[%3d]\n", LUSOL->indr[L1], LUSOL->indr[L1], J,LUSOL->indr[L1], J);
-        printf("%6g = %6g + %6g*%6g\n", V[LUSOL->indr[L1]] + SUM, TEMP, LUSOL->a[L], V[J]);
+        //printf("V[%3d] = V[%3d] + L[%d,%d]*V[%3d]\n", LUSOL->indr[L1], LUSOL->indr[L1], J,LUSOL->indr[L1], J);
+        //printf("%6g = %6g + %6g*%6g\n", V[LUSOL->indr[L1]] + SUM, TEMP, LUSOL->a[L], V[J]);
 #endif
       }
 #endif
@@ -617,11 +617,6 @@ void print_L0(LUSOLrec *LUSOL)
     }
   }
 
-  for(I = 1; I <= LUSOL->n; I++) {
-    for(J = 1; J <= LUSOL->m; J++)
-      fprintf(stdout, "%10g", denseL0[(LUSOL->n+1)*(J-1) + I]);
-    fprintf(stdout, "\n");
-  }
   LUSOL_FREE(denseL0);
 }
 

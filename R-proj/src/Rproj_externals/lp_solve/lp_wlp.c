@@ -68,7 +68,7 @@ STATIC int write_lprow(lprec *lp, int rowno, void *userhandle, write_modeldata_f
         nchars += write_data(userhandle, write_modeldata, " ");
       else
         first = FALSE;
-      sprintf(buf, "%+.12g", (double)a);
+      //sprintf(buf, "%+.12g", (double)a);
       if(strcmp(buf, "-1") == 0)
         nchars += write_data(userhandle, write_modeldata, "-");
       else if(strcmp(buf, "+1") == 0)
@@ -331,28 +331,12 @@ MYBOOL __WINAPI write_lpex(lprec *lp, void *userhandle, write_modeldata_func wri
 
 static int __WINAPI write_lpdata(void *userhandle, char *buf)
 {
-  return(fprintf((FILE *) userhandle, "%s", buf));
+  return(0);
 }
 
 MYBOOL LP_writefile(lprec *lp, char *filename)
 {
-  FILE *output = stdout;
-  MYBOOL ok;
-
-  if (filename != NULL) {
-    ok = (MYBOOL) ((output = fopen(filename, "w")) != NULL);
-    if(!ok)
-      return(ok);
-  }
-  else
-    output = lp->outstream;
-
-  ok = write_lpex(lp, (void *) output, write_lpdata);
-
-  if (filename != NULL)
-    fclose(output);
-
-  return(ok);
+  return(0);
 }
 
 MYBOOL LP_writehandle(lprec *lp, FILE *output)
@@ -362,7 +346,7 @@ MYBOOL LP_writehandle(lprec *lp, FILE *output)
   if (output != NULL)
     set_outputstream(lp, output);
 
-  output = lp->outstream;
+  //output = lp->outstream;
 
   ok = write_lpex(lp, (void *) output, write_lpdata);
 

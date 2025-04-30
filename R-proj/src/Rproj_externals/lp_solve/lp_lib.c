@@ -146,24 +146,12 @@ STATIC int yieldformessages(lprec *lp)
 }
 
 void __WINAPI set_outputstream(lprec *lp, FILE *stream)
-{
-  if((lp->outstream != NULL) && (lp->outstream != stdout)) {
-    if(lp->streamowned)
-      fclose(lp->outstream);
-    else
-      fflush(lp->outstream);
-  }
-  if(stream == NULL)
-    lp->outstream = stdout;
-  else
-    lp->outstream = stream;
-  lp->streamowned = FALSE;
-}
+{}
 
 MYBOOL __WINAPI set_outputfile(lprec *lp, char *filename)
 {
   MYBOOL ok;
-  FILE   *output = stdout;
+  FILE   *output = NULL;
 
   ok = (MYBOOL) ((filename == NULL) || (*filename == 0) || ((output = fopen(filename,"w")) != NULL));
   if(ok) {
@@ -5529,7 +5517,7 @@ lprec * __WINAPI read_XLI(char *xliname, char *modelname, char *dataname, char *
     lp->verbose = verbose;
     if(!set_XLI(lp, xliname)) {
       free_lp(&lp);
-      printf("read_XLI: No valid XLI package selected or available.\n");
+      //printf("read_XLI: No valid XLI package selected or available.\n");
     }
     else {
       if(!lp->xli_readmodel(lp, modelname, (dataname != NULL) && (*dataname != 0) ? dataname : NULL, options, verbose))
@@ -6093,10 +6081,6 @@ char * __WINAPI get_origrow_name(lprec *lp, int rownr)
       if (!allocCHAR(lp, &lp->rowcol_name, 20, FALSE))
         return(NULL);
     ptr = lp->rowcol_name;
-    if(newrow)
-      sprintf(ptr, ROWNAMEMASK2, rownr);
-    else
-      sprintf(ptr, ROWNAMEMASK, rownr);
   }
   return(ptr);
 }
@@ -6161,10 +6145,6 @@ char * __WINAPI get_origcol_name(lprec *lp, int colnr)
       if (!allocCHAR(lp, &lp->rowcol_name, 20, FALSE))
         return(NULL);
     ptr = lp->rowcol_name;
-    if(newcol)
-      sprintf(ptr, COLNAMEMASK2, colnr);
-    else
-      sprintf(ptr, COLNAMEMASK, colnr);
   }
   return(ptr);
 }
@@ -9679,7 +9659,7 @@ STATIC int prepare_GUB(lprec *lp)
 
     /* Add the GUB */
     j = GUB_count(lp) + 1;
-    sprintf(GUBname, "GUB_%d", i);
+    //sprintf(GUBname, "GUB_%d", i);
     add_GUB(lp, GUBname, j, k, members);
 
     /* Unmark the GUBs */
@@ -9892,7 +9872,7 @@ int preprocess(lprec *lp)
         if(lp->names_used && (lp->col_name[j] == NULL)) {
           char fieldn[50];
 
-          sprintf(fieldn, "__AntiBodyOf(%d)__", j);
+          //sprintf(fieldn, "__AntiBodyOf(%d)__", j);
           if(!set_col_name(lp, lp->columns, fieldn)) {
 /*          if (!set_col_name(lp, lp->columns, get_col_name(lp, j))) { */
             ok = FALSE;

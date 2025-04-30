@@ -34,24 +34,13 @@ FILE *ini_open(char *filename)
 }
 
 void ini_writecomment(FILE *fp, char *comment)
-{
-  fprintf(fp, "; %s\n", comment);
-}
+{}
 
 void ini_writeheader(FILE *fp, char *header, int addnewline)
-{
-  if((addnewline) && (ftell(fp) > 0))
-    fputs("\n", fp);
-  fprintf(fp, "[%s]\n", header);
-}
+{}
 
 void ini_writedata(FILE *fp, char *name, char *data)
-{
-  if(name != NULL)
-    fprintf(fp, "%s=%s\n", name, data);
-  else
-    fprintf(fp, "%s\n", data);
-}
+{}
 
 int ini_readdata(FILE *fp, char *data, int szdata, int withcomment)
 {

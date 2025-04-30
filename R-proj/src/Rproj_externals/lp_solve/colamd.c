@@ -32,7 +32,7 @@
 	floating point operations than A.  Symamd constructs a matrix M such
 	that M'M has the same nonzero pattern of A, and then orders the columns
 	of M using colmmd.  The column ordering of M is then returned as the
-	row and column ordering P of A. 
+	row and column ordering P of A.
 
     Authors:
 
@@ -120,7 +120,7 @@
 
 	* TRUE and FALSE are predefined on some systems, so they are defined
 		here only if not already defined.
-	
+
 	* web site changed
 
 	* UNIX Makefile modified, to handle the case if "." is not in your path.
@@ -186,7 +186,7 @@
 		Colamd: rows with more than (knobs [COLAMD_DENSE_ROW] * n_col)
 		entries are removed prior to ordering.  Columns with more than
 		(knobs [COLAMD_DENSE_COL] * n_row) entries are removed prior to
-		ordering, and placed last in the output column ordering. 
+		ordering, and placed last in the output column ordering.
 
 		Symamd: uses only knobs [COLAMD_DENSE_ROW], which is knobs [0].
 		Rows and columns with more than (knobs [COLAMD_DENSE_ROW] * n)
@@ -219,7 +219,7 @@
 	    (AQ)'AQ=LL' have less fill-in and require fewer floating point
 	    operations than factorizing the unpermuted matrix A or A'A,
 	    respectively.
-	    
+
 	Returns:
 
 	    TRUE (1) if successful, FALSE (0) otherwise.
@@ -249,8 +249,8 @@
 		We do, however, guarantee that
 
 			Alen >= colamd_recommended (nnz, n_row, n_col)
-		
-		or equivalently as a C preprocessor macro: 
+
+		or equivalently as a C preprocessor macro:
 
 			Alen >= COLAMD_RECOMMENDED (nnz, n_row, n_col)
 
@@ -388,7 +388,7 @@
 		Future versions may return more statistics in the stats array.
 
 	Example:
-	
+
 	    See http://www.cise.ufl.edu/research/sparse/colamd/example.c
 	    for a complete example.
 
@@ -449,12 +449,12 @@
 	    int A [nnz] ;	Input argument.
 
 	    	A is an integer array of size nnz, where nnz = p [n].
-		
+
 		The row indices of the entries in column c of the matrix are
 		held in A [(p [c]) ... (p [c+1]-1)].  The row indices in a
 		given column c need not be in ascending order, and duplicate
 		row indices may be present.  However, symamd will run faster
-		if the columns are in sorted order with no duplicate entries. 
+		if the columns are in sorted order with no duplicate entries.
 
 		The matrix is 0-based.  That is, rows are in the range 0 to
 		n-1, and columns are in the range 0 to n-1.  Symamd
@@ -496,7 +496,7 @@
 		Symamd returns FALSE if stats is not present.
 
 		stats [0]:  number of dense or empty row and columns ignored
-				(and ordered last in the output permutation 
+				(and ordered last in the output permutation
 				perm).  Note that a row/column can become
 				"empty" if it contains only "dense" and/or
 				"empty" columns/rows.
@@ -703,7 +703,7 @@
 #define ONES_COMPLEMENT(r) (-(r)-1)
 
 /* -------------------------------------------------------------------------- */
-/* Change for version 2.1:  define TRUE and FALSE only if not yet defined */  
+/* Change for version 2.1:  define TRUE and FALSE only if not yet defined */
 /* -------------------------------------------------------------------------- */
 
 #ifndef TRUE
@@ -859,11 +859,11 @@ PRIVATE void print_report
 
 PRIVATE int colamd_debug ;	/* debug print level */
 
-#define DEBUG0(params) { (void) PRINTF params ; }
-#define DEBUG1(params) { if (colamd_debug >= 1) (void) PRINTF params ; }
-#define DEBUG2(params) { if (colamd_debug >= 2) (void) PRINTF params ; }
-#define DEBUG3(params) { if (colamd_debug >= 3) (void) PRINTF params ; }
-#define DEBUG4(params) { if (colamd_debug >= 4) (void) PRINTF params ; }
+#define DEBUG0(params) { /*(void) PRINTF params*/ ; }
+#define DEBUG1(params) { /*if (colamd_debug >= 1) (void) PRINTF params*/ ; }
+#define DEBUG2(params) { /*if (colamd_debug >= 2) (void) PRINTF params*/ ; }
+#define DEBUG3(params) { /*if (colamd_debug >= 3) (void) PRINTF params*/ ; }
+#define DEBUG4(params) { /*if (colamd_debug >= 4) (void) PRINTF params*/ ; }
 
 #ifdef MATLAB_MEX_FILE
 #define ASSERT(expression) (mxAssert ((expression), ""))
@@ -960,7 +960,7 @@ PUBLIC int colamd_recommended	/* returns recommended value of Alen. */
     int n_col			/* number of columns in A */
 )
 {
-    return (COLAMD_RECOMMENDED (nnz, n_row, n_col)) ; 
+    return (COLAMD_RECOMMENDED (nnz, n_row, n_col)) ;
 }
 
 
@@ -1041,7 +1041,7 @@ PUBLIC int symamd			/* return TRUE if OK, FALSE otherwise */
     int nnz ;			/* number of entries in A */
     int i ;			/* row index of A */
     int j ;			/* column index of A */
-    int k ;			/* row index of M */ 
+    int k ;			/* row index of M */
     int mnz ;			/* number of nonzeros in M */
     int pp ;			/* index into a column of A */
     int last_row ;		/* last row seen in the current column */
@@ -1508,7 +1508,7 @@ PUBLIC int colamd		/* returns TRUE if successful, FALSE otherwise*/
     stats [COLAMD_DENSE_ROW] = n_row - n_row2 ;
     stats [COLAMD_DENSE_COL] = n_col - n_col2 ;
     stats [COLAMD_DEFRAG_COUNT] = ngarbage ;
-    DEBUG0 (("colamd: done.\n")) ; 
+    DEBUG0 (("colamd: done.\n")) ;
     return (TRUE) ;
 }
 
@@ -1570,7 +1570,7 @@ PRIVATE int init_rows_cols	/* returns TRUE if OK, or FALSE otherwise */
     Colamd_Col Col [],		/* of size n_col+1 */
     int A [],			/* row indices of A, of size Alen */
     int p [],			/* pointers to columns in A, of size n_col+1 */
-    int stats [COLAMD_STATS]	/* colamd statistics */ 
+    int stats [COLAMD_STATS]	/* colamd statistics */
 )
 {
     /* === Local variables ================================================== */
@@ -3043,125 +3043,7 @@ PRIVATE void print_report
     char *method,
     int stats [COLAMD_STATS]
 )
-{
-
-    int i1, i2, i3 ;
-
-    if (!stats)
-    {
-    	PRINTF ("%s: No statistics available.\n", method) ;
-	return ;
-    }
-
-    i1 = stats [COLAMD_INFO1] ;
-    i2 = stats [COLAMD_INFO2] ;
-    i3 = stats [COLAMD_INFO3] ;
-
-    if (stats [COLAMD_STATUS] >= 0)
-    {
-    	PRINTF ("%s: OK.  ", method) ;
-    }
-    else
-    {
-    	PRINTF ("%s: ERROR.  ", method) ;
-    }
-
-    switch (stats [COLAMD_STATUS])
-    {
-
-	case COLAMD_OK_BUT_JUMBLED:
-
-	    PRINTF ("Matrix has unsorted or duplicate row indices.\n") ;
-
-	    PRINTF ("%s: number of duplicate or out-of-order row indices: %d\n",
-	    method, i3) ;
-
-	    PRINTF ("%s: last seen duplicate or out-of-order row index:   %d\n",
-	    method, INDEX (i2)) ;
-
-	    PRINTF ("%s: last seen in column:                             %d",
-	    method, INDEX (i1)) ;
-
-	    /* no break - fall through to next case instead */
-
-	case COLAMD_OK:
-
-	    PRINTF ("\n") ;
-
- 	    PRINTF ("%s: number of dense or empty rows ignored:           %d\n",
-	    method, stats [COLAMD_DENSE_ROW]) ;
-
-	    PRINTF ("%s: number of dense or empty columns ignored:        %d\n",
-	    method, stats [COLAMD_DENSE_COL]) ;
-
-	    PRINTF ("%s: number of garbage collections performed:         %d\n",
-	    method, stats [COLAMD_DEFRAG_COUNT]) ;
-	    break ;
-
-	case COLAMD_ERROR_A_not_present:
-
-	    PRINTF ("Array A (row indices of matrix) not present.\n") ;
-	    break ;
-
-	case COLAMD_ERROR_p_not_present:
-
-	    PRINTF ("Array p (column pointers for matrix) not present.\n") ;
-	    break ;
-
-	case COLAMD_ERROR_nrow_negative:
-
-	    PRINTF ("Invalid number of rows (%d).\n", i1) ;
-	    break ;
-
-	case COLAMD_ERROR_ncol_negative:
-
-	    PRINTF ("Invalid number of columns (%d).\n", i1) ;
-	    break ;
-
-	case COLAMD_ERROR_nnz_negative:
-
-	    PRINTF ("Invalid number of nonzero entries (%d).\n", i1) ;
-	    break ;
-
-	case COLAMD_ERROR_p0_nonzero:
-
-	    PRINTF ("Invalid column pointer, p [0] = %d, must be zero.\n", i1) ;
-	    break ;
-
-	case COLAMD_ERROR_A_too_small:
-
-	    PRINTF ("Array A too small.\n") ;
-	    PRINTF ("        Need Alen >= %d, but given only Alen = %d.\n",
-	    i1, i2) ;
-	    break ;
-
-	case COLAMD_ERROR_col_length_negative:
-
-	    PRINTF
-	    ("Column %d has a negative number of nonzero entries (%d).\n",
-	    INDEX (i1), i2) ;
-	    break ;
-
-	case COLAMD_ERROR_row_index_out_of_bounds:
-
-	    PRINTF
-	    ("Row index (row %d) out of bounds (%d to %d) in column %d.\n",
-	    INDEX (i2), INDEX (0), INDEX (i3-1), INDEX (i1)) ;
-	    break ;
-
-	case COLAMD_ERROR_out_of_memory:
-
-	    PRINTF ("Out of memory.\n") ;
-	    break ;
-
-	case COLAMD_ERROR_internal_error:
-
-	    /* if this happens, there is a bug in the code */
-	    PRINTF
-	    ("Internal error! Please contact authors (davis@cise.ufl.edu).\n") ;
-	    break ;
-    }
-}
+{}
 
 
 

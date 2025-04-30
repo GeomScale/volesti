@@ -1093,7 +1093,7 @@ MYBOOL __WINAPI MPS_readex(lprec **newlp, void *userhandle, read_modeldata_func 
             /* lp_solve needs a name for the SOS */
             if(variant == 0) {
               if(strlen(field3) == 0)  /* CPLEX format does not provide a SOS name; create one */
-                sprintf(field3, "SOS_%d", SOS_count(lp) + 1);
+                ;//sprintf(field3, "SOS_%d", SOS_count(lp) + 1);
             }
             else {                     /* Remap XPRESS format name */
               strcpy(field3, field1);
@@ -1185,7 +1185,7 @@ static void number(char *str,LPSREAL value)
 
     do {
      n--;
-     i=sprintf(_str,"%*.*E",n,n-6,(double) value);
+     i=0;//sprintf(_str,"%*.*E",n,n-6,(double) value);
      if (i>12) {
       char *ptr=strchr(_str,'E');
 
@@ -1203,11 +1203,11 @@ static void number(char *str,LPSREAL value)
     int n=13;
 
     do {
-     i=sprintf(_str,"%*.0f",--n,(double) value);
+     i=0;//sprintf(_str,"%*.0f",--n,(double) value);
     } while (i>12);
    }
    else {
-    if (((i=sprintf(_str,"%12.10f",(double) value))>12) && (_str[12]>='5')) {
+    if (((i=0/*sprintf(_str,"%12.10f",(double) value)*/)>12) && (_str[12]>='5')) {
      for (i=11;i>=0;i--)
       if (_str[i]!='.') {
        if (++_str[i]>'9') _str[i]='0';
@@ -1225,7 +1225,7 @@ static void number(char *str,LPSREAL value)
 
     do {
      n--;
-     i=sprintf(_str,"%*.*E",n,n-7,(double) value);
+     i=0;//sprintf(_str,"%*.*E",n,n-7,(double) value);
      if (i>12) {
       char *ptr=strchr(_str,'E');
 
@@ -1243,11 +1243,11 @@ static void number(char *str,LPSREAL value)
     int n=13;
 
     do {
-     i=sprintf(_str,"%*.0f",--n,(double) value);
+     i=0;//sprintf(_str,"%*.0f",--n,(double) value);
     } while (i>12);
    }
    else
-    if (((i=sprintf(_str,"%12.9f",(double) value))>12) && (_str[12]>='5')) {
+    if (((i=0/*sprintf(_str,"%12.9f",(double) value)*/)>12) && (_str[12]>='5')) {
      for (i=11;i>=1;i--)
       if (_str[i]!='.') {
        if (++_str[i]>'9') _str[i]='0';
@@ -1275,7 +1275,7 @@ static char *formatnumber12(char *numberbuffer, double a)
 
 STATIC char *MPSnameFIXED(char *name0, char *name)
 {
-  sprintf(name0, "%-8.8s", name);
+  //sprintf(name0, "%-8.8s", name);
   return(name0);
 }
 
@@ -1580,23 +1580,7 @@ static int __WINAPI write_lpdata(void *userhandle, char *buf)
 
 MYBOOL MPS_writefile(lprec *lp, int typeMPS, char *filename)
 {
-  FILE *output = stdout;
-  MYBOOL ok;
-
-  if (filename != NULL) {
-    ok = ((output = fopen(filename, "w")) != NULL);
-    if(!ok)
-      return(ok);
-  }
-  else
-    output = lp->outstream;
-
-  ok = MPS_writefileex(lp, typeMPS, (void *) output, write_lpdata);
-
-  if (filename != NULL)
-    fclose(output);
-
-  return(ok);
+return 1;
 }
 
 MYBOOL MPS_writehandle(lprec *lp, int typeMPS, FILE *output)
@@ -1788,68 +1772,5 @@ MYBOOL MPS_readBAS(lprec *lp, int typeMPS, char *filename, char *info)
 
 MYBOOL MPS_writeBAS(lprec *lp, int typeMPS, char *filename)
 {
-  int    ib, in;
-  MYBOOL ok;
-  char   name1[100], name2[100];
-  FILE   *output = stdout;
-  char * (*MPSname)(char *name0, char *name);
-  char name0[9];
-
-  /* Set name formatter */
-  if((typeMPS & MPSFIXED) == MPSFIXED)
-    MPSname = MPSnameFIXED;
-  else if((typeMPS & MPSFREE) == MPSFREE)
-    MPSname = MPSnameFREE;
-  else {
-    report(lp, IMPORTANT, "MPS_writeBAS: unrecognized MPS name type.\n");
-    return(FALSE);
-  }
-
-  /* Open the file for writing */
-  ok = (MYBOOL) ((filename == NULL) || ((output = fopen(filename,"w")) != NULL));
-  if(!ok)
-    return(ok);
-  if(filename == NULL && lp->outstream != NULL)
-    output = lp->outstream;
-
-  fprintf(output, "NAME          %s Rows %d Cols %d Iters %.0f\n",
-                  get_lp_name(lp), lp->rows, lp->columns, (double) get_total_iter(lp));
-
-  ib = lp->rows;
-  in = 0;
-  while ((ib < lp->sum) || (in < lp->sum)) {
-
-    /* Find next basic variable (skip slacks) */
-    ib++;
-    while((ib <= lp->sum) && !lp->is_basic[ib])
-      ib++;
-
-    /* Find next non-basic variable (skip lower-bounded structural variables) */
-    in++;
-    while((in <= lp->sum) && (lp->is_basic[in] ||
-                              ((in > lp->rows) && lp->is_lower[in])))
-      in++;
-
-    /* Check if we have a basic/non-basic variable pair */
-    if((ib <= lp->sum) && (in <= lp->sum)) {
-      strcpy(name1, MPSname(name0, (ib <= lp->rows ? get_row_name(lp, ib) :
-                                              get_col_name(lp, ib-lp->rows))));
-      strcpy(name2, MPSname(name0, (in <= lp->rows ? get_row_name(lp, in) :
-                                              get_col_name(lp, in-lp->rows))));
-      fprintf(output, " %2s %s  %s\n", (lp->is_lower[in] ? "XL" : "XU"), name1, name2);
-    }
-
-    /* Otherwise just write the bound state of the non-basic variable */
-    else if(in <= lp->sum) {
-      strcpy(name1, MPSname(name0, (in <= lp->rows ? get_row_name(lp, in) :
-                                              get_col_name(lp, in-lp->rows))));
-      fprintf(output, " %2s %s\n", (lp->is_lower[in] ? "LL" : "UL"), name1);
-    }
-
-  }
-  fprintf(output, "ENDATA\n");
-
-  if(filename != NULL)
-    fclose(output);
-  return( ok );
+return 1;
 }

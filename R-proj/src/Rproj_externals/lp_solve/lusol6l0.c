@@ -156,8 +156,8 @@ void LU6L0T_v(LUSOLrec *LUSOL, LUSOLmat *mat, LPSREAL V[], int NZidx[], int *INF
 #else
         TEMP = V[J];
         V[J] += VPIV * mat->a[L];
-        printf("V[%3d] = V[%3d] + L[%d,%d]*V[%3d]\n", J, J, KK,J, KK);
-        printf("%6g = %6g + %6g*%6g\n", V[J], TEMP, mat->a[L], VPIV);
+        //printf("V[%3d] = V[%3d] + L[%d,%d]*V[%3d]\n", J, J, KK,J, KK);
+        //printf("%6g = %6g + %6g*%6g\n", V[J], TEMP, mat->a[L], VPIV);
 #endif
       }
 #endif

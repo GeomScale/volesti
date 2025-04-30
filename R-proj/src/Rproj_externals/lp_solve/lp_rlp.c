@@ -845,12 +845,9 @@ while (YYID (0))
 # endif
 
 # define YYDPRINTF(Args)			\
-do {						\
-  if (lp_yydebug)					\
-    YYFPRINTF Args;				\
-} while (YYID (0))
 
 # define YY_SYMBOL_PRINT(Title, Type, Value, Location)			  \
+/*
 do {									  \
   if (lp_yydebug)								  \
     {									  \
@@ -860,7 +857,7 @@ do {									  \
       YYFPRINTF (stderr, "\n");						  \
     }									  \
 } while (YYID (0))
-
+*/
 
 /*--------------------------------.
 | Print this symbol on YYOUTPUT.  |
@@ -917,13 +914,8 @@ lp_yy_symbol_print (lp_yyoutput, lp_yytype, lp_yyvaluep, parm, scanner)
     void *scanner;
 #endif
 {
-  if (lp_yytype < YYNTOKENS)
-    YYFPRINTF (lp_yyoutput, "token %s (", lp_yytname[lp_yytype]);
-  else
-    YYFPRINTF (lp_yyoutput, "nterm %s (", lp_yytname[lp_yytype]);
-
   lp_yy_symbol_value_print (lp_yyoutput, lp_yytype, lp_yyvaluep, parm, scanner);
-  YYFPRINTF (lp_yyoutput, ")");
+  //YYFPRINTF (lp_yyoutput, ")");
 }
 
 /*------------------------------------------------------------------.
@@ -942,10 +934,10 @@ lp_yy_stack_print (bottom, top)
     lp_yytype_int16 *top;
 #endif
 {
-  YYFPRINTF (stderr, "Stack now");
-  for (; bottom <= top; ++bottom)
-    YYFPRINTF (stderr, " %d", *bottom);
-  YYFPRINTF (stderr, "\n");
+  //YYFPRINTF (stderr, "Stack now");
+  //for (; bottom <= top; ++bottom)
+    //YYFPRINTF (stderr, " %d", *bottom);
+  //YYFPRINTF (stderr, "\n");
 }
 
 # define YY_STACK_PRINT(Bottom, Top)				\
@@ -975,16 +967,16 @@ lp_yy_reduce_print (lp_yyvsp, lp_yyrule, parm, scanner)
   int lp_yynrhs = lp_yyr2[lp_yyrule];
   int lp_yyi;
   unsigned long int lp_yylno = lp_yyrline[lp_yyrule];
-  YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
-	     lp_yyrule - 1, lp_yylno);
+  //YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
+	//     lp_yyrule - 1, lp_yylno);
   /* The symbols being reduced.  */
   for (lp_yyi = 0; lp_yyi < lp_yynrhs; lp_yyi++)
     {
-      fprintf (stderr, "   $%d = ", lp_yyi + 1);
-      lp_yy_symbol_print (stderr, lp_yyrhs[lp_yyprhs[lp_yyrule] + lp_yyi],
-		       &(lp_yyvsp[(lp_yyi + 1) - (lp_yynrhs)])
-		       		       , parm, scanner);
-      fprintf (stderr, "\n");
+      ;//fprintf (stderr, "   $%d = ", lp_yyi + 1);
+      //lp_yy_symbol_print (stderr, lp_yyrhs[lp_yyprhs[lp_yyrule] + lp_yyi],
+//		       &(lp_yyvsp[(lp_yyi + 1) - (lp_yynrhs)])
+//		       		       , parm, scanner);
+      //fprintf (stderr, "\n");
     }
 }
 
@@ -1374,7 +1366,7 @@ int lp_yynerrs;
      Keep to zero when no symbol should be popped.  */
   int lp_yylen = 0;
 
-  YYDPRINTF ((stderr, "Starting parse\n"));
+  //YYDPRINTF ((stderr, "Starting parse\n"));
 
   lp_yystate = 0;
   lp_yyerrstatus = 0;
@@ -1460,14 +1452,14 @@ int lp_yynerrs;
       lp_yyvsp = lp_yyvs + lp_yysize - 1;
 
 
-      YYDPRINTF ((stderr, "Stack size increased to %lu\n",
-		  (unsigned long int) lp_yystacksize));
+      //YYDPRINTF ((stderr, "Stack size increased to %lu\n",
+		//  (unsigned long int) lp_yystacksize));
 
       if (lp_yyss + lp_yystacksize - 1 <= lp_yyssp)
 	YYABORT;
     }
 
-  YYDPRINTF ((stderr, "Entering state %d\n", lp_yystate));
+  //YYDPRINTF ((stderr, "Entering state %d\n", lp_yystate));
 
   goto lp_yybackup;
 
@@ -1489,14 +1481,14 @@ lp_yybackup:
   /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
   if (lp_yychar == YYEMPTY)
     {
-      YYDPRINTF ((stderr, "Reading a token: "));
+      //YYDPRINTF ((stderr, "Reading a token: "));
       lp_yychar = YYLEX;
     }
 
   if (lp_yychar <= YYEOF)
     {
       lp_yychar = lp_yytoken = YYEOF;
-      YYDPRINTF ((stderr, "Now at end of input.\n"));
+      //YYDPRINTF ((stderr, "Now at end of input.\n"));
     }
   else
     {
@@ -2078,7 +2070,7 @@ lp_yyreduce:
     char buf[16];
 
     pv->SOSweight++;
-    sprintf(buf, "SOS%d", pv->SOSweight);
+    //sprintf(buf, "SOS%d", pv->SOSweight);
     storevarandweight(pp, buf);
 
     check_int_sec_sos_free_decl(pp, (int) pv->Within_int_decl, (int) pv->Within_sec_decl, 2, (int) pv->Within_free_decl);
@@ -2130,7 +2122,7 @@ lp_yyreduce:
     char buf[16];
 
     pv->SOSweight++;
-    sprintf(buf, "SOS%d", pv->SOSweight);
+    //sprintf(buf, "SOS%d", pv->SOSweight);
     storevarandweight(pp, buf);
 
     check_int_sec_sos_free_decl(pp, (int) pv->Within_int_decl, (int) pv->Within_sec_decl, 2, (int) pv->Within_free_decl);

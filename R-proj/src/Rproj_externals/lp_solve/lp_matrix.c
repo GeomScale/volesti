@@ -3033,14 +3033,10 @@ STATIC MYBOOL __WINAPI invert(lprec *lp, MYBOOL shiftbounds, MYBOOL final)
   lp->bfp_finishfactorization(lp);
 
   /* Recompute the RHS ( Ref. lp_solve inverse logic and Chvatal p. 121 ) */
-#ifdef DebugInv
-  blockWriteLREAL(stdout, "RHS-values pre invert", lp->rhs, 0, lp->rows);
-#endif
+
   recompute_solution(lp, shiftbounds);
   restartPricer(lp, AUTOMATIC);
-#ifdef DebugInv
-  blockWriteLREAL(stdout, "RHS-values post invert", lp->rhs, 0, lp->rows);
-#endif
+
 
 Cleanup:
   /* Check for numerical instability indicated by frequent refactorizations */

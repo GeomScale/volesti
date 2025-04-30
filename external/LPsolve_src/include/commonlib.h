@@ -132,24 +132,24 @@
 #ifndef CALLOC
 #define CALLOC(ptr, nr)\
   if(!((void *) ptr = calloc((size_t)(nr), sizeof(*ptr))) && nr) {\
-    printf("calloc of %d bytes failed on line %d of file %s\n",\
-           (size_t) nr * sizeof(*ptr), __LINE__, __FILE__);\
+    //printf("calloc of %d bytes failed on line %d of file %s\n",\
+    //       (size_t) nr * sizeof(*ptr), __LINE__, __FILE__);\
   }
 #endif
 
 #ifndef MALLOC
 #define MALLOC(ptr, nr)\
   if(!((void *) ptr = malloc((size_t)((size_t) (nr) * sizeof(*ptr)))) && nr) {\
-    printf("malloc of %d bytes failed on line %d of file %s\n",\
-           (size_t) nr * sizeof(*ptr), __LINE__, __FILE__);\
+    //printf("malloc of %d bytes failed on line %d of file %s\n",\
+    //       (size_t) nr * sizeof(*ptr), __LINE__, __FILE__);\
   }
 #endif
 
 #ifndef REALLOC
 #define REALLOC(ptr, nr)\
   if(!((void *) ptr = realloc(ptr, (size_t)((size_t) (nr) * sizeof(*ptr)))) && nr) {\
-    printf("realloc of %d bytes failed on line %d of file %s\n",\
-           (size_t) nr * sizeof(*ptr), __LINE__, __FILE__);\
+    //printf("realloc of %d bytes failed on line %d of file %s\n",\
+    //       (size_t) nr * sizeof(*ptr), __LINE__, __FILE__);\
   }
 #endif
 
