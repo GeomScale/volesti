@@ -2,7 +2,7 @@
 #include <boost/random.hpp>
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
-#include "ellipsoid.h"
+#include "convex_bodies/ellipsoid.h"
 #include "sampling/ellipsoid.hpp"
 #include "random_walks/random_walks.hpp"
 

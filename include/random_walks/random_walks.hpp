@@ -31,4 +31,5 @@
 #include "random_walks/nuts_hmc_walk.hpp"
 #include "random_walks/langevin_walk.hpp"
 #include "random_walks/crhmc/crhmc_walk.hpp"
+#include "random_walks/shake_and_bake_walk.hpp"
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP
