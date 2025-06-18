@@ -1,8 +1,16 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+
 #ifndef RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 #define RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 
 #include <Eigen/Eigen>
 #include <limits>
+#include <cmath>
 #include "sampling/sphere.hpp"
 #include "convex_bodies/hpolytope.h"
 
@@ -10,10 +18,7 @@ struct SBWalk
 {
     enum Mode { Original, Limping, Running };
 
-    template <
-        typename Polytope,
-        typename RandomNumberGenerator
-    >
+    template <typename Polytope, typename RandomNumberGenerator>
     struct Walk
     {
         using Point = typename Polytope::PointType;
@@ -22,31 +27,35 @@ struct SBWalk
         Mode mode_{Mode::Original};
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope& P,
-             Point const&      p0,
-             RandomNumberGenerator& rng,
-             Mode              m = Mode::Original)
+        Walk(GenericPolytope& P, Point const& p0, RandomNumberGenerator& rng, Mode m = Mode::Original)
             : mode_{m}
         {
             initialize(P, p0);
         }
 
         template <typename GenericPolytope>
-        inline void apply(GenericPolytope const&  P,
-                          Point&                  out_p,
-                          unsigned int const      walk_len,
-                          RandomNumberGenerator&  rng)
+        inline void apply(GenericPolytope const& P,
+                          Point& out_p,
+                          unsigned int const walk_len,
+                          RandomNumberGenerator& rng)
         {
+            const NT eps = NT(1e-10);
+
             for (unsigned t = 0; t < walk_len; ++t)
             {
                 Point v = GetDirection<Point>::apply(P.dimension(), rng);
 
+                NT v_norm = v.getCoefficients().norm();
+                if (v_norm > eps) {
+                    for (std::size_t j = 0; j < dim_; ++j)
+                        v.set_coord(j, v[j] / v_norm);
+                }
+
                 NT dot_k = A_row_k_.dot(v.getCoefficients());
                 if (dot_k > NT(0)) {
-                    for (size_t j = 0; j < dim_; ++j) {
+                    for (size_t j = 0; j < dim_; ++j)
                         v.set_coord(j, -v[j]);
-                    }
-                    dot_k = -dot_k;  
+                    dot_k = -dot_k;
                 }
 
                 int m_fac = static_cast<int>(P.num_of_hyperplanes());
@@ -58,47 +67,34 @@ struct SBWalk
                 NT lambda_hit = result.first;
                 int r = result.second;
 
-                if (mode_ == Mode::Running) {
-                    if (lambda_hit <= NT(0) || r < 0) {
-
-                        continue;
-                    }
-
-                    for (size_t j = 0; j < dim_; ++j) {
-                        p_.set_coord(j, p_[j] + lambda_hit * v[j]);
-                    }
-
-                    _k = r;
-                    A_row_k_ = A_.row(_k);
+                if (!std::isfinite(lambda_hit) || lambda_hit <= NT(0) || lambda_hit > NT(1e3) || r < 0)
                     continue;
-                }
-
-
-
-                if (lambda_hit <= NT(0) || r < 0) {
-
-                    continue;
-                }
-
 
                 Point y = p_;
-                for (size_t j = 0; j < dim_; ++j) {
+                for (size_t j = 0; j < dim_; ++j)
                     y.set_coord(j, p_[j] + lambda_hit * v[j]);
-                }
 
+                bool valid = true;
+                for (size_t j = 0; j < dim_; ++j)
+                    if (!std::isfinite(y[j])) { valid = false; break; }
+                if (!valid) continue;
 
                 Eigen::Matrix<NT,1,Eigen::Dynamic> A_row_r = A_.row(r);
                 NT dot_r = A_row_r.dot(v.getCoefficients());
 
+                if (mode_ == Mode::Running) {
+                    p_ = y;
+                    _k = r;
+                    A_row_k_ = A_row_r;
+                    continue;
+                }
+
                 NT beta;
                 if (mode_ == Mode::Original) {
-                    NT den = dot_r - dot_k;  
-                    if (den <= NT(0)) {
-                        continue;  
-                    }
+                    NT den = dot_r - dot_k;
+                    if (std::abs(den) < eps) continue;
                     beta = dot_r / den;
-                }
-                else {
+                } else { 
                     beta = -dot_k;
                 }
 
@@ -106,11 +102,9 @@ struct SBWalk
                     if (rng.sample_urdist() < beta) {
                         p_ = y;
                         _k = r;
-                        A_row_k_ = A_.row(_k);
+                        A_row_k_ = A_row_r;
                     }
-
                 }
-
             }
 
             out_p = p_;
@@ -124,19 +118,17 @@ struct SBWalk
         {
             dim_        = P.dimension();
             num_facets_ = P.num_of_hyperplanes();
-
             A_ = P.get_mat();
             b_ = P.get_vec();
 
             NT eps = std::numeric_limits<NT>::epsilon() * NT(1e4);
             _k = -1;
             for (size_t i = 0; i < num_facets_; ++i) {
-                if ( std::abs(A_.row(i).dot(p0.getCoefficients()) - b_(i)) < eps ) {
+                if (std::abs(A_.row(i).dot(p0.getCoefficients()) - b_(i)) < eps) {
                     _k = int(i);
                     break;
                 }
             }
-
 
             p_       = p0;
             A_row_k_ = A_.row(_k);
@@ -152,4 +144,4 @@ struct SBWalk
     };
 };
 
-#endif  // RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
+#endif // RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
