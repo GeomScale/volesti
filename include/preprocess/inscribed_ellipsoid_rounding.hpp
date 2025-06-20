@@ -47,11 +47,13 @@ template
 >
 std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
                                                     unsigned int const max_iterations = 5,
-                                                    NT const max_eig_ratio = NT(6))
+                                                    NT const max_eig_ratio = NT(6),
+                                                    NT const reg = NT(1e-3),
+                                                    NT const tol = NT(1e-6))
 {
     typedef typename Polytope::PointType Point;
     VT x = compute_feasible_point(P.get_mat(), P.get_vec());
-    return inscribed_ellipsoid_rounding<MT, VT, NT>(P, Point(x), max_iterations, max_eig_ratio);
+    return inscribed_ellipsoid_rounding<MT, VT, NT>(P, Point(x), max_iterations, max_eig_ratio, reg, tol);
 }
 
 template 
@@ -66,13 +68,15 @@ template
 std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P, 
                                                     Point const& InnerPoint,
                                                     unsigned int const max_iterations = 5,
-                                                    NT const max_eig_ratio = NT(6))
+                                                    NT const max_eig_ratio = NT(6),
+                                                    NT reg = NT(1e-3),
+                                                    NT const tol = NT(1e-6))
 {
     unsigned int maxiter = 500, iter = 1, d = P.dimension();
     VT x0 = InnerPoint.getCoefficients(), center, shift = VT::Zero(d);
     MT E, L, T = MT::Identity(d, d);
     bool converged;
-    NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -4.0), round_val = 1.0;
+    NT R = 100.0, r = 1.0, round_val = 1.0;
 
     while (true)
     {
