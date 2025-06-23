@@ -77,22 +77,38 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
+coverage = {}
 
-# Uniformity test for the polytope 
-filename = f"build/sb_{shape}_{dim}_tvals.txt"
-t = np.loadtxt(filename)   
-n = len(t)
+with open('build/coverage.txt') as f:
+    for line in f:
+        line = line.strip()
+        if not line:
+            continue
 
-t_sorted = np.sort(t)
-F_emp = np.arange(1, n+1)/n
+        parts = line.split()
+        # ['Facet', '0', '(44', 'pts):', '0.01:1,', '0.0298:1,', ...]
+        if parts[0] == 'Facet':
+            facet = int(parts[1])
+            tail = ' '.join(parts[4:])
+            pairs = [p.strip() for p in tail.split(',') if p.strip()]
 
+            xs, covs = [], []
+            for p in pairs:
+                x_str, cov_str = p.split(':')
+                x = float(x_str)
+                cov = float(cov_str)
+                xs.append(x ** (d))  
+                covs.append(cov)
 
-plt.figure(figsize=(6,4))
-plt.step(t_sorted, F_emp, where='post', label="Boundary sampling")
-plt.plot([0,1],[0,1],'--', label="Interior sampling")
-plt.xlabel("x$")
-plt.ylabel("F(x)")
-plt.title("Uniformity test for the polytope ")
-plt.legend()
-plt.grid(True)
+            coverage[facet] = (np.array(xs), np.array(covs))
+
+plt.figure(figsize=(8,6))
+for facet, (xs, covs) in coverage.items():
+    plt.plot(xs, covs, label=f'Facet {facet}')
+
+plt.xlabel(r'$x^{d}$')
+plt.ylabel('Coverage ratio')
+plt.title('Scaling coverage per facet (plotted vs $x^{d}$)')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
 plt.show()

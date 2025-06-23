@@ -7,6 +7,8 @@
 #include <fstream>
 #include <chrono>
 #include <string>
+#include <vector>
+#include <limits>
 
 #include <Eigen/Eigen>
 #include <boost/random.hpp>
@@ -29,8 +31,7 @@ using Point  = Kernel::Point;
 using RNG    = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
 using HPoly  = HPolytope<Point>;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage : " << argv[0]
                   << " <cube|simplex|birkhoff|iSDY_1059> <dimension> [epsilon]\n";
@@ -39,17 +40,12 @@ int main(int argc, char* argv[])
 
     std::string shape = argv[1];
     unsigned    cli_n = std::stoi(argv[2]);
+    double eps = (argc > 3 ? std::stod(argv[3]) : 1e-7);
 
     HPoly P;
-    if (shape == "cube") {
-        P = generate_cube<HPoly>(cli_n, false);
-    }
-    else if (shape == "simplex") {
-        P = generate_simplex<HPoly>(cli_n, false);
-    }
-    else if (shape == "birkhoff") {
-        P = generate_birkhoff<HPoly>(cli_n);
-    }
+    if (shape == "cube")               P = generate_cube<HPoly>(cli_n, false);
+    else if (shape == "simplex")       P = generate_simplex<HPoly>(cli_n, false);
+    else if (shape == "birkhoff")      P = generate_birkhoff<HPoly>(cli_n);
     else if (shape == "iSDY_1059") {
         auto arrA = cnpy::npy_load("A_iSDY_1059.npy");
         auto arrb = cnpy::npy_load("b_iSDY_1059.npy");
@@ -72,109 +68,135 @@ int main(int argc, char* argv[])
 
     const unsigned true_dim = P.dimension();
     unsigned walk_len, n_samples, burn_in_iters;
-
-    //Adaptive tuning - polytope type
-    if (shape == "cube") {
-        walk_len      = 10  * true_dim;
+    if (shape == "cube" || shape == "simplex") {
+        walk_len      = 50;
+        n_samples     = 100000;
+        burn_in_iters = 0;
+    } else if (shape == "birkhoff") {
+       walk_len      = 20 * true_dim;
         n_samples     = 100 * true_dim;
         burn_in_iters = 5  * true_dim;
-    }
-    else if (shape == "simplex") {
-        walk_len      = 10  * true_dim;
+    } else {
+        walk_len      = 20 * true_dim;
         n_samples     = 100 * true_dim;
-        burn_in_iters = 5  * true_dim;
-    }
-    else if (shape == "birkhoff") {
-        walk_len      = 20  * true_dim;
-        n_samples     = 100 * true_dim;
-        burn_in_iters = 5  * true_dim;
-    }
-    else {
-        walk_len      = 20  * true_dim;
-        n_samples     = 100 * true_dim;
-        burn_in_iters = 20  * true_dim;
+        burn_in_iters = 20 * true_dim;
     }
 
     std::cout << "Parameters: walk_len=" << walk_len
               << ", n_samples=" << n_samples
               << ", burn_in_iters=" << burn_in_iters
-              << " (dim=" << true_dim << ")\n";
+              << " (dim=" << true_dim << ") eps=" << eps << "\n";
 
     RNG rng(true_dim);
-    std::string base  = "sb_" + shape + "_" + std::to_string(cli_n);
-    std::string fname = base + "_run.txt";
-    std::ofstream out(fname);
+    std::string base = "sb_" + shape + "_" + std::to_string(cli_n);
+    std::ofstream out(base + "_run.txt");
 
     using Walker = ShakeAndBakeWalk::Walk<HPoly, RNG>;
     Walker walk(P, rng, ShakeAndBakeWalk::Running);
 
+    auto A_full = P.get_mat();
+    auto b_full = P.get_vec();
+    size_t m = A_full.rows();
+
     Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> samples(true_dim, n_samples);
+    std::vector<int> facet_id(n_samples, -1);
 
-    // Burn-in phase for burn_in_iters
+    // burn-in
     Point tmp0(true_dim);
-    for (unsigned i = 0; i < burn_in_iters; ++i) {
+    for (unsigned i = 0; i < burn_in_iters; ++i)
         walk.apply(P, tmp0, walk_len, rng);
-    }
 
-    // Actual sampling
-    auto t0 = std::chrono::high_resolution_clock::now();
+    // sampling
     for (unsigned i = 0; i < n_samples; ++i) {
         Point tmp(true_dim);
         walk.apply(P, tmp, walk_len, rng);
-        const Point& q = walk.getCurrentPoint();
-        for (unsigned j = 0; j < true_dim; ++j) {
-            out << q[j] << (j + 1 < true_dim ? ' ' : '\n');
-            samples(j,i) = q[j];
+        const Point &q = walk.getCurrentPoint();
+        Eigen::VectorXd qv(true_dim);
+        for (unsigned d=0; d<true_dim; ++d) qv[d] = q[d];
+        auto Aq = A_full * qv;
+        for (size_t k=0; k<m; ++k) {
+            if (std::abs(Aq[k] - b_full[k]) < eps) {
+                facet_id[i] = k;
+                break;
+            }
+        }
+        for (unsigned d=0; d<true_dim; ++d) {
+            out << q[d] << (d+1<true_dim ? ' ' : '\n');
+            samples(d,i) = q[d];
         }
     }
     out.close();
-    auto t1 = std::chrono::high_resolution_clock::now();
 
-    double secs = std::chrono::duration<double>(t1 - t0).count();
-    std::cout << "Mode Shake-and-Bake Running: "
-              << n_samples << " samples (walk_len=" << walk_len
-              << ", burn_in=" << burn_in_iters << ") generated in "
-              << secs << " s\n";
+    std::cout << "Generated " << n_samples << " samples in "
+              << walk_len << " steps each.\n";
 
-    //Diagnostics
-    unsigned min_ess = 0;
-    std::cout << "== Diagnostics per dimension ==\n";
-    print_diagnostics<NT, Eigen::VectorXd, decltype(samples), std::ostream>
-        (samples, min_ess, std::cout);
-    std::cout << "Minimum ESS (for thinning): " << min_ess << "\n\n";
 
-    // Full polytope "uniformity test"
-    Eigen::MatrixXd A = P.get_mat();  
-    Eigen::VectorXd b = P.get_vec();  
-    Eigen::VectorXd centroid = samples.rowwise().mean();  
+    const double min_ratio = 0.01;
+    std::ofstream cov_out("coverage.txt");
 
-    std::string tfile = base + "_tvals.txt";
-    std::ofstream out_t(tfile);
+    cov_out    << "\nScaling coverage by facet (skip <" << min_ratio << "):\n";
 
-    
-    Eigen::VectorXd rhs = b - A * centroid;  
+    for (int f = 0; f < int(m); ++f)
+    {
+        //Samples S on facet f
+        std::vector<int> S;
+        for (unsigned i = 0; i < n_samples; ++i)
+            if (facet_id[i] == f) S.push_back(i);
 
-    for (unsigned i = 0; i < n_samples; ++i) {
-
-        Eigen::VectorXd X = samples.col(i);     
-        Eigen::VectorXd diff = X - centroid;    
-
-        Eigen::VectorXd denom = A * diff;       
-
-        double t_i = 1.0;
-        for (int k = 0; k < denom.size(); ++k) {
-            if (denom[k] > 0) {
-                double tlim = rhs[k] / denom[k];
-                if (tlim < t_i) t_i = tlim;
-            }
+        //Setting threshold
+        const double ratio = double(S.size()) / n_samples;
+        if (ratio < min_ratio) {
+            cov_out << "facet " << f << " skipped (" << ratio << ")\n";
+            continue;
         }
-        if (t_i < 0.0) t_i = 0.0;
-        if (t_i > 1.0) t_i = 1.0;
 
-        out_t << t_i << "\n";
+        //Finding the mean of the samples
+        Eigen::VectorXd p = Eigen::VectorXd::Zero(true_dim);
+        for (int idx : S) p += samples.col(idx);
+        p /= double(S.size());
+
+        cov_out  << "Facet " << f << " (" << S.size() << " pts): ";
+
+        const Eigen::VectorXd Af_orig = A_full.row(f);
+        const double          bf_orig = b_full[f];
+
+        // Loop over scale factors
+        for (int step = 0; step <= 50; ++step)
+        {
+            const double x = 0.01 + 0.99 * step / 50.0;   // shrink factor 
+
+            HPoly P_loc = P;          // copy for each scale 
+            P_loc.shift(p);
+
+            //Shrinking
+            const Eigen::MatrixXd T = (1.0 / x) *
+                                    Eigen::MatrixXd::Identity(true_dim, true_dim);
+            P_loc.linear_transformIt(T);
+
+            const Eigen::MatrixXd& A_sh = P_loc.get_mat();
+            const Eigen::VectorXd& b_sh = P_loc.get_vec();
+            const Eigen::VectorXd  Af   = A_sh.row(f);
+            const double           bf   = b_sh[f];
+
+            unsigned survivors = 0;
+
+            for (int idx : S)
+            {
+                const Eigen::VectorXd q = samples.col(idx) - p;
+
+                bool inside = true;
+                for (int j = 0; j < A_sh.rows(); ++j)
+                    if (A_sh.row(j).dot(q) - b_sh[j] > eps) { inside = false; break; }
+                if (!inside) continue;
+
+                if (std::abs(Af.dot(q) - bf) < eps) ++survivors;
+            }
+
+            const double coverage = double(survivors) / S.size();
+            cov_out  << x << ':' << coverage << (step < 50 ? ", " : "\n");
+        }
     }
-    out_t.close();
-    std::cout << "Wrote to " << tfile << "\n";
+    cov_out.close();
 
     return 0;
 }
