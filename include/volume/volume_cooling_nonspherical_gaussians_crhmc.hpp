@@ -415,11 +415,13 @@ double non_spherical_crhmc_volume_cooling_gaussians(Polytope& Pin,
     unsigned int m = P.num_of_hyperplanes();
     
     //compute inscribed ellipsoid
-    NT tol = std::pow(10, -6.0), reg = std::pow(10, -4.0);
-    unsigned int maxiter = 100;
-    P.normalize();
+    EllipsoidParams<NT> params;
+    params.john_params.maxiter = 100;
+    params.john_params.tol = std::pow(10, -6.0);
+    params.john_params.reg = std::pow(10, -4.0);
     VT x0 = compute_feasible_point(P.get_mat(), P.get_vec());
-    auto ellipsoid_result = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
+    auto ellipsoid_result = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>(P.get_mat(), P.get_vec(), x0, params);
+    P.normalize();
 
     // extract the covariance matrix and the center of the ellipsoid
     MT inv_covariance_matrix = std::get<0>(ellipsoid_result); //this is the covariance to use in the telescopic product
