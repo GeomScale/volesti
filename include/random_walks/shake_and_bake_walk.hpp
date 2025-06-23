@@ -43,7 +43,6 @@ struct ShakeAndBakeWalk
 
         template <typename GenericPolytope>
         inline void apply(GenericPolytope const& P,
-                          Point&                out_p,
                           unsigned int          walk_len,
                           RandomNumberGenerator& rng)
         {
@@ -111,8 +110,6 @@ struct ShakeAndBakeWalk
             next_iter:
                 continue;
             }
-
-            out_p = p_;
         }
 
         const Point& getCurrentPoint() const noexcept { return p_; }
@@ -146,9 +143,7 @@ struct ShakeAndBakeWalk
             A_row_k_ = A_.row(_k).transpose();
         }
 
-        /*--------------------------------------------------------+
-        |  Members                                                |
-        +--------------------------------------------------------*/
+
         std::size_t dim_{0}, num_facets_{0};
         Point       p_;
         int         _k{-1};
