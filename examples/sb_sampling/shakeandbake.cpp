@@ -161,9 +161,9 @@ int main(int argc, char* argv[]) {
         const double          bf_orig = b_full[f];
 
         // Loop over scale factors
-        for (int step = 0; step <= 50; ++step)
+        for (double step = 0.1; step <= 1.0; step+=0.1)
         {
-            const double x = 0.01 + 0.99 * step / 50.0;   // shrink factor 
+            const double x = std::pow(step, 1.0/double(true_dim));   // shrink factor 
 
             HPoly P_loc = P;          // copy for each scale 
             P_loc.shift(p);
@@ -178,22 +178,31 @@ int main(int argc, char* argv[]) {
             const Eigen::VectorXd  Af   = A_sh.row(f);
             const double           bf   = b_sh[f];
 
-            unsigned survivors = 0;
 
+            unsigned survivors = 0;
             for (int idx : S)
             {
-                const Eigen::VectorXd q = samples.col(idx) - p;
+
+                const Eigen::VectorXd q_shift = samples.col(idx) - p;
+                const Eigen::VectorXd y       = q_shift / x;
 
                 bool inside = true;
-                for (int j = 0; j < A_sh.rows(); ++j)
-                    if (A_sh.row(j).dot(q) - b_sh[j] > eps) { inside = false; break; }
+                for (int j = 0; j < A_sh.rows(); ++j) {
+                    if (j == f) continue;
+                    if (A_sh.row(j).dot(y) - b_sh[j] > eps) { inside = false; break; }
+                }
                 if (!inside) continue;
 
-                if (std::abs(Af.dot(q) - bf) < eps) ++survivors;
+                ++survivors;
             }
 
             const double coverage = double(survivors) / S.size();
-            cov_out  << x << ':' << coverage << (step < 50 ? ", " : "\n");
+            cov_out << x << ':' << coverage;
+            if (step < 1.0 - 1e-12)
+                cov_out << ", ";
+            else
+                cov_out << '\n';
+
         }
     }
     cov_out.close();
