@@ -102,14 +102,13 @@ int main(int argc, char* argv[]) {
     std::vector<int> facet_id(n_samples, -1);
 
     // burn-in
-    Point tmp0(true_dim);
-    for (unsigned i = 0; i < burn_in_iters; ++i)
-        walk.apply(P, tmp0, walk_len, rng);
+    for (int i = 0; i < burn_in_iters; ++i)
+        walk.apply(P,  walk_len, rng);
 
     // sampling
-    for (unsigned i = 0; i < n_samples; ++i) {
-        Point tmp(true_dim);
-        walk.apply(P, tmp, walk_len, rng);
+    for (int i = 0; i < n_samples; ++i) {
+
+        walk.apply(P, walk_len, rng);
         const Point &q = walk.getCurrentPoint();
         Eigen::VectorXd qv(true_dim);
         for (unsigned d=0; d<true_dim; ++d) qv[d] = q[d];
@@ -184,12 +183,11 @@ int main(int argc, char* argv[]) {
             {
 
                 const Eigen::VectorXd q_shift = samples.col(idx) - p;
-                const Eigen::VectorXd y       = q_shift / x;
 
                 bool inside = true;
                 for (int j = 0; j < A_sh.rows(); ++j) {
                     if (j == f) continue;
-                    if (A_sh.row(j).dot(y) - b_sh[j] > eps) { inside = false; break; }
+                    if (A_sh.row(j).dot(q_shift) - b_sh[j] > eps) { inside = false; break; }
                 }
                 if (!inside) continue;
 
@@ -197,7 +195,7 @@ int main(int argc, char* argv[]) {
             }
 
             const double coverage = double(survivors) / S.size();
-            cov_out << x << ':' << coverage;
+            cov_out << pow(x,true_dim) << ':' << coverage;
             if (step < 1.0 - 1e-12)
                 cov_out << ", ";
             else
