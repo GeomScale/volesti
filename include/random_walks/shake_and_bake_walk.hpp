@@ -1,6 +1,8 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) I don't know what to write here :)
+// Copyright (c) I am not sure what to put here :)
+
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL-3.0; see LICENCE file
 
@@ -8,9 +10,8 @@
 #define RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 
 #include <Eigen/Eigen>
-#include <limits>
 #include <cmath>
-#include <stdexcept>
+#include <algorithm>
 
 #include "sampling/sphere.hpp"
 #include "preprocess/feasible_point.hpp"
@@ -24,135 +25,124 @@ struct ShakeAndBakeWalk
     struct Walk
     {
         using Point = typename Polytope::PointType;
+        using VT = typename Polytope::VT;
         using NT = typename Point::FT;
-        using VT = typename Polytope::VT;        
 
-        Mode mode_{Mode::Original};
-
-        static void set_epsilon(NT new_eps) noexcept { epsilon_ = new_eps; }
-        static NT   get_epsilon()      noexcept      { return epsilon_;   }
+        static constexpr NT kDefaultEpsilon = NT(1e-10);
 
         template <typename GenericPolytope>
         Walk(GenericPolytope&       P,
              RandomNumberGenerator& rng,
-             Mode                   m = Mode::Original)
-            : mode_{m}
+             Mode                   m   = Mode::Original,
+             NT                     eps = kDefaultEpsilon)
+            : P_{P}, mode_{m}, epsilon_{eps}
         {
-            initialize(P, rng);
+            initialize(rng);
         }
 
-        template <typename GenericPolytope>
-        inline void apply(GenericPolytope const& P,
-                          unsigned int          walk_len,
-                          RandomNumberGenerator& rng)
+        void set_epsilon(NT eps) noexcept { epsilon_ = eps; }
+        NT   get_epsilon() const noexcept { return epsilon_; }
+
+        void apply(unsigned int walk_len, RandomNumberGenerator& rng)
         {
             const NT eps = epsilon_;
 
-            for (unsigned t = 0; t < walk_len; ++t)
+            for (unsigned step = 0; step < walk_len; ++step)
             {
-                Point v = GetDirection<Point>::apply(P.dimension(), rng);
 
+                Point v = GetDirection<Point>::apply(dim_, rng);
+
+                //Switching towards the inside of half-space
                 NT dot_k = A_row_k_.dot(v.getCoefficients());
-                if (dot_k > NT(0)) {
-                    v     *= NT(-1);
-                    dot_k = -dot_k;
-                }
+                if (dot_k > NT(0)) { v *= NT(-1); dot_k *= NT(-1); }
 
-                const int m_fac = static_cast<int>(P.num_of_hyperplanes());
-                VT Ar(m_fac), Av(m_fac);
-                struct UP { NT inner_vi_ak; int facet_prev; } params;
+                auto [lambda_hit, facet_new] = P_.line_positive_intersect(p_, v, Ar_, Av_);
 
-                auto res        = P.line_first_positive_intersect(p_, v, Ar, Av, params);
-                NT   lambda_hit = res.first;
-                int  r          = res.second;
+                if (!std::isfinite(lambda_hit) || lambda_hit <= NT(0) || facet_new < 0)
+                    continue;
 
-                if (!std::isfinite(lambda_hit) ||
-                    lambda_hit <= NT(0) ||
-                    r < 0)
+                Point y = p_ + lambda_hit * v;
+                if (!y.getCoefficients().allFinite())
+                    continue;
+
+                //Running variant
+                if (mode_ == Mode::Running) 
                 {
+                    p_       = y;
+                    facet_idx_ = facet_new;
+                    Ar_.noalias() -= lambda_hit * Av_;   // calculating new Ar
                     continue;
                 }
 
-                Point y = p_ + lambda_hit * v;
+                // SB variants with acceptance prob 
+                NT beta;
+                VT A_row_r = P_.get_facet_normal_vec(facet_new);
+                NT dot_r   = A_row_r.dot(v.getCoefficients());
 
-                for (std::size_t j = 0; j < dim_; ++j)
-                    if (!std::isfinite(y[j])) goto next_iter;
-
+                if (mode_ == Mode::Original) 
                 {
-                    VT A_row_r = A_.row(r).transpose();
-                    NT dot_r   = A_row_r.dot(v.getCoefficients());
-
-                    if (mode_ == Mode::Running) {
-                        p_       = y;
-                        _k       = r;
-                        A_row_k_ = A_row_r;
-                        goto next_iter;
-                    }
-
-                    NT beta;
-                    if (mode_ == Mode::Original) {
-                        NT den = dot_r - dot_k;
-                        if (std::abs(den) < eps) goto next_iter;
-                        beta = dot_r / den;
-                    } else {
-                        beta = -dot_k;
-                    }
-
-                    if (beta > NT(0) && beta <= NT(1) &&
-                        rng.sample_urdist() < beta)
-                    {
-                        p_       = y;
-                        _k       = r;
-                        A_row_k_ = A_row_r;
-                    }
+                    NT den = dot_r - dot_k;
+                    if (std::abs(den) < eps) continue;
+                    beta = std::clamp(dot_r / den, NT(0), NT(1));
+                } 
+                else {
+                    beta = -dot_k;
                 }
 
-            next_iter:
-                continue;
+                //Accepting
+                if (beta > NT(0) && beta <= NT(1) &&
+                    rng.sample_urdist() < beta)
+                {
+                    p_         = y;
+                    facet_idx_ = facet_new;
+                    A_row_k_   = A_row_r;
+                    Ar_.noalias() -= lambda_hit * Av_; 
+                }
+
             }
         }
 
         const Point& getCurrentPoint() const noexcept { return p_; }
 
     private:
-        template <typename GenericPolytope>
-        void initialize(GenericPolytope const& P, RandomNumberGenerator& rng)
+
+        void initialize(RandomNumberGenerator& rng)
         {
-            dim_        = P.dimension();
-            num_facets_ = P.num_of_hyperplanes();
-            A_          = P.get_mat();
-            b_          = P.get_vec();
+            dim_ = P_.dimension();
+            m_   = P_.num_of_hyperplanes();          
 
-            VT x_vec = compute_boundary_point(A_, b_, rng);
+            // Boundary point vector, residual and facet index
+            auto [x_vec, Ar_init, facet_idx] = compute_boundary_point<Point>(P_, rng, epsilon_);
 
-            Point p0(dim_);
+            // Generating usable point
+            p_ = Point(dim_);
             for (std::size_t i = 0; i < dim_; ++i)
-                p0.set_coord(i, x_vec(i));
-            p_ = p0;
+                p_.set_coord(i, x_vec(i));
 
-            _k = -1;
-            for (std::size_t i = 0; i < num_facets_; ++i) {
-                if (std::abs(A_.row(i).dot(x_vec) - b_(i)) < epsilon_) {
-                    _k = int(i);
-                    break;
-                }
-            }
-            if (_k < 0)
-                throw std::runtime_error("Boundary point is not on any facet");
+            //Caching the residual
+            Ar_ = std::move(Ar_init);                
+            //Allocating the size
+            Av_.resize(m_);                          
 
-            A_row_k_ = A_.row(_k).transpose();
+            facet_idx_ = facet_idx;
+
+            //Av for active facet
+            A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
         }
 
 
-        std::size_t dim_{0}, num_facets_{0};
+        Polytope& P_;                
+
+        Mode mode_{Mode::Original};
+        NT   epsilon_{kDefaultEpsilon};
+
+        std::size_t dim_{0};
         Point       p_;
-        int         _k{-1};
-
+        int         facet_idx_{-1};
+        VT Ar_;            
+        VT Av_;            
+        std::size_t m_{0};
         VT A_row_k_;
-        Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> A_;
-        Eigen::Matrix<NT,Eigen::Dynamic,1>              b_;
-
-        static inline NT epsilon_ = NT(1e-10);
     };
 };
 
