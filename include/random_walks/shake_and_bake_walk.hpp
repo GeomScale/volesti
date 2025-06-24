@@ -65,22 +65,21 @@ struct ShakeAndBakeWalk
                 if (!y.getCoefficients().allFinite())
                     continue;
 
-                //Running variant
-                if (mode_ == Mode::Running) 
-                {
+                VT A_row_r = P_.get_facet_normal_vec(facet_new);
+                //NT dot_r   = A_row_r.dot(v.getCoefficients());
+
+                /* 3. Running: увек прихватамо */
+                if (mode_ == Mode::Running) {
                     p_       = y;
                     facet_idx_ = facet_new;
-                    Ar_.noalias() -= lambda_hit * Av_;   // calculating new Ar
+                    A_row_k_   = A_row_r;
+                    Ar_.noalias() -= lambda_hit * Av_;   
                     continue;
                 }
 
-                // SB variants with acceptance prob 
+                /* 4.  
                 NT beta;
-                VT A_row_r = P_.get_facet_normal_vec(facet_new);
-                NT dot_r   = A_row_r.dot(v.getCoefficients());
-
-                if (mode_ == Mode::Original) 
-                {
+                if (mode_ == Mode::Original) {
                     NT den = dot_r - dot_k;
                     if (std::abs(den) < eps) continue;
                     beta = std::clamp(dot_r / den, NT(0), NT(1));
@@ -89,18 +88,18 @@ struct ShakeAndBakeWalk
                     beta = -dot_k;
                 }
 
-                //Accepting
                 if (beta > NT(0) && beta <= NT(1) &&
                     rng.sample_urdist() < beta)
                 {
                     p_         = y;
                     facet_idx_ = facet_new;
                     A_row_k_   = A_row_r;
-                    Ar_.noalias() -= lambda_hit * Av_; 
-                }
-
+                    Ar_.noalias() -= lambda_hit * Av_;  
+                }*/
+                /* ако тачка није прихваћена – Ar_ остаје исти */
             }
         }
+
 
         const Point& getCurrentPoint() const noexcept { return p_; }
 
