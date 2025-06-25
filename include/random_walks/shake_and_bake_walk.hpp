@@ -58,17 +58,18 @@ struct ShakeAndBakeWalk
                 NT dot_k = A_row_k_.dot(v.getCoefficients());
                 if (dot_k > NT(0)) { v *= NT(-1); dot_k *= NT(-1); }
 
-                auto [lambda_hit_, facet_new] = P_.line_positive_intersect(p_, v, Ar_, Av_);
+                int  facet_new;
 
-                if (!std::isfinite(lambda_hit_) || lambda_hit_ <= NT(0) || facet_new < 0)
+                std::tie(lambda_hit_, facet_new) = P_.line_positive_intersect_skip(p_, v, Ar_, Av_, lambda_hit_, facet_idx_);           
+
+                if (!std::isfinite(lambda_hit_) || lambda_hit_ <= NT(0) ||facet_new < 0)
                     continue;
 
                 p_ +=(lambda_hit_ * v);
                 
-
-                A_row_k_ = P_.get_facet_normal_vec(facet_new);
                 facet_idx_ = facet_new;
-                Ar_.noalias() -= lambda_hit_ * Av_;   
+                A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
+
 
             }
         }
@@ -84,10 +85,34 @@ struct ShakeAndBakeWalk
         {
             dim_ = P_.dimension();
             m_   = P_.num_of_hyperplanes();
+            VT b=P_.get_vec();
+
+            NT kFacetEps = NT(1e-8);
 
             // Input values 
             p_         = boundary_pt;
-            facet_idx_ = facet_idx;
+            if (facet_idx < 0) //if the facet not given we calculate 
+            {
+                facet_idx_ = -1;
+                for (int i = 0; i < m_; ++i) {
+                    VT ai = P_.get_facet_normal_vec(i);
+                    NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(i));
+                    if (dist < kFacetEps) {
+                        facet_idx_ = i;
+                        break;
+                    }
+                }
+                if (facet_idx_ < 0)
+                    throw std::runtime_error("Boundary point not on any facet!");
+            }
+            else //we recheck if the facet and point compatible
+            {
+                VT ai = P_.get_facet_normal_vec(facet_idx);
+                NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(facet_idx));
+                if (dist > kFacetEps)
+                    throw std::runtime_error("That is not facet index of the boundary point!");
+                facet_idx_ = facet_idx;
+            }
 
             //Normal of active facet
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
