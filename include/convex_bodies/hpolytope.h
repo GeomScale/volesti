@@ -673,45 +673,45 @@ public:
         return std::pair<NT, int>(min_plus, facet);
     }
 
-    inline std::pair<NT,int> line_positive_intersect_skip(Point const& r,
-                                Point const& v,
-                                VT&          Ar,
-                                VT&          Av,
-                                NT    const& lambda_prev,
-                                int           skip_facet = -1) const
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect_skip(Point const& r,
+                                                    Point const& v,
+                                                    VT& Ar,
+                                                    VT& Av,
+                                                    NT const& lambda_prev,
+                                                    update_parameters& params) const
     {
         constexpr NT tol = NT(1e-08);
-        int m         = num_of_hyperplanes();
-        VT  sum_nom; 
-        NT* sn; 
-        NT* av;
-        NT  min_plus  = std::numeric_limits<NT>::max();
+        int m = num_of_hyperplanes();
+
+        Av.noalias() = A * v.getCoefficients();
+        Ar.noalias() += lambda_prev * Av;
+        VT sum_nom(m);
+        sum_nom.noalias() = b - Ar;
+
+        NT min_plus = std::numeric_limits<NT>::max();
         int facet_new = -1;
+        NT* sum_data = sum_nom.data();
+        NT* av_data  = Av.data();
+        int skip     = params.facet_prev;
 
-        VT Ar0 = A * r.getCoefficients();
-        sum_nom = b - Ar0;
-        VT Av0 = A * v.getCoefficients();
+        for (int i = 0; i < m; ++i, ++sum_data, ++av_data) {
+            if (i == skip)         continue;
+            if (*av_data == NT(0)) continue;
 
-        VT Ar_inc = Ar0;
-        Ar_inc.noalias() += lambda_prev * Av0;
-
-        sn = sum_nom.data();
-        av = Av0.data();
-        for (int i = 0; i < m; ++i, ++sn, ++av) {
-            if (i == skip_facet)     continue;  
-            if (*av == NT(0))        continue; 
-            NT λ = *sn / *av;
-            if (λ <= tol)            continue;  
+            NT λ = *sum_data / *av_data;
+            if (λ <= tol)          continue;
             if (λ < min_plus) {
-                min_plus  = λ;
-                facet_new = i;
+                min_plus      = λ;
+                facet_new     = i;
+                params.inner_vi_ak = *av_data;
             }
         }
-        Av.noalias()  = Av0;          
-        Ar.noalias()  = Ar_inc;        
-
+        params.facet_prev = facet_new;
         return { min_plus, facet_new };
     }
+
+
     //-----------------------------------------------------------------------------------//
 
 
