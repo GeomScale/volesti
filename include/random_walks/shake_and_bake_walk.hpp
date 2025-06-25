@@ -19,7 +19,7 @@
 
 struct ShakeAndBakeWalk
 {
-    enum Mode { Original, Limping, Running };
+    //enum Mode { Original, Limping, Running };
 
     template <typename Polytope, typename RandomNumberGenerator>
     struct Walk
@@ -27,6 +27,13 @@ struct ShakeAndBakeWalk
         using Point = typename Polytope::PointType;
         using VT = typename Polytope::VT;
         using NT = typename Point::FT;
+
+        struct update_parameters {
+            int   facet_prev   = -1;  
+            NT    inner_vi_ak  = NT(0); 
+        };
+
+        update_parameters params_;
 
         static constexpr NT kDefaultEpsilon = NT(1e-10);
 
@@ -47,7 +54,7 @@ struct ShakeAndBakeWalk
 
         void apply(unsigned int walk_len, RandomNumberGenerator& rng)
         {
-            //const NT eps = epsilon_; not needed for Running
+            const NT eps = epsilon_; 
 
             for (unsigned step = 0; step < walk_len; ++step)
             {
@@ -58,18 +65,23 @@ struct ShakeAndBakeWalk
                 NT dot_k = A_row_k_.dot(v.getCoefficients());
                 if (dot_k > NT(0)) { v *= NT(-1); dot_k *= NT(-1); }
 
-                int  facet_new;
+                int facet_new;
 
-                std::tie(lambda_hit_, facet_new) = P_.line_positive_intersect_skip(p_, v, Ar_, Av_, lambda_hit_, facet_idx_);           
+                std::tie(lambda_hit_, facet_new) = P_.line_positive_intersect_skip(p_, v, Ar_, Av_, lambda_hit_, params_);
 
-                if (!std::isfinite(lambda_hit_) || lambda_hit_ <= NT(0) ||facet_new < 0)
+                if (!std::isfinite(lambda_hit_) || lambda_hit_ <= eps  || facet_new < 0) 
+                {
+                    lambda_hit_ = NT(0);
                     continue;
+                }
 
-                p_ +=(lambda_hit_ * v);
-                
+                p_ += lambda_hit_ * v;
                 facet_idx_ = facet_new;
                 A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
 
+
+                params_.facet_prev  = facet_idx_;
+                params_.inner_vi_ak = A_row_k_.dot(v.getCoefficients());
 
             }
         }
@@ -84,7 +96,7 @@ struct ShakeAndBakeWalk
                         RandomNumberGenerator& rng)
         {
             dim_ = P_.dimension();
-            m_   = P_.num_of_hyperplanes();
+            m_ = P_.num_of_hyperplanes();
             VT b=P_.get_vec();
 
             NT kFacetEps = NT(1e-8);
@@ -118,8 +130,9 @@ struct ShakeAndBakeWalk
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
 
             //Calculating first Ar and initializing Av 
-            Ar_.setZero(m_); 
-            Av_.setZero(m_);                                             
+            Ar_.setZero(m_);
+            Av_.setZero(m_);
+            lambda_hit_ = NT(0);                                           
 
             Point v = GetDirection<Point>::apply(dim_, rng);
 
@@ -134,6 +147,8 @@ struct ShakeAndBakeWalk
             facet_idx_ = facet_new;
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
 
+            params_.facet_prev  = facet_idx_;
+            params_.inner_vi_ak = A_row_k_.dot(v.getCoefficients());
 
         }
 

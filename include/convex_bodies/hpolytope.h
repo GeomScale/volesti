@@ -681,14 +681,14 @@ public:
                                                     NT const& lambda_prev,
                                                     update_parameters& params) const
     {
-        constexpr NT tol = NT(1e-08);
+        constexpr NT tol = NT(1e-10);
         int m = num_of_hyperplanes();
 
-        Av.noalias() = A * v.getCoefficients();
-        Ar.noalias() += lambda_prev * Av;
         VT sum_nom(m);
+        Ar.noalias() += lambda_prev * Av;
         sum_nom.noalias() = b - Ar;
-
+        Av.noalias() = A * v.getCoefficients();
+                       
         NT min_plus = std::numeric_limits<NT>::max();
         int facet_new = -1;
         NT* sum_data = sum_nom.data();
@@ -699,10 +699,10 @@ public:
             if (i == skip)         continue;
             if (*av_data == NT(0)) continue;
 
-            NT λ = *sum_data / *av_data;
-            if (λ <= tol)          continue;
-            if (λ < min_plus) {
-                min_plus      = λ;
+            NT lamda = *sum_data / *av_data;
+            if (lamda <= tol)          continue;
+            if (lamda < min_plus) {
+                min_plus      = lamda;
                 facet_new     = i;
                 params.inner_vi_ak = *av_data;
             }
