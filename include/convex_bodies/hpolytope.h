@@ -203,6 +203,11 @@ public:
         return b;
     }
 
+    VT get_facet_normal_vec(int facet_index) const 
+    {
+        return A.row(facet_index);
+    }
+    
     bool is_normalized ()
     {
         return normalized;
@@ -668,6 +673,45 @@ public:
         return std::pair<NT, int>(min_plus, facet);
     }
 
+    inline std::pair<NT,int> line_positive_intersect_skip(Point const& r,
+                                Point const& v,
+                                VT&          Ar,
+                                VT&          Av,
+                                NT    const& lambda_prev,
+                                int           skip_facet = -1) const
+    {
+        constexpr NT tol = NT(1e-08);
+        int m         = num_of_hyperplanes();
+        VT  sum_nom; 
+        NT* sn; 
+        NT* av;
+        NT  min_plus  = std::numeric_limits<NT>::max();
+        int facet_new = -1;
+
+        VT Ar0 = A * r.getCoefficients();
+        sum_nom = b - Ar0;
+        VT Av0 = A * v.getCoefficients();
+
+        VT Ar_inc = Ar0;
+        Ar_inc.noalias() += lambda_prev * Av0;
+
+        sn = sum_nom.data();
+        av = Av0.data();
+        for (int i = 0; i < m; ++i, ++sn, ++av) {
+            if (i == skip_facet)     continue;  
+            if (*av == NT(0))        continue; 
+            NT λ = *sn / *av;
+            if (λ <= tol)            continue;  
+            if (λ < min_plus) {
+                min_plus  = λ;
+                facet_new = i;
+            }
+        }
+        Av.noalias()  = Av0;          
+        Ar.noalias()  = Ar_inc;        
+
+        return { min_plus, facet_new };
+    }
     //-----------------------------------------------------------------------------------//
 
 
