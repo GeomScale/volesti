@@ -12,9 +12,9 @@
 #include <Eigen/Eigen>
 #include <cmath>
 #include <algorithm>
+#include <stdexcept> 
 
 #include "sampling/sphere.hpp"
-#include "preprocess/feasible_point.hpp"
 #include "convex_bodies/hpolytope.h"
 
 struct ShakeAndBakeWalk
@@ -31,13 +31,15 @@ struct ShakeAndBakeWalk
         static constexpr NT kDefaultEpsilon = NT(1e-10);
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope&       P,
-             RandomNumberGenerator& rng,
-             Mode                   m   = Mode::Original,
-             NT                     eps = kDefaultEpsilon)
-            : P_{P}, mode_{m}, epsilon_{eps}
+        Walk(GenericPolytope&          P,
+            const Point&             boundary_pt, 
+            int                      facet_idx,    
+            RandomNumberGenerator&   rng,
+            //Mode                     m   = Mode::Original,
+            NT                       eps = kDefaultEpsilon)
+            : P_{P}, /*mode_{m}*/ epsilon_{eps}
         {
-            initialize(rng);
+            initialize(boundary_pt, facet_idx, rng);
         }
 
         void set_epsilon(NT eps) noexcept { epsilon_ = eps; }
@@ -45,7 +47,7 @@ struct ShakeAndBakeWalk
 
         void apply(unsigned int walk_len, RandomNumberGenerator& rng)
         {
-            const NT eps = epsilon_;
+            //const NT eps = epsilon_; not needed for Running
 
             for (unsigned step = 0; step < walk_len; ++step)
             {
@@ -68,16 +70,16 @@ struct ShakeAndBakeWalk
                 VT A_row_r = P_.get_facet_normal_vec(facet_new);
                 //NT dot_r   = A_row_r.dot(v.getCoefficients());
 
-                /* 3. Running: увек прихватамо */
-                if (mode_ == Mode::Running) {
+                //Running
+                //if (mode_ == Mode::Running) {
                     p_       = y;
                     facet_idx_ = facet_new;
                     A_row_k_   = A_row_r;
                     Ar_.noalias() -= lambda_hit * Av_;   
-                    continue;
-                }
+                    //continue;
+                //}
 
-                /* 4.  
+                /* Original and Limping
                 NT beta;
                 if (mode_ == Mode::Original) {
                     NT den = dot_r - dot_k;
@@ -96,7 +98,6 @@ struct ShakeAndBakeWalk
                     A_row_k_   = A_row_r;
                     Ar_.noalias() -= lambda_hit * Av_;  
                 }*/
-                /* ако тачка није прихваћена – Ar_ остаје исти */
             }
         }
 
@@ -105,34 +106,44 @@ struct ShakeAndBakeWalk
 
     private:
 
-        void initialize(RandomNumberGenerator& rng)
+        void initialize(const Point& boundary_pt,
+                        int   facet_idx,
+                        RandomNumberGenerator& rng)
         {
             dim_ = P_.dimension();
-            m_   = P_.num_of_hyperplanes();          
+            m_   = P_.num_of_hyperplanes();
 
-            // Boundary point vector, residual and facet index
-            auto [x_vec, Ar_init, facet_idx] = compute_boundary_point<Point>(P_, rng, epsilon_);
-
-            // Generating usable point
-            p_ = Point(dim_);
-            for (std::size_t i = 0; i < dim_; ++i)
-                p_.set_coord(i, x_vec(i));
-
-            //Caching the residual
-            Ar_ = std::move(Ar_init);                
-            //Allocating the size
-            Av_.resize(m_);                          
-
+            // Input values 
+            p_         = boundary_pt;
             facet_idx_ = facet_idx;
 
-            //Av for active facet
+            //Normal of active facet
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
-        }
 
+            //Calculating first Ar and initializing Av 
+            Ar_ = P_.get_mat() * p_.getCoefficients() - P_.get_vec();  
+            Av_.setZero(m_);                                             
+
+            Point v = GetDirection<Point>::apply(dim_, rng);
+
+            NT dot_k = A_row_k_.dot(v.getCoefficients());
+            if (dot_k > NT(0)) { v *= NT(-1); dot_k *= NT(-1); }
+
+            auto [lambda_hit, facet_new] = P_.line_positive_intersect(p_, v, Ar_, Av_);
+            if (!std::isfinite(lambda_hit) || lambda_hit <= NT(0) || facet_new < 0)
+                throw std::runtime_error("Shake-and-Bake init: неуспех првог пресека");
+
+            p_        = p_ + lambda_hit * v;          // new boundary point
+            Ar_.noalias() -= lambda_hit * Av_;        // residual update
+            facet_idx_ = facet_new;
+            A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
+
+
+        }
 
         Polytope& P_;                
 
-        Mode mode_{Mode::Original};
+        //Mode mode_{Mode::Original};
         NT   epsilon_{kDefaultEpsilon};
 
         std::size_t dim_{0};

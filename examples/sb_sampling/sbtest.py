@@ -77,38 +77,38 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
+# Scaling ratio testing
 coverage = {}
-
-with open('build/coverage.txt') as f:
+filename = f"build/sb_{shape}_{dim}_coverage.txt"
+with open(filename) as f:
     for line in f:
         line = line.strip()
         if not line:
             continue
-
         parts = line.split()
-        # ['Facet', '0', '(44', 'pts):', '0.01:1,', '0.0298:1,', ...]
-        if parts[0] == 'Facet':
-            facet = int(parts[1])
-            tail = ' '.join(parts[4:])
-            pairs = [p.strip() for p in tail.split(',') if p.strip()]
-
-            xs, covs = [], []
-            for p in pairs:
-                x_str, cov_str = p.split(':')
-                x = float(x_str)
-                cov = float(cov_str)
-                xs.append(x ** (d))  
-                covs.append(cov)
-
-            coverage[facet] = (np.array(xs), np.array(covs))
+        if parts[0] != 'Facet':
+            continue
+        facet = int(parts[1])
+        tail = ' '.join(parts[4:])
+        pairs = [p.strip().rstrip(',') for p in tail.split(',') if p.strip()]
+        xs, covs = [], []
+        for p in pairs:
+            x_str, cov_str = p.split(':', 1)
+            x = float(x_str)
+            cov = float(cov_str)
+            xs.append(x)
+            covs.append(cov)
+        coverage[facet] = (np.array(xs), np.array(covs))
 
 plt.figure(figsize=(8,6))
+plt.grid(True) 
 for facet, (xs, covs) in coverage.items():
     plt.plot(xs, covs, label=f'Facet {facet}')
 
-plt.xlabel(r'$x^{d}$')
+plt.xlabel(r'$x^{\,d}$')
 plt.ylabel('Coverage ratio')
-plt.title('Scaling coverage per facet (plotted vs $x^{d}$)')
+plt.grid(True) 
+plt.title('Scaling coverage per facet (vs $x^{d}$)')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 plt.show()
