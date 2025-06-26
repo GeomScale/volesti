@@ -16,6 +16,7 @@
 
 #include "sampling/sphere.hpp"
 #include "convex_bodies/hpolytope.h"
+#include "convex_bodies/correlation_matrices/corre_matrix.hpp"
 
 struct ShakeAndBakeWalk
 {
@@ -51,23 +52,15 @@ struct ShakeAndBakeWalk
         void set_epsilon(NT eps) noexcept { epsilon_ = eps; }
         NT   get_epsilon() const noexcept { return epsilon_; }
 
-        void apply(unsigned int walk_len, RandomNumberGenerator& rng)
+         void apply(unsigned int walk_len, RandomNumberGenerator& rng)
         {
             const NT eps = epsilon_; 
 
             for (unsigned step = 0; step < walk_len; ++step)
             {
-
-                Point v(dim_);
-                while(true){
-                    v = GetDirection<Point>::apply(dim_, rng);
-                    NT dot_k = A_row_k_.dot(v.getCoefficients());
-                    if (dot_k > NT(0)) continue;
-                    break;
-                }
+                Point v = get_direction(rng);
 
                 int facet_new;
-
                 std::tie(lambda_hit_, facet_new) = P_.line_positive_intersect_skip(p_, v, Ar_, Av_, lambda_hit_, params_);
 
                 if (!std::isfinite(lambda_hit_) || lambda_hit_ <= eps  || facet_new < 0) 
@@ -79,10 +72,7 @@ struct ShakeAndBakeWalk
                 p_ += lambda_hit_ * v;
                 facet_idx_ = facet_new;
                 A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
-
-
                 params_.facet_prev  = facet_idx_;
-
             }
         }
 
@@ -90,6 +80,53 @@ struct ShakeAndBakeWalk
         const Point& getCurrentPoint() const noexcept { return p_; }
 
     private:
+
+        Point get_direction(RandomNumberGenerator& rng) 
+        {
+
+            VT ck = A_row_k_;
+            ck.normalize();
+
+            std::vector<NT> u(dim_);
+            for (unsigned int i = 0; i < dim_; ++i) {
+                u[i] = rng.sample_ndist();
+            }
+
+            NT dot = NT(0);
+            for (unsigned int i = 0; i < dim_; ++i) dot += u[i] * ck[i];
+            for (unsigned int i = 0; i < dim_; ++i) u[i] -= dot * ck[i];
+
+            NT norm_u = NT(0);
+            for (auto &x : u) norm_u += x * x;
+            norm_u = std::sqrt(norm_u);
+            for (auto &x : u) x /= norm_u;
+
+            NT U = rng.sample_urdist();               
+            NT r = std::pow(U, NT(1)/(dim_-1));   
+
+            Point z(dim_);
+            NT* zdata = z.pointerToData();
+            for (unsigned i = 0; i < dim_; ++i) {
+                zdata[i] = u[i] * r;
+            }
+
+            NT t = -std::sqrt(NT(1) - r*r);
+
+            Point v(dim_);
+            NT* vdata = v.pointerToData();
+            for (unsigned i = 0; i < dim_; ++i) {
+                vdata[i] = zdata[i] + t * ck[i];
+            }
+
+            NT check = NT(0);
+            for (unsigned int i = 0; i < dim_; ++i) check += ck[i] * vdata[i];
+            if (check > NT(0)) 
+            {
+                for (unsigned int i = 0; i < dim_; ++i) vdata[i] = -vdata[i];
+            }
+
+            return v;  
+        }
 
         void initialize(const Point& boundary_pt,
                         int   facet_idx,
