@@ -30,7 +30,6 @@ struct ShakeAndBakeWalk
 
         struct update_parameters {
             int   facet_prev   = -1;  
-            NT    inner_vi_ak  = NT(0); 
         };
 
         update_parameters params_;
@@ -81,7 +80,6 @@ struct ShakeAndBakeWalk
 
 
                 params_.facet_prev  = facet_idx_;
-                params_.inner_vi_ak = A_row_k_.dot(v.getCoefficients());
 
             }
         }
@@ -132,23 +130,14 @@ struct ShakeAndBakeWalk
             //Calculating first Ar and initializing Av 
             Ar_.setZero(m_);
             Av_.setZero(m_);
-            lambda_hit_ = NT(0);                                           
+            lambda_hit_ = NT(0);
+            
+            Ar_ = P_.get_mat() * p_.getCoefficients();
+            lambda_hit_ = NT(0);
 
-            Point v = GetDirection<Point>::apply(dim_, rng);
-
-            NT dot_k = A_row_k_.dot(v.getCoefficients());
-            if (dot_k > NT(0)) { v *= NT(-1); dot_k *= NT(-1); }
-
-            auto [lambda_hit_, facet_new] = P_.line_positive_intersect(p_, v, Ar_, Av_);
-            if (!std::isfinite(lambda_hit_) || lambda_hit_ <= NT(0) || facet_new < 0)
-                throw std::runtime_error("Shake-and-Bake init: неуспех првог пресека");
-
-            p_ +=(lambda_hit_ * v);          // new boundary point
-            facet_idx_ = facet_new;
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
 
             params_.facet_prev  = facet_idx_;
-            params_.inner_vi_ak = A_row_k_.dot(v.getCoefficients());
 
         }
 
@@ -157,13 +146,13 @@ struct ShakeAndBakeWalk
         //Mode mode_{Mode::Original};
         NT   epsilon_{kDefaultEpsilon};
 
-        std::size_t dim_{0};
+        int dim_{0};
         Point       p_;
         int         facet_idx_{-1};
         VT Ar_;            
         VT Av_;            
         NT lambda_hit_;
-        std::size_t m_{0};
+        int m_{0};
         VT A_row_k_;
     };
 };
