@@ -58,11 +58,13 @@ struct ShakeAndBakeWalk
             for (unsigned step = 0; step < walk_len; ++step)
             {
 
-                Point v = GetDirection<Point>::apply(dim_, rng);
-
-                //Switching towards the inside of half-space
-                NT dot_k = A_row_k_.dot(v.getCoefficients());
-                if (dot_k > NT(0)) { v *= NT(-1); dot_k *= NT(-1); }
+                Point v(dim_);
+                while(true){
+                    v = GetDirection<Point>::apply(dim_, rng);
+                    NT dot_k = A_row_k_.dot(v.getCoefficients());
+                    if (dot_k > NT(0)) continue;
+                    break;
+                }
 
                 int facet_new;
 
