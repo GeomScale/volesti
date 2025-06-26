@@ -700,16 +700,15 @@ public:
             if (*av_data == NT(0)) continue;
 
             NT lamda = *sum_data / *av_data;
-            if (lamda <= tol)          continue;
-            if (lamda < min_plus) {
+            if (lamda < min_plus && lamda > 0) { 
                 min_plus      = lamda;
                 facet_new     = i;
-                params.inner_vi_ak = *av_data;
             }
         }
         params.facet_prev = facet_new;
         return { min_plus, facet_new };
     }
+    
 
 
     //-----------------------------------------------------------------------------------//
