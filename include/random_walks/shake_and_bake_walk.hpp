@@ -10,6 +10,7 @@
 #define RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 
 #include <Eigen/Eigen>
+#include <Eigen/Dense>
 #include <cmath>
 #include <algorithm>
 #include <stdexcept> 
@@ -20,7 +21,6 @@
 
 struct ShakeAndBakeWalk
 {
-    //enum Mode { Original, Limping, Running };
 
     template <typename Polytope, typename RandomNumberGenerator>
     struct Walk
@@ -28,8 +28,11 @@ struct ShakeAndBakeWalk
         using Point = typename Polytope::PointType;
         using VT = typename Polytope::VT;
         using NT = typename Point::FT;
+        using MT = typename Polytope::MT;
+        using MT_dense = Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic>;
 
-        struct update_parameters {
+        struct update_parameters 
+        {
             int   facet_prev   = -1;  
         };
 
@@ -42,10 +45,10 @@ struct ShakeAndBakeWalk
             const Point&             boundary_pt, 
             int                      facet_idx,    
             RandomNumberGenerator&   rng,
-            //Mode                     m   = Mode::Original,
             NT                       eps = kDefaultEpsilon)
-            : P_{P}, /*mode_{m}*/ epsilon_{eps}
+            : P_{P}, epsilon_{eps}
         {
+            P_.normalize();
             initialize(boundary_pt, facet_idx, rng);
         }
 
@@ -81,51 +84,19 @@ struct ShakeAndBakeWalk
 
     private:
 
-        Point get_direction(RandomNumberGenerator& rng) 
+        Point get_direction(RandomNumberGenerator& rng)
         {
-
-            VT ck = A_row_k_;
-            ck.normalize();
-
-            std::vector<NT> u(dim_);
-            for (unsigned int i = 0; i < dim_; ++i) {
-                u[i] = rng.sample_ndist();
-            }
-
-            NT dot = NT(0);
-            for (unsigned int i = 0; i < dim_; ++i) dot += u[i] * ck[i];
-            for (unsigned int i = 0; i < dim_; ++i) u[i] -= dot * ck[i];
-
-            NT norm_u = NT(0);
-            for (auto &x : u) norm_u += x * x;
-            norm_u = std::sqrt(norm_u);
-            for (auto &x : u) x /= norm_u;
-
+            VT z = GetDirection<Point>::apply(dim_, rng).getCoefficients();
+            MT I_cc = MT_dense::Identity(dim_,dim_) - A_row_k_ * A_row_k_.transpose();
             NT U = rng.sample_urdist();               
-            NT r = std::pow(U, NT(1)/(dim_-1));   
-
-            Point z(dim_);
-            NT* zdata = z.pointerToData();
-            for (unsigned i = 0; i < dim_; ++i) {
-                zdata[i] = u[i] * r;
-            }
-
-            NT t = -std::sqrt(NT(1) - r*r);
-
-            Point v(dim_);
-            NT* vdata = v.pointerToData();
-            for (unsigned i = 0; i < dim_; ++i) {
-                vdata[i] = zdata[i] + t * ck[i];
-            }
-
-            NT check = NT(0);
-            for (unsigned int i = 0; i < dim_; ++i) check += ck[i] * vdata[i];
-            if (check > NT(0)) 
-            {
-                for (unsigned int i = 0; i < dim_; ++i) vdata[i] = -vdata[i];
-            }
-
-            return v;  
+            NT r = std::pow(U, NT(1)/NT(dim_-1)); 
+            NT cz = A_row_k_.dot(z);
+            VT z_tilde  = I_cc*z;
+            z_tilde *= r;
+            z_tilde /= std::sqrt(NT(1) - cz*cz);
+            
+            VT v = z_tilde - std::sqrt(NT(1) - r*r) * A_row_k_;
+            return Point(v);
         }
 
         void initialize(const Point& boundary_pt,
@@ -139,7 +110,7 @@ struct ShakeAndBakeWalk
             NT kFacetEps = NT(1e-8);
 
             // Input values 
-            p_         = boundary_pt;
+            p_ = boundary_pt;
             if (facet_idx < 0) //if the facet not given we calculate 
             {
                 facet_idx_ = -1;
@@ -182,7 +153,6 @@ struct ShakeAndBakeWalk
 
         Polytope& P_;                
 
-        //Mode mode_{Mode::Original};
         NT   epsilon_{kDefaultEpsilon};
 
         int dim_{0};
