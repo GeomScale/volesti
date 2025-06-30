@@ -62,10 +62,10 @@ struct Walk
                 user_params.m_L :
                 NT(6.0) * std::sqrt(static_cast<double>(P.dimension()));
 
-        _A = P.get_mat();
+        auto A = P.get_mat();
         _b = P.get_vec();
 
-        compute_cholesky_and_transformations(Hessian);
+        compute_cholesky_and_transformations(Hessian, A);
         _oracle_params.emplace(_L_inv, _A_rounded, _A_rounded_row_norms);
 
         VT p_original = p.getCoefficients();
@@ -89,10 +89,6 @@ struct Walk
             NT T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng);
 
-            _lambda_prev = 0;
-            VT p_round = _p.getCoefficients();
-            _Ar = _A * _L_inv.transpose().template triangularView<Eigen::Lower>().solve(p_round);
-
             Point p0 = _p;
             int it = 0;
 
@@ -101,9 +97,7 @@ struct Walk
                 std::pair<NT,int> pbpair;
 
                 if (it == 0) {
-                    pbpair = P.sparse_line_positive_intersect(_p, _v, *_oracle_params);
-                    VT v_round = _v.getCoefficients();
-                    _Av  = _A * _L_inv.transpose().template triangularView<Eigen::Lower>().solve(v_round);
+                    pbpair = P.sparse_line_positive_intersect(_p, _v, _Ar, _Av, *_oracle_params);
                 } else {
                     pbpair = P.sparse_line_positive_intersect(_p, _v, _Ar, _Av, _lambda_prev, *_oracle_params);
                 }
@@ -119,9 +113,6 @@ struct Walk
                 T -= _lambda_prev;
 
                 P.sparse_compute_reflection(_v, *_oracle_params);
-                VT p_round = _p.getCoefficients();
-                _Ar = _A * _L_inv.transpose().template triangularView<Eigen::Lower>().solve(p_round);
-                _lambda_prev = 0;
                 it++;
             }
 
@@ -136,16 +127,13 @@ struct Walk
 
 private:
 
-    void compute_cholesky_and_transformations(const SparseMT &H)
+    void compute_cholesky_and_transformations(const SparseMT &H, const SparseMT &A)
     {
         Eigen::SimplicialLLT<SparseMT, Eigen::Lower> Chol(H);
-        if (Chol.info() != Eigen::Success) {
-            throw std::runtime_error("Sparse Cholesky decomposition failed");
-        }
         
         _L_inv = Chol.matrixL().transpose();
         
-        MT A_dense = _A.toDense();
+        MT A_dense = A.toDense();
         MT A_transposed = A_dense.transpose();
         MT temp = _L_inv.template triangularView<Eigen::Upper>().solve(A_transposed);
         _A_rounded = temp.transpose();
@@ -171,13 +159,13 @@ private:
         _p = p_rounded;
         _v = GetDirection<Point>::apply(n, rng);
                 
-        _Ar.setZero(_A.rows());
-        _Av.setZero(_A.rows());
+        _Ar.setZero(_A_rounded.rows());
+        _Av.setZero(_A_rounded.rows());
         _lambda_prev = 0;
         
         NT T = rng.sample_urdist() * _Len;
         
-        auto pbpair = P.sparse_line_positive_intersect(_p, _v, *_oracle_params);
+        auto pbpair = P.sparse_line_positive_intersect(_p, _v, _Ar, _Av, *_oracle_params);
         
         if (pbpair.second < 0) {
             _p += T * _v;
@@ -196,12 +184,9 @@ private:
         T -= _lambda_prev;
         
         P.sparse_compute_reflection(_v, *_oracle_params);
-        VT p_round = _p.getCoefficients();
-        _Ar = _A * _L_inv.transpose().template triangularView<Eigen::Lower>().solve(p_round);
-        _lambda_prev = 0;
         
         int it = 0;
-        while (it <= 50*n && T > 0)
+        while (it <= 50*n)
         {
             auto pbpair2 = P.sparse_line_positive_intersect(_p, _v, _Ar, _Av, _lambda_prev, *_oracle_params);
             
@@ -220,14 +205,10 @@ private:
             T -= _lambda_prev;
             
             P.sparse_compute_reflection(_v, *_oracle_params);
-            VT p_round = _p.getCoefficients();
-            _Ar = _A * _L_inv.transpose().template triangularView<Eigen::Lower>().solve(p_round);
-            _lambda_prev = 0;
             it++; 
         }
     }
 
-    SparseRowMT _A;
     VT _b;
     SparseMT _L_inv;
     MT _A_rounded;

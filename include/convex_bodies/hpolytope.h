@@ -673,23 +673,23 @@ public:
 
     template<typename Params>
     std::pair<NT,int> sparse_line_positive_intersect(Point const& r,
-                                                  Point const& v,
-                                                  Params &params)
- 
+                                                Point const& v,
+                                                VT& Ar, VT& Av,
+                                                Params &params)
     {
         
         VT r_rounded = r.getCoefficients();
         VT v_rounded = v.getCoefficients();
         
         VT r_original = params.L_inv.transpose()
-                   .template triangularView<Eigen::Lower>()
-                   .solve(r_rounded);
+           .template triangularView<Eigen::Lower>()
+           .solve(r_rounded);
         VT v_original = params.L_inv.transpose()
-                       .template triangularView<Eigen::Lower>()
-                       .solve(v_rounded);
+                    .template triangularView<Eigen::Lower>()
+                    .solve(v_rounded);
 
-        VT Ar = A * r_original;
-        VT Av = A * v_original;
+        Ar.noalias() = A * r_original;
+        Av.noalias() = A * v_original;
 
 
         NT lambda_min = std::numeric_limits<NT>::max();
@@ -697,7 +697,7 @@ public:
         
         for (int i = 0; i < Av.size(); ++i)
         {
-            NT av = Av(i);
+            NT av = Av.coeff(i);
             if (std::abs(av) < NT(1e-12)) continue;
 
             NT lambda = (b(i) - Ar(i)) / av;
@@ -706,14 +706,15 @@ public:
                 if (lambda < lambda_min) {
                     lambda_min = lambda;
                     facet = i;
-                    
-                    // Compute inner product and rescale by row norm
-                    params.inner_vi_ak = av / params.row_norms(i);
-                    params.facet_prev  = i;
                 }
             }
         }
 
+        // ADD AFTER THE LOOP:
+        if (facet != -1) {
+            params.inner_vi_ak = Av.coeff(facet) / params.row_norms(facet);
+            params.facet_prev = facet;
+        }
 
         if (facet == -1) {
             lambda_min = std::numeric_limits<NT>::max();
@@ -733,14 +734,14 @@ public:
         VT v_original = params.L_inv.transpose()
                        .template triangularView<Eigen::Lower>()
                        .solve(v_rounded);
-        Av = A * v_original;
+        Av.noalias() = A * v_original;
 
         NT lambda_min = std::numeric_limits<NT>::max();
         int facet = -1;
 
         for (int i = 0; i < Av.size(); ++i)
         {
-            NT av = Av(i);
+            NT av = Av.coeff(i);
             if (std::abs(av) < NT(1e-12)) continue;
 
             NT lambda = (b(i) - Ar(i)) / av;
@@ -748,11 +749,14 @@ public:
             if (lambda > NT(1e-12) && lambda < lambda_min) {
                 lambda_min = lambda;
                 facet = i;
-                params.inner_vi_ak = av / params.row_norms(i);
-                params.facet_prev  = i;
             }
         }
 
+        if (facet != -1) {
+            params.inner_vi_ak = Av.coeff(facet) / params.row_norms(facet);
+            params.facet_prev = facet;
+        }
+        
         return {lambda_min, facet};
     } 
 
