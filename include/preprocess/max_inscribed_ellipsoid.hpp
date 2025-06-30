@@ -38,9 +38,11 @@
 // Using MT as to deal with both dense and sparse matrices, MT_dense will be the type of result matrix
 template <typename MT_dense, typename MT, typename VT, typename NT>
 std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
-                                                       unsigned int const& maxiter,
-                                                       NT const& tol, NT const& reg)
+                                                       JohnEllipsoidParams<NT> const& params)
 {
+    unsigned int maxiter = params.maxiter;
+    NT tol = params.tol, reg = params.reg;
+
     typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
     //typedef matrix_computational_operator<MT> mat_op;
 

@@ -18,6 +18,27 @@
 #include "Spectra/include/Spectra/MatOp/SparseSymMatProd.h"
 
 
+template <typename NT>
+struct JohnEllipsoidParams {
+    unsigned int maxiter = 500;
+    NT tol = 1e-6;
+    NT reg = 1e-3;
+};
+
+template <typename NT>
+struct BarrierParams {
+    unsigned int maxiter = 500;
+    NT grad_err_tol = 1e-08;
+    NT rel_pos_err_tol = 1e-12;
+};
+
+template <typename NT>
+struct EllipsoidParams {
+    JohnEllipsoidParams<NT> john_params;
+    BarrierParams<NT> barrier_params;
+};
+
+
 enum EllipsoidType
 {
   MAX_ELLIPSOID = 1,

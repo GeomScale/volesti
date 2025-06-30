@@ -49,10 +49,12 @@
 */
 template <typename MT_dense, int BarrierType, typename NT, typename MT, typename VT>
 std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A, VT const& b, VT const& x0,
-                                                                     unsigned int const max_iters = 500,
-                                                                     NT const grad_err_tol = 1e-08,
-                                                                     NT const rel_pos_err_tol = 1e-12)
+                                                                     BarrierParams<NT> const& params = BarrierParams<NT>{})
 {
+    unsigned int max_iters = params.maxiter;
+    NT grad_err_tol = params.grad_err_tol;
+    NT rel_pos_err_tol = params.rel_pos_err_tol;
+
     // Initialization
     VT x = x0;
     VT Ax = A * x;
@@ -109,12 +111,10 @@ std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A
 
 template <typename MT_dense, int BarrierType, typename NT, typename MT, typename VT>
 std::tuple<MT_dense, VT, bool>  barrier_center_ellipsoid_linear_ineq(MT const& A, VT const& b,
-                                                                     unsigned int const max_iters = 500,
-                                                                     NT const grad_err_tol = 1e-08,
-                                                                     NT const rel_pos_err_tol = 1e-12) 
+                                                                     BarrierParams<NT> const& params = BarrierParams<NT>{})
 {
     VT x0 = compute_feasible_point(A, b);
-    return barrier_center_ellipsoid_linear_ineq<MT_dense, BarrierType>(A, b, x0, max_iters, grad_err_tol, rel_pos_err_tol);
+    return barrier_center_ellipsoid_linear_ineq<MT_dense, BarrierType>(A, b, x0, params);
 }
 
 #endif // BARRIER_CENTER_ELLIPSOID_HPP

@@ -15,31 +15,6 @@
 #include "preprocess/barrier_center_ellipsoid.hpp"
 #include "preprocess/feasible_point.hpp"
 
-// How about passing a parameter struct with two substructs, 
-// one for the parameters of john ellipsoid computation (tol, reg, max iters) 
-// and the other for the parameters of the barrier minimizer computation
-// (max_iters, grad_err_tol, rel_pos_err_tol). You can take the default values
-// from the existing function declarations
-
-template <typename NT>
-struct JohnEllipsoidParams {
-    unsigned int maxiter = 500;
-    NT tol = 1e-6;
-    NT reg = 1e-3;
-};
-
-template <typename NT>
-struct BarrierParams {
-    unsigned int maxiter = 500;
-    NT grad_err_tol = 1e-08;
-    NT rel_pos_err_tol = 1e-12;
-};
-
-template <typename NT>
-struct EllipsoidParams {
-    JohnEllipsoidParams<NT> john_params;
-    BarrierParams<NT> barrier_params;
-};
 
 template<typename MT, int ellipsoid_type, typename Custom_MT, typename VT, typename NT>
 inline static std::tuple<MT, VT, NT>
@@ -48,16 +23,12 @@ compute_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
 {
     if constexpr (ellipsoid_type == EllipsoidType::MAX_ELLIPSOID)
     {
-        return max_inscribed_ellipsoid<MT>(A, b, x0, params.john_params.maxiter, 
-                                           params.john_params.tol, params.john_params.reg);
+        return max_inscribed_ellipsoid<MT>(A, b, x0, params.john_params);
     } else if constexpr (ellipsoid_type == EllipsoidType::LOG_BARRIER ||
                          ellipsoid_type == EllipsoidType::VOLUMETRIC_BARRIER ||
                          ellipsoid_type == EllipsoidType::VAIDYA_BARRIER)
     {
-        return barrier_center_ellipsoid_linear_ineq<MT, ellipsoid_type, NT>(A, b, x0, 
-                                                                            params.barrier_params.maxiter,
-                                                                            params.barrier_params.grad_err_tol,
-                                                                            params.barrier_params.rel_pos_err_tol);
+        return barrier_center_ellipsoid_linear_ineq<MT, ellipsoid_type, NT>(A, b, x0, params.barrier_params);
     } else
     {
         std::runtime_error("Unknown rounding method.");
