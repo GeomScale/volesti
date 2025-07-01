@@ -29,7 +29,6 @@ struct ShakeAndBakeWalk
         using VT = typename Polytope::VT;
         using NT = typename Point::FT;
         using MT = typename Polytope::MT;
-        using MT_dense = Eigen::Matrix<typename Point::FT, Eigen::Dynamic, Eigen::Dynamic>;
 
         struct update_parameters 
         {
@@ -87,7 +86,8 @@ struct ShakeAndBakeWalk
         Point get_direction(RandomNumberGenerator& rng)
         {
             VT z = GetDirection<Point>::apply(dim_, rng).getCoefficients();
-            MT I_cc = MT_dense::Identity(dim_,dim_) - A_row_k_ * A_row_k_.transpose();
+            MT I_cc = - A_row_k_ * A_row_k_.transpose();
+            I_cc.diagonal() += VT::Ones(dim_);
             NT U = rng.sample_urdist();               
             NT r = std::pow(U, NT(1)/NT(dim_-1)); 
             NT cz = A_row_k_.dot(z);
@@ -142,7 +142,7 @@ struct ShakeAndBakeWalk
             Av_.setZero(m_);
             lambda_hit_ = NT(0);
             
-            Ar_ = P_.get_mat() * p_.getCoefficients();
+            Ar_.noalias() = P_.get_mat() * p_.getCoefficients();
             lambda_hit_ = NT(0);
 
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);

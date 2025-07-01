@@ -9,23 +9,23 @@
 #ifndef DIAGNOSTICS_SCALING_RATIO_HPP
 #define DIAGNOSTICS_SCALING_RATIO_HPP
 
-template< typename Polytope, typename MT, typename VT, typename StreamType >
-void scaling_ratio_test(    const Polytope&   P,
-                            const MT&         samples,
-                            const VT&      facet_id,
-                            double            tol,
-                            StreamType&       out,
-                            double            min_ratio = 0.01)
+template<typename Polytope, typename MT>
+std::pair<std::vector<double>, typename Polytope::MT>scaling_ratio_boundary_test(const Polytope&           P,
+                                                                                const MT&                 samples,
+                                                                                const std::vector<int>&   facet_id,
+                                                                                double                    tol       = 1e-10,
+                                                                                double                    min_ratio = 0.01)
 {
-    const int true_dim = P.dimension();
+    using VT = typename Polytope::VT;
+    const int dim = P.dimension();
     const int m = P.num_of_hyperplanes();
     const unsigned n_samp = static_cast<unsigned>(samples.cols());
 
-    out << "\nScaling coverage by facet (skip < " << min_ratio << " ):\n";
+    std::vector<double> scale(10); //we scale 10 times
+    MT coverage(m, 10);
 
     for (int f = 0; f < m; ++f) 
     {
-
         // Samples S on facet f
         std::vector<int> S;
         S.reserve(n_samp / m);
@@ -34,34 +34,25 @@ void scaling_ratio_test(    const Polytope&   P,
                 S.push_back(static_cast<int>(i));
         }
 
-
         const double ratio = static_cast<double>(S.size()) / n_samp;
-        if (ratio < min_ratio) 
-        {
-            out << "facet " << f << " skipped (" << ratio << ")\n";
-            continue;
-        }
-
+        if (ratio < min_ratio)  continue;
 
         // Finding the center
-        Eigen::VectorXd p = Eigen::VectorXd::Zero(true_dim);
+        VT p = VT::Zero(dim);
         for (int idx : S) p += samples.col(idx);
         p /= static_cast<double>(S.size());
 
-        out << "Facet " << f << " (" << S.size() << " pts): ";
-
         // Looping over scale factor
-        for (int k = 1; k <= 10; ++k) 
+        for (int k = 0; k < 10; ++k) 
         {
-            double step = 0.1 * k;
-            double x = std::pow(step, 1.0 / true_dim);
-
+            double step = 0.1 * (k+1);
+            double x = std::pow(step, 1.0 / dim);
             // Local copy of polytope for each scaling
             Polytope P_loc = P;
             
             //Shifting and scaling
             P_loc.shift(p);
-            const Eigen::MatrixXd T = (1.0 / x) * Eigen::MatrixXd::Identity(true_dim, true_dim);
+            MT T = (1.0 / x) * MT::Identity(dim, dim);
             P_loc.linear_transformIt(T);
 
             //Parameters of new polytope
@@ -72,7 +63,7 @@ void scaling_ratio_test(    const Polytope&   P,
             unsigned survivors = 0;
             for (int idx : S) {
 
-                const Eigen::VectorXd q_shift = samples.col(idx) - p;
+                const VT q_shift = samples.col(idx) - p;
                 bool inside = true;
 
                 for (int j = 0; j < A_sh.rows(); ++j) {
@@ -84,14 +75,13 @@ void scaling_ratio_test(    const Polytope&   P,
                 if (inside) ++survivors;
             }
 
-            double coverage = double(survivors) / double(S.size());
-            out << std::pow(x, true_dim) << ':' << coverage;
-            if (k < 10) out << ", ";
+            coverage(f, k) = double(survivors) / double(S.size());
+            scale[k]=std::pow(x, dim);
 
         }
-        out << "\n";
     }
+
+    return { scale, coverage };
 }
 
-
-#endif 
+#endif // DIAGNOSTICS_SCALING_RATIO_HPP
