@@ -9,20 +9,35 @@
 #ifndef DIAGNOSTICS_SCALING_RATIO_HPP
 #define DIAGNOSTICS_SCALING_RATIO_HPP
 
-template<typename Polytope, typename MT>
-std::pair<std::vector<double>, typename Polytope::MT>scaling_ratio_boundary_test(const Polytope&           P,
+template<typename Polytope, typename MT,typename NT>
+std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_test(const Polytope&           P,
                                                                                 const MT&                 samples,
-                                                                                const std::vector<int>&   facet_id,
-                                                                                double                    tol       = 1e-10,
-                                                                                double                    min_ratio = 0.01)
+                                                                                const NT&                   tol       = 1e-10,
+                                                                                const NT&                   min_ratio = 0.01)
 {
     using VT = typename Polytope::VT;
+    
     const int dim = P.dimension();
     const int m = P.num_of_hyperplanes();
     const unsigned n_samp = static_cast<unsigned>(samples.cols());
 
-    std::vector<double> scale(10); //we scale 10 times
+    VT scale(10); //we scale 10 times
     MT coverage(m, 10);
+    std::vector<int> facet_id(n_samp, -1);
+    const auto A_full = P.get_mat();
+    const auto b_full = P.get_vec();
+
+    for (int i = 0; i < n_samp; ++i) {
+        auto Aq       = A_full * samples.col(i);
+        
+        for (size_t k = 0; k < m; ++k) {
+            if (std::abs(Aq[k] - b_full[k]) < tol) 
+            {
+                facet_id[i] = static_cast<int>(k);
+                break;
+            }
+        }
+    }
 
     for (int f = 0; f < m; ++f) 
     {
@@ -45,8 +60,8 @@ std::pair<std::vector<double>, typename Polytope::MT>scaling_ratio_boundary_test
         // Looping over scale factor
         for (int k = 0; k < 10; ++k) 
         {
-            double step = 0.1 * (k+1);
-            double x = std::pow(step, 1.0 / dim);
+            NT step = 0.1 * (k+1);
+            NT x = std::pow(step, 1.0 / dim);
             // Local copy of polytope for each scaling
             Polytope P_loc = P;
             
