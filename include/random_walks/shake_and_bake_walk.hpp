@@ -107,7 +107,7 @@ struct ShakeAndBakeWalk
             m_ = P_.num_of_hyperplanes();
             VT b=P_.get_vec();
 
-            NT kFacetEps = NT(1e-8);
+            NT kFacetEps = epsilon_;
 
             // Input values 
             p_ = boundary_pt;
