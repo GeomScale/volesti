@@ -1,10 +1,12 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) I am not sure what to put here :)
+// Copyright (c) 2012-2025 Vissarion Fisikopoulos
+// Copyright (c) 2018-2025 Apostolos Chalkis
+// Copyright (c) 2025-2025 Iva Janković
 
 // Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
-// Licensed under GNU LGPL-3.0; see LICENCE file
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 #define RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
@@ -109,10 +111,11 @@ struct ShakeAndBakeWalk
 
             NT kFacetEps = epsilon_;
 
-            // Input values 
+            // Checking if facet index belongs to the boundary point 
             p_ = boundary_pt;
-            if (facet_idx < 0) //if the facet not given we calculate 
-            {
+            VT ai = P_.get_facet_normal_vec(facet_idx);
+            NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(facet_idx));
+            if (dist > kFacetEps)
                 facet_idx_ = -1;
                 for (int i = 0; i < m_; ++i) {
                     VT ai = P_.get_facet_normal_vec(i);
@@ -124,15 +127,8 @@ struct ShakeAndBakeWalk
                 }
                 if (facet_idx_ < 0)
                     throw std::runtime_error("Boundary point not on any facet!");
-            }
-            else //we recheck if the facet and point compatible
-            {
-                VT ai = P_.get_facet_normal_vec(facet_idx);
-                NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(facet_idx));
-                if (dist > kFacetEps)
-                    throw std::runtime_error("That is not facet index of the boundary point!");
-                facet_idx_ = facet_idx;
-            }
+                
+            facet_idx_ = facet_idx;
 
             //Normal of active facet
             A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
