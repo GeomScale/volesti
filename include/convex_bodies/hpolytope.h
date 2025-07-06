@@ -7,6 +7,7 @@
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 //Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
+//Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -681,9 +682,7 @@ public:
                                                     NT const& lambda_prev,
                                                     update_parameters& params) const
     {
-        constexpr NT tol = NT(1e-10);
         int m = num_of_hyperplanes();
-
         VT sum_nom(m);
         Ar.noalias() += lambda_prev * Av;
         sum_nom.noalias() = b - Ar;
@@ -693,7 +692,7 @@ public:
         int facet_new = -1;
         NT* sum_data = sum_nom.data();
         NT* av_data  = Av.data();
-        int skip     = params.facet_prev;
+        int skip = params.facet_prev;
 
         for (int i = 0; i < m; ++i, ++sum_data, ++av_data) {
             if (i == skip)         continue;
@@ -701,8 +700,8 @@ public:
 
             NT lamda = *sum_data / *av_data;
             if (lamda < min_plus && lamda > 0) { 
-                min_plus      = lamda;
-                facet_new     = i;
+                min_plus = lamda;
+                facet_new = i;
             }
         }
         params.facet_prev = facet_new;

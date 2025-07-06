@@ -1,8 +1,3 @@
-// shakeandbake.cpp
-// Usage:
-//   ./shakeandbake <cube|simplex|birkhoff|iSDY_1059> <dimension> [epsilon]
-// ---------------------------------------------------------------------------
-
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -40,7 +35,7 @@ int main(int argc, char* argv[])
 
 
     std::string shape  = argv[1];
-    unsigned    cli_n  = std::stoi(argv[2]);
+    unsigned  cli_n = std::stoi(argv[2]);
     NT eps_cli = (argc > 3)
                  ? static_cast<NT>(std::stod(argv[3]))
                  : Walker1::kDefaultEpsilon;      // default value if not manually
@@ -59,22 +54,28 @@ int main(int argc, char* argv[])
     const unsigned true_dim = P.dimension();
     unsigned walk_len, n_samples, burn_in_iters;
 
-    if (shape == "cube" || shape == "simplex") 
-    {
-        walk_len      = 50;
-        n_samples     = 100000;
-        burn_in_iters = 50;
-    } 
-    else if (shape == "birkhoff") 
-    {
-        walk_len      = 100 * true_dim;
-        n_samples     = 2000 * true_dim;
-        burn_in_iters = 10  * true_dim;
-    } 
-    else {                              
-        walk_len      = 20 * true_dim;
-        n_samples     = 100 * true_dim;
-        burn_in_iters = 20 * true_dim;
+    int mode = (shape == "cube" || shape == "simplex") ? 0
+         : (shape == "birkhoff")             ? 1
+         : 2;
+
+    switch (mode) {
+        case 0:  // cube or simplex
+            walk_len  = 20 * true_dim;
+            n_samples = 500 * true_dim;
+            burn_in_iters = 5  * true_dim;
+            break;
+
+        case 1:  // birkhoff
+            walk_len = 100 * true_dim;
+            n_samples  = 2000 * true_dim;
+            burn_in_iters = 10  * true_dim;
+            break;
+
+        default: 
+            walk_len = 20 * true_dim;
+            n_samples  = 100 * true_dim;
+            burn_in_iters = 20 * true_dim;
+            break;
     }
 
     std::cout << "Parameters: walk_len="   << walk_len
@@ -121,11 +122,11 @@ int main(int argc, char* argv[])
 
     auto [scales, coverage] = scaling_ratio_boundary_test(P, samples1,tol);
 
-    std::cout << "Scaling faktori (x-osa):\n";
+    std::cout << "Scaling factors:\n";
     for (double s : scales) {
         std::cout << s << " ";
     }
-    std::cout << "\n\nCoverage matrica (svaki red = jedna faseta):\n";
+    std::cout << "\n\nCoverage matrix (each row = one facet):\n";
     for (int f = 0; f < coverage.rows(); ++f) {
         std::cout << "Faseta " << f << ": ";
         for (int k = 0; k < coverage.cols(); ++k) {

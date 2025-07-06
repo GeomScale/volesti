@@ -50,33 +50,6 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-# Uniformity test for the facet 
-axis = np.random.choice([k for k in range(d) if k != facet_col])
-vals = facet_pts[:, axis]
-cent = centroid[axis]
-R = np.max(np.abs(vals - cent))
-
-
-Ss = np.linspace(0, 1, 1000)
-emp = [(np.abs(vals - cent) <= s * R).mean() for s in Ss]
-
-if shape == "cube":
-    F_theo=Ss
-elif shape== "simplex":
-    m = d-1
-    F_theo = 1 - (1 - Ss)**m 
-
-plt.figure(figsize=(6,6))
-plt.plot(Ss, emp,  label="Empirical")
-plt.plot(Ss, F_theo,   '--', label="Uniform")
-plt.xlabel("x")
-plt.ylabel("F(x)")
-plt.title(f"Uniformity test for the {shape}-facet {desc}, axes x_{axis}")
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
-plt.show()
-
 # Scaling ratio testing
 coverage = {}
 filename = f"build/sb_{shape}_{dim}_coverage.txt"

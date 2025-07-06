@@ -116,6 +116,7 @@ struct ShakeAndBakeWalk
             VT ai = P_.get_facet_normal_vec(facet_idx);
             NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(facet_idx));
             if (dist > kFacetEps)
+            {
                 facet_idx_ = -1;
                 for (int i = 0; i < m_; ++i) {
                     VT ai = P_.get_facet_normal_vec(i);
@@ -126,8 +127,10 @@ struct ShakeAndBakeWalk
                     }
                 }
                 if (facet_idx_ < 0)
+                {
                     throw std::runtime_error("Boundary point not on any facet!");
-                
+                }
+            }
             facet_idx_ = facet_idx;
 
             //Normal of active facet
