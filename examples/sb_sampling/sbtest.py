@@ -1,3 +1,13 @@
+# VolEsti (volume computation and sampling library)
+
+# Copyright (c) 2012-2025 Vissarion Fisikopoulos
+# Copyright (c) 2018-2025 Apostolos Chalkis
+# Copyright (c) 2025-2025 Iva Janković
+
+# Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+
+# Licensed under GNU LGPL.3, see LICENCE file
+
 import numpy as np
 import matplotlib.pyplot as plt
 

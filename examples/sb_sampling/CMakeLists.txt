@@ -1,9 +1,10 @@
-# Licensed under GNU LGPL.3, see LICENCE file
 # VolEsti (volume computation and sampling library)
 
-# Copyright (c) 2012-2021 Vissarion Fisikopoulos
-# Copyright (c) 2018-2021 Apostolos Chalkis
-# Contributed and/or modified by Vaibhav Thakkar
+# Copyright (c) 2012-2025 Vissarion Fisikopoulos
+# Copyright (c) 2018-2025 Apostolos Chalkis
+# Copyright (c) 2025-2025 Iva Janković
+
+# Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
 # Licensed under GNU LGPL.3, see LICENCE file
 
@@ -82,42 +83,18 @@ else ()
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   include_directories (BEFORE ../../external)
-  include_directories (BEFORE /home/ivaxj/volesti/include)
-  include_directories (BEFORE /home/ivaxj/volesti/include/cartesian_geom)
-  include_directories (BEFORE /home/ivaxj/volesti/external)
-  include_directories (BEFORE ../../external/minimum_ellipsoid)
-  include_directories (BEFORE ../../include/generators)
-  include_directories (BEFORE ../../include/volume)
   include_directories (BEFORE ../../include)
-  include_directories (BEFORE /home/ivaxj/volesti/include/convex_bodies)
-  include_directories (BEFORE ../../include/random_walks)
-  include_directories (BEFORE ../../include/annealing)
-  include_directories (BEFORE ../../include/ode_solvers)
-  include_directories (BEFORE ../../include/root_finders)
-  include_directories (BEFORE ../../include/samplers)
-  include_directories (BEFORE ../../include/lp_oracles)
-  include_directories (BEFORE ../../include/nlp_oracles)
-  include_directories (BEFORE ../../include/misc)
-  include_directories (BEFORE ../../include/optimization)
-  include_directories (BEFORE ../../include/cartesian_geom)
 
   # for Eigen
-  if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
-    add_compile_options(-D "EIGEN_NO_DEBUG")
-  else ()
-    add_compile_definitions("EIGEN_NO_DEBUG")
-  endif ()
-
+  include("../external/cmake-files/Eigen.cmake")
+  GetEigen()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++17 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
-  #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
-  include_directories(${CMAKE_SOURCE_DIR}/../../include)
-  include_directories("/home/ivaxj/volesti/external/Spectra/include")
 
   add_executable (shakeandbake shakeandbake.cpp)
   TARGET_LINK_LIBRARIES(shakeandbake ${LP_SOLVE})
