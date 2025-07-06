@@ -4,7 +4,7 @@
 // Copyright (c) 2024 Apostolos Chalkis
 // Copyright (c) 2024 Elias Tsigaridas
 
-//Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 

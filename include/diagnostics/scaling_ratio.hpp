@@ -1,6 +1,8 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 
+// Copyright (c) 2012-2025 Vissarion Fisikopoulos
+// Copyright (c) 2018-2025 Apostolos Chalkis
+// Copyright (c) 2025-2025 Iva Janković
 
 // Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
@@ -10,10 +12,11 @@
 #define DIAGNOSTICS_SCALING_RATIO_HPP
 
 template<typename Polytope, typename MT,typename NT>
-std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_test(const Polytope&           P,
-                                                                                const MT&                 samples,
-                                                                                const NT&                   tol       = 1e-10,
-                                                                                const NT&                   min_ratio = 0.01)
+std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_test( 
+    const Polytope&  P,
+    const typename MT& samples,
+    const typename NT& tol       = 1e-10,
+    const typename NT& min_ratio = 0.01)
 {
     using VT = typename Polytope::VT;
     
