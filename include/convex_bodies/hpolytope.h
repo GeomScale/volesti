@@ -204,8 +204,10 @@ public:
         return b;
     }
 
-    VT get_facet_normal_vec(int facet_index) const 
+    VT get_row(int facet_index) const 
     {
+        if (facet_index < 0 || facet_index >= A.rows())
+            throw std::out_of_range("Facet index out of range!");
         return A.row(facet_index);
     }
     

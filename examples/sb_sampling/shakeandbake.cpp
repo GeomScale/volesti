@@ -1,10 +1,17 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2025 Vissarion Fisikopoulos
+// Copyright (c) 2018-2025 Apostolos Chalkis
+// Copyright (c) 2025-2025 Iva Janković
+
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #include <iostream>
 #include <fstream>
-#include <chrono>
 #include <string>
 #include <vector>
-#include <limits>
-
 #include <Eigen/Eigen>
 #include <boost/random.hpp>
 
@@ -17,11 +24,11 @@
 #include "diagnostics/scaling_ratio.hpp" 
 
 
-using NT     = double;
+using NT = double;
 using Kernel = Cartesian<NT>;
-using Point  = Kernel::Point;
-using RNG    = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
-using HPoly  = HPolytope<Point>;
+using Point = Kernel::Point;
+using RNG  = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
+using HPoly = HPolytope<Point>;
 using Walker1 = ShakeAndBakeWalk::Walk<HPoly, RNG>;
 
 
@@ -42,9 +49,9 @@ int main(int argc, char* argv[])
 
     //Generating polytope 
     HPoly P;
-    if (shape == "cube")               P = generate_cube<HPoly>(cli_n, false);
-    else if (shape == "simplex")       P = generate_simplex<HPoly>(cli_n, false);
-    else if (shape == "birkhoff")      P = generate_birkhoff<HPoly>(cli_n);
+    if (shape == "cube") P = generate_cube<HPoly>(cli_n, false);
+    else if (shape == "simplex") P = generate_simplex<HPoly>(cli_n, false);
+    else if (shape == "birkhoff") P = generate_birkhoff<HPoly>(cli_n);
     else {
         std::cerr << "Unknown polytope type: " << shape << '\n';
         return 1;
@@ -128,7 +135,7 @@ int main(int argc, char* argv[])
     }
     std::cout << "\n\nCoverage matrix (each row = one facet):\n";
     for (int f = 0; f < coverage.rows(); ++f) {
-        std::cout << "Faseta " << f << ": ";
+        std::cout << "Facet " << f << ": ";
         for (int k = 0; k < coverage.cols(); ++k) {
             double cov = coverage(f, k);
             if (std::isnan(cov))

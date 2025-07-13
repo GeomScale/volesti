@@ -11,14 +11,16 @@
 #ifndef DIAGNOSTICS_SCALING_RATIO_HPP
 #define DIAGNOSTICS_SCALING_RATIO_HPP
 
-template<typename Polytope, typename MT,typename NT>
-std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_test( 
+template<typename Polytope>
+std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_test(
     const Polytope&  P,
-    const typename MT& samples,
-    const typename NT& tol       = 1e-10,
-    const typename NT& min_ratio = 0.01)
+    const typename Polytope::MT& samples,
+    const typename Polytope::NT tol = 1e-10,
+    const typename Polytope::NT min_ratio = 0.01) 
 {
     using VT = typename Polytope::VT;
+    using MT = typename Polytope::MT;
+    using NT = typename Polytope::NT;
     
     const int dim = P.dimension();
     const int m = P.num_of_hyperplanes();
