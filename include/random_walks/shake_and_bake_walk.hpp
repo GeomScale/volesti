@@ -34,7 +34,7 @@ struct ShakeAndBakeWalk
 
         struct update_parameters 
         {
-            int   facet_prev   = -1;  
+            int facet_prev   = -1;  
         };
 
         update_parameters params_;
@@ -42,18 +42,17 @@ struct ShakeAndBakeWalk
         static constexpr NT kDefaultEpsilon = NT(1e-10);
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope&          P,
-            const Point&             boundary_pt, 
-            int                      facet_idx,    
-            RandomNumberGenerator&   rng,
-            NT                       eps = kDefaultEpsilon)
+        Walk(GenericPolytope& P,
+            const Point& boundary_pt, 
+            int facet_idx,    
+            RandomNumberGenerator& rng,
+            NT eps = kDefaultEpsilon)
             : P_{P}, epsilon_{eps}
         {
             P_.normalize();
             initialize(boundary_pt, facet_idx, rng);
         }
 
-        void set_epsilon(NT eps) noexcept { epsilon_ = eps; }
         NT   get_epsilon() const noexcept { return epsilon_; }
 
          void apply(unsigned int walk_len, RandomNumberGenerator& rng)
@@ -75,7 +74,7 @@ struct ShakeAndBakeWalk
 
                 p_ += lambda_hit_ * v;
                 facet_idx_ = facet_new;
-                A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
+                A_row_k_ = P_.get_row(facet_idx_);
                 params_.facet_prev  = facet_idx_;
             }
         }
@@ -102,7 +101,7 @@ struct ShakeAndBakeWalk
         }
 
         void initialize(const Point& boundary_pt,
-                        int   facet_idx,
+                        int facet_idx,
                         RandomNumberGenerator& rng)
         {
             dim_ = P_.dimension();
@@ -111,15 +110,15 @@ struct ShakeAndBakeWalk
 
             NT kFacetEps = epsilon_;
 
-            // Checking if facet index belongs to the boundary point 
+            // Checking if boundary point belongs to facet_idx
             p_ = boundary_pt;
-            VT ai = P_.get_facet_normal_vec(facet_idx);
+            VT ai = P_.get_row(facet_idx);
             NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(facet_idx));
             if (dist > kFacetEps)
             {
                 facet_idx_ = -1;
                 for (int i = 0; i < m_; ++i) {
-                    VT ai = P_.get_facet_normal_vec(i);
+                    VT ai = P_.get_row(i);
                     NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(i));
                     if (dist < kFacetEps) {
                         facet_idx_ = i;
@@ -134,7 +133,7 @@ struct ShakeAndBakeWalk
             facet_idx_ = facet_idx;
 
             //Normal of active facet
-            A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
+            A_row_k_ = P_.get_row(facet_idx_);
 
             //Calculating first Ar and initializing Av 
             Ar_.setZero(m_);
@@ -144,19 +143,19 @@ struct ShakeAndBakeWalk
             Ar_.noalias() = P_.get_mat() * p_.getCoefficients();
             lambda_hit_ = NT(0);
 
-            A_row_k_   = P_.get_facet_normal_vec(facet_idx_);
+            A_row_k_ = P_.get_row(facet_idx_);
 
-            params_.facet_prev  = facet_idx_;
+            params_.facet_prev = facet_idx_;
 
         }
 
         Polytope& P_;                
 
-        NT   epsilon_{kDefaultEpsilon};
+        NT epsilon_{kDefaultEpsilon};
 
         int dim_{0};
-        Point       p_;
-        int         facet_idx_{-1};
+        Point p_;
+        int facet_idx_{-1};
         VT Ar_;            
         VT Av_;            
         NT lambda_hit_;

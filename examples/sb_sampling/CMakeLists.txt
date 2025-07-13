@@ -60,15 +60,13 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-
-
-include("/home/ivaxj/volesti/external/cmake-files/Eigen.cmake")
+include("../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("/home/ivaxj/volesti/external/cmake-files/Boost.cmake")
+include("../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("/home/ivaxj/volesti/external/cmake-files/LPSolve.cmake")
+include("../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
 
@@ -86,8 +84,11 @@ else ()
   include_directories (BEFORE ../../include)
 
   # for Eigen
-  include("../external/cmake-files/Eigen.cmake")
-  GetEigen()
+  if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
+    add_compile_options(-D "EIGEN_NO_DEBUG")
+  else ()
+    add_compile_definitions("EIGEN_NO_DEBUG")
+  endif ()
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++17 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
