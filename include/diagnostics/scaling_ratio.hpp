@@ -12,7 +12,8 @@
 #define DIAGNOSTICS_SCALING_RATIO_HPP
 
 template<typename Polytope>
-std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_test(
+std::tuple<typename Polytope::VT, typename Polytope::MT,typename Polytope::VT, typename Polytope::VT>
+scaling_ratio_boundary_test(
     const Polytope&  P,
     const typename Polytope::MT& samples,
     const typename Polytope::NT tol = 1e-10,
@@ -97,11 +98,25 @@ std::pair<typename Polytope::VT, typename Polytope::MT>scaling_ratio_boundary_te
 
             coverage(f, k) = double(survivors) / double(S.size());
             scale[k]=std::pow(x, dim);
-
         }
     }
 
-    return { scale, coverage };
+    int K = scale.size();           // number of scaling factors
+    VT max_dev(m), avg_dev(m);      // Vectors of average and maximum deviations
+
+    for (int f = 0; f < m; ++f) {
+        double sumd = 0.0;
+        double maxd = 0.0;
+        for (int k = 0; k < K; ++k) {
+            double d = std::abs(coverage(f, k) - scale[k])* 100.0; // in percentage
+            sumd += d;
+            if (d > maxd) maxd = d;
+        }
+        avg_dev[f] = sumd/K;
+        max_dev[f] = maxd;      
+    }
+
+    return {scale, coverage, max_dev, avg_dev};
 }
 
 #endif // DIAGNOSTICS_SCALING_RATIO_HPP

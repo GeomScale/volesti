@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
 
     //Scaling ratio test 
 
-    auto [scales, coverage] = scaling_ratio_boundary_test(P, samples1,tol);
-
+    auto [scales, coverage, max_dev, avg_dev] = scaling_ratio_boundary_test(P, samples1,tol);
+    
     std::cout << "Scaling factors:\n";
     for (double s : scales) {
         std::cout << s << " ";
@@ -145,6 +145,16 @@ int main(int argc, char* argv[])
         }
         std::cout << "\n";
     }
+
+    std::cout << "Facet        Max deviation (%)        Avg deviation (%)\n";
+    for (int f = 0; f < max_dev.size(); ++f) {
+        std::cout << std::setw(6) << f << " "
+                  << std::fixed << std::setprecision(2)
+                  << std::setw(18) << max_dev[f] << " "
+                  << std::setw(22) << avg_dev[f]
+                  << "\n";
+    }
+    std::cout << "\n";
 
     return 0;
 }
