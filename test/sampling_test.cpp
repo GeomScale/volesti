@@ -336,8 +336,13 @@ void call_test_gabw(){
     typedef MultivariateGaussianRandomPointGenerator <walk> RandomPointGenerator;
     PushBackWalkPolicy push_back_policy;
 
+    EllipsoidParams<NT> params;
+    params.john_params.maxiter = 500;
+    params.john_params.tol = std::pow(10, -6.0);
+    params.john_params.reg = std::pow(10, -4.0);
+
     std::tuple<MT, VT, NT> ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>
-    (P.get_mat(), P.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
+    (P.get_mat(), P.get_vec(), p.getCoefficients(), params);
     const MT E = get<0>(ellipsoid);
 
     RandomPointGenerator::apply(P, p, E, numpoints, 1, randPoints,
@@ -382,7 +387,7 @@ void call_test_gabw(){
     start = std::chrono::high_resolution_clock::now();
 
     ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::MAX_ELLIPSOID>
-    ((SparseMT)SP.get_mat(), SP.get_vec(), p.getCoefficients(), 500, std::pow(10, -6.0), std::pow(10, -4.0));
+    ((SparseMT)SP.get_mat(), SP.get_vec(), p.getCoefficients(), params);
 
     const SparseMT SE = get<0>(ellipsoid).sparseView();
 
