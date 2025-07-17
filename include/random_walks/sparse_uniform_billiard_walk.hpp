@@ -53,6 +53,8 @@ struct Walk
     typedef Eigen::SparseMatrix<NT, Eigen::RowMajor> SparseRowMT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
+    SparseRowMT _A_original;
+    
     template <typename GenericPolytope>
     Walk(GenericPolytope& P, const Point& p, RandomNumberGenerator& rng,
             parameters const& user_params,
@@ -62,14 +64,15 @@ struct Walk
                 user_params.m_L :
                 NT(6.0) * std::sqrt(static_cast<double>(P.dimension()));
 
-        auto A = P.get_mat();
+        compute_cholesky_and_transformations(Hessian);
+        
         _b = P.get_vec();
+        _A_original = P.get_mat();
+        _oracle_params.emplace(_L_inv, _A_original, _b);
 
-        compute_cholesky_and_transformations(Hessian, A);
-        _oracle_params.emplace(_L_inv, _A_rounded, _A_rounded_row_norms);
 
         VT p_original = p.getCoefficients();
-        VT p_rounded = _L_inv.transpose().template triangularView<Eigen::Lower>() * p_original;
+        VT p_rounded = _L_inv.transpose().template triangularView<Eigen::Lower>() * p_original; 
         Point p_rounded_point(p_rounded);
 
         initialize(P, p_rounded_point, rng);
@@ -127,25 +130,10 @@ struct Walk
 
 private:
 
-    void compute_cholesky_and_transformations(const SparseMT &H, const SparseMT &A)
+    void compute_cholesky_and_transformations(const SparseMT &H)
     {
         Eigen::SimplicialLLT<SparseMT, Eigen::Lower> Chol(H);
-        
         _L_inv = Chol.matrixL().transpose();
-        
-        MT A_dense = A.toDense();
-        MT A_transposed = A_dense.transpose();
-        MT temp = _L_inv.template triangularView<Eigen::Upper>().solve(A_transposed);
-        _A_rounded = temp.transpose();
-        
-        _A_rounded_row_norms.setZero(_A_rounded.rows());
-        NT* A_rounded_row_norms_data = _A_rounded_row_norms.data();
-        for (int i = 0; i < _A_rounded.rows(); ++i) {
-            NT row_norm = _A_rounded.row(i).norm();
-            *A_rounded_row_norms_data = row_norm;
-            _A_rounded.row(i) /= row_norm;
-            A_rounded_row_norms_data++;
-        }
     }
 
     template <typename GenericPolytope>
@@ -159,8 +147,8 @@ private:
         _p = p_rounded;
         _v = GetDirection<Point>::apply(n, rng);
                 
-        _Ar.setZero(_A_rounded.rows());
-        _Av.setZero(_A_rounded.rows());
+        _Ar.setZero(P.num_of_hyperplanes());
+        _Av.setZero(P.num_of_hyperplanes()); 
         _lambda_prev = 0;
         
         NT T = rng.sample_urdist() * _Len;
@@ -211,8 +199,6 @@ private:
 
     VT _b;
     SparseMT _L_inv;
-    MT _A_rounded;
-    VT _A_rounded_row_norms;
 
     NT _Len;
     Point _p, _v;
@@ -221,13 +207,51 @@ private:
 
     struct OracleParams {
         const SparseMT& L_inv;
-        const MT& A_rounded;
-        const VT& row_norms;
-        NT inner_vi_ak = NT(0);
+        const SparseRowMT& A_original;
+        const VT& b_original;
+
+        mutable std::vector<VT> A_rounded_rows;
+        mutable std::vector<NT> row_norms;
+        mutable std::vector<bool> computed;
+        mutable std::vector<NT> b_rounded;
+
+        NT  inner_vi_ak = NT(0);
         int facet_prev = -1;
 
-        OracleParams(const SparseMT& L, const MT& A, const VT& r)
-            : L_inv(L), A_rounded(A), row_norms(r) {}
+        OracleParams(const SparseMT& L, const SparseRowMT& A, const VT& b)
+            : L_inv(L), A_original(A), b_original(b),
+            A_rounded_rows(A.rows()),
+            row_norms (A.rows()),
+            computed (A.rows(), false),
+            b_rounded (A.rows()) 
+        {}
+
+        const VT& get_normalized_A_rounded_row(int facet) const {
+            if (!computed[facet]) {
+                VT A_row_dense = VT::Zero(A_original.cols());
+                for (typename SparseRowMT::InnerIterator it(A_original, facet); it; ++it) 
+                    A_row_dense[it.col()] = it.value();
+
+                A_rounded_rows[facet] = L_inv.template triangularView<Eigen::Upper>().solve(A_row_dense);
+
+                row_norms[facet] = A_rounded_rows[facet].norm();
+                if (row_norms[facet] > NT(1e-12))
+                    A_rounded_rows[facet] /= row_norms[facet];
+
+                b_rounded[facet] =
+                    (row_norms[facet] > NT(1e-12))
+                    ? b_original(facet) / row_norms[facet]
+                    : b_original(facet);
+
+                computed[facet] = true;
+            }
+            return A_rounded_rows[facet];
+        }
+
+        NT get_b_rounded(int facet) const {
+            if (!computed[facet])  get_normalized_A_rounded_row(facet);
+            return b_rounded[facet];
+        }
     };
     std::optional<OracleParams> _oracle_params; 
 
