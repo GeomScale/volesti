@@ -684,22 +684,14 @@ public:
         NT lambda_min = std::numeric_limits<NT>::max();
         int facet = -1;
 
+        Ar = params.A_original * r_orig;
+        Av = params.A_original * v_orig;
+
         for (int i = 0; i < params.A_original.rows(); ++i)
         {
-            NT ar = NT(0);
-            NT av = NT(0);
-
-            for (typename SparseRowMT::InnerIterator it(params.A_original, i); it; ++it) {
-                ar += it.value() * r_orig(it.col());
-                av += it.value() * v_orig(it.col());
-            }
-
-            Ar(i) = ar;
-            Av(i) = av;
-
             NT b = params.b_original(i);
-            if (std::abs(av) > NT(1e-12)) {
-                NT lambda = (b - ar) / av;
+            if (std::abs(Av(i)) > NT(1e-12)) {
+                NT lambda = (b - Ar(i)) / Av(i);
                 if (lambda > NT(1e-12) && lambda < lambda_min) {
                     lambda_min = lambda;
                     facet = i;
@@ -723,24 +715,16 @@ public:
         VT v_orig = params.L_inv.transpose().template triangularView<Eigen::Lower>().solve(v_rounded.getCoefficients());
 
         Ar.noalias() += lambda_prev * Av;
+        Av = params.A_original * v_orig;
 
         NT lambda_min = std::numeric_limits<NT>::max();
         int facet = -1;
 
         for (int i = 0; i < params.A_original.rows(); ++i)
         {
-            NT ar = Ar(i);
-            NT av = NT(0);
-
-            for (typename SparseRowMT::InnerIterator it(params.A_original, i); it; ++it) {
-                av += it.value() * v_orig(it.col());
-            }
-
-            Av(i) = av;
             NT b = params.b_original(i);
-
-            if (std::abs(av) > NT(1e-12)) {
-                NT lambda = (b - ar) / av;
+            if (std::abs(Av(i)) > NT(1e-12)) {
+                NT lambda = (b - Ar(i)) / Av(i);
                 if (lambda > NT(1e-12) && lambda < lambda_min) {
                     lambda_min = lambda;
                     facet = i;
