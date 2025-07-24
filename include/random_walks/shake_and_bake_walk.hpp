@@ -32,9 +32,9 @@ struct ShakeAndBakeWalk
         using NT = typename Point::FT;
         using MT = typename Polytope::MT;
 
-        struct update_parameters 
-        {
-            int facet_prev   = -1;  
+        struct update_parameters {
+            int facet_prev = -1;
+            NT  inner_vi_ak = NT(0);   
         };
 
         update_parameters params_;
@@ -64,7 +64,7 @@ struct ShakeAndBakeWalk
                 Point v = get_direction(P,rng);
 
                 int facet_new;
-                std::tie(_lambda_hit, facet_new) = P.line_positive_intersect_skip(_p, v, _Ar, _Av, _lambda_hit, params_);
+                std::tie(_lambda_hit, facet_new) = P.line_positive_intersect(_p, v, _Ar, _Av, _lambda_hit, params_);
 
                 if (!std::isfinite(_lambda_hit) || _lambda_hit <= eps  || facet_new < 0) 
                 {
