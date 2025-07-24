@@ -47,120 +47,117 @@ struct ShakeAndBakeWalk
             int facet_idx,    
             RandomNumberGenerator& rng,
             NT eps = kDefaultEpsilon)
-            : P_{P}, epsilon_{eps}
+            : epsilon_{eps}
         {
-            P_.normalize();
-            initialize(boundary_pt, facet_idx, rng);
+            P.normalize();
+            initialize(P,boundary_pt, facet_idx, rng);
         }
 
         NT   get_epsilon() const noexcept { return epsilon_; }
 
-         void apply(unsigned int walk_len, RandomNumberGenerator& rng)
+         void apply(Polytope& P, unsigned int walk_len, RandomNumberGenerator& rng)
         {
             const NT eps = epsilon_; 
 
             for (unsigned step = 0; step < walk_len; ++step)
             {
-                Point v = get_direction(rng);
+                Point v = get_direction(P,rng);
 
                 int facet_new;
-                std::tie(lambda_hit_, facet_new) = P_.line_positive_intersect_skip(p_, v, Ar_, Av_, lambda_hit_, params_);
+                std::tie(_lambda_hit, facet_new) = P.line_positive_intersect_skip(_p, v, _Ar, _Av, _lambda_hit, params_);
 
-                if (!std::isfinite(lambda_hit_) || lambda_hit_ <= eps  || facet_new < 0) 
+                if (!std::isfinite(_lambda_hit) || _lambda_hit <= eps  || facet_new < 0) 
                 {
-                    lambda_hit_ = NT(0);
+                    _lambda_hit = NT(0);
                     continue;
                 }
 
-                p_ += lambda_hit_ * v;
-                facet_idx_ = facet_new;
-                A_row_k_ = P_.get_row(facet_idx_);
-                params_.facet_prev  = facet_idx_;
+                _p += _lambda_hit * v;
+                _facet_idx = facet_new;
+                _A_row_k = P.get_row(_facet_idx);
+                params_.facet_prev  = _facet_idx;
             }
         }
 
 
-        const Point& getCurrentPoint() const noexcept { return p_; }
+        const Point& getCurrentPoint() const noexcept { return _p; }
 
     private:
 
-        Point get_direction(RandomNumberGenerator& rng)
+        Point get_direction(Polytope& P, RandomNumberGenerator& rng)
         {
-            VT z = GetDirection<Point>::apply(dim_, rng).getCoefficients();
-            MT I_cc = - A_row_k_ * A_row_k_.transpose();
-            I_cc.diagonal() += VT::Ones(dim_);
+            int _dim = P.dimension();
+            VT z = GetDirection<Point>::apply(_dim, rng).getCoefficients();
+            MT I_cc = - _A_row_k * _A_row_k.transpose();
+            I_cc.diagonal() += VT::Ones(_dim);
             NT U = rng.sample_urdist();               
-            NT r = std::pow(U, NT(1)/NT(dim_-1)); 
-            NT cz = A_row_k_.dot(z);
+            NT r = std::pow(U, NT(1)/NT(_dim-1)); 
+            NT cz = _A_row_k.dot(z);
             VT z_tilde  = I_cc*z;
             z_tilde *= r;
             z_tilde /= std::sqrt(NT(1) - cz*cz);
             
-            VT v = z_tilde - std::sqrt(NT(1) - r*r) * A_row_k_;
+            VT v = z_tilde - std::sqrt(NT(1) - r*r) * _A_row_k;
             return Point(v);
         }
 
-        void initialize(const Point& boundary_pt,
+        void initialize(Polytope& P,
+                        const Point& boundary_pt,
                         int facet_idx,
                         RandomNumberGenerator& rng)
         {
-            dim_ = P_.dimension();
-            m_ = P_.num_of_hyperplanes();
-            VT b=P_.get_vec();
+            int _dim = P.dimension();
+            int _m = P.num_of_hyperplanes();
+            VT b=P.get_vec();
 
             NT kFacetEps = epsilon_;
 
             // Checking if boundary point belongs to facet_idx
-            p_ = boundary_pt;
-            VT ai = P_.get_row(facet_idx);
-            NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(facet_idx));
+            _p = boundary_pt;
+            VT ai = P.get_row(facet_idx);
+            NT dist = std::abs(ai.dot(_p.getCoefficients()) - b.coeff(facet_idx));
             if (dist > kFacetEps)
             {
-                facet_idx_ = -1;
-                for (int i = 0; i < m_; ++i) {
-                    VT ai = P_.get_row(i);
-                    NT dist = std::abs(ai.dot(p_.getCoefficients()) - b.coeff(i));
+                _facet_idx = -1;
+                for (int i = 0; i < _m; ++i) {
+                    VT ai = P.get_row(i);
+                    NT dist = std::abs(ai.dot(_p.getCoefficients()) - b.coeff(i));
                     if (dist < kFacetEps) {
-                        facet_idx_ = i;
+                        _facet_idx = i;
                         break;
                     }
                 }
-                if (facet_idx_ < 0)
+                if (_facet_idx < 0)
                 {
                     throw std::runtime_error("Boundary point not on any facet!");
                 }
             }
-            facet_idx_ = facet_idx;
+            _facet_idx = facet_idx;
 
             //Normal of active facet
-            A_row_k_ = P_.get_row(facet_idx_);
+            _A_row_k = P.get_row(_facet_idx);
 
             //Calculating first Ar and initializing Av 
-            Ar_.setZero(m_);
-            Av_.setZero(m_);
-            lambda_hit_ = NT(0);
+            _Ar.setZero(_m);
+            _Av.setZero(_m);
+            _lambda_hit = NT(0);
             
-            Ar_.noalias() = P_.get_mat() * p_.getCoefficients();
-            lambda_hit_ = NT(0);
+            _Ar.noalias() = P.get_mat() * _p.getCoefficients();
+            _lambda_hit = NT(0);
 
-            A_row_k_ = P_.get_row(facet_idx_);
+            _A_row_k = P.get_row(_facet_idx);
 
-            params_.facet_prev = facet_idx_;
+            params_.facet_prev = _facet_idx;
 
         }
 
-        Polytope& P_;                
-
         NT epsilon_{kDefaultEpsilon};
-
-        int dim_{0};
-        Point p_;
-        int facet_idx_{-1};
-        VT Ar_;            
-        VT Av_;            
-        NT lambda_hit_;
-        int m_{0};
-        VT A_row_k_;
+        Point _p;
+        int _facet_idx{-1};
+        VT _Ar;            
+        VT _Av;            
+        NT _lambda_hit;
+        VT _A_row_k;
     };
 };
 

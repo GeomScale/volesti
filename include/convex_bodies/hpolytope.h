@@ -543,6 +543,7 @@ public:
         NT inner_prev = params.inner_vi_ak;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
+        int skip = params.facet_prev;
 
         Ar.noalias() += lambda_prev*Av;
         if(params.hit_ball) {
@@ -555,20 +556,16 @@ public:
         NT* sum_nom_data = sum_nom.data();
         NT* Av_data = Av.data();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
-            } else {
-                lamda = *sum_nom_data / *Av_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
-                    params.inner_vi_ak = *Av_data;
-                }
+        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data){
+            if (i == skip) continue;    
+            if (*Av_data == NT(0)) continue;
+
+            lamda = *sum_nom_data / *Av_data;
+            if (lamda < min_plus && lamda > 0) {
+                min_plus = lamda;
+                facet = i;
+                params.inner_vi_ak = *Av_data;
             }
-            Av_data++;
-            sum_nom_data++;
         }
         params.facet_prev = facet;
         return std::pair<NT, int>(min_plus, facet);
@@ -649,6 +646,7 @@ public:
         NT lamda = 0;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
+        int skip = params.facet_prev;
 
         Ar.noalias() += lambda_prev*Av;
         sum_nom.noalias() = b - Ar;
@@ -657,60 +655,20 @@ public:
         NT* sum_nom_data = sum_nom.data();
         NT* Av_data = Av.data();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
-            } else {
-                lamda = *sum_nom_data / *Av_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
-                    params.inner_vi_ak = *Av_data;
-                }
+        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data) {
+            if (i == skip) continue;
+            if (*Av_data == NT(0)) continue;
+            lamda = *sum_nom_data / *Av_data;
+            if (lamda < min_plus && lamda > 0) {
+                min_plus = lamda;
+                facet = i;
+                params.inner_vi_ak = *Av_data;
             }
-            Av_data++;
-            sum_nom_data++;
         }
         params.facet_prev = facet;
         return std::pair<NT, int>(min_plus, facet);
     }
-
-    template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect_skip(Point const& r,
-                                                    Point const& v,
-                                                    VT& Ar,
-                                                    VT& Av,
-                                                    NT const& lambda_prev,
-                                                    update_parameters& params) const
-    {
-        int m = num_of_hyperplanes();
-        VT sum_nom(m);
-        Ar.noalias() += lambda_prev * Av;
-        sum_nom.noalias() = b - Ar;
-        Av.noalias() = A * v.getCoefficients();
-                       
-        NT min_plus = std::numeric_limits<NT>::max();
-        int facet_new = -1;
-        NT* sum_data = sum_nom.data();
-        NT* av_data  = Av.data();
-        int skip = params.facet_prev;
-
-        for (int i = 0; i < m; ++i, ++sum_data, ++av_data) {
-            if (i == skip)         continue;
-            if (*av_data == NT(0)) continue;
-
-            NT lamda = *sum_data / *av_data;
-            if (lamda < min_plus && lamda > 0) { 
-                min_plus = lamda;
-                facet_new = i;
-            }
-        }
-        params.facet_prev = facet_new;
-        return { min_plus, facet_new };
-    }
     
-
 
     //-----------------------------------------------------------------------------------//
 

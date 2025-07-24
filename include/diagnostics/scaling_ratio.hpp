@@ -13,11 +13,10 @@
 
 template<typename Polytope>
 std::tuple<typename Polytope::VT, typename Polytope::MT,typename Polytope::VT, typename Polytope::VT>
-scaling_ratio_boundary_test(
-    const Polytope&  P,
-    const typename Polytope::MT& samples,
-    const typename Polytope::NT tol = 1e-10,
-    const typename Polytope::NT min_ratio = 0.01) 
+scaling_ratio_boundary_test(const Polytope&  P,
+                            const typename Polytope::MT& samples,
+                            const typename Polytope::NT tol = 1e-10,
+                            const typename Polytope::NT min_ratio = 0.01) 
 {
     using VT = typename Polytope::VT;
     using MT = typename Polytope::MT;
@@ -34,7 +33,7 @@ scaling_ratio_boundary_test(
     const auto b_full = P.get_vec();
 
     for (int i = 0; i < n_samp; ++i) {
-        auto Aq       = A_full * samples.col(i);
+        auto Aq = A_full * samples.col(i);
         
         for (size_t k = 0; k < m; ++k) {
             if (std::abs(Aq[k] - b_full[k]) < tol) 

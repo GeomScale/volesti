@@ -48,7 +48,7 @@ std::pair<typename Polytope::VT,int>  compute_boundary_point(Polytope const& P, 
     // Random ray 
     const int dim = P.dimension();
     Point v_pt = GetDirection<Point>::apply(dim, rng);
-    VT    v    = v_pt.getCoefficients();
+    VT v = v_pt.getCoefficients();
 
     // First‐hit oracle
     VT Ar(m), Av(m);
