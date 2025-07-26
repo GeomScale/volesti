@@ -220,6 +220,39 @@ void gaussian_sampling(PointList &randPoints,
                                 push_back_policy, rng, WalkType.param);
 }
 
+#include "preprocess/feasible_point.hpp"
+template <
+    typename WalkTypePolicy,
+    typename PointList,
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename Point
+>
+void shakeandbake_sampling(PointList &randPoints,
+                           Polytope &P,
+                           RandomNumberGenerator &rng,
+                           const unsigned int walk_len,
+                           const unsigned int  rnum,
+                           const Point &starting_point,
+                           unsigned int const  &nburns = 0,
+                           int facet_idx = -1)  
+{
+    using Walk = typename WalkTypePolicy::template Walk<Polytope, RandomNumberGenerator>;
+
+    Walk walk(P, starting_point, facet_idx, rng);
+
+    PushBackWalkPolicy push_policy;
+
+    if (nburns > 0) 
+    {
+        ShakeAndBakeRandomPointGenerator<Walk>::apply(P, nburns, walk_len, randPoints, push_policy, rng, walk);
+        randPoints.clear();    
+    }
+
+    ShakeAndBakeRandomPointGenerator<Walk>::apply(P, rnum, walk_len, randPoints, push_policy, rng, walk);
+}
+
+
 template <
         typename PointList,
         typename Polytope,
