@@ -52,10 +52,13 @@ MT get_samples_shake_and_bake(Polytope &P)
     shakeandbake_sampling<WalkType>(randPoints,P,rng,walkL,numpoints,boundary_pt, nburns,facet_idx);        
 
     MT samples(d, numpoints);
+
     unsigned int jj = 0;
     for (const Point& q : randPoints)
+    {
         samples.col(jj++) = q.getCoefficients();
-
+    }
+        
     return samples;
 }
 

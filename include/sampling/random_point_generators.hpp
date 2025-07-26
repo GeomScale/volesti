@@ -227,27 +227,28 @@ struct ShakeAndBakeRandomPointGenerator
 {
     template <
         typename Polytope,
+        typename Point, 
         typename PointList,
         typename WalkPolicy,
         typename RandomNumberGenerator
     >
-    static void apply(Polytope &P,
-                      unsigned int const &rnum,
-                      unsigned int const &walk_length,
-                      PointList &randPoints,
-                      WalkPolicy &policy,
-                      RandomNumberGenerator &rng,
-                      Walk &walk)
+    static void apply(Polytope& P,
+                      Point &p,
+                      unsigned int rnum,
+                      unsigned int walk_len,
+                      PointList& randPoints,
+                      WalkPolicy& policy,
+                      RandomNumberGenerator& rng,
+                      int facet_idx = -1) 
     {
-        for (unsigned int i = 0; i < rnum; ++i)
-        {
-            walk.apply(P, walk_length, rng);
+        Walk walk(P, p, facet_idx, rng);
 
+        for (unsigned int i = 0; i < rnum; ++i) {
+            walk.apply(P, walk_len, rng);
             policy.apply(randPoints, walk.getCurrentPoint());
         }
     }
 };
-
 
 template
 <
