@@ -32,12 +32,13 @@ struct ShakeAndBakeWalk
         using NT = typename Point::FT;
         using MT = typename Polytope::MT;
 
-        struct update_parameters {
+        struct update_parameters 
+        {
             int facet_prev = -1;
             NT  inner_vi_ak = NT(0);   
         };
 
-        update_parameters params_;
+        update_parameters _params;
 
         static constexpr NT kDefaultEpsilon = NT(1e-10);
 
@@ -55,7 +56,7 @@ struct ShakeAndBakeWalk
 
         NT   get_epsilon() const noexcept { return epsilon_; }
 
-         void apply(Polytope& P, unsigned int walk_len, RandomNumberGenerator& rng)
+        void apply(Polytope& P, unsigned int walk_len, RandomNumberGenerator& rng)
         {
             const NT eps = epsilon_; 
 
@@ -64,7 +65,7 @@ struct ShakeAndBakeWalk
                 Point v = get_direction(P,rng);
 
                 int facet_new;
-                std::tie(_lambda_hit, facet_new) = P.line_positive_intersect(_p, v, _Ar, _Av, _lambda_hit, params_);
+                std::tie(_lambda_hit, facet_new) = P.line_positive_intersect(_p, v, _Ar, _Av, _lambda_hit, _params);
 
                 if (!std::isfinite(_lambda_hit) || _lambda_hit <= eps  || facet_new < 0) 
                 {
@@ -73,9 +74,8 @@ struct ShakeAndBakeWalk
                 }
 
                 _p += _lambda_hit * v;
-                _facet_idx = facet_new;
-                _A_row_k = P.get_row(_facet_idx);
-                params_.facet_prev  = _facet_idx;
+                _A_row_k = P.get_row(facet_new);
+                _params.facet_prev  = facet_new;
             }
         }
 
@@ -109,6 +109,7 @@ struct ShakeAndBakeWalk
             int _dim = P.dimension();
             int _m = P.num_of_hyperplanes();
             VT b=P.get_vec();
+            int active_facet;
 
             NT kFacetEps = epsilon_;
 
@@ -118,42 +119,44 @@ struct ShakeAndBakeWalk
             NT dist = std::abs(ai.dot(_p.getCoefficients()) - b.coeff(facet_idx));
             if (dist > kFacetEps)
             {
-                _facet_idx = -1;
-                for (int i = 0; i < _m; ++i) {
+                active_facet = -1;
+                for (int i = 0; i < _m; ++i) 
+                {
                     VT ai = P.get_row(i);
                     NT dist = std::abs(ai.dot(_p.getCoefficients()) - b.coeff(i));
-                    if (dist < kFacetEps) {
-                        _facet_idx = i;
+                    if (dist < kFacetEps) 
+                    {
+                        active_facet = i;
                         break;
                     }
                 }
-                if (_facet_idx < 0)
+                if (active_facet < 0)
                 {
                     throw std::runtime_error("Boundary point not on any facet!");
                 }
             }
-            _facet_idx = facet_idx;
+            active_facet = facet_idx;
 
             //Normal of active facet
-            _A_row_k = P.get_row(_facet_idx);
+            _A_row_k = P.get_row(active_facet);
 
-            //Calculating first Ar and initializing Av 
+            //Initializing Ar and Av 
             _Ar.setZero(_m);
             _Av.setZero(_m);
             _lambda_hit = NT(0);
             
+            //Calculating first Ar and initializing lambda 
             _Ar.noalias() = P.get_mat() * _p.getCoefficients();
             _lambda_hit = NT(0);
 
-            _A_row_k = P.get_row(_facet_idx);
+            _A_row_k = P.get_row(active_facet);
 
-            params_.facet_prev = _facet_idx;
+            _params.facet_prev = active_facet;
 
         }
 
         NT epsilon_{kDefaultEpsilon};
         Point _p;
-        int _facet_idx{-1};
         VT _Ar;            
         VT _Av;            
         NT _lambda_hit;

@@ -36,10 +36,9 @@ int main(int argc, char* argv[])
 {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0]
-                  << " <cube|simplex|birkhoff|iSDY_1059> <dimension> [epsilon]\n";
+                  << " <cube|simplex|birkhoff> <dimension> [epsilon]\n";
         return 1;
     }
-
 
     std::string shape  = argv[1];
     unsigned  cli_n = std::stoi(argv[2]);
@@ -126,7 +125,6 @@ int main(int argc, char* argv[])
 
 
     //Scaling ratio test 
-
     auto [scales, coverage, max_dev, avg_dev] = scaling_ratio_boundary_test(P, samples1,tol);
     
     std::cout << "Scaling factors:\n";
@@ -146,6 +144,8 @@ int main(int argc, char* argv[])
         std::cout << "\n";
     }
 
+    //Uniformity deviation analysis 
+    std::cout << "\n";
     std::cout << "Facet        Max deviation (%)        Avg deviation (%)\n";
     for (int f = 0; f < max_dev.size(); ++f) {
         std::cout << std::setw(6) << f << " "
@@ -154,7 +154,6 @@ int main(int argc, char* argv[])
                   << std::setw(22) << avg_dev[f]
                   << "\n";
     }
-    std::cout << "\n";
 
     return 0;
 }

@@ -60,13 +60,13 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-include("../external/cmake-files/Eigen.cmake")
+include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("../external/cmake-files/Boost.cmake")
+include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../external/cmake-files/LPSolve.cmake")
+include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
 
