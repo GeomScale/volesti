@@ -60,15 +60,14 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-include("/home/ivaxj/volesti/external/cmake-files/Eigen.cmake")
+include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("/home/ivaxj/volesti/external/cmake-files/Boost.cmake")
+include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("/home/ivaxj/volesti/external/cmake-files/LPSolve.cmake")
+include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
-
 
 
 # Find lpsolve library

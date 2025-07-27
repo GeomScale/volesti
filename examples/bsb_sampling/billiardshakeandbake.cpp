@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     unsigned    cli_n  = std::stoi(argv[2]);
     NT eps_cli = (argc > 3)
                  ? static_cast<NT>(std::stod(argv[3]))
-                 : Walker1::kDefaultEps;      
+                 : Walker1::kDefaultEpsilon;      
 
     HPoly P;
     if (shape == "cube")      P = generate_cube<HPoly>(cli_n, false);
@@ -88,16 +88,13 @@ int main(int argc, char* argv[])
     RNG rng(true_dim);
     auto [boundary_pt, facet_idx] = compute_boundary_point<Point>(P, rng, eps_cli);
 
-    Walker1 walk1(P, boundary_pt, facet_idx, rng, eps_cli, 3.5);
+    Walker1 walk1(P, boundary_pt, rng, facet_idx, 5, eps_cli);
     const NT tol = walk1.get_epsilon();
 
     const std::string base = "billiard_sb_" + shape + "_" + std::to_string(cli_n);
     std::ofstream out(base + ".txt");
 
     Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> samples1(true_dim, n_samples);
-
-    for (int i = 0; i < burn_in_iters; ++i)
-        walk1.apply(walk_len, rng);
 
     for (int i = 0; i < n_samples; ++i) {
         walk1.apply(walk_len, rng);
@@ -112,5 +109,35 @@ int main(int argc, char* argv[])
     std::cout << "Generated " << n_samples << " samples in "
               << walk_len   << " steps each.\n";
 
+    //Scaling ratio test 
+    auto [scales, coverage, max_dev, avg_dev] = scaling_ratio_boundary_test(P, samples1,tol);
+
+    std::cout << "Scaling factors:\n";
+    for (double s : scales) {
+        std::cout << s << " ";
+    }
+    std::cout << "\n\nCoverage matrix (each row = one facet):\n";
+    for (int f = 0; f < coverage.rows(); ++f) {
+        std::cout << "Facet " << f << ": ";
+        for (int k = 0; k < coverage.cols(); ++k) {
+            double cov = coverage(f, k);
+            if (std::isnan(cov))
+                std::cout << "NaN ";
+            else
+                std::cout << cov << " ";
+        }
+        std::cout << "\n";
+    }
+
+    //Uniformity deviation analysis 
+    std::cout << "\n";
+    std::cout << "Facet        Max deviation (%)        Avg deviation (%)\n";
+    for (int f = 0; f < max_dev.size(); ++f) {
+        std::cout << std::setw(6) << f << " "
+                  << std::fixed << std::setprecision(2)
+                  << std::setw(18) << max_dev[f] << " "
+                  << std::setw(22) << avg_dev[f]
+                  << "\n";
+    }
     return 0;
 }
