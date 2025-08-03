@@ -255,6 +255,35 @@ struct LogconcaveRandomPointGenerator
     }
 };
 
+template <typename Walk>
+struct BilliardShakeAndBakeRandomPointGenerator
+{
+    template <
+        typename Polytope,
+        typename Point, 
+        typename PointList,
+        typename WalkPolicy,
+        typename RandomNumberGenerator
+    >
+    static void apply(Polytope& P,
+                      Point &p,
+                      unsigned int rnum,
+                      unsigned int walk_len,
+                      int nr,
+                      PointList& randPoints,
+                      WalkPolicy& policy,
+                      RandomNumberGenerator& rng,
+                      int facet_idx = -1) 
+    {
+        Walk walk(P, p, rng, facet_idx, nr);
+
+        for (unsigned int i = 0; i < rnum; ++i) {
+            walk.apply(P, walk_len, rng);
+            policy.apply(randPoints, walk.getCurrentPoint());
+        }
+    }
+};
+
 template
 <
     typename Walk

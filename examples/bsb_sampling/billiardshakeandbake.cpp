@@ -96,11 +96,17 @@ int main(int argc, char* argv[])
 
     Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> samples1(true_dim, n_samples);
 
+    //Burn in 
+    for (int i = 0; i < burn_in_iters; ++i)
+        walk1.apply(P, walk_len, rng);
+
+    // Sampling
     for (int i = 0; i < n_samples; ++i) {
-        walk1.apply(walk_len, rng);
+        walk1.apply(P, walk_len, rng);
         const Point& q = walk1.getCurrentPoint();
         samples1.col(i) = q.getCoefficients();
 
+        // File inscription
         for (unsigned d = 0; d < true_dim; ++d)
             out << q[d] << (d + 1 < true_dim ? ' ' : '\n');
     }

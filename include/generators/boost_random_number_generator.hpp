@@ -44,6 +44,12 @@ struct BoostRandomNumberGenerator<RNGType, NT>
         return _ndist(_rng);
     }
 
+    NT sample_trunc_expdist() 
+    {
+        double z; do z = _expdist(_rng); while (z > 1.0);
+        return z;
+    }
+
     void set_seed(unsigned rng_seed){
         _rng.seed(rng_seed);
     }
@@ -53,6 +59,7 @@ private :
     boost::random::uniform_real_distribution<NT> _urdist;
     boost::random::uniform_int_distribution<> _uidist;
     boost::random::normal_distribution<NT> _ndist;
+    boost::random::exponential_distribution<NT> _expdist;
 };
 
 
@@ -81,6 +88,12 @@ struct BoostRandomNumberGenerator<RNGType, NT, Seed>
         return _ndist(_rng);
     }
 
+    NT sample_trunc_expdist() 
+    {
+        double z; do z = _expdist(_rng); while (z > 1.0);
+        return z;
+    }
+
     void set_seed(unsigned rng_seed){
         _rng.seed(rng_seed);
     }
@@ -90,6 +103,7 @@ private :
     boost::random::uniform_real_distribution<NT> _urdist;
     boost::random::uniform_int_distribution<> _uidist;
     boost::random::normal_distribution<NT> _ndist;
+    boost::random::exponential_distribution<NT> _expdist;
 };
 
 #endif // GENERATORS_BOOST_RANDOM_NUMBER_GENERATOR_HPP
