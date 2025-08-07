@@ -5,6 +5,7 @@
 
 // Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 // Modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
+// Contributed and/or modified by Angelos Korakitis, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -377,18 +378,27 @@ public:
         return 0;
     }
 
+    /// This method updates the A0 matrix of the LMI by adding the contributions of each matrix A_i scaled by e_i.
+    /// \param e The vector by which to shift the spectrahedron
+    /// \note This method uses Kahan summation to minimize numerical errors during accumulation.
     void shift(VT e) {
         MT A0 = getLMI().get_A0();
         std::vector<MT> matrices = getLMI().getMatrices();
-
         int d = matrices.size();
-
+        
+        // Kahan summation algorithm for matrix accumulation
+        MT sum = A0;
+        MT c = MT::Zero(A0.rows(), A0.cols());  // Compensation matrix initialized to zero
+        
         for (int i = 1; i < d; ++i) {
-            A0 = A0 + e(i-1)*matrices[i];
+            MT term = e(i-1) * matrices[i];     // Current term to add
+            MT y = term - c;                    // Subtract the compensation
+            MT t = sum + y;                     // Tentative sum
+            c = (t - sum) - y;                  // Update compensation: capture lost precision
+            sum = t;                            // Update sum
         }
-
-        lmi.set_A0(A0);
-
+        
+        lmi.set_A0(sum);
         _inner_ball.first = PointType(dimension());
     }
 
