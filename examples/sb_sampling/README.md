@@ -7,7 +7,7 @@ In 'shake_and_bake_walk.hpp' the Running variant of Shake And Bake class of boun
     Available at: https://doi.org/10.1016/0166-218X(91)90006-7
 
 ## Original and Limping Variant
-The implemented Shake And Bake variant is Running SB because it performs significantly better than its counterparts Original and Limping. But, if one wants to test that out, here is the additional piece of code to be added in 'apply' function alongside some simple enum switch / branch logic. 
+The implemented Shake And Bake variant is Running SB because it performs significantly better than its counterparts Original and Limping. But, if one wants to test that out, here is the additional piece of code to be added in `apply` function alongside some simple enum switch / branch logic. Also, it is very important to use  `_v = GetDirection<Point>::apply(n, rng); ` (coressponds to Step 1. of Original and Limping SB from the paper ) instead of `Point v = get_direction(P,rng);` (corresponds to Step 1. for Running SB).  
 
 ```bash
 NT beta;
