@@ -212,6 +212,9 @@ add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
 add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
 add_test(NAME test_sparse COMMAND sampling_test -tc=sparse)
 
+add_executable (shake_and_bake_test shake_and_bake_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_shake_and_bake COMMAND shake_and_bake_test -tc=shake_and_bake)
+
 add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
@@ -404,6 +407,7 @@ TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve ${MKL_LINK} co
 TARGET_LINK_LIBRARIES(rounding_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mcmc_diagnostics_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(sampling_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(shake_and_bake_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mmcs_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(benchmarks_sob lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(benchmarks_cg lp_solve ${MKL_LINK} coverage_config)

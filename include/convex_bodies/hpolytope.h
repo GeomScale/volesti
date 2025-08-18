@@ -7,6 +7,7 @@
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 //Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
+//Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -203,6 +204,13 @@ public:
         return b;
     }
 
+    VT get_row(int facet_index) const 
+    {
+        if (facet_index < 0 || facet_index >= A.rows())
+            throw std::out_of_range("Facet index out of range!");
+        return A.row(facet_index);
+    }
+    
     bool is_normalized ()
     {
         return normalized;
@@ -535,6 +543,7 @@ public:
         NT inner_prev = params.inner_vi_ak;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
+        int skip = params.facet_prev;
 
         Ar.noalias() += lambda_prev*Av;
         if(params.hit_ball) {
@@ -547,20 +556,16 @@ public:
         NT* sum_nom_data = sum_nom.data();
         NT* Av_data = Av.data();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
-            } else {
-                lamda = *sum_nom_data / *Av_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
-                    params.inner_vi_ak = *Av_data;
-                }
+        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data){
+            if (i == skip) continue;    
+            if (*Av_data == NT(0)) continue;
+
+            lamda = *sum_nom_data / *Av_data;
+            if (lamda < min_plus && lamda > 0) {
+                min_plus = lamda;
+                facet = i;
+                params.inner_vi_ak = *Av_data;
             }
-            Av_data++;
-            sum_nom_data++;
         }
         params.facet_prev = facet;
         return std::pair<NT, int>(min_plus, facet);
@@ -641,6 +646,7 @@ public:
         NT lamda = 0;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
+        int skip = params.facet_prev;
 
         Ar.noalias() += lambda_prev*Av;
         sum_nom.noalias() = b - Ar;
@@ -649,24 +655,20 @@ public:
         NT* sum_nom_data = sum_nom.data();
         NT* Av_data = Av.data();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
-            } else {
-                lamda = *sum_nom_data / *Av_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
-                    params.inner_vi_ak = *Av_data;
-                }
+        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data) {
+            if (i == skip) continue;
+            if (*Av_data == NT(0)) continue;
+            lamda = *sum_nom_data / *Av_data;
+            if (lamda < min_plus && lamda > 0) {
+                min_plus = lamda;
+                facet = i;
+                params.inner_vi_ak = *Av_data;
             }
-            Av_data++;
-            sum_nom_data++;
         }
         params.facet_prev = facet;
         return std::pair<NT, int>(min_plus, facet);
     }
+    
 
     //-----------------------------------------------------------------------------------//
 

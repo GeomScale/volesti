@@ -221,6 +221,40 @@ void gaussian_sampling(PointList &randPoints,
 }
 
 template <
+    typename WalkTypePolicy,
+    typename PointList,
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename Point
+>
+void shakeandbake_sampling(PointList &randPoints,
+                           Polytope &P,
+                           RandomNumberGenerator &rng,
+                           const unsigned int walk_len,
+                           const unsigned int  rnum,
+                           const Point &starting_point,
+                           unsigned int const  &nburns = 0,
+                           int facet_idx = -1)  
+{
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Polytope,
+                    RandomNumberGenerator
+            > walk;
+
+    PushBackWalkPolicy push_policy;
+
+    if (nburns > 0) 
+    {
+        ShakeAndBakeRandomPointGenerator<walk>::apply(P,starting_point,nburns,walk_len,randPoints,push_policy,rng,facet_idx);     
+        randPoints.clear();    
+    }
+
+    ShakeAndBakeRandomPointGenerator<walk>::apply(P,starting_point,rnum,walk_len,randPoints,push_policy,rng,facet_idx);
+}
+
+
+template <
         typename PointList,
         typename Polytope,
         typename RandomNumberGenerator,
