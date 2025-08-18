@@ -1,0 +1,159 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2025 Vissarion Fisikopoulos
+// Copyright (c) 2018-2025 Apostolos Chalkis
+// Copyright (c) 2025-2025 Iva Janković
+
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <Eigen/Eigen>
+#include <boost/random.hpp>
+
+#include "cartesian_geom/cartesian_kernel.h"
+#include "preprocess/feasible_point.hpp"   
+#include "convex_bodies/hpolytope.h"
+#include "random_walks/random_walks.hpp"
+#include "random_walks/shake_and_bake_walk.hpp"
+#include "generators/known_polytope_generators.h"
+#include "diagnostics/scaling_ratio.hpp" 
+
+
+using NT = double;
+using Kernel = Cartesian<NT>;
+using Point = Kernel::Point;
+using RNG  = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
+using HPoly = HPolytope<Point>;
+using Walker1 = ShakeAndBakeWalk::Walk<HPoly, RNG>;
+
+
+int main(int argc, char* argv[])
+{
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <cube|simplex|birkhoff> <dimension> [epsilon]\n";
+        return 1;
+    }
+
+    std::string shape  = argv[1];
+    unsigned  cli_n = std::stoi(argv[2]);
+    NT eps_cli = (argc > 3)
+                 ? static_cast<NT>(std::stod(argv[3]))
+                 : Walker1::kDefaultEpsilon;      // default value if not manually
+
+    //Generating polytope 
+    HPoly P;
+    if (shape == "cube") P = generate_cube<HPoly>(cli_n, false);
+    else if (shape == "simplex") P = generate_simplex<HPoly>(cli_n, false);
+    else if (shape == "birkhoff") P = generate_birkhoff<HPoly>(cli_n);
+    else {
+        std::cerr << "Unknown polytope type: " << shape << '\n';
+        return 1;
+    }
+
+    // Walk parameters adjustments
+    const unsigned true_dim = P.dimension();
+    unsigned walk_len, n_samples, burn_in_iters;
+
+    int mode = (shape == "cube" || shape == "simplex") ? 0
+         : (shape == "birkhoff")             ? 1
+         : 2;
+
+    switch (mode) {
+        case 0:  // cube or simplex
+            walk_len  = 20 * true_dim;
+            n_samples = 500 * true_dim;
+            burn_in_iters = 5  * true_dim;
+            break;
+
+        case 1:  // birkhoff
+            walk_len = 100 * true_dim;
+            n_samples  = 2000 * true_dim;
+            burn_in_iters = 10  * true_dim;
+            break;
+
+        default: 
+            walk_len = 20 * true_dim;
+            n_samples  = 100 * true_dim;
+            burn_in_iters = 20 * true_dim;
+            break;
+    }
+
+    std::cout << "Parameters: walk_len="   << walk_len
+              << ", n_samples="            << n_samples
+              << ", burn_in_iters="        << burn_in_iters
+              << " (dim="                  << true_dim
+              << ") eps="                  << eps_cli << '\n';
+
+    // Initializing the walk
+    RNG rng(true_dim);
+
+    auto [boundary_pt, facet_idx] = compute_boundary_point<Point>(P, rng, eps_cli);
+    Walker1 walk1(P, boundary_pt, facet_idx, rng,eps_cli);
+    const NT tol = walk1.get_epsilon();                     
+
+    const std::string base = "sb_" + shape + "_" + std::to_string(cli_n);
+    std::ofstream out(base + "_run.txt");
+
+
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> samples1(true_dim, n_samples);
+    std::vector<int> facet_id1(n_samples, -1);
+
+    //Burn in 
+    for (int i = 0; i < burn_in_iters; ++i)
+        walk1.apply(P, walk_len, rng);
+
+    // Sampling
+    for (int i = 0; i < n_samples; ++i) {
+        walk1.apply(P, walk_len, rng);
+        const Point& q = walk1.getCurrentPoint();
+        samples1.col(i) = q.getCoefficients();
+
+        // File inscription
+        for (unsigned d = 0; d < true_dim; ++d)
+            out << q[d] << (d + 1 < true_dim ? ' ' : '\n');
+    }
+    out.close();
+    
+    std::cout << "Generated " << n_samples << " samples in "
+            << walk_len   << " steps each.\n";
+
+
+    //Scaling ratio test 
+    auto [scales, coverage, max_dev, avg_dev] = scaling_ratio_boundary_test(P, samples1,tol);
+    
+    std::cout << "Scaling factors:\n";
+    for (double s : scales) {
+        std::cout << s << " ";
+    }
+    std::cout << "\n\nCoverage matrix (each row = one facet):\n";
+    for (int f = 0; f < coverage.rows(); ++f) {
+        std::cout << "Facet " << f << ": ";
+        for (int k = 0; k < coverage.cols(); ++k) {
+            double cov = coverage(f, k);
+            if (std::isnan(cov))
+                std::cout << "NaN ";
+            else
+                std::cout << cov << " ";
+        }
+        std::cout << "\n";
+    }
+
+    //Uniformity deviation analysis 
+    std::cout << "\n";
+    std::cout << "Facet        Max deviation (%)        Avg deviation (%)\n";
+    for (int f = 0; f < max_dev.size(); ++f) {
+        std::cout << std::setw(6) << f << " "
+                  << std::fixed << std::setprecision(2)
+                  << std::setw(18) << max_dev[f] << " "
+                  << std::setw(22) << avg_dev[f]
+                  << "\n";
+    }
+
+    return 0;
+}

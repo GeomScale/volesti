@@ -70,15 +70,11 @@ void sample_using_gaussian_billiard_walk(HPOLYTOPE& HP, RNGType& rng, unsigned i
     Point q(HP.dimension()); // origin
 
     // ----------- Get inscribed ellipsoid --------------------------------
-    unsigned int max_iter = 150;
-    NT tol = std::pow(10, -6.0), reg = std::pow(10, -4.0);
-    VT x0 = q.getCoefficients();
-    VT center;
-    bool converged;
-    std::tuple<MT, VT, NT> ellipsoid = compute_inscribed_ellipsoid<MT, EllipsoidType::VOLUMETRIC_BARRIER>
-    (HP.get_mat(), HP.get_vec(), x0, max_iter, tol, reg);
-    
-    const MT E = get<0>(ellipsoid);
+    EllipsoidParams<NT> params;
+    params.barrier_params.maxiter = 150;
+    auto ellipsoid_result = compute_inscribed_ellipsoid<MT, EllipsoidType::VOLUMETRIC_BARRIER>(HP.get_mat(), HP.get_vec(),
+     q.getCoefficients(), params);
+    const MT E = get<0>(ellipsoid_result);
     // --------------------------------------------------------------------
 
     Generator::apply(HP, q, E, num_points, walk_len,

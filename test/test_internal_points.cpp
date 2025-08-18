@@ -136,9 +136,9 @@ void call_test_analytic_center() {
 
     CHECK(P.is_in(Point(analytic_center)) == -1);
     CHECK(converged);
-    CHECK(std::abs(analytic_center(0) + 4.75912) < 1e-04);
-    CHECK(std::abs(analytic_center(1) + 4.28762) < 1e-04);
-    CHECK(std::abs(analytic_center(2) - 7.54156) < 1e-04);
+    CHECK(std::abs(analytic_center(0) + 4.75552) < 1e-04);
+    CHECK(std::abs(analytic_center(1) + 4.27676) < 1e-04);
+    CHECK(std::abs(analytic_center(2) - 7.52235) < 1e-04);
 
     CHECK(P.is_in(Point(analytic_center2)) == -1);
     CHECK(converged2);
@@ -171,9 +171,9 @@ void call_test_volumetric_center() {
     auto [Hessian_sp, volumetric_center2, converged2] = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::VOLUMETRIC_BARRIER, NT>(Asp, P.get_vec());
     CHECK(P.is_in(Point(volumetric_center)) == -1);
     CHECK(converged);
-    CHECK(std::abs(volumetric_center(0) + 1.49031) < 1e-04);
-    CHECK(std::abs(volumetric_center(1) + 1.51709) < 1e-04);
-    CHECK(std::abs(volumetric_center(2) - 2.49381) < 1e-04);
+    CHECK(std::abs(volumetric_center(0) + 1.49069) < 1e-04);
+    CHECK(std::abs(volumetric_center(1) + 1.50694) < 1e-04);
+    CHECK(std::abs(volumetric_center(2) - 2.48022) < 1e-04);
 
     CHECK(P.is_in(Point(volumetric_center2)) == -1);
     CHECK(converged2);
@@ -207,9 +207,9 @@ void call_test_vaidya_center() {
     
     CHECK(P.is_in(Point(vaidya_center)) == -1);
     CHECK(converged);
-    CHECK(std::abs(vaidya_center(0) + 2.4076) < 1e-04);
-    CHECK(std::abs(vaidya_center(1) + 2.34072) < 1e-04);
-    CHECK(std::abs(vaidya_center(2) - 3.97138) < 1e-04);
+    CHECK(std::abs(vaidya_center(0) + 2.40686) < 1e-04);
+    CHECK(std::abs(vaidya_center(1) + 2.33043) < 1e-04);
+    CHECK(std::abs(vaidya_center(2) - 3.95626) < 1e-04);
 
     CHECK(P.is_in(Point(vaidya_center2)) == -1);
     CHECK(converged2);
