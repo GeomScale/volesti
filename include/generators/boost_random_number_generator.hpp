@@ -4,6 +4,9 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+
+
 #ifndef GENERATORS_BOOST_RANDOM_NUMBER_GENERATOR_HPP
 #define GENERATORS_BOOST_RANDOM_NUMBER_GENERATOR_HPP
 

@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0]
-                  << " <cube|simplex|birkhoff|iSDY_1059> <dimension> [epsilon]\n";
+                  << " <cube|simplex|birkhoff> <dimension> [epsilon]\n";
         return 1;
     }
 
