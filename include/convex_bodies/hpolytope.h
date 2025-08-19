@@ -522,7 +522,7 @@ public:
 
         params.facet_prev = facet;
         return {min_plus, facet};
-        
+
     }
 
 
@@ -585,6 +585,7 @@ public:
     {
         NT inner_prev = params.inner_vi_ak;
         NT* Av_data = Av.data();
+        distances_set.change_val(params.facet_prev, std::numeric_limits<NT>::infinity(), params.moved_dist);
 
         // Updating Av due to the change in direction caused by the previous reflection
         // Av += (-2.0 * inner_prev) * AA.col(params.facet_prev)
