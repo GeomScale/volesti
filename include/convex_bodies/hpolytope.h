@@ -491,7 +491,7 @@ public:
                                                      VT& Av,
                                                      update_parameters& params) const
     {
-        NT min_plus  = std::numeric_limits<NT>::max();
+        NT min_plus = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
 
         NT lamda = 0;
@@ -506,9 +506,11 @@ public:
         NT* Av_data = Av.data();
         NT* sum_nom_data = sum_nom.data();
 
-        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data) {
-            
-            if (i == params.facet_prev) continue;
+        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data)
+        {
+            // Billiard SB: sum_nom_data is close to 0 => skipping the facet
+            // Accelerated Billiard: sum_nom_data far from 0 => not skipping the facet 
+            if (i == params.facet_prev && std::abs(*sum_nom_data) <= NT(1e-12)) continue;
 
             NT lambda = *sum_nom_data / *Av_data;
             if (lambda > 0 && lambda < min_plus) {
@@ -520,7 +522,9 @@ public:
 
         params.facet_prev = facet;
         return {min_plus, facet};
+        
     }
+
 
 
     template <typename update_parameters>
@@ -581,8 +585,6 @@ public:
     {
         NT inner_prev = params.inner_vi_ak;
         NT* Av_data = Av.data();
-        distances_set.change_val(params.facet_prev, std::numeric_limits<NT>::infinity(), params.moved_dist);
-
 
         // Updating Av due to the change in direction caused by the previous reflection
         // Av += (-2.0 * inner_prev) * AA.col(params.facet_prev)
