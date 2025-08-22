@@ -1,3 +1,12 @@
+# Licensed under GNU LGPL.3, see LICENCE file
+# VolEsti (volume computation and sampling library)
+
+# Copyright (c) 2012-2021 Vissarion Fisikopoulos
+# Copyright (c) 2018-2021 Apostolos Chalkis
+# Contributed and/or modified by Vladimir Necula, as part of Google Summer of Code 2025 program.
+
+# Licensed under GNU LGPL.3, see LICENCE file
+
 cmake_minimum_required(VERSION 3.10)
 project(SparseBilliardWalkBenchmark)
 
