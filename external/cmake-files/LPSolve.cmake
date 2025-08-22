@@ -9,7 +9,7 @@ endif(NOT APPLE)
       set(FETCHCONTENT_BASE_DIR "${LP_SOLVE_CMAKE_DIR}/../_deps")
       FetchContent_Declare(
           lpsolve
-          URL https://webwerks.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz
+          URL https://downloads.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz 
           URL_HASH MD5=a829a8d9c60ff81dc72ff52363703886
       )
 
