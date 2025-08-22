@@ -18,9 +18,6 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
-find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS random)
-
 include_directories(${CMAKE_SOURCE_DIR}/../../include)
 include_directories(${CMAKE_SOURCE_DIR}/../../external)
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -30,7 +27,6 @@ add_executable(sparse_billiard_benchmark sparse_billiard_walk_benchmark.cpp)
 target_link_libraries(sparse_billiard_benchmark 
     lp_solve
     ${Boost_LIBRARIES}
-    Eigen3::Eigen
 )
 
 target_compile_options(sparse_billiard_benchmark PRIVATE 
