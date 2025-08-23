@@ -21,7 +21,6 @@
 #include "sampling/sphere.hpp"
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/convex_body.h"
-#include "random_walks/accelerated_billiard_walk_utils.hpp"
 #include <boost/random/exponential_distribution.hpp>
 
 struct BilliardShakeAndBakeWalk

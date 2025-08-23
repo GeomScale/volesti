@@ -213,6 +213,14 @@ public:
         return b;
     }
 
+    // for iterating over the vertices 
+    VT get_row(int vertex_index) const 
+    {
+        if (vertex_index < 0 || vertex_index >= V.rows())
+            throw std::out_of_range("Vertex index out of range!");
+        return V.row(vertex_index);
+    }
+
     bool is_normalized () {
         return true;
     }

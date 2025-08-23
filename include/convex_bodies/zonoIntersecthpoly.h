@@ -65,6 +65,13 @@ public:
         return HP.get_vec();
     }
 
+    VT get_row(int generator_index) const 
+    {
+        if (generator_index < 0 || generator_index >= HP.get_mat().rows())
+            throw std::out_of_range("Generator index out of range!");
+        return HP.get_mat().row(generator_index);
+    }
+
     bool is_normalized () {
         return true;
     }
