@@ -91,6 +91,12 @@ struct BoostRandomNumberGenerator<RNGType, NT, Seed>
         return _ndist(_rng);
     }
 
+    NT sample_trunc_expdist() 
+    {
+        double z; do z = _expdist(_rng); while (z > 1.0);
+        return z;
+    }
+
     void set_seed(unsigned rng_seed){
         _rng.seed(rng_seed);
     }
