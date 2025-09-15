@@ -213,7 +213,7 @@ public:
         return b;
     }
 
-    // for iterating over the vertices 
+    // this is just needed to compile the code 
     VT get_row(int vertex_index) const 
     {
         if (vertex_index < 0 || vertex_index >= V.rows())

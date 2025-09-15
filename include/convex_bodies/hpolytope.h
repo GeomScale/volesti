@@ -508,6 +508,7 @@ public:
 
         for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data)
         {
+            // this condition will evaluate differently for billiard SB / accelerated billiard
             // Billiard SB: sum_nom_data is close to 0 => skipping the facet
             // Accelerated Billiard: sum_nom_data far from 0 => not skipping the facet 
             if (i == params.facet_prev && std::abs(*sum_nom_data) <= NT(1e-12)) continue;

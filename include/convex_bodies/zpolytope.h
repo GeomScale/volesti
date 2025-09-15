@@ -299,6 +299,7 @@ public:
         return b;
     }
 
+    //this is just needed to compile the code
     VT get_row(double generator_index) const 
     {
         if (generator_index < 0 || generator_index >= V.rows())

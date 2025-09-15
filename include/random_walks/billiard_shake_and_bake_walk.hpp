@@ -111,6 +111,7 @@ struct BilliardShakeAndBakeWalk
                     continue;
                 }
 
+                // from here same as accelerated billiard walk 
                 if constexpr (SPARSE) 
                 {
                     _update_parameters.moved_dist = _lambda_prev;
