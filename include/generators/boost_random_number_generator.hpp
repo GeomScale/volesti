@@ -13,6 +13,15 @@
 #include <chrono>
 #include <boost/random.hpp>
 
+namespace detail {
+template <typename RNG, typename NT>
+inline NT sample_trunc_expdist(RNG& rng, boost::random::exponential_distribution<NT>& expdist) {
+    NT z;
+    do { z = expdist(rng); } while (z > NT(1));
+    return z;
+}
+}
+
 /////////////////// Random numbers generator
 ///
 /// \tparam RNGType
@@ -49,8 +58,7 @@ struct BoostRandomNumberGenerator<RNGType, NT>
 
     NT sample_trunc_expdist() 
     {
-        double z; do z = _expdist(_rng); while (z > 1.0);
-        return z;
+        return detail::sample_trunc_expdist(_rng, _expdist);
     }
 
     void set_seed(unsigned rng_seed){
@@ -93,8 +101,7 @@ struct BoostRandomNumberGenerator<RNGType, NT, Seed>
 
     NT sample_trunc_expdist() 
     {
-        double z; do z = _expdist(_rng); while (z > 1.0);
-        return z;
+        return detail::sample_trunc_expdist(_rng, _expdist);
     }
 
     void set_seed(unsigned rng_seed){
