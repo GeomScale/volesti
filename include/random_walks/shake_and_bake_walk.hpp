@@ -82,7 +82,7 @@ struct ShakeAndBakeWalk
 
         const Point& getCurrentPoint() const noexcept { return _p; }
 
-    private:
+    protected:
 
         void initialize(Polytope& P,
                         const Point& boundary_pt,

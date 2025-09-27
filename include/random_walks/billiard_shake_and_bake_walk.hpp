@@ -22,6 +22,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/convex_body.h"
 #include "random_walks/accelerated_billiard_walk_utils.hpp"
+#include "random_walks/shake_and_bake_walk.hpp"
 #include <boost/random/exponential_distribution.hpp>
 
 struct BilliardShakeAndBakeWalk
@@ -44,12 +45,14 @@ struct BilliardShakeAndBakeWalk
             typename Polytope,
             typename RandomNumberGenerator
     >
-    struct Walk
+    struct Walk: public ShakeAndBakeWalk::Walk<Polytope, RandomNumberGenerator>
     {
+        using ShakeAndBake  = ShakeAndBakeWalk::Walk<Polytope, RandomNumberGenerator>;
         using Point = typename Polytope::PointType;
         using VT = typename Polytope::VT;
         using NT = typename Point::FT;
         using MT = typename Polytope::MT;
+        using ShakeAndBake::initialize; // we initialize same as Shake and Bake 
         typedef typename Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
         static constexpr bool SPARSE = std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>;
         using AA_type = std::conditional_t< SPARSE, typename Eigen::SparseMatrix<NT>, DenseMT >;
@@ -62,13 +65,13 @@ struct BilliardShakeAndBakeWalk
             RandomNumberGenerator &rng,
             int facet_idx, 
             int nr, //upper bound for reflections
-            NT eps = kDefaultEpsilon): epsilon_{eps}
+            NT eps = kDefaultEpsilon) : ShakeAndBakeWalk::template Walk<Polytope, RandomNumberGenerator>(P, p, facet_idx, rng, eps)
         {
             if(!P.is_normalized()) 
             {
                 P.normalize();
             }
-            _update_parameters = update_parameters();
+            _params = update_parameters();
 
             // if not given, square root of dimension
             _nr = (nr > 0)? nr : static_cast<unsigned int>(std::ceil(std::sqrt(P.dimension())));
@@ -81,13 +84,15 @@ struct BilliardShakeAndBakeWalk
             {
                 _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
             }
+            //Initialize from Running Shake and Bake 
             initialize(P, p, facet_idx, rng);
         }
 
-        NT get_epsilon() const noexcept { return epsilon_; }
+        NT get_epsilon() const noexcept { return this->epsilon_; }
 
         void apply(Polytope& P, unsigned int walk_len, RandomNumberGenerator& rng)
         {
+            const NT eps = this->epsilon_;
             typename Point::Coeff b;
             NT* b_data;
             if constexpr (SPARSE) 
@@ -98,13 +103,13 @@ struct BilliardShakeAndBakeWalk
 
             for (unsigned int step = 0; step < walk_len; ++step)
             {
-                _update_parameters.moved_dist = 0.0;
+                _params.moved_dist = 0.0;
                 // unsigned int r = (_nr == 1) ? 1 : 1 + static_cast<unsigned int>(rng.sample_urdist() * _nr); FOR UNIFORM
                 double z = rng.sample_trunc_expdist();
                 unsigned int r = static_cast<unsigned int>(std::floor((1.0 - z) * _nr)); // INVERSE EXPONENTIAL
  
-                Point _v = SBDirection<Point>::apply(P.dimension(),_A_row_k, rng);     
-                auto pbair = P.line_first_positive_intersect(_p, _v,_Ar, _Av, _update_parameters);
+                Point _v = SBDirection<Point>::apply(P.dimension(), this->_A_row_k, rng);
+                auto pbair = P.line_first_positive_intersect(this->_p, _v, this->_Ar, this->_Av, _params);
                 NT _lambda_prev = pbair.first;
                 if (!std::isfinite(_lambda_prev) || _lambda_prev <= eps  || pbair.second < 0) 
                 {
@@ -115,13 +120,13 @@ struct BilliardShakeAndBakeWalk
                 // from here same as accelerated billiard walk 
                 if constexpr (SPARSE) 
                 {
-                    _update_parameters.moved_dist = _lambda_prev;
-                    NT* Ar_data = _Ar.data();
-                    NT* Av_data = _Av.data();
+                    _params.moved_dist = _lambda_prev;
+                    NT* Ar_data = this->_Ar.data();
+                    NT* Av_data = this->_Av.data();
 
                     for(int i = 0; i < P.num_of_hyperplanes(); ++i) 
                     {
-                        if (i == _update_parameters.facet_prev) 
+                        if (i == _params.facet_prev) 
                         {
                             continue; // Av_[i]=0
                         }
@@ -129,35 +134,35 @@ struct BilliardShakeAndBakeWalk
                          _distances_set.vec[i].first = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
                     }
 
-                    _distances_set.rebuild(_update_parameters.moved_dist);
+                    _distances_set.rebuild(_params.moved_dist);
                 } 
                 else 
                 {
-                    _p += (_lambda_prev * _v);
+                    this->_p += (_lambda_prev * _v);
                 }
 
-                _A_row_k = P.get_row(pbair.second);
-                _update_parameters.facet_prev = pbair.second;
+                this->_A_row_k = P.get_row(pbair.second);
+                _params.facet_prev = pbair.second;
 
                 for (unsigned int k = 1; k < r; ++k) // from there we do reflections
                 {
                     if constexpr (SPARSE)
                     {
-                        P.compute_reflection_abw_sparse(_v, _p, _update_parameters);
+                         P.compute_reflection_abw_sparse(_v, this->_p, _params);
                     }
                     else
                     {
-                        P.compute_reflection(_v, _p, _update_parameters);
+                        P.compute_reflection(_v, this->_p, _params);
                     }
 
 
                     if constexpr (SPARSE)
                     {
-                        pbair = P.line_positive_intersect(_p, _Ar, _Av, _lambda_prev,_distances_set, _AA,_update_parameters);
+                         pbair = P.line_positive_intersect(this->_p, this->_Ar, this->_Av, _lambda_prev, _distances_set, _AA, _params);
                     }
                     else
                     {
-                        pbair = P.line_positive_intersect(_p, _v,_Ar, _Av, _lambda_prev,_AA,_update_parameters);
+                        pbair = P.line_positive_intersect(this->_p, _v, this->_Ar, this->_Av, _lambda_prev, _AA, _params);
 
                     }
 
@@ -168,85 +173,23 @@ struct BilliardShakeAndBakeWalk
                         continue;
                     }
                 
-                    _update_parameters.moved_dist += _lambda_prev;
+                    _params.moved_dist += _lambda_prev;
 
-                    _p += _lambda_prev * _v;
+                    this->_p += _lambda_prev * _v;
 
-                    _A_row_k = P.get_row(pbair.second);       
-                    _update_parameters.facet_prev = pbair.second;
+                    this->_A_row_k = P.get_row(pbair.second);       
+                    _params.facet_prev = pbair.second;
                 }
             }
         }
 
-        const Point& getCurrentPoint() const noexcept { return _p; }
+        const Point& getCurrentPoint() const noexcept { return this->_p; }
         
-    private :
-
-
-        void initialize(Polytope& P,
-                        const Point& boundary_pt,
-                        int facet_idx,
-                        RandomNumberGenerator& rng)
-        {
-            int _dim = P.dimension();
-            int _m = P.num_of_hyperplanes();
-            VT b=P.get_vec();
-            int active_facet;
-
-            NT kFacetEps = epsilon_;
-
-            // Checking if boundary point belongs to facet_idx
-            _p = boundary_pt;
-            VT ai = P.get_row(facet_idx);
-            NT dist = std::abs(ai.dot(_p.getCoefficients()) - b.coeff(facet_idx));
-            if (dist > kFacetEps)
-            {
-                active_facet = -1;
-                for (int i = 0; i < _m; ++i) 
-                {
-                    VT ai = P.get_row(i);
-                    NT dist = std::abs(ai.dot(_p.getCoefficients()) - b.coeff(i));
-                    if (dist < kFacetEps) 
-                    {
-                        active_facet = i;
-                        break;
-                    }
-                }
-                if (active_facet < 0)
-                {
-                    throw std::runtime_error("Boundary point not on any facet!");
-                }
-            }
-            active_facet = facet_idx;
-
-            //Normal of active facet
-            _A_row_k = P.get_row(active_facet);
-
-            //Initializing Ar and Av 
-            _Ar.setZero(_m);
-            _Av.setZero(_m);
-            _lambda_hit = NT(0);
-            
-            //Calculating first Ar and initializing lambda 
-            _Ar.noalias() = P.get_mat() * _p.getCoefficients();
-            _lambda_hit = NT(0);
-
-            _A_row_k = P.get_row(active_facet);
-
-            _update_parameters.facet_prev = active_facet;
-
-        }
-
-        Point _p;
-        NT _lambda_prev;
+    private:
+    
         AA_type _AA;
-        update_parameters _update_parameters;
-        typename Point::Coeff _Ar;
-        typename Point::Coeff _Av;
+        update_parameters _params;
         BoundaryOracleHeap<NT> _distances_set;
-        NT epsilon_{kDefaultEpsilon};        
-        NT _lambda_hit;
-        VT _A_row_k;
         int _nr; 
     };
 
