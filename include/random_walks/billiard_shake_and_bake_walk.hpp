@@ -102,8 +102,8 @@ struct BilliardShakeAndBakeWalk
                 // unsigned int r = (_nr == 1) ? 1 : 1 + static_cast<unsigned int>(rng.sample_urdist() * _nr); FOR UNIFORM
                 double z = rng.sample_trunc_expdist();
                 unsigned int r = static_cast<unsigned int>(std::floor((1.0 - z) * _nr)); // INVERSE EXPONENTIAL
-
-                Point _v  = get_direction(P,rng);       
+ 
+                Point _v = SBDirection<Point>::apply(P.dimension(),_A_row_k, rng);     
                 auto pbair = P.line_first_positive_intersect(_p, _v,_Ar, _Av, _update_parameters);
                 NT _lambda_prev = pbair.first;
                 if (!std::isfinite(_lambda_prev) || _lambda_prev <= eps  || pbair.second < 0) 
@@ -182,23 +182,6 @@ struct BilliardShakeAndBakeWalk
         
     private :
 
-        //From here same as Shake and Bake
-        Point get_direction(Polytope& P, RandomNumberGenerator& rng)
-        {
-            int _dim = P.dimension();
-            VT z = GetDirection<Point>::apply(_dim, rng).getCoefficients();
-            MT I_cc = - _A_row_k * _A_row_k.transpose();
-            I_cc.diagonal() += VT::Ones(_dim);
-            NT U = rng.sample_urdist();               
-            NT r = std::pow(U, NT(1)/NT(_dim-1)); 
-            NT cz = _A_row_k.dot(z);
-            VT z_tilde  = I_cc*z;
-            z_tilde *= r;
-            z_tilde /= std::sqrt(NT(1) - cz*cz);
-            
-            VT v = z_tilde - std::sqrt(NT(1) - r*r) * _A_row_k;
-            return Point(v);
-        }
 
         void initialize(Polytope& P,
                         const Point& boundary_pt,

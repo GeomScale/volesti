@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 // Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -127,6 +128,34 @@ struct GetPointOnDsphere
     }
 };
 
+//Sampling direction / Step 1 for Running Shake and Bake / Billiard Shake and Bake 
+// from ( https://doi.org/10.1287/opre.39.6.945 )
+template <typename Point>
+struct SBDirection
+{
+    typedef typename Point::FT NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>   MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    template <typename RandomNumberGenerator>
+    inline static Point apply(unsigned int dim,
+                              const VT& A_row_k,  
+                              RandomNumberGenerator& rng)
+    {
+        VT z = GetDirection<Point>::apply(dim, rng).getCoefficients();
+        MT I_cc = - A_row_k * A_row_k.transpose();
+        I_cc.diagonal() += VT::Ones(dim);
+        NT U = rng.sample_urdist();               
+        NT r = std::pow(U, NT(1)/NT(dim-1)); 
+        NT cz = A_row_k.dot(z);
+        VT z_tilde  = I_cc*z;
+        z_tilde *= r;
+        z_tilde /= std::sqrt(NT(1) - cz*cz);
+        
+        VT v = z_tilde - std::sqrt(NT(1) - r*r) * A_row_k;
+        return Point(v);
+    }
+};
 
 
 #endif // SPHERE_HPP

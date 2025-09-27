@@ -62,7 +62,7 @@ struct ShakeAndBakeWalk
 
             for (unsigned step = 0; step < walk_len; ++step)
             {
-                Point v = get_direction(P,rng);
+                Point v = SBDirection<Point>::apply(P.dimension(),_A_row_k, rng);
 
                 int facet_new;
                 std::tie(_lambda_hit, facet_new) = P.line_positive_intersect(_p, v, _Ar, _Av, _lambda_hit, _params);
@@ -83,23 +83,6 @@ struct ShakeAndBakeWalk
         const Point& getCurrentPoint() const noexcept { return _p; }
 
     private:
-
-        Point get_direction(Polytope& P, RandomNumberGenerator& rng)
-        {
-            int _dim = P.dimension();
-            VT z = GetDirection<Point>::apply(_dim, rng).getCoefficients();
-            MT I_cc = - _A_row_k * _A_row_k.transpose();
-            I_cc.diagonal() += VT::Ones(_dim);
-            NT U = rng.sample_urdist();               
-            NT r = std::pow(U, NT(1)/NT(_dim-1)); 
-            NT cz = _A_row_k.dot(z);
-            VT z_tilde  = I_cc*z;
-            z_tilde *= r;
-            z_tilde /= std::sqrt(NT(1) - cz*cz);
-            
-            VT v = z_tilde - std::sqrt(NT(1) - r*r) * _A_row_k;
-            return Point(v);
-        }
 
         void initialize(Polytope& P,
                         const Point& boundary_pt,
