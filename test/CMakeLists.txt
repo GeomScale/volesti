@@ -122,6 +122,9 @@ GetLPSolve()
 include("../external/cmake-files/QD.cmake")
 GetQD()
 
+include("../external/cmake-files/SuiteSparse.cmake")
+GetSuiteSparse()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
