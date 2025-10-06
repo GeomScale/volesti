@@ -572,4 +572,3 @@ TEST_CASE("full_dimensional_polytope_infeasible")
         std::cout << "Exception during transformation: " << e.what() << std::endl;
     }
 }
-
