@@ -127,7 +127,7 @@ private:
         
         // Empirical choice: request 2 eigenvalues to improve chances of finding valid positive t
         // for faster convergence use nev = 1, but more unstable, may miss valid eigenvalue
-        const int nev = 2; 
+        const int nev = 1; 
         const int ncv = std::min(10, 2*m);
         
         Spectra::GenEigsSolver<QEPOperator> solver(op, nev, ncv);

@@ -22,8 +22,8 @@
 
 /// Number of sample points for diameter estimation
 /// When estimating the diameter of the spectrahedron,
-/// sample 1000 + sqrt(dimension) points to estimate it
-#define CONSTANT_1 1000
+/// sample 100 + sqrt(dimension) points to estimate it
+#define CONSTANT_1 100
 
 /// Configuration parameters for the simulated annealing algorithm
 /// Contains all tunable parameters for controlling the optimization process,
@@ -74,14 +74,14 @@ struct SimulatedAnnealingSettings {
     /// \param[in] convergenceWindow_ Sliding window size for convergence detection
     /// \throws std::invalid_argument if any parameter violates its constraints
     SimulatedAnnealingSettings(NT error_ = NT(1e-6),
-                               int walkLength_ = 15,
-                               int maxSteps_ = 1000,
-                               NT decFactor_ = NT(0.5),
+                               int walkLength_ = 3,
+                               int maxSteps_ = 5000,
+                               NT decFactor_ = NT(0.98),
                                NT tempMinRatio_ = NT(1e-8),
                                bool usePolynomialSchedule_ = true,
                                NT polynomialK_ = NT(0.5),
                                bool enableEarlyConvergence_ = true,
-                               int convergenceWindow_ = 45)
+                               int convergenceWindow_ = 20)
         : error(error_), walkLength(walkLength_), maxSteps(maxSteps_),
           decFactor(decFactor_), 
           tempMinRatio(tempMinRatio_),
@@ -191,14 +191,8 @@ typename Point::FT solve_sdp(Spectrahedron& spectrahedron,
     // Caution: Empirical modifications about diameter and initial temperature
     const unsigned int dim = spectrahedron.dimension();
 
-    if(dim >= 100) 
-        diameter = std::max(diameter, NT(1e10));
-    else 
-        diameter = std::max(diameter, NT(1));
-
     // Initial temperature set to estimated diameter
-    NT T0 = std::min(diameter, NT(1.0));
-
+    NT T0 = diameter;
 
     // Minimum temperature as fraction of initial temperature
     NT Tmin = T0 * settings.tempMinRatio;

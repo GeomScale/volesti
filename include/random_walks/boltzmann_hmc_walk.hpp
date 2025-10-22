@@ -29,6 +29,7 @@ public:
     /// \tparam RandomNumberGenerator A random number generator
     template <typename ConvexBody, typename RandomNumberGenerator>
     struct Walk {
+        /// The matrix/vector types we use
         typedef typename ConvexBody::PointType Point;
         typedef typename ConvexBody::MT MT;
         typedef typename ConvexBody::VT VT;
@@ -72,7 +73,7 @@ public:
                     const Point &c,
                     const NT temperature,
                     const NT diameter,
-                    unsigned int reflectionsBound = 1000,
+                    unsigned int reflectionsBound = 2000,
                     NT stepScale = NT(1.0))
                 : walk_length(walkLength)
                 , randomNumberGenerator(randomNumberGenerator)
@@ -277,9 +278,9 @@ public:
 
             total_steps++;
             
-            // Adaptive step size adjustment every 20 steps
+            // Adaptive step size adjustment 
             // Goal: maximize trajectory completion while minimizing reflections
-            if (adapt_enabled && total_steps % 20 == 0) {
+            if (adapt_enabled) {
                 // Measure trajectory completion ratio
                 const NT completion = (trajectory_length > NT(1e-12)) ? 
                                      (used / trajectory_length) : NT(0);
@@ -327,7 +328,7 @@ public:
         /// \return The current step size
         NT getStepSize() const {
             NT temp_scale = std::sqrt(settings.temperature / reference_temperature);
-            temp_scale = std::max(temp_scale, NT(0.01));
+            temp_scale = std::max(temp_scale, NT(0.1));
             return settings.diameter * current_step_scale * temp_scale;
         }
 
