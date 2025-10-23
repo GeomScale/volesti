@@ -276,4 +276,5 @@ function(volesti_add_test name)
 endfunction()
 
 volesti_add_test(test_solve_sdp test_solve_sdp.cpp)
+volesti_add_test(test_solve_sparse_sdp test_solve_sparse_sdp.cpp)
 volesti_add_test(test_spec_oracles test_spec_oracles.cpp)
