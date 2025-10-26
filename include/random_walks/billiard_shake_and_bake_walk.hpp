@@ -8,6 +8,18 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+/* EXPLANATION:
+
+This is a variant of Running Shake and Bake algorithm implemented in 'shake_and_bake_walk.hpp' that belongs to the class of boundary sampling algorithms. 
+It follows the steps as described in [1], but after step 1 (direction sampling) it does number of reflections defined by upper bound of reflection (nr). 
+For each step, the number of reflections is sampled by using inverse exponential distribution, i.e. the number of reflections is (1-z)*nr. 
+
+[1] C. G. E. Boender, R. J. Caron, J. F. McDonald, A. H. G. Rinnooy Kan,H. E. Romeijn, R. L. Smith, J. Telgen i A. C. F. Vorst,  
+*Shake-And-Bake Algorithms for Generating Uniform Points on the Boundary of Bounded Polyhedra*, 1991.  
+Available at: https://doi.org/10.1016/0166-218X(91)90006-7
+
+*/
+
 #ifndef RANDOM_WALKS_BILLIARD_SHAKE_AND_BAKE_WALK_HPP
 #define RANDOM_WALKS_BILLIARD_SHAKE_AND_BAKE_WALK_HPP
 
@@ -54,8 +66,6 @@ struct BilliardShakeAndBakeWalk
         using MT = typename Polytope::MT;
         using ShakeAndBake::initialize; // we initialize same as Shake and Bake 
         typedef typename Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
-        static constexpr bool SPARSE = std::is_same_v<MT, Eigen::SparseMatrix<NT, Eigen::RowMajor>>;
-        using AA_type = std::conditional_t< SPARSE, typename Eigen::SparseMatrix<NT>, DenseMT >;
 
         static constexpr NT kDefaultEpsilon = NT(1e-10);
 
@@ -76,14 +86,8 @@ struct BilliardShakeAndBakeWalk
             // if not given, square root of dimension
             _nr = (nr > 0)? nr : static_cast<unsigned int>(std::ceil(std::sqrt(P.dimension())));
 
-            if constexpr (SPARSE) 
-            {
-                _AA = (P.get_mat() * P.get_mat().transpose());
-            } 
-            else 
-            {
-                _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
-            }
+            _AA.noalias() = (DenseMT)(P.get_mat() * P.get_mat().transpose());
+
             //Initialize from Running Shake and Bake 
             initialize(P, p, facet_idx, rng);
         }
@@ -94,12 +98,6 @@ struct BilliardShakeAndBakeWalk
         {
             const NT eps = this->epsilon_;
             typename Point::Coeff b;
-            NT* b_data;
-            if constexpr (SPARSE) 
-            {
-                b = P.get_vec();
-                b_data = b.data();
-            }
 
             for (unsigned int step = 0; step < walk_len; ++step)
             {
@@ -118,53 +116,17 @@ struct BilliardShakeAndBakeWalk
                 }
 
                 // from here same as accelerated billiard walk 
-                if constexpr (SPARSE) 
-                {
-                    _params.moved_dist = _lambda_prev;
-                    NT* Ar_data = this->_Ar.data();
-                    NT* Av_data = this->_Av.data();
 
-                    for(int i = 0; i < P.num_of_hyperplanes(); ++i) 
-                    {
-                        if (i == _params.facet_prev) 
-                        {
-                            continue; // Av_[i]=0
-                        }
-
-                         _distances_set.vec[i].first = ( *(b_data + i) - (*(Ar_data + i)) ) / (*(Av_data + i));
-                    }
-
-                    _distances_set.rebuild(_params.moved_dist);
-                } 
-                else 
-                {
-                    this->_p += (_lambda_prev * _v);
-                }
-
+                this->_p += (_lambda_prev * _v);
+   
                 this->_A_row_k = P.get_row(pbair.second);
                 _params.facet_prev = pbair.second;
 
                 for (unsigned int k = 1; k < r; ++k) // from there we do reflections
                 {
-                    if constexpr (SPARSE)
-                    {
-                         P.compute_reflection_abw_sparse(_v, this->_p, _params);
-                    }
-                    else
-                    {
-                        P.compute_reflection(_v, this->_p, _params);
-                    }
+                    P.compute_reflection(_v, this->_p, _params);
+                    pbair = P.line_positive_intersect(this->_p, _v, this->_Ar, this->_Av, _lambda_prev, _AA, _params);
 
-
-                    if constexpr (SPARSE)
-                    {
-                         pbair = P.line_positive_intersect(this->_p, this->_Ar, this->_Av, _lambda_prev, _distances_set, _AA, _params);
-                    }
-                    else
-                    {
-                        pbair = P.line_positive_intersect(this->_p, _v, this->_Ar, this->_Av, _lambda_prev, _AA, _params);
-
-                    }
 
                     _lambda_prev = pbair.first;
                     if (!std::isfinite(_lambda_prev) || _lambda_prev <= eps  || pbair.second < 0) 
@@ -187,7 +149,7 @@ struct BilliardShakeAndBakeWalk
         
     private:
     
-        AA_type _AA;
+        DenseMT _AA;
         update_parameters _params;
         BoundaryOracleHeap<NT> _distances_set;
         int _nr; 

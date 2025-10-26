@@ -41,9 +41,17 @@ int main(int argc, char* argv[])
 
     std::string shape  = argv[1];
     unsigned    cli_n  = std::stoi(argv[2]);
-    NT eps_cli = (argc > 3)
-                 ? static_cast<NT>(std::stod(argv[3]))
-                 : Walker1::kDefaultEpsilon;      
+
+    // Defaults
+    int nr_cli = -1; // 0 => auto = ceil(sqrt(dim))
+
+    // argv[3] => nr (ako postoji)
+    if (argc > 3) nr_cli = std::stoi(argv[3]);
+
+    NT eps_cli = (argc > 4)
+                 ? static_cast<NT>(std::stod(argv[4]))
+                 : Walker1::kDefaultEpsilon; 
+
 
     HPoly P;
     if (shape == "cube")      P = generate_cube<HPoly>(cli_n, false);
@@ -83,15 +91,16 @@ int main(int argc, char* argv[])
               << ", n_samples="          << n_samples
               << ", burn_in_iters="      << burn_in_iters
               << " (dim="                << true_dim
+              << ", nr="                 << nr_cli
               << ") eps="                << eps_cli << '\n';
 
     RNG rng(true_dim);
     auto [boundary_pt, facet_idx] = compute_boundary_point<Point>(P, rng, eps_cli);
 
-    Walker1 walk1(P, boundary_pt, rng, facet_idx, 5, eps_cli);
+    Walker1 walk1(P, boundary_pt, rng, facet_idx, nr_cli, eps_cli);
     const NT tol = walk1.get_epsilon();
 
-    const std::string base = "billiard_sb_" + shape + "_" + std::to_string(cli_n);
+    const std::string base = "billiard_sb_" + shape + "_" + std::to_string(cli_n)+"_" + std::to_string(nr_cli);
     std::ofstream out(base + ".txt");
 
     Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> samples1(true_dim, n_samples);

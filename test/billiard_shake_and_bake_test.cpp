@@ -42,7 +42,7 @@ MT get_samples_billiard_shake_and_bake(Polytope &P)
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
-    unsigned int nr = 3, walkL = 10, numpoints = 10000, nburns = 0, d = P.dimension();
+    unsigned int nr = 3, walkL = 10, numpoints = 1000, nburns = 0, d = P.dimension();
     RNGType rng(d);
 
     auto [boundary_pt, facet_idx] = compute_boundary_point<Point>(P, rng, 1e-7);

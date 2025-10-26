@@ -326,14 +326,14 @@ template <
     typename Point
 >
 void billiard_shakeandbake_sampling(PointList &randPoints,
-                           Polytope &P,
-                           RandomNumberGenerator &rng,
-                           const unsigned int walk_len,
-                           int nr,
-                           const unsigned int  rnum,
-                           const Point &starting_point,
-                           unsigned int const  &nburns = 0,
-                           int facet_idx = -1)  
+                                    Polytope &P,
+                                    RandomNumberGenerator &rng,
+                                    const unsigned int walk_len,
+                                    int nr,
+                                    const unsigned int  rnum,
+                                    const Point &starting_point,
+                                    unsigned int const  &nburns = 0,
+                                    int facet_idx = -1)  
 {
     typedef typename WalkTypePolicy::template Walk
             <

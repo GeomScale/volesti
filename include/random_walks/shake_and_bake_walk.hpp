@@ -8,6 +8,17 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+/* EXPLANATION:
+
+This is Running variant of Shake And Bake class of boundary sampling algorithms. 
+
+[1] C. G. E. Boender, R. J. Caron, J. F. McDonald, A. H. G. Rinnooy Kan,  
+    H. E. Romeijn, R. L. Smith, J. Telgen i A. C. F. Vorst,  
+    *Shake-And-Bake Algorithms for Generating Uniform Points on the Boundary of Bounded Polyhedra*, 1991.  
+    Available at: https://doi.org/10.1016/0166-218X(91)90006-7
+
+*/
+
 #ifndef RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 #define RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 
