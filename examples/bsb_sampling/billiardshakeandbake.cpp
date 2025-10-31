@@ -28,6 +28,7 @@ using Kernel = Cartesian<NT>;
 using Point  = Kernel::Point;
 using RNG    = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
 using HPoly  = HPolytope<Point>;
+using RMode  = BilliardShakeAndBakeWalk::ReflectionMode;
 
 using Walker1 = BilliardShakeAndBakeWalk::Walk<HPoly, RNG>;
 
@@ -52,6 +53,16 @@ int main(int argc, char* argv[])
                  ? static_cast<NT>(std::stod(argv[4]))
                  : Walker1::kDefaultEpsilon; 
 
+    RMode rmode = RMode::InverseExponential;            
+    if (argc > 5) {
+        std::string dist = argv[5];
+        if (dist == "uniform") rmode = RMode::Uniform;
+        else if (dist == "inverseexp") rmode = RMode::InverseExponential;
+        else {
+            std::cerr << "Unknown mode: " << dist << " (use: uniform | inverseexp)\n";
+            return 1;
+        }
+    }
 
     HPoly P;
     if (shape == "cube")      P = generate_cube<HPoly>(cli_n, false);
@@ -97,7 +108,7 @@ int main(int argc, char* argv[])
     RNG rng(true_dim);
     auto [boundary_pt, facet_idx] = compute_boundary_point<Point>(P, rng, eps_cli);
 
-    Walker1 walk1(P, boundary_pt, rng, facet_idx, nr_cli, eps_cli);
+    Walker1 walk1(P, boundary_pt, rng, facet_idx, nr_cli, eps_cli, rmode);
     const NT tol = walk1.get_epsilon();
 
     const std::string base = "billiard_sb_" + shape + "_" + std::to_string(cli_n)+"_" + std::to_string(nr_cli);
