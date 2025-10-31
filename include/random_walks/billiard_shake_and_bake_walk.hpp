@@ -39,6 +39,7 @@ Available at: https://doi.org/10.1016/0166-218X(91)90006-7
 
 struct BilliardShakeAndBakeWalk
 {
+    enum class ReflectionMode { Uniform, InverseExponential };
 
     struct update_parameters
     {
@@ -68,6 +69,7 @@ struct BilliardShakeAndBakeWalk
         typedef typename Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
 
         static constexpr NT kDefaultEpsilon = NT(1e-10);
+        static constexpr ReflectionMode kDefaultMode = ReflectionMode::InverseExponential;
 
         template <typename GenericPolytope>
         Walk(GenericPolytope &P, 
@@ -75,7 +77,8 @@ struct BilliardShakeAndBakeWalk
             RandomNumberGenerator &rng,
             int facet_idx, 
             int nr, //upper bound for reflections
-            NT eps = kDefaultEpsilon) : ShakeAndBakeWalk::template Walk<Polytope, RandomNumberGenerator>(P, p, facet_idx, rng, eps)
+            NT eps = kDefaultEpsilon, 
+            ReflectionMode mode = kDefaultMode): ShakeAndBakeWalk::template Walk<Polytope, RandomNumberGenerator>(P, p, facet_idx, rng, eps), mode_(mode)
         {
             if(!P.is_normalized()) 
             {
@@ -93,18 +96,27 @@ struct BilliardShakeAndBakeWalk
         }
 
         NT get_epsilon() const noexcept { return this->epsilon_; }
+        ReflectionMode get_mode() const noexcept { return this->mode_; }
 
         void apply(Polytope& P, unsigned int walk_len, RandomNumberGenerator& rng)
         {
             const NT eps = this->epsilon_;
+            ReflectionMode mode = this->mode_;
             typename Point::Coeff b;
 
             for (unsigned int step = 0; step < walk_len; ++step)
             {
                 _params.moved_dist = 0.0;
-                // unsigned int r = (_nr == 1) ? 1 : 1 + static_cast<unsigned int>(rng.sample_urdist() * _nr); FOR UNIFORM
-                double z = rng.sample_trunc_expdist();
-                unsigned int r = static_cast<unsigned int>(std::floor((1.0 - z) * _nr)); // INVERSE EXPONENTIAL
+                unsigned int r;
+                if (mode == ReflectionMode::Uniform)
+                {
+                    r = (_nr == 1) ? 1 : 1 + static_cast<unsigned int>(rng.sample_urdist() * _nr);
+                }
+                else // InverseExponential
+                {
+                    double z = rng.sample_trunc_expdist();
+                    r = static_cast<unsigned int>(std::floor((1.0 - z) * _nr));
+                }
  
                 Point _v = SBDirection<Point>::apply(P.dimension(), this->_A_row_k, rng);
                 auto pbair = P.line_first_positive_intersect(this->_p, _v, this->_Ar, this->_Av, _params);
@@ -153,6 +165,7 @@ struct BilliardShakeAndBakeWalk
         update_parameters _params;
         BoundaryOracleHeap<NT> _distances_set;
         int _nr; 
+        ReflectionMode mode_;
     };
 
 };

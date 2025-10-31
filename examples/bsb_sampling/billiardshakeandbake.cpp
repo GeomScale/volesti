@@ -53,16 +53,18 @@ int main(int argc, char* argv[])
                  ? static_cast<NT>(std::stod(argv[4]))
                  : Walker1::kDefaultEpsilon; 
 
-    RMode rmode = RMode::InverseExponential;            
+    // POSLE
+    RMode rmode = RMode::InverseExponential;
     if (argc > 5) {
         std::string dist = argv[5];
-        if (dist == "uniform") rmode = RMode::Uniform;
+        if (dist == "uniform")      rmode = RMode::Uniform;
         else if (dist == "inverseexp") rmode = RMode::InverseExponential;
         else {
             std::cerr << "Unknown mode: " << dist << " (use: uniform | inverseexp)\n";
             return 1;
         }
     }
+
 
     HPoly P;
     if (shape == "cube")      P = generate_cube<HPoly>(cli_n, false);
