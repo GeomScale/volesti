@@ -549,8 +549,12 @@ void call_test_polytope_sampling_sparse_problem(){
     VT b, lb, ub;
     int dimension;
     load_problem(A, b, lb, ub, dimension, "../test/netlib/degen2");
+
+    SpMat Acol = SpMat(A);   
+    Acol.makeCompressed();
+
     ConstraintProblem problem = ConstraintProblem(dimension);
-    problem.set_equality_constraints(A, b);
+    problem.set_equality_constraints(Acol, b);
     problem.set_bounds(lb, ub);
     test_polytope_sampling_sparse_problem<ConstraintProblem, SpMat, Point, simdLen>(problem);
   }

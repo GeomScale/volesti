@@ -491,12 +491,13 @@ public:
                                                      VT& Av,
                                                      update_parameters& params) const
     {
-        NT min_plus  = std::numeric_limits<NT>::max();
+        NT min_plus = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
 
         NT lamda = 0;
         VT sum_nom;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes();
+        int facet=-1;      
 
         Ar.noalias() = A * r.getCoefficients();
         sum_nom.noalias() = b - Ar;
@@ -505,25 +506,26 @@ public:
         NT* Av_data = Av.data();
         NT* sum_nom_data = sum_nom.data();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
-            } else {
-                lamda = *sum_nom_data / *Av_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
-                    params.inner_vi_ak = *Av_data;
-                }
-            }
+        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data)
+        {
+            // this condition will evaluate differently for billiard SB / accelerated billiard
+            // Billiard SB: sum_nom_data is close to 0 => skipping the facet
+            // Accelerated Billiard: sum_nom_data far from 0 => not skipping the facet 
+            if (i == params.facet_prev && std::abs(*sum_nom_data) <= NT(1e-12)) continue;
 
-            Av_data++;
-            sum_nom_data++;
+            NT lambda = *sum_nom_data / *Av_data;
+            if (lambda > 0 && lambda < min_plus) {
+                min_plus= lambda;
+                facet = i;
+                params.inner_vi_ak = *Av_data;
+            }
         }
+
         params.facet_prev = facet;
-        return std::pair<NT, int>(min_plus, facet);
+        return {min_plus, facet};
+
     }
+
 
 
     template <typename update_parameters>

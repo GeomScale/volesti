@@ -317,6 +317,41 @@ void logconcave_sampling(PointList &randPoints,
     RandomPointGenerator::apply(rnum, walk_len, randPoints,
                                 push_back_policy, rng, logconcave_walk);
 }
+
+template <
+    typename WalkTypePolicy,
+    typename PointList,
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename Point
+>
+void billiard_shakeandbake_sampling(PointList &randPoints,
+                                    Polytope &P,
+                                    RandomNumberGenerator &rng,
+                                    const unsigned int walk_len,
+                                    int nr,
+                                    const unsigned int  rnum,
+                                    const Point &starting_point,
+                                    unsigned int const  &nburns = 0,
+                                    int facet_idx = -1)  
+{
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Polytope,
+                    RandomNumberGenerator
+            > walk;
+
+    PushBackWalkPolicy push_policy;
+
+    if (nburns > 0) 
+    {
+        BilliardShakeAndBakeRandomPointGenerator<walk>::apply(P,starting_point,nburns,walk_len,nr,randPoints,push_policy,rng,facet_idx);     
+        randPoints.clear();    
+    }
+
+    BilliardShakeAndBakeRandomPointGenerator<walk>::apply(P,starting_point,rnum,walk_len,nr,randPoints,push_policy,rng,facet_idx);
+}
+
 #include "preprocess/crhmc/crhmc_input.h"
 #include "preprocess/crhmc/crhmc_problem.h"
 template

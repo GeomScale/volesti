@@ -4,11 +4,23 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+
+
 #ifndef GENERATORS_BOOST_RANDOM_NUMBER_GENERATOR_HPP
 #define GENERATORS_BOOST_RANDOM_NUMBER_GENERATOR_HPP
 
 #include <chrono>
 #include <boost/random.hpp>
+
+namespace detail {
+template <typename RNG, typename NT>
+inline NT sample_trunc_expdist(RNG& rng, boost::random::exponential_distribution<NT>& expdist) {
+    NT z;
+    do { z = expdist(rng); } while (z > NT(1));
+    return z;
+}
+}
 
 /////////////////// Random numbers generator
 ///
@@ -44,6 +56,11 @@ struct BoostRandomNumberGenerator<RNGType, NT>
         return _ndist(_rng);
     }
 
+    NT sample_trunc_expdist() 
+    {
+        return detail::sample_trunc_expdist(_rng, _expdist);
+    }
+
     void set_seed(unsigned rng_seed){
         _rng.seed(rng_seed);
     }
@@ -53,6 +70,7 @@ private :
     boost::random::uniform_real_distribution<NT> _urdist;
     boost::random::uniform_int_distribution<> _uidist;
     boost::random::normal_distribution<NT> _ndist;
+    boost::random::exponential_distribution<NT> _expdist;
 };
 
 
@@ -81,6 +99,11 @@ struct BoostRandomNumberGenerator<RNGType, NT, Seed>
         return _ndist(_rng);
     }
 
+    NT sample_trunc_expdist() 
+    {
+        return detail::sample_trunc_expdist(_rng, _expdist);
+    }
+
     void set_seed(unsigned rng_seed){
         _rng.seed(rng_seed);
     }
@@ -90,6 +113,7 @@ private :
     boost::random::uniform_real_distribution<NT> _urdist;
     boost::random::uniform_int_distribution<> _uidist;
     boost::random::normal_distribution<NT> _ndist;
+    boost::random::exponential_distribution<NT> _expdist;
 };
 
 #endif // GENERATORS_BOOST_RANDOM_NUMBER_GENERATOR_HPP

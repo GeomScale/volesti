@@ -29,3 +29,48 @@ if (beta > NT(0) && beta <= NT(1) &&
     Ar_.noalias() -= lambda_hit * Av_;  
 }
 ```  
+## Compilation
+Build the example by running the following commands in this directory.
+
+```bash
+cmake . -DLP_SOLVE=_PATH_TO_LIB_FILE
+make
+```  
+You have to specify the path to liblpsolve55.so/dll/dylib.  
+For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
+
+## Running:
+```bash
+ ./billiardshakeandbake <cube|simplex|birkhoff> <dimension> [nr] [epsilon]
+```
+
+## Example:
+```
+For sampling 10 dimensional cube with default upper bound for reflections (nr) and epsilon (eps):
+ ./billiardshakeandbake cube 10
+
+For sampling 10 dimensional cube with 1e-11  as epsilon (eps):
+ ./billiardshakeandbake simplex 10 1e-11
+
+ ```
+
+ ### Output:
+ ```
+Parameters: walk_len=100, n_samples=2500, burn_in_iters=25 (dim=5) eps=1e-10
+Generated 2500 samples in 100 steps each.
+Scaling factors:
+0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 
+
+Coverage matrix (each row = one facet):
+Facet 0: 0.16092 0.279693 0.386973 0.490421 0.586207 0.685824 0.762452 0.869732 0.969349 1 
+Facet 1: 0.188 0.324 0.452 0.536 0.6 0.684 0.72 0.828 0.956 1   etc.
+
+
+Facet        Max deviation (%)        Avg deviation (%)
+     0               9.04                   6.92
+     1              15.20                   7.88 etc.
+
+
+In addition to diagnostics, txt file with point values across all facets will be generated as sb_[polytope]_run.
+```
+
