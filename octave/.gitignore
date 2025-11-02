@@ -1,0 +1,9 @@
+# Build directories
+src/build/
+src/*.oct
+inst/*.oct
+
+# Octave package files
+inst/*.oct
+*.tar.gz
+

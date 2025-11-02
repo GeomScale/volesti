@@ -62,4 +62,27 @@ An ``R`` interface is available from the package [Rvolesti](https://github.com/G
 
 A ``python`` interface is available from the package [dingo](https://github.com/GeomScale/dingo).
 
+## Octave Interface
+
+An ``Octave`` package interface is available in the `octave/` directory of this repository. To install:
+
+1. Install prerequisites: Octave (>= 5.1.0), C++ compiler with C++17 support, CMake (>= 3.11), Eigen3, Boost, and lp_solve.
+
+2. Build the MEX files:
+   ```bash
+   cd octave/src
+   mkdir build && cd build
+   cmake ..
+   make
+   ```
+
+3. Install the package from within Octave:
+   ```octave
+   cd octave
+   pkg install .
+   pkg load volesti
+   ```
+
+For detailed instructions, see [octave/README.md](../../octave/README.md).
+
 

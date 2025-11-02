@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/logo/volesti_logo.jpg"></p>
 
-**VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R`  interface. For a limited `Python` interface we refer to package [dingo](https://github.com/GeomScale/dingo). **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
+**VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with interfaces for `R`, `Python`, and `GNU Octave`. An `R` interface is available on [CRAN](https://CRAN.R-project.org/package=volesti). For a limited `Python` interface we refer to package [dingo](https://github.com/GeomScale/dingo). An `Octave` package interface is available in the `octave/` directory of this repository. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
 
 [![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
 [![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)

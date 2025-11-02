@@ -1,0 +1,13 @@
+Name: volesti
+Version: 1.0.0
+Date: 2025-01-03
+Title: Volume Estimation and Sampling of Convex Bodies
+Author: Vissarion Fisikopoulos, Apostolos Chalkis, Elias Tsigaridas, and contributors
+Maintainer: VolEsti Team
+Description: VolEsti is a C++ library for volume approximation and sampling of convex bodies (e.g. polytopes). This package provides an Octave interface to the VolEsti library, allowing Octave users to compute volumes and sample from convex polytopes using native Octave code.
+License: LGPL-3.0-or-later
+Categories: Mathematics, Statistics, Numerical Methods
+Url: https://github.com/GeomScale/volesti
+Depends: octave (>= 5.1.0)
+SystemRequirements: C++ compiler with C++17 support, CMake (>= 3.11), Eigen3, Boost, lp_solve
+

@@ -1,0 +1,88 @@
+INSTALLATION INSTRUCTIONS FOR VOLESTI OCTAVE PACKAGE
+=====================================================
+
+Prerequisites
+-------------
+
+1. Octave (version 5.1.0 or later)
+   - Download from: https://www.gnu.org/software/octave/download.html
+   - Or install via package manager (apt, brew, etc.)
+
+2. C++ compiler with C++17 support
+   - GCC 7+ or Clang 5+ on Linux/Mac
+   - MSVC 2017+ on Windows
+
+3. CMake (>= 3.11)
+   - Download from: https://cmake.org/download/
+
+4. Required libraries:
+   - Eigen3 (>= 3.3)
+   - Boost libraries
+   - lp_solve
+   
+   On Ubuntu/Debian:
+     sudo apt-get install libeigen3-dev libboost-all-dev lp-solve liblpsolve55-dev
+
+   On macOS (with Homebrew):
+     brew install eigen boost lp_solve
+
+   On Windows:
+     Use vcpkg or install manually
+
+Building the MEX Files
+----------------------
+
+1. Navigate to the source directory:
+   cd octave/src
+
+2. Create build directory and configure:
+   mkdir build
+   cd build
+   cmake ..
+
+   On Windows (PowerShell or Command Prompt):
+     mkdir build
+     cd build
+     cmake ..
+
+3. Build:
+   make          # Linux/Mac
+   
+   On Windows:
+     cmake --build . --config Release
+
+4. The compiled .oct files should appear in octave/inst/
+
+Installing the Package
+-----------------------
+
+1. From within Octave, navigate to the octave directory:
+   cd octave
+
+2. Install the package:
+   pkg install .
+
+3. Load the package:
+   pkg load volesti
+
+4. Test the installation:
+   volesti_example
+
+Troubleshooting
+---------------
+
+- If octave-config is not found:
+  - Ensure Octave is in your PATH
+  - Or specify the path manually in CMakeLists.txt
+
+- If MEX files fail to load:
+  - Check that all dependencies are installed
+  - Verify that .oct files are in the inst/ directory
+  - Try rebuilding with verbose output
+
+- Build errors related to Eigen or Boost:
+  - Ensure include paths are correct in CMakeLists.txt
+  - Check that library versions are compatible
+
+For more help, see octave/README.md or the main project documentation.
+

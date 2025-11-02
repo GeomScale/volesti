@@ -1,0 +1,132 @@
+\input texinfo
+@setfilename volesti.info
+@settitle VolEsti Manual
+
+@dircategory Packages
+@direntry
+* VolEsti: (volesti). Volume Estimation and Sampling of Convex Bodies.
+@end direntry
+
+@titlepage
+@title VolEsti
+@subtitle Volume Estimation and Sampling of Convex Bodies
+@author VolEsti Team
+@end titlepage
+
+@node Top
+@top VolEsti
+
+VolEsti is a C++ library for volume approximation and sampling of convex bodies (e.g. polytopes).
+This package provides an Octave interface to the VolEsti library.
+
+@menu
+* Introduction::
+* Installation::
+* Functions Reference::
+* Examples::
+* Index::
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+VolEsti is a C++ library for computing volume approximations and sampling
+from convex bodies, particularly polytopes. This package provides an Octave
+interface that allows you to use VolEsti functionality from within Octave.
+
+@node Installation
+@chapter Installation
+
+To install the VolEsti package for Octave:
+
+@enumerate
+@item
+Ensure you have Octave installed (version 5.1.0 or later).
+
+@item
+Install the required dependencies:
+@itemize
+@item C++ compiler with C++17 support
+@item CMake (>= 3.11)
+@item Eigen3
+@item Boost libraries
+@item lp_solve
+@end itemize
+
+@item
+Build the MEX files by running CMake in the @code{octave/src} directory:
+@example
+cd octave/src
+mkdir build
+cd build
+cmake ..
+make
+@end example
+
+@item
+Install the package using Octave's pkg command:
+@example
+pkg install octave
+@end example
+
+@end enumerate
+
+@node Functions Reference
+@chapter Functions Reference
+
+@menu
+* Volume Computation::
+* Sampling::
+* Polytope Generation::
+@end menu
+
+@node Volume Computation
+@section Volume Computation
+
+@DOCSTRING(volume)
+
+@node Sampling
+@section Sampling
+
+@DOCSTRING(sample_points)
+
+@node Polytope Generation
+@section Polytope Generation
+
+@DOCSTRING(GenCube)
+
+@node Examples
+@chapter Examples
+
+@subsection Computing the Volume of a Cube
+
+@example
+@group
+% Generate a 3-dimensional cube
+P = GenCube(3);
+% Compute its volume
+vol = volume(P);
+printf("Volume of 3D cube: %f\n", vol);
+@end group
+@end example
+
+@subsection Sampling from a Polytope
+
+@example
+@group
+% Generate a 3-dimensional cube
+P = GenCube(3);
+% Sample 100 points uniformly
+points = sample_points(P, 100);
+% Plot first two dimensions
+plot(points(1,:), points(2,:), 'o');
+@end group
+@end example
+
+@node Index
+@chapter Index
+
+@printindex cp
+
+@bye
+
