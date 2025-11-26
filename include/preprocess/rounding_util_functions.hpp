@@ -3,7 +3,8 @@
 // Copyright (c) 2012-2024 Vissarion Fisikopoulos
 // Copyright (c) 2018-2024 Apostolos Chalkis
 
-//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -13,9 +14,9 @@
 
 #include <memory>
 
-#include "Spectra/include/Spectra/SymEigsSolver.h"
-#include "Spectra/include/Spectra/MatOp/DenseSymMatProd.h"
-#include "Spectra/include/Spectra/MatOp/SparseSymMatProd.h"
+#include "Spectra/SymEigsSolver.h"
+#include "Spectra/MatOp/DenseSymMatProd.h"
+#include "Spectra/MatOp/SparseSymMatProd.h"
 
 
 template <typename NT>

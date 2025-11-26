@@ -13,8 +13,8 @@
 #include <Eigen/Eigenvalues>
 
 // Spectra library for eigenvalue problems
-#include <Spectra/include/Spectra/GenEigsSolver.h>
-#include <Spectra/include/Spectra/MatOp/DenseGenMatProd.h>
+#include <Spectra/GenEigsSolver.h>
+#include <Spectra/MatOp/DenseGenMatProd.h>
 
 /// Solver for various eigenvalue problems arising in convex optimization
 /// Provides methods for quadratic eigenvalue problems (QEP), generalized eigenvalue

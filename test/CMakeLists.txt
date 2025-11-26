@@ -1,10 +1,13 @@
 # VolEsti (volume computation and sampling library)
-# Copyright (c) 2012-2020 Vissarion Fisikopoulos
-# Copyright (c) 2018-2020 Apostolos Chalkis
-# Copyright (c) 2021 Vaibhav Thakkar
+
+# Copyright (c) 2012-2025 Vissarion Fisikopoulos
+# Copyright (c) 2018-2025 Apostolos Chalkis
+# Copyright (c) 2020-2025 Elias Tsigaridas
 
 # Contributed and/or modified by Vaibhav Thakkar
 # Contributed and/or modified by Ioannis Iakovidis
+# Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
+
 # Licensed under GNU LGPL.3, see LICENCE file
 
 project( VolEsti )
@@ -112,6 +115,9 @@ GetAutodiff()
 
 include("../external/cmake-files/Eigen.cmake")
 GetEigen()
+
+include("../external/cmake-files/Spectra.cmake")
+GetSpectra()
 
 include("../external/cmake-files/Boost.cmake")
 GetBoost()
