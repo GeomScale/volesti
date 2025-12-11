@@ -17,6 +17,7 @@
 #include "random_walks/gaussian_rdhr_walk.hpp"
 #include "random_walks/uniform_ball_walk.hpp"
 #include "random_walks/uniform_billiard_walk.hpp"
+#include "random_walks/sparse_uniform_billiard_walk.hpp"
 #include "random_walks/uniform_cdhr_walk.hpp"
 #include "random_walks/uniform_rdhr_walk.hpp"
 #include "random_walks/uniform_dikin_walk.hpp"

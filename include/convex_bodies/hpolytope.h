@@ -8,6 +8,7 @@
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 //Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 //Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
+//Contributed and/or modified by Vladimir Necula, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -55,6 +56,7 @@ public:
     typedef MT_type                                           MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
+    typedef Eigen::SparseMatrix<NT, Eigen::RowMajor>         SparseRowMT;
 
 private:
     unsigned int         _d; //dimension
@@ -672,6 +674,72 @@ public:
     }
     
 
+    template<typename Params>
+    std::pair<NT,int> sparse_line_positive_intersect(Point const& r_rounded,
+                                                    Point const& v_rounded,
+                                                    VT& Ar, VT& Av,
+                                                    Params &params) const
+    {
+        VT r_orig = params.L_inv.transpose().template triangularView<Eigen::Lower>().solve(r_rounded.getCoefficients());
+        VT v_orig = params.L_inv.transpose().template triangularView<Eigen::Lower>().solve(v_rounded.getCoefficients());
+
+        NT lambda_min = std::numeric_limits<NT>::max();
+        int facet = -1;
+
+        Ar = params.A_original * r_orig;
+        Av = params.A_original * v_orig;
+
+        for (int i = 0; i < params.A_original.rows(); ++i)
+        {
+            NT b = params.b_original(i);
+            if (std::abs(Av(i)) > NT(1e-12)) {
+                NT lambda = (b - Ar(i)) / Av(i);
+                if (lambda > NT(1e-12) && lambda < lambda_min) {
+                    lambda_min = lambda;
+                    facet = i;
+                }
+            }
+        }
+
+        if (facet != -1) {
+            params.facet_prev = facet;
+        }
+
+        return {lambda_min, facet};
+    }
+
+    template<typename Params>
+    std::pair<NT,int> sparse_line_positive_intersect(Point const& r_rounded, Point const& v_rounded,
+                                                    VT& Ar, VT& Av, NT lambda_prev,
+                                                    Params &params) const
+    {
+        VT r_orig = params.L_inv.transpose().template triangularView<Eigen::Lower>().solve(r_rounded.getCoefficients());
+        VT v_orig = params.L_inv.transpose().template triangularView<Eigen::Lower>().solve(v_rounded.getCoefficients());
+
+        Ar.noalias() += lambda_prev * Av;
+        Av = params.A_original * v_orig;
+
+        NT lambda_min = std::numeric_limits<NT>::max();
+        int facet = -1;
+
+        for (int i = 0; i < params.A_original.rows(); ++i)
+        {
+            NT b = params.b_original(i);
+            if (std::abs(Av(i)) > NT(1e-12)) {
+                NT lambda = (b - Ar(i)) / Av(i);
+                if (lambda > NT(1e-12) && lambda < lambda_min) {
+                    lambda_min = lambda;
+                    facet = i;
+                }
+            }
+        }
+
+        if (facet != -1) {
+            params.facet_prev = facet;
+        }
+
+        return {lambda_min, facet};
+    }
     //-----------------------------------------------------------------------------------//
 
 
@@ -1022,6 +1090,15 @@ public:
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
     }
+
+    template<typename Params>
+    void sparse_compute_reflection(Point &v_rounded, Params const &params) const
+    {
+        const VT& normalized_row = params.get_normalized_A_rounded_row(params.facet_prev);
+        NT dot_product = normalized_row.dot(v_rounded.getCoefficients());
+        v_rounded += (-2.0 * dot_product) * Point(normalized_row);
+    } 
+ 
 
     // Only to be called when MT is in RowMajor format
     // The real value of p is given by p + params.moved_dist * v
