@@ -92,6 +92,14 @@ public:
         return P1.get_vec();
     }
 
+    //this is just needed to compile the code
+    VT get_row(int vertex_index) const 
+    {
+        if (vertex_index < 0 || vertex_index >= P1.get_mat().rows())
+            throw std::out_of_range("Vertex index out of range!");
+        return P1.get_mat().row(vertex_index);
+    }
+
     bool is_normalized () {
         return true;
     }
