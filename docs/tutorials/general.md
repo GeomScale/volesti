@@ -1,10 +1,20 @@
 # Essential volesti tutorial in R
 
+> ⚠️ **Version notice**
+>
+> This tutorial refers to the **development version (≥ 1.2.0)** of the
+> `volesti` R package.
+>
+> Some examples do **not work with the current CRAN release (1.1.2)**.
+
+
 > This is a merge of a series of volesti tutorials presented in university courses and seminars in 2016-2018.
 
 `volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
 
-We can download the `R` package from the [CRAN webpage](https://CRAN.R-project.org/package=volesti).
+The stable version of the `volesti` R package is available on CRAN.
+However, the examples in this tutorial require the development
+version (≥ 1.2.0).
 
 ```r
 # first load the volesti library
@@ -22,7 +32,7 @@ help("sample_points")
 Let’s try our first volesti command to estimate the volume of a 3-dimensional cube $\{-1\leq x_i \leq 1,x_i \in \mathbb R\ |\ i=1,2,3\}$
 
 ```r
-P <- GenCube(3,'H')
+P <- gen_cube(3,'H')
 print(volume(P))
 ```
 
@@ -125,7 +135,7 @@ library(ggplot2)
 library(volesti)
 for (step in c(1,20,100,150)){
   for (walk in c("CDHR", "RDHR", "BW")){
-    P <- GenCube(100, 'H')
+    P <- gen_cube(100, 'H')
     points1 <- sample_points(P, WalkType = walk, walk_step = step, N=1000)
     g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
 geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
@@ -151,7 +161,7 @@ Now let's compute our first example. The volume of the 3-dimensional cube.
 ```r
 library(geometry)
 
-PV <- GenCube(3,'V')
+PV <- gen_cube(3,'V')
 str(PV)
 
 #P = GenRandVpoly(3, 6, body = 'cube')
@@ -165,7 +175,7 @@ cat(sprintf("exact vol = %f\napprx vol = %f\nrelative error = %f\n",
 Now try a higher dimensional example. By setting the `error` parameter we can control the apporximation of the algorithm.
 
 ```r
-PH = GenCube(10,'H')
+PH = gen_cube(10,'H')
 volumes <- list()
 for (i in 1:10) {
   # default parameters
@@ -196,31 +206,16 @@ tim1 <- system.time({ geom_values = convhulln(P$V, options = 'FA') })
 print(volume(P))
 ```
 
-### Volume of Birkhoff polytopes
+## Volume of Birkhoff polytopes
 
+This example has been removed.
 
-We now continue with a more interesting example, the 10-th Birkhoff polytope. It is known from https://arxiv.org/pdf/math/0305332.pdf that its volume equals
+Earlier versions of the tutorial relied on helper functions
+(e.g. `fileToMatrix`) that are no longer part of the public
+`volesti` R API.
 
-$\text{vol}(\mathcal{B}_{10}) = \frac{727291284016786420977508457990121862548823260052557333386607889}{828160860106766855125676318796872729344622463533089422677980721388055739956270293750883504892820848640000000}$
-
-obtained via massive parallel computation.
-
-```r
-library(volesti)
-P <- fileToMatrix('data/birk10.ine')
-exact <- 727291284016786420977508457990121862548823260052557333386607889/828160860106766855125676318796872729344622463533089422677980721388055739956270293750883504892820848640000000
-
-# warning the following will take around half an hour
-#print(volume(P, Algo = 'CG'))
-```
-
-Compare our computed estimation with the "normalized" floating point version of  $\text{vol}(\mathcal{B}_{10})$
-
-```r
-n <- 10
-vol_B10 <- 727291284016786420977508457990121862548823260052557333386607889/828160860106766855125676318796872729344622463533089422677980721388055739956270293750883504892820848640000000
-print(vol_B10/(n^(n-1)))
-```
+Support for Birkhoff polytopes is available in the development
+branch, but requires custom construction of the polytope.
 
 
 ## Rounding
@@ -308,7 +303,7 @@ adaptIntegrate(f, lowerLimit = c(-1, -1, -1), upperLimit = c(1, 1, 1))$integral
 
 # Simple Monte Carlo integration
 # https://en.wikipedia.org/wiki/Monte_Carlo_integration
-P = GenCube(3, 'H')
+P = gen_cube(3, 'H')
 num_of_points <- 10000
 points1 <- sample_points(P, WalkType = "RDHR", walk_step = 100, N=num_of_points)
 int<-0
