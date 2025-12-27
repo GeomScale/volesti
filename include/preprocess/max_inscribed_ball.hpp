@@ -15,13 +15,13 @@
 
 /*
     This implmentation computes the largest inscribed ball in a given convex polytope P.
-    The polytope has to be given in H-representation P = {x | Ax <= b} and the rows of A
-    has to be normalized. It solves the Linear program: max t, s.t. Ax + t*e <= b, where 
+    The polytope has to be given in H-representation P = {x | Ax <= b_norm} and the rows of A_norm
+    has to be normalized. It solves the Linear program: max t, s.t. Ax + t*e <= b_norm, where 
     e is the vector of ones.
 
     The implementation is based on Yin Zhang's Matlab implementation in https://github.com/Bounciness/Volume-and-Sampling/blob/1c7adfb46c2c01037e625db76ff00e73616441d4/external/mve11/mve_cobra/mve_presolve_cobra.m
 
-    Input: matrix A, vector b such that the polytope P = {x | Ax<=b}
+    Input: matrix A_norm, vector b_norm such that the polytope P = {x | Ax<=b_norm}
            tolerance parameter tol
 
     Output: center of the ball x
@@ -29,12 +29,12 @@
 */
 
 template <typename MT, typename llt_type, typename VT, typename NT>
-void calcstep(MT const& A, MT const& A_trans, MT const& B,
+void calcstep(MT const& A_norm, MT const& A_trans, MT const& B,
               llt_type const& llt, VT &s, VT &y, VT &r1,
               VT const& r2, NT const& r3, VT &r4, VT &dx,
               VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
 {
-    int m = A.rows(), n = A.cols();
+    int m = A_norm.rows(), n = A_norm.cols();
     NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(),
        *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
     for (int i = 0; i < m; ++i) {
@@ -49,7 +49,7 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
 
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
-    ds.noalias() = r1 - A*dx - VT::Ones(m) * dt;
+    ds.noalias() = r1 - A_norm*dx - VT::Ones(m) * dt;
     vec_iter1 = dy.data(); vec_iter2 = r4.data(); vec_iter3 = y.data();
     vec_iter4 = ds.data(); vec_iter5 = s.data();
 
@@ -61,20 +61,34 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
 
 // Using MT as to deal with both dense and sparse matrices
 template <typename MT, typename VT, typename NT>
-std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, 
-                                             unsigned int maxiter, NT tol,
-                                             const bool feasibility_only = false) 
+std::tuple<VT, NT, bool>
+max_inscribed_ball(MT const& A_in, VT const& b_in,
+                   unsigned int maxiter, NT tol,
+                   const bool feasibility_only = false)
 {
     //typedef matrix_computational_operator<MT> mat_op;
-    int m = A.rows(), n = A.cols();
+    int m = A_in.rows(), n = A_in.cols();
+
+    // --- Normalize rows of A and corresponding b ---
+    MT A_norm = A_in;
+    VT b_norm = b_in;
+
+    for (int i = 0; i < m; ++i) {
+        NT row_norm = A_norm.row(i).norm();
+        if (row_norm > NT(0)) {
+            A_norm.row(i) /= row_norm;
+            b_norm(i)     /= row_norm;
+        }
+    }
+
     bool converge = false;
 
-    NT bnrm = b.norm();
+    NT bnrm = b_norm.norm();
     VT o_m = VT::Zero(m), o_n = VT::Zero(n), e_m = VT::Ones(m);
 
     VT x = o_n, y = e_m / m;
-    NT t = b.minCoeff() - 1.0;
-    VT s = b - e_m * t;
+    NT t = b_norm.minCoeff() - 1.0;
+    VT s = b_norm - e_m * t;
 
     VT dx = o_n;
     VT dxc = dx, ds = o_m;
@@ -88,15 +102,15 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
     NT const tau0 = 0.995, power_num = 5.0 * std::pow(10.0, 15.0);
     NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
 
-    MT B, AtD(n, m), A_trans = A.transpose();
+    MT B, AtD(n, m), A_trans = A_norm.transpose();
 
-    init_Bmat<NT>(B, n, A_trans, A);
+    init_Bmat<NT>(B, n, A_trans, A_norm);
     auto llt = initialize_chol<NT>(B);
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
         // KKT residuals
-        r1.noalias() = b - (A * x + s + t * e_m);
+        r1.noalias() = b_norm - (A_norm * x + s + t * e_m);
         r2.noalias() = -A_trans * y;
         r3 = 1.0 - y.sum();
         r4 = -s.cwiseProduct(y);
@@ -108,7 +122,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         // relative residual norms and gap
         prif = r1.norm() / (1.0 + bnrm);
         drif = r23.norm() / 10.0;
-        rgap = std::abs(b.dot(y) - t) / (1.0 + std::abs(t));
+        rgap = std::abs(b_norm.dot(y) - t) / (1.0 + std::abs(t));
         total_err = std::max(prif, drif);
         total_err = std::max(total_err, rgap);
 
@@ -143,10 +157,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         update_A_Diag<NT>(AtD, A_trans, d.asDiagonal()); // AtD = A_trans*d.asDiagonal()
 
         AtDe.noalias() = AtD * e_m;
-        update_Bmat<NT>(B, AtDe, d, AtD, A);
+        update_Bmat<NT>(B, AtDe, d, AtD, A_norm);
 
         // predictor step & length
-        calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
+        calcstep(A_norm, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
 
         alphap = -1.0;
         alphad = -1.0;
@@ -173,7 +187,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
 
         // corrector and combined step & length
         mu_ds_dy.noalias() = e_m * mu - ds.cwiseProduct(dy);
-        calcstep(A, A_trans, B, llt, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
+        calcstep(A_norm, A_trans, B, llt, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
 
         dx += dxc;
         ds += dsc;
