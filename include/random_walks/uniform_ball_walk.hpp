@@ -79,7 +79,7 @@ struct BallWalk
                                                           _delta,
                                                           rng);
                 y += p;
-                if (P.is_in(y) == -1) p = y;
+                if (P.is_in(y) != -1) p = y;
             }
         }
 
