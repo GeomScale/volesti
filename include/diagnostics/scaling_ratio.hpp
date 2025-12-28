@@ -8,6 +8,7 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+#include <stdexcept>
 #ifndef DIAGNOSTICS_SCALING_RATIO_HPP
 #define DIAGNOSTICS_SCALING_RATIO_HPP
 
@@ -24,10 +25,16 @@ scaling_ratio_boundary_test(const Polytope&  P,
     
     const int dim = P.dimension();
     const int m = P.num_of_hyperplanes();
+    if (dim <= 1) { //this makes assumptions explicit, not implicit.
+        throw std::invalid_argument(
+            "scaling_ratio_boundary_test requires dimension >= 2"
+        );
+    }
+
     const unsigned n_samp = static_cast<unsigned>(samples.cols());
 
     VT scale(10); //we scale 10 times
-    MT coverage(m, 10);
+    MT coverage = MT::Zero(m, 10); // this eliminates undefined behavior.
     std::vector<int> facet_id(n_samp, -1);
     const auto A_full = P.get_mat();
     const auto b_full = P.get_vec();
@@ -53,9 +60,17 @@ scaling_ratio_boundary_test(const Polytope&  P,
             if (facet_id[i] == f)
                 S.push_back(static_cast<int>(i));
         }
+        
+        // this prevents future division-by-zero bugs.
+        if (S.empty()) {
+            continue;
+        }
 
         const double ratio = static_cast<double>(S.size()) / n_samp;
-        if (ratio < min_ratio)  continue;
+        if (ratio < min_ratio) {
+            continue;
+        }
+
 
         // Finding the center
         VT p = VT::Zero(dim);
@@ -66,7 +81,11 @@ scaling_ratio_boundary_test(const Polytope&  P,
         for (int k = 0; k < 10; ++k) 
         {
             NT step = 0.1 * (k+1);
-            NT x = std::pow(step, 1.0 / dim);
+            NT x = std::pow(step, NT(1) / dim);
+            if (x <= NT(0)) {
+                continue;
+            }
+
             // Local copy of polytope for each scaling
             Polytope P_loc = P;
             
