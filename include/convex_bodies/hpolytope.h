@@ -336,7 +336,7 @@ public:
 
             b_data++;
         }
-        return -1;
+        return 1;
     }
 
     // compute intersection point of ray starting from r and pointing to v
