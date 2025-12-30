@@ -81,7 +81,7 @@ struct Walk
                                                       _delta,
                                                       rng);
             y += p;
-            if (P.is_in(y) == -1)
+            if (P.is_in(y) == 1)
             {
                 NT f_x = eval_exp(p, a_i);
                 NT f_y = eval_exp(y, a_i);
