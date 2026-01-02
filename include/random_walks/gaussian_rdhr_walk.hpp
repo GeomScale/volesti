@@ -21,11 +21,12 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-void chord_random_point_generator_exp(Point &lower,
+bool chord_random_point_generator_exp(Point &lower,
                                       Point & upper,
                                       const NT &a_i,
                                       Point &p,
-                                      RandomNumberGenerator& rng)
+                                      RandomNumberGenerator& rng,
+                                      unsigned int max_sampling_tries)
 {
     NT r, r_val, fn;
     Point bef = upper - lower;
@@ -37,28 +38,37 @@ void chord_random_point_generator_exp(Point &lower,
         Point z = (a.dot(b) * b) + lower;
         NT low_bd = (lower[0] - z[0]) / b[0];
         NT up_bd = (upper[0] - z[0]) / b[0];
-        while (true) {
-            r = rng.sample_ndist();//rdist(rng2);
+        for (unsigned int tries = 0; tries < max_sampling_tries; ++tries)
+        {
+            r = rng.sample_ndist();
             r = r / std::sqrt(2.0 * a_i);
-            if (r >= low_bd && r <= up_bd) {
-                break;
+
+            if (r >= low_bd && r <= up_bd)
+            {
+                p = (r * b) + z;
+                return true;
             }
         }
-        p = (r * b) + z;
+        return false;
 
     // select using rejection sampling from a bounding rectangle
     } else {
         NT M = get_max(lower, upper, a_i);
-        while (true) {
-            r = rng.sample_urdist();//urdist(rng2);
+        for (unsigned int tries = 0; tries < max_sampling_tries; ++tries)
+        {
+            r = rng.sample_urdist();
             Point pef = r * upper;
             p = ((1.0 - r) * lower) + pef;
-            r_val = M * rng.sample_urdist();//urdist(var.rng);
+
+            r_val = M * rng.sample_urdist();
             fn = eval_exp(p, a_i);
-            if (r_val < fn) {
-                break;
+
+            if (r_val < fn)
+            {
+                return true;
             }
         }
+        return false;
     }
 }
 
@@ -80,6 +90,10 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
+    static constexpr NT eps = NT(1e-12);
+    static constexpr unsigned int max_direction_tries = 10;
+    static constexpr unsigned int max_sampling_tries = 100;
+
     Walk(Polytope&, Point const&, NT const&, RandomNumberGenerator&)
     {}
 
@@ -87,29 +101,45 @@ struct Walk
          parameters&)
     {}
 
-    template
-    <
-        typename BallPolytope
-    >
+    template <typename BallPolytope>
     inline void apply(BallPolytope const& P,
-                      Point &p,   // a point to start
-                      NT const& a_i,
-                      unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
+                    Point& p,
+                    NT const& a_i,
+                    unsigned int const& walk_length,
+                    RandomNumberGenerator& rng)
     {
         for (auto j = 0u; j < walk_length; ++j)
         {
-            Point v = GetDirection<Point>::apply(p.dimension(), rng);
-            std::pair <NT, NT> dbpair = P.line_intersect(p, v);
+            bool moved = false;
 
-            NT min_plus = dbpair.first;
-            NT max_minus = dbpair.second;
-            Point upper = (min_plus * v) + p;
-            Point lower = (max_minus * v) + p;
+            for (unsigned int tries = 0; tries < max_direction_tries; ++tries)
+            {
+                Point v = GetDirection<Point>::apply(p.dimension(), rng);
+                auto dbpair = P.line_intersect(p, v);
 
-            chord_random_point_generator_exp(lower, upper, a_i, p, rng);
+                if (dbpair.first > dbpair.second + eps)
+                {
+                    Point upper = (dbpair.first * v) + p;
+                    Point lower = (dbpair.second * v) + p;
+
+                    bool ok = chord_random_point_generator_exp(
+                        lower, upper, a_i, p, rng, max_sampling_tries);
+
+                    if (ok)
+                    {
+                        moved = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!moved)
+            {
+                // no-op: keep p unchanged
+            }
         }
     }
+
 };
 
 };
