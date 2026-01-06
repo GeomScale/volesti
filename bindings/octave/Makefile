@@ -9,6 +9,9 @@ VOLESTI_ROOT = ../..
 VOLESTI_INCLUDE = $(VOLESTI_ROOT)/include
 
 # External dependencies (Eigen, Boost, Spectra) - from CMake FetchContent
+# IMPORTANT: Before running make, you must run CMake from the repository root
+# (e.g., cmake -S . -B build) so FetchContent downloads and populates the
+# external/_deps tree with Eigen and Boost dependencies.
 EXTERNAL = $(VOLESTI_ROOT)/external
 EIGEN_INCLUDE = $(EXTERNAL)/_deps/eigen-src
 BOOST_INCLUDE = $(EXTERNAL)/_deps/boost-src

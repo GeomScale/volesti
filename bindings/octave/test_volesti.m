@@ -32,7 +32,7 @@ fprintf('  Expected Volume: 2 × 2 = 4.0\n\n');
 
 % Compute volume using Volesti wrapper
 fprintf('Computing volume using Volesti...\n');
-computed_volume = compute_volume(A, b,0.1,10);
+computed_volume = compute_volume(A, b, 0.1, 10);
 
 % Expected analytical result
 expected_volume = 4.0;

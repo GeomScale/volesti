@@ -4,8 +4,8 @@
 % Demonstrates the accuracy vs speed tradeoff using optional parameters
 
 % Load the compute_volume function from the .oct plugin
-autoload('compute_volume', fullfile(pwd, 'volesti_volume.oct'));
-
+script_dir = fileparts(mfilename('fullpath'));
+autoload('compute_volume', fullfile(script_dir, 'volesti_volume.oct'));
 fprintf('\n=== Accuracy vs Speed Tradeoff Example ===\n\n');
 
 % Define a 2D hypercube: -1 <= x, y <= 1

@@ -57,13 +57,24 @@ Examples:\n\
         return octave_value_list();
     }
 
+    // Convert Octave inputs to Matrix/ColumnVector with error handling
+    Matrix octave_A;
+    ColumnVector octave_b;
+    int m, n;
     
-    Matrix octave_A = args(0).matrix_value();
-    ColumnVector octave_b = args(1).column_vector_value();
-
-
-    int m = octave_A.rows();    // number of constraints
-    int n = octave_A.cols();    // dimension of space
+    try
+    {
+        octave_A = args(0).matrix_value();
+        octave_b = args(1).column_vector_value();
+        
+        m = octave_A.rows();    // number of constraints
+        n = octave_A.cols();    // dimension of space
+    }
+    catch (const std::exception& e)
+    {
+        error("compute_volume: Invalid input types. Expected matrix A and column vector b. Error: %s", e.what());
+        return octave_value_list();
+    }
 
 
     if (octave_b.numel() != m)

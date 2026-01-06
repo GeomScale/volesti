@@ -58,19 +58,32 @@ mkoctfile --version
 
 ## Build Instructions
 
-1. Navigate to the `bindings/octave/` directory:
+### Prerequisite: Populate External Dependencies
+
+Before building the Octave plugin, you must run CMake from the repository root to populate the `external/_deps/` directory. The Makefile depends on CMake's FetchContent to download Eigen, Boost, and other dependencies.
+
+1. From the repository root, configure the build with CMake:
+```bash
+cmake -S . -B build
+```
+
+This step downloads and populates `external/_deps/eigen-src` and `external/_deps/boost-src`, which the Octave Makefile requires.
+
+### Building the Octave Plugin
+
+2. Navigate to the `bindings/octave/` directory:
 ```bash
 cd bindings/octave
 ```
 
-2. Build the plugin:
+3. Build the plugin:
 ```bash
 make
 ```
 
 This compiles `volesti_volume.cpp` into `volesti_volume.oct`, a binary plugin that Octave can load.
 
-3. Clean build artifacts (if needed):
+4. Clean build artifacts (if needed):
 ```bash
 make clean
 ```
