@@ -1,0 +1,6 @@
+# Build artifacts
+volesti_volume.oct
+
+# Octave temporary files
+octave-workspace
+*.m~
