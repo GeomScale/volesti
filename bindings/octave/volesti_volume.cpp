@@ -24,7 +24,7 @@ typedef typename Kernel::Point Point;
 typedef HPolytope<Point> Hpolytope;
 
 DEFUN_DLD(compute_volume, args, nargout,
-          "volume = compute_volume(A, b [, epsilon, walk_length])\n\
+          "volume = compute_volume(A, b [, epsilon, walk_length, verbose])\n\
 \n\
 Compute the volume of an H-polytope defined by Ax <= b.\n\
 \n\
@@ -35,6 +35,7 @@ Parameters:\n\
             Smaller values give more accurate results but take longer\n\
   walk_length : (optional) random walk length (default: 1)\n\
                 Larger values improve mixing but increase computation time\n\
+  verbose : (optional) enable progress messages (default: true)\n\
 \n\
 Returns:\n\
   volume : Estimated volume of the polytope\n\
@@ -49,11 +50,14 @@ Examples:\n\
   vol = compute_volume(A, b, 0.1)\n\
 \n\
   % Custom epsilon and walk_length\n\
-  vol = compute_volume(A, b, 0.1, 10)\n")
+  vol = compute_volume(A, b, 0.1, 10)\n\
+\n\
+  % Silent mode for batch processing\n\
+  vol = compute_volume(A, b, 0.1, 10, false)\n")
 {
-    if (args.length() < 2 || args.length() > 4)
+    if (args.length() < 2 || args.length() > 5)
     {
-        error("compute_volume: 2 to 4 arguments required (A, b [, epsilon, walk_length])");
+        error("compute_volume: 2 to 5 arguments required (A, b [, epsilon, walk_length, verbose])");
         return octave_value_list();
     }
 
@@ -85,7 +89,7 @@ Examples:\n\
 
     if (n < 1 || m < n + 1)
     {
-        error("compute_volume: Invalid polytope dimensions");
+        error("compute_volume: Invalid polytope dimensions (need n >= 1 and m >= n+1, got n=%d, m=%d)", n, m);
         return octave_value_list();
     }
 
@@ -105,12 +109,20 @@ Examples:\n\
     
     if (args.length() >= 4)
     {
-        walk_length = static_cast<unsigned int>(args(3).scalar_value());
-        if (walk_length < 1)
+        double walk_length_dbl = args(3).scalar_value();
+        if (walk_length_dbl < 1 || walk_length_dbl > 1e6)
         {
-            error("compute_volume: walk_length must be >= 1");
+            error("compute_volume: walk_length must be between 1 and 1e6");
             return octave_value_list();
         }
+        walk_length = static_cast<unsigned int>(walk_length_dbl);
+    }
+    
+    // Parse verbose parameter
+    bool verbose = true;  // Default: show progress messages
+    if (args.length() >= 5)
+    {
+        verbose = args(4).bool_value();
     }
 
     // ZERO-COPY MAGIC: Map Octave data directly to Eigen structures
@@ -121,13 +133,16 @@ Examples:\n\
     
     Hpolytope P(n, A_eigen, b_eigen);
 
-    // WATERMARK: Prove C++ execution 
-    octave_stdout << "[Volesti C++] Computing volume for " << n << "D polytope with " 
-                  << m << " constraints..." << std::endl;
-    octave_stdout << "[Volesti C++] Parameters: epsilon=" << epsilon 
-                  << ", walk_length=" << walk_length << std::endl;
-    octave_stdout << "[Volesti C++] Using stochastic approximation (volume_sequence_of_balls)" 
-                  << std::endl;
+    // WATERMARK: Prove C++ execution (only if verbose)
+    if (verbose)
+    {
+        octave_stdout << "[Volesti C++] Computing volume for " << n << "D polytope with " 
+                      << m << " constraints..." << std::endl;
+        octave_stdout << "[Volesti C++] Parameters: epsilon=" << epsilon 
+                      << ", walk_length=" << walk_length << std::endl;
+        octave_stdout << "[Volesti C++] Using stochastic approximation (volume_sequence_of_balls)" 
+                      << std::endl;
+    }
 
     
     NT volume = 0.0;
@@ -135,7 +150,10 @@ Examples:\n\
     try
     {
         volume = volume_sequence_of_balls(P, epsilon, walk_length);
-        octave_stdout << "[Volesti C++] Computation complete!" << std::endl;
+        if (verbose)
+        {
+            octave_stdout << "[Volesti C++] Computation complete!" << std::endl;
+        }
     }
     catch (const std::exception& e)
     {

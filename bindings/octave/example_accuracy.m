@@ -19,29 +19,44 @@ fprintf('%s\n\n', repmat('=', 1, 60));
 % Test 1: Default parameters (fast, lower accuracy)
 fprintf('1. Default Parameters (epsilon=1.0, walk_length=1)\n');
 fprintf('   Use case: Quick estimates\n\n');
-tic;
-vol1 = compute_volume(A, b);
-time1 = toc;
-err1 = abs(vol1 - expected) / expected * 100;
-fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol1, err1, time1);
+try
+  tic;
+  vol1 = compute_volume(A, b);
+  time1 = toc;
+  err1 = abs(vol1 - expected) / expected * 100;
+  fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol1, err1, time1);
+catch err
+  fprintf('   ❌ Test failed: %s\n\n', err.message);
+  vol1 = NaN; err1 = NaN; time1 = NaN;
+end
 
 % Test 2: Medium accuracy
 fprintf('2. Medium Accuracy (epsilon=0.1, walk_length=1)\n');
 fprintf('   Use case: Balance between speed and accuracy\n\n');
-tic;
-vol2 = compute_volume(A, b, 0.1);
-time2 = toc;
-err2 = abs(vol2 - expected) / expected * 100;
-fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol2, err2, time2);
+try
+  tic;
+  vol2 = compute_volume(A, b, 0.1);
+  time2 = toc;
+  err2 = abs(vol2 - expected) / expected * 100;
+  fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol2, err2, time2);
+catch err
+  fprintf('   ❌ Test failed: %s\n\n', err.message);
+  vol2 = NaN; err2 = NaN; time2 = NaN;
+end
 
 % Test 3: High accuracy
 fprintf('3. High Accuracy (epsilon=0.01, walk_length=10)\n');
 fprintf('   Use case: Research-quality results\n\n');
-tic;
-vol3 = compute_volume(A, b, 0.01, 10);
-time3 = toc;
-err3 = abs(vol3 - expected) / expected * 100;
-fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol3, err3, time3);
+try
+  tic;
+  vol3 = compute_volume(A, b, 0.01, 10);
+  time3 = toc;
+  err3 = abs(vol3 - expected) / expected * 100;
+  fprintf('   Result: %.4f  |  Error: %.4f%%  |  Time: %.3f sec\n\n', vol3, err3, time3);
+catch err
+  fprintf('   ❌ Test failed: %s\n\n', err.message);
+  vol3 = NaN; err3 = NaN; time3 = NaN;
+end
 
 % Summary
 fprintf('%s\n', repmat('=', 1, 60));
@@ -52,7 +67,7 @@ fprintf('  - Default parameters provide good balance for exploratory analysis\n'
 fprintf('  - Tighten parameters for publication-quality results\n\n');
 
 % Recommendation
-if err2 < 1.0
+if isfinite(err2) && err2 < 1.0
     fprintf('✅ RECOMMENDATION: epsilon=0.1 achieves <1%% error with reasonable speed!\n\n');
 else
     fprintf('💡 TIP: Try epsilon=0.1 for better accuracy\n\n');
