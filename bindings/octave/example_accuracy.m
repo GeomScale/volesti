@@ -26,7 +26,7 @@ try
   err1 = abs(vol1 - expected) / expected * 100;
   fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol1, err1, time1);
 catch err
-  fprintf('   ❌ Test failed: %s\n\n', err.message);
+  fprintf('    Test failed: %s\n\n', err.message);
   vol1 = NaN; err1 = NaN; time1 = NaN;
 end
 
@@ -40,7 +40,7 @@ try
   err2 = abs(vol2 - expected) / expected * 100;
   fprintf('   Result: %.4f  |  Error: %.2f%%  |  Time: %.3f sec\n\n', vol2, err2, time2);
 catch err
-  fprintf('   ❌ Test failed: %s\n\n', err.message);
+  fprintf('    Test failed: %s\n\n', err.message);
   vol2 = NaN; err2 = NaN; time2 = NaN;
 end
 
@@ -54,7 +54,7 @@ try
   err3 = abs(vol3 - expected) / expected * 100;
   fprintf('   Result: %.4f  |  Error: %.4f%%  |  Time: %.3f sec\n\n', vol3, err3, time3);
 catch err
-  fprintf('   ❌ Test failed: %s\n\n', err.message);
+  fprintf('    Test failed: %s\n\n', err.message);
   vol3 = NaN; err3 = NaN; time3 = NaN;
 end
 
@@ -68,7 +68,7 @@ fprintf('  - Tighten parameters for publication-quality results\n\n');
 
 % Recommendation
 if isfinite(err2) && err2 < 1.0
-    fprintf('✅ RECOMMENDATION: epsilon=0.1 achieves <1%% error with reasonable speed!\n\n');
+    fprintf(' RECOMMENDATION: epsilon=0.1 achieves <1%% error with reasonable speed!\n\n');
 else
-    fprintf('💡 TIP: Try epsilon=0.1 for better accuracy\n\n');
+    fprintf(' TIP: Try epsilon=0.1 for better accuracy\n\n');
 end

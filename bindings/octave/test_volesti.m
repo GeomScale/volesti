@@ -49,11 +49,11 @@ error = abs(computed_volume - expected_volume);
 fprintf('\nAbsolute Error: %.4f\n', error);
 
 if error < tolerance
-    fprintf('\n✅ SUCCESS: Results match!\n');
+    fprintf('\n SUCCESS: Results match!\n');
     fprintf('The Octave wrapper is working correctly.\n\n');
     exit(0);
 else
-    fprintf('\n❌ FAILURE: Results do not match.\n');
+    fprintf('\n FAILURE: Results do not match.\n');
     fprintf('Error exceeds tolerance of %.2f\n\n', tolerance);
     exit(1);
 end

@@ -49,9 +49,9 @@ fprintf('\nRelative Error: %.2f%%\n', relative_error);
 tolerance_percent = 20;  % 20% tolerance for stochastic estimation
 
 if relative_error < tolerance_percent
-    fprintf('\n✅ SUCCESS: Result is within acceptable tolerance!\n');
+    fprintf('\n SUCCESS: Result is within acceptable tolerance!\n');
     fprintf('The wrapper successfully handles high-dimensional polytopes.\n\n');
 else
-    fprintf('\n⚠️  WARNING: Error exceeds %.0f%% tolerance.\n', tolerance_percent);
+    fprintf('\n  WARNING: Error exceeds %.0f%% tolerance.\n', tolerance_percent);
     fprintf('Note: Volume approximation becomes more challenging in high dimensions.\n\n');
 end
