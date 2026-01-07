@@ -8,6 +8,21 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// Print standard MCMC diagnostics for a set of samples.
+//
+// Assumptions:
+//  - Samples are approximately stationary (post burn-in)
+//  - Columns correspond to consecutive samples of a single chain
+//
+// Diagnostics reported:
+//  - Mean and standard deviation per dimension
+//  - Effective Sample Size (ESS), accounting for autocorrelation
+//  - Interval PSRF (50%), a convergence diagnostic
+//
+// Notes:
+//  - ESS and PSRF estimates may be unreliable for very short chains
+//  - Computing ESS is O(N log N) due to FFT-based autocorrelation
+
 #ifndef DIAGNOSTICS_PRINT_DIAGNOSTICS_HPP
 #define DIAGNOSTICS_PRINT_DIAGNOSTICS_HPP
 
@@ -49,7 +64,7 @@ void print_diagnostics(MT const& samples, unsigned int &min_ess, StreamType &str
     }
 
     vt.print(stream);
-    stream << "interval_psrf =  " << intv_psrf.maxCoeff() << "us" << std::endl;
+    stream << "max interval_psrf (50%) = " << intv_psrf.maxCoeff() << std::endl;
 }
 
 
