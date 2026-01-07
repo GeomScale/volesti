@@ -222,6 +222,9 @@ add_executable (billiard_shake_and_bake_test billiard_shake_and_bake_test.cpp $<
 add_test(NAME test_billiard_shake_and_bake COMMAND billiard_shake_and_bake_test -tc=billiard_shake_and_bake)
 
 add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+add_executable (ode_stiff_test test_ode_stiff.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME ode_stiff_test
+        COMMAND ode_stiff_test)
 add_test(NAME ode_solvers_test_first_order
         COMMAND ode_solvers_test -tc=first_order)
 add_test(NAME ode_solvers_test_second_order
@@ -420,6 +423,7 @@ TARGET_LINK_LIBRARIES(benchmarks_cb lp_solve ${MKL_LINK} coverage_config)
 #TARGET_LINK_LIBRARIES(benchmarks_crhmc lp_solve ${MKL_LINK} QD_LIB  coverage_config)
 TARGET_LINK_LIBRARIES(simple_mc_integration lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(ode_solvers_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
+TARGET_LINK_LIBRARIES(ode_stiff_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
 TARGET_LINK_LIBRARIES(boundary_oracles_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
