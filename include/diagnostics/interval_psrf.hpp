@@ -19,6 +19,24 @@
     Output: The value of interval PSRF of S. Brooks and A. Gelman for each coordinate
 */
 
+// Interval-based Potential Scale Reduction Factor (PSRF) diagnostic.
+//
+// Assumptions:
+//  - Samples correspond to a single MCMC chain
+//  - Chain is approximately stationary (post burn-in)
+//  - Columns are consecutive samples
+//  - Number of samples is sufficiently large for interval statistics
+//
+// Notes:
+//  - Interval PSRF estimates convergence by comparing variability
+//    across disjoint intervals of the chain
+//  - Values close to 1 indicate potential convergence
+//  - PSRF < 1.1 is commonly used as a heuristic, not a guarantee
+//
+// Limitations:
+//  - Short or highly autocorrelated chains may produce misleading results
+//  - Passing this diagnostic does not imply correctness of sampling
+
 #ifndef DIAGNOSTICS_INTERVAL_PSRF_HPP
 #define DIAGNOSTICS_INTERVAL_PSRF_HPP
 
