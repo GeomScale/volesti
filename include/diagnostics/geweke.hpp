@@ -26,6 +26,26 @@
             (ii) true if the null hypothesis is not rejected
 */
 
+/* Multivariate Geweke convergence diagnostic using Hotelling's T² test.
+
+Assumptions:
+ - Samples correspond to a *single* MCMC chain
+ - Chain is approximately stationary (post burn-in)
+ - Columns are consecutive samples
+ - frac_first + frac_last < 1
+ - N1 + N2 > d + 1 (required for Fisher F distribution)
+
+Notes:
+ - This is a multivariate extension of Geweke (1992)
+ - The test checks equality of means between early and late chain segments
+ - A return value of `true` does NOT guarantee convergence,
+   only that the null hypothesis was not rejected
+
+Failure modes:
+ - Degenerate or collinear chains may cause covariance inversion to fail
+ - Very small sample sizes may produce unreliable results
+*/
+
 
 #ifndef DIAGNOSTICS_GEWEKE_HPP
 #define DIAGNOSTICS_GEWEKE_HPP
