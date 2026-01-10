@@ -16,9 +16,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
-#include "misc/misc.h"
+// #include "misc/misc.h"
 
-#include "random_walks/random_walks.hpp"
+// #include "random_walks/random_walks.hpp"
 
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
