@@ -31,6 +31,7 @@ bindings/octave/
 
 - **GNU Octave** (≥ 4.0) with development headers
 - **C++ Compiler** with C++17 support (g++ or clang++)
+- **lpsolve** library (≥ 5.5) - Required for V-polytope support
 - **Eigen** library (included in Volesti's `external/` directory)
 - **Boost** library (included in Volesti's `external/` directory)
 
@@ -39,8 +40,10 @@ bindings/octave/
 #### Ubuntu/Debian
 ```bash
 sudo apt-get update
-sudo apt-get install -y octave liboctave-dev
+sudo apt-get install -y octave liboctave-dev liblpsolve55-dev
 ```
+
+**Note:** `liblpsolve55-dev` is required for V-polytope support.
 
 #### Fedora/RHEL
 ```bash
