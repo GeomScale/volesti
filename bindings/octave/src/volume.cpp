@@ -1,8 +1,8 @@
 /*
- * volesti_volume.cpp
+ * volume.cpp
  * 
  * GNU Octave interface for Volesti library
- * Proof of Concept: Volume computation for H-polytopes
+ * Volume computation for H-polytopes and V-polytopes
  * 
  * This wrapper demonstrates zero-copy architecture using Eigen::Map
  * to directly map Octave's memory into Volesti's Eigen structures.
@@ -14,6 +14,7 @@
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
 #include "volume/volume_sequence_of_balls.hpp"
 
 typedef double NT;
@@ -22,84 +23,64 @@ typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
 typedef HPolytope<Point> Hpolytope;
+typedef VPolytope<Point> Vpolytope;
 
 DEFUN_DLD(compute_volume, args, nargout,
           "volume = compute_volume(A, b [, epsilon, walk_length, verbose])\n\
+          volume = compute_volume(V [, epsilon, walk_length, verbose])\n\
 \n\
-Compute the volume of an H-polytope defined by Ax <= b.\n\
+Compute the volume of a polytope.\n\
 \n\
-Parameters:\n\
+H-Polytope (Ax <= b):\n\
   A : m x n matrix of constraint coefficients\n\
   b : m x 1 vector of constraint bounds\n\
-  epsilon : (optional) error tolerance for approximation (default: 1.0)\n\
-            Smaller values give more accurate results but take longer\n\
-  walk_length : (optional) random walk length (default: 1)\n\
-                Larger values improve mixing but increase computation time\n\
-  verbose : (optional) enable progress messages (default: true)\n\
 \n\
-Returns:\n\
-  volume : Estimated volume of the polytope\n\
+V-Polytope (convex hull of vertices):\n\
+  V : m x n matrix where each row is a vertex\n\
 \n\
-Examples:\n\
-  % Basic usage (default parameters)\n\
-  A = [1 0; -1 0; 0 1; 0 -1];\n\
-  b = ones(4, 1);\n\
-  vol = compute_volume(A, b)\n\
-\n\
-  % Higher accuracy (epsilon = 0.1)\n\
-  vol = compute_volume(A, b, 0.1)\n\
-\n\
-  % Custom epsilon and walk_length\n\
-  vol = compute_volume(A, b, 0.1, 10)\n\
-\n\
-  % Silent mode for batch processing\n\
-  vol = compute_volume(A, b, 0.1, 10, false)\n")
+Optional parameters (both types):\n\
+  epsilon : error tolerance (default: 1.0)\n\
+  walk_length : random walk length (default: 1)\n\
+  verbose : show progress messages (default: true)\n")
 {
-    if (args.length() < 2 || args.length() > 5)
+    if (args.length() < 1 || args.length() > 5)
     {
-        error("compute_volume: 2 to 5 arguments required (A, b [, epsilon, walk_length, verbose])");
+        error("compute_volume: 1 to 5 arguments required");
         return octave_value_list();
     }
 
-    // Convert Octave inputs to Matrix/ColumnVector with error handling
-    Matrix octave_A;
-    ColumnVector octave_b;
-    int m, n;
+    // Determine polytope type based on second argument
+    // H-polytope: (A, b, ...) where b is column vector  
+    // V-polytope: (V) or (V, epsilon, ...) where epsilon is scalar
+    bool is_hpolytope = false;
+    bool is_vpolytope = false;
     
-    try
+    if (args.length() == 1)
     {
-        octave_A = args(0).matrix_value();
-        octave_b = args(1).column_vector_value();
-        
-        m = octave_A.rows();    // number of constraints
-        n = octave_A.cols();    // dimension of space
+        is_vpolytope = true;
     }
-    catch (const std::exception& e)
+    else if (args.length() >= 2)
     {
-        error("compute_volume: Invalid input types. Expected matrix A and column vector b. Error: %s", e.what());
-        return octave_value_list();
-    }
-
-
-    if (octave_b.numel() != m)
-    {
-        error("compute_volume: Dimensions of A and b do not match");
-        return octave_value_list();
+        // Check if second argument is scalar (V-poly) or vector (H-poly)
+        if (args(1).is_scalar_type())
+        {
+            is_vpolytope = true;
+        }
+        else
+        {
+            is_hpolytope = true;
+        }
     }
 
-    if (n < 1 || m < n + 1)
-    {
-        error("compute_volume: Invalid polytope dimensions (need n >= 1 and m >= n+1, got n=%d, m=%d)", n, m);
-        return octave_value_list();
-    }
-
-    // Parse optional parameters
-    NT epsilon = 1.0;  // Default error tolerance
-    unsigned int walk_length = 1;  // Default walk length
+    // Parse optional parameters (shifted index for V-polytope)
+    int param_offset = is_hpolytope ? 2 : 1;
+    NT epsilon = 1.0;
+    unsigned int walk_length = 1;
+    bool verbose = true;
     
-    if (args.length() >= 3)
+    if (args.length() >= param_offset + 1)
     {
-        epsilon = args(2).scalar_value();
+        epsilon = args(param_offset).scalar_value();
         if (epsilon <= 0)
         {
             error("compute_volume: epsilon must be positive");
@@ -107,9 +88,9 @@ Examples:\n\
         }
     }
     
-    if (args.length() >= 4)
+    if (args.length() >= param_offset + 2)
     {
-        double walk_length_dbl = args(3).scalar_value();
+        double walk_length_dbl = args(param_offset + 1).scalar_value();
         if (walk_length_dbl < 1 || walk_length_dbl > 1e6)
         {
             error("compute_volume: walk_length must be between 1 and 1e6");
@@ -118,47 +99,96 @@ Examples:\n\
         walk_length = static_cast<unsigned int>(walk_length_dbl);
     }
     
-    // Parse verbose parameter
-    bool verbose = true;  // Default: show progress messages
-    if (args.length() >= 5)
+    if (args.length() >= param_offset + 3)
     {
-        verbose = args(4).bool_value();
+        verbose = args(param_offset + 2).bool_value();
     }
 
-    // ZERO-COPY MAGIC: Map Octave data directly to Eigen structures
-    // This avoids expensive memory duplication for large matrices
-    Eigen::Map<MT> A_eigen(octave_A.fortran_vec(), m, n);
-    Eigen::Map<VT> b_eigen(octave_b.fortran_vec(), m);
-
-    
-    Hpolytope P(n, A_eigen, b_eigen);
-
-    // WATERMARK: Prove C++ execution (only if verbose)
-    if (verbose)
-    {
-        octave_stdout << "[Volesti C++] Computing volume for " << n << "D polytope with " 
-                      << m << " constraints..." << std::endl;
-        octave_stdout << "[Volesti C++] Parameters: epsilon=" << epsilon 
-                      << ", walk_length=" << walk_length << std::endl;
-        octave_stdout << "[Volesti C++] Using stochastic approximation (volume_sequence_of_balls)" 
-                      << std::endl;
-    }
-
-    
     NT volume = 0.0;
     
-    try
+    if (is_hpolytope)
     {
-        volume = volume_sequence_of_balls(P, epsilon, walk_length);
+        // H-Polytope path
+        Matrix octave_A = args(0).matrix_value();
+        ColumnVector octave_b = args(1).column_vector_value();
+        
+        int m = octave_A.rows();
+        int n = octave_A.cols();
+        
+        if (octave_b.numel() != m)
+        {
+            error("compute_volume: Dimensions of A and b do not match");
+            return octave_value_list();
+        }
+        
+        // Zero-copy: Map Octave data to Eigen
+        Eigen::Map<MT> A_eigen(octave_A.fortran_vec(), m, n);
+        Eigen::Map<VT> b_eigen(octave_b.fortran_vec(), m);
+        
+        Hpolytope P(n, A_eigen, b_eigen);
+        
         if (verbose)
         {
-            octave_stdout << "[Volesti C++] Computation complete!" << std::endl;
+            octave_stdout << "[Volesti C++] Computing H-polytope volume (" << n << "D, "
+                          << m << " constraints)..." << std::endl;
+            octave_stdout << "[Volesti C++] epsilon=" << epsilon 
+                          << ", walk_length=" << walk_length << std::endl;
+        }
+        
+        try
+        {
+            volume = volume_sequence_of_balls(P, epsilon, walk_length);
+        }
+        catch (const std::exception& e)
+        {
+            error("compute_volume: H-polytope volume computation failed: %s", e.what());
+            return octave_value_list();
         }
     }
-    catch (const std::exception& e)
+    else  // V-polytope
     {
-        error("compute_volume: Volume computation failed: %s", e.what());
-        return octave_value_list();
+        Matrix octave_V = args(0).matrix_value();
+        
+        int m = octave_V.rows();  // number of vertices
+        int n = octave_V.cols();  // dimension
+        
+        if (m < n + 1)
+        {
+            error("compute_volume: Need at least %d vertices for %dD V-polytope (got %d)", 
+                  n+1, n, m);
+            return octave_value_list();
+        }
+        
+        // Zero-copy: Map vertex matrix to Eigen
+        Eigen::Map<MT> V_eigen(octave_V.fortran_vec(), m, n);
+        
+        // Create b vector (all ones for standard V-polytope)
+        VT b_vec = VT::Ones(m);
+        
+        Vpolytope P(n, V_eigen, b_vec);
+        
+        if (verbose)
+        {
+            octave_stdout << "[Volesti C++] Computing V-polytope volume (" << n << "D, "
+                          << m << " vertices)..." << std::endl;
+            octave_stdout << "[Volesti C++] epsilon=" << epsilon 
+                          << ", walk_length=" << walk_length << std::endl;
+        }
+        
+        try
+        {
+            volume = volume_sequence_of_balls(P, epsilon, walk_length);
+        }
+        catch (const std::exception& e)
+        {
+            error("compute_volume: V-polytope volume computation failed: %s", e.what());
+            return octave_value_list();
+        }
+    }
+    
+    if (verbose)
+    {
+        octave_stdout << "[Volesti C++] Computation complete!" << std::endl;
     }
 
     return octave_value(volume);

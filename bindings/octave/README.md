@@ -4,31 +4,26 @@ This directory contains a **Proof of Concept** implementation of a native GNU Oc
 
 ## Overview
 
-This interface provides Octave bindings for Volesti's computational geometry library, following the same API design as [Rvolesti](https://github.com/GeomScale/Rvolesti) for consistency across R and Octave.
+Octave bindings for Volesti's computational geometry library, following the same API design as [Rvolesti](https://github.com/GeomScale/Rvolesti) for consistency across R and Octave.
 
 ### Features
 
 - **Volume Computation**: High-dimensional polytope volume using Sequence of Balls (SOB) algorithm
 - **H-Polytope Support**: Polytopes defined by Ax ≤ b (half-space representation)
+- **V-Polytope Support**: Polytopes defined by convex hull of vertices  
 - **Memory Efficient**: Zero-copy architecture using `Eigen::Map` for ~50% memory reduction
-- **Rvolesti-Compatible API**: Same function names as R bindings for easy code translation
+- **Rvolesti-Compatible API**: Same constructor and function names as R bindings
 
 ### Directory Structure
 
 ```
 bindings/octave/
-├── src/          # MEX/OCT source files (C++)
+├── src/          # C++ MEX source files
 ├── inst/         # User-facing API (M-files)
 ├── test/         # Test scripts
-└── examples/     # Example/demo scripts
+└── examples/     # Demo scripts
 ```
 
-## Features
-
-- **Memory Mapping Architecture**: O(1) data transfer using `Eigen::Map`
-- **Native Performance**: Compiled C++ plugin provides full-speed access
-- **Customizable Precision**: Optional `epsilon` and `walk_length` parameters
-- **C++ Execution Proof**: Diagnostic watermarks verify genuine Volesti execution
 
 ## Prerequisites
 
@@ -85,10 +80,15 @@ make
 
 This compiles `src/volume.cpp` → `inst/volume.oct`.
 
-### Clean Build
+### Running Tests
 
 ```bash
-make clean
+# Run all tests (like ctest)
+make test
+
+# Or run individual tests
+octave --eval "addpath('inst'); cd('test'); test_Hvol"
+octave --eval "addpath('inst'); cd('test'); test_Vvol"
 ```
 
 ## Usage
@@ -101,43 +101,57 @@ Creates an H-polytope struct representing Ax ≤ b.
 
 **Example:**
 ```matlab
-% Create a 2D unit square
+addpath('inst');
+
+% Create a 2D unit square [-1,1]²
 A = [1 0; -1 0; 0 1; 0 -1];
 b = ones(4, 1);
 P = Hpolytope(A, b);
 ```
 
-#### `volume(P [, epsilon, walk_length, verbose])` - Compute Volume
+#### `Vpolytope(V)` - Create V-Polytope
+
+Creates a V-polytope struct from vertices (convex hull).
+
+**Example:**
+```matlab
+% Create a 3D cube from 8 vertices
+V = [1 1 1; 1 1 -1; 1 -1 1; 1 -1 -1;
+     -1 1 1; -1 1 -1; -1 -1 1; -1 -1 -1];
+P = Vpolytope(V);
+```
+
+#### `volesti_volume(P [, epsilon, walk_length, verbose])` - Compute Volume
 
 Computes polytope volume using Sequence of Balls algorithm.
 
 **Parameters:**
-- `P` : Polytope struct (from `Hpolytope()`)
+- `P` : Polytope struct (from `Hpolytope()` or `Vpolytope()`)
 - `epsilon` : (optional) Error tolerance (default: 1.0, smaller = more accurate)
 - `walk_length` : (optional) Random walk length (default: 1, larger = better mixing)
 - `verbose` : (optional) Show progress (default: true)
 
-**Example:**
+**Examples:**
 ```matlab
-addpath('inst');  % Add API functions to path
+addpath('inst');
 
-% Create 3D cube [-1, 1]³
+% H-polytope: 3D cube
 A = [eye(3); -eye(3)];
 b = ones(6, 1);
 P = Hpolytope(A, b);
+vol = volesti_volume(P);  % ~8.0
 
-% Compute volume (should be ~8)
-vol = volume(P);
+% V-polytope: 3D cube from vertices  
+V = [1 1 1; 1 1 -1; 1 -1 1; 1 -1 -1;
+     -1 1 1; -1 1 -1; -1 -1 1; -1 -1 -1];
+P = Vpolytope(V);
+vol = volesti_volume(P);  % ~8.0
 
 % High accuracy
-vol = volume(P, 0.1, 10);
+vol = volesti_volume(P, 0.1, 10);
 ```
 
-### Running Tests
-
-```bash
-octave --eval "addpath('inst'); cd('test'); test_Hvol"
-```
+**Note:** Function is named `volesti_volume()` instead of `volume()` to avoid conflict with Octave's built-in `volume()` function.
 
 ## Technical Architecture
 

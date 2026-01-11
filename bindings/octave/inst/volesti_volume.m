@@ -31,7 +31,7 @@ function result = volesti_volume(P, varargin)
 
     % Check that P is a valid polytope struct
     if ~isstruct(P) || ~isfield(P, 'type')
-        error('volume: First argument must be a polytope struct');
+        error('volesti_volume: First argument must be a polytope struct');
     end
     
     % Dispatch based on polytope type
@@ -39,11 +39,11 @@ function result = volesti_volume(P, varargin)
         case 'Hpolytope'
             result = volume_hpolytope(P, varargin{:});
         case 'Vpolytope'
-            error('volume: V-polytope support not yet implemented');
+            result = volume_vpolytope(P, varargin{:});
         case 'Zonotope'
-            error('volume: Zonotope support not yet implemented');
+            error('volesti_volume: Zonotope support not yet implemented');
         otherwise
-            error('volume: Unknown polytope type "%s"', P.type);
+            error('volesti_volume: Unknown polytope type "%s"', P.type);
     end
 end
 
@@ -72,4 +72,30 @@ function vol = volume_hpolytope(P, varargin)
     % Call the compiled MEX function
     % Note: compute_volume is the internal MEX function name
     vol = compute_volume(A, b, epsilon, walk_length, verbose);
+end
+
+function vol = volume_vpolytope(P, varargin)
+    % Internal function to compute V-polytope volume
+    
+    % Extract polytope data
+    V = P.V;
+    
+    % Parse optional arguments
+    epsilon = 1.0;
+    walk_length = 1;
+    verbose = true;
+    
+    if nargin >= 2
+        epsilon = varargin{1};
+    end
+    if nargin >= 3
+        walk_length = varargin{2};
+    end
+    if nargin >= 4
+        verbose = varargin{3};
+    end
+    
+    % Call the compiled MEX function with V-polytope signature
+    % Pass only V matrix (not A, b)
+    vol = compute_volume(V, epsilon, walk_length, verbose);
 end
