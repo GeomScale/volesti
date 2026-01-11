@@ -1,5 +1,6 @@
 # Build artifacts
-volesti_volume.oct
+inst/*.oct
+src/*.o
 
 # Octave temporary files
 octave-workspace

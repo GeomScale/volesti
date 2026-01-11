@@ -4,17 +4,24 @@ This directory contains a **Proof of Concept** implementation of a native GNU Oc
 
 ## Overview
 
-This PoC demonstrates a "vertical slice" implementation that enables Octave users to perform high-dimensional volume computations using Volesti's efficient C++ algorithms without leaving the Octave environment.
+This interface provides Octave bindings for Volesti's computational geometry library, following the same API design as [Rvolesti](https://github.com/GeomScale/Rvolesti) for consistency across R and Octave.
 
-### Key Achievement: Memory Mapping Architecture
+### Features
 
-The core technical achievement is a **memory mapping architecture** using `Eigen::Map`, which maps Octave's internal memory directly to Volesti's Eigen structures, avoiding expensive data duplication and achieving **O(1) data transfer**.
+- **Volume Computation**: High-dimensional polytope volume using Sequence of Balls (SOB) algorithm
+- **H-Polytope Support**: Polytopes defined by Ax ≤ b (half-space representation)
+- **Memory Efficient**: Zero-copy architecture using `Eigen::Map` for ~50% memory reduction
+- **Rvolesti-Compatible API**: Same function names as R bindings for easy code translation
 
-### Current Scope
+### Directory Structure
 
-- **Functionality**: Volume computation for H-polytopes (Ax ≤ b)
-- **Infrastructure**: Complete build system using `mkoctfile` with C++17, Eigen, and Boost
-- **Optimization**: Single-copy architecture reducing memory overhead by ~50%
+```
+bindings/octave/
+├── src/          # MEX/OCT source files (C++)
+├── inst/         # User-facing API (M-files)
+├── test/         # Test scripts
+└── examples/     # Example/demo scripts
+```
 
 ## Features
 
@@ -60,69 +67,77 @@ mkoctfile --version
 
 ### Prerequisite: Populate External Dependencies
 
-Before building the Octave plugin, you must run CMake from the repository root to populate the `external/_deps/` directory. The Makefile depends on CMake's FetchContent to download Eigen, Boost, and other dependencies.
+Run CMake from the repository root to download dependencies:
 
-1. From the repository root, configure the build with CMake:
 ```bash
+cd /path/to/volesti
 cmake -S . -B build
 ```
 
-This step downloads and populates `external/_deps/eigen-src` and `external/_deps/boost-src`, which the Octave Makefile requires.
+This populates `external/_deps/` with Eigen and Boost.
 
-### Building the Octave Plugin
+### Building the Bindings
 
-2. Navigate to the `bindings/octave/` directory:
 ```bash
 cd bindings/octave
-```
-
-3. Build the plugin:
-```bash
 make
 ```
 
-This compiles `volesti_volume.cpp` into `volesti_volume.oct`, a binary plugin that Octave can load.
+This compiles `src/volume.cpp` → `inst/volume.oct`.
 
-4. Clean build artifacts (if needed):
+### Clean Build
+
 ```bash
 make clean
 ```
 
 ## Usage
 
-### Function Reference
+### API Functions
 
-#### `compute_volume(A, b [, epsilon, walk_length])`
+#### `Hpolytope(A, b)` - Create H-Polytope
 
-Computes the volume of an H-polytope defined by Ax ≤ b.
+Creates an H-polytope struct representing Ax ≤ b.
+
+**Example:**
+```matlab
+% Create a 2D unit square
+A = [1 0; -1 0; 0 1; 0 -1];
+b = ones(4, 1);
+P = Hpolytope(A, b);
+```
+
+#### `volume(P [, epsilon, walk_length, verbose])` - Compute Volume
+
+Computes polytope volume using Sequence of Balls algorithm.
 
 **Parameters:**
-- `A` : m × n matrix of constraint coefficients
-- `b` : m × 1 vector of constraint bounds
-- `epsilon` : (optional) error tolerance for approximation (default: 1.0)  
-  *Smaller values give more accurate results but take longer*
-- `walk_length` : (optional) random walk length (default: 1)  
-  *Larger values improve mixing but increase computation time*
+- `P` : Polytope struct (from `Hpolytope()`)
+- `epsilon` : (optional) Error tolerance (default: 1.0, smaller = more accurate)
+- `walk_length` : (optional) Random walk length (default: 1, larger = better mixing)
+- `verbose` : (optional) Show progress (default: true)
 
-**Returns:**
-- `volume` : Estimated volume of the polytope (scalar)
+**Example:**
+```matlab
+addpath('inst');  % Add API functions to path
 
-### Running the Examples
+% Create 3D cube [-1, 1]³
+A = [eye(3); -eye(3)];
+b = ones(6, 1);
+P = Hpolytope(A, b);
 
-#### 2D Hypercube Test (Validation)
+% Compute volume (should be ~8)
+vol = volume(P);
 
-The primary test validates correctness with a simple 2D case:
-```bash
-octave test_volesti.m
+% High accuracy
+vol = volume(P, 0.1, 10);
 ```
 
-#### Accuracy vs Speed Tradeoff
+### Running Tests
 
-Demonstrates parameter tuning:
 ```bash
-octave example_accuracy.m
+octave --eval "addpath('inst'); cd('test'); test_Hvol"
 ```
-Shows how different `epsilon` and `walk_length` values affect accuracy and speed.
 
 ## Technical Architecture
 

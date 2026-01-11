@@ -21,16 +21,20 @@ BOOST_INCLUDE = $(EXTERNAL)/_deps/boost-src
 # DISABLE_LPSOLVE: PoC doesn't need LP solver functionality
 CXXFLAGS = -I$(VOLESTI_INCLUDE) -I$(EXTERNAL) -I$(EIGEN_INCLUDE) -I$(BOOST_INCLUDE) -std=c++17 -O2 -DDISABLE_LPSOLVE
 
+# Source and output
+SRC = src/volume.cpp
+TARGET = inst/volume.oct
+
 # Default target: build the .oct plugin
-all: volesti_volume.oct
+all: $(TARGET)
 
 # Build the .oct plugin from the C++ wrapper
-volesti_volume.oct: volesti_volume.cpp
-	$(MKOCTFILE) $(CXXFLAGS) volesti_volume.cpp -o volesti_volume.oct
+$(TARGET): $(SRC)
+	$(MKOCTFILE) $(CXXFLAGS) $(SRC) -o $(TARGET)
 
 # Clean build artifacts
 clean:
-	rm -f volesti_volume.oct
+	rm -f $(TARGET) src/*.o
 
 # Phony targets
 .PHONY: all clean
