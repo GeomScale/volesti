@@ -4,7 +4,7 @@
  * GNU Octave interface for Volesti library
  * Volume computation for H-polytopes and V-polytopes
  * 
- * This wrapper demonstrates zero-copy architecture using Eigen::Map
+ * This wrapper demonstrates single-copy architecture using Eigen::Map
  * to directly map Octave's memory into Volesti's Eigen structures.
  */
 
@@ -121,7 +121,7 @@ Optional parameters (both types):\n\
             return octave_value_list();
         }
         
-        // Zero-copy: Map Octave data to Eigen
+        // Map Octave data to Eigen (zero-copy view)
         Eigen::Map<MT> A_eigen(octave_A.fortran_vec(), m, n);
         Eigen::Map<VT> b_eigen(octave_b.fortran_vec(), m);
         
@@ -159,7 +159,7 @@ Optional parameters (both types):\n\
             return octave_value_list();
         }
         
-        // Zero-copy: Map vertex matrix to Eigen
+        // Map vertex matrix to Eigen (zero-copy view)
         Eigen::Map<MT> V_eigen(octave_V.fortran_vec(), m, n);
         
         // Create b vector (all ones for standard V-polytope)

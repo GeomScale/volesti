@@ -11,7 +11,7 @@ Octave bindings for Volesti's computational geometry library, following the same
 - **Volume Computation**: High-dimensional polytope volume using Sequence of Balls (SOB) algorithm
 - **H-Polytope Support**: Polytopes defined by Ax ≤ b (half-space representation)
 - **V-Polytope Support**: Polytopes defined by convex hull of vertices  
-- **Memory Efficient**: Zero-copy architecture using `Eigen::Map` for ~50% memory reduction
+- **Memory Efficient**: The interface uses `Eigen::Map` to minimize memory copying.
 - **Rvolesti-Compatible API**: Same constructor and function names as R bindings
 
 ### Directory Structure
@@ -153,19 +153,55 @@ vol = volesti_volume(P, 0.1, 10);
 
 **Note:** Function is named `volesti_volume()` instead of `volume()` to avoid conflict with Octave's built-in `volume()` function.
 
+### Polytope Generators
+
+#### `gen_cube(d, type)` - Generate Hypercube
+
+Creates a d-dimensional unit hypercube [-1,1]^d.
+
+```matlab
+P = gen_cube(10, 'H');  % 10D cube in H-representation
+P = gen_cube(5, 'V');   % 5D cube in V-representation
+vol = volesti_volume(P);  % Returns ~2^d
+```
+
+#### `gen_cross(d, type)` - Generate Cross Polytope
+
+Creates a d-dimensional cross polytope (dual of hypercube).
+
+```matlab
+P = gen_cross(5, 'H');   % 5D cross in H-representation
+P = gen_cross(15, 'V');  % 15D cross in V-representation
+vol = volesti_volume(P);  % Returns ~2^d / d!
+```
+
+#### `gen_prod_simplex(d)` - Generate Product of Simplices
+
+Creates a 2d-dimensional polytope as product of two d-dimensional simplices (H-representation only).
+
+```matlab
+P = gen_prod_simplex(5);  % Product of two 5D simplices (10D polytope)
+vol = volesti_volume(P);  % Returns ~(1/d!)^2
+```
+
 ## Technical Architecture
 
-### Memory Mapping
+### Single-Copy Memory Architecture
 
-Traditional language bindings copy data between the host language and the library, which is expensive for large matrices. This implementation uses **`Eigen::Map`** to wrap Octave's column-major memory directly:
+Traditional language bindings copy data between the host language and the library, which is expensive for large matrices. The interface uses `Eigen::Map` to minimize memory copying:
 
+**Traditional approach (2 copies):**
 ```cpp
-// Map Octave data directly to Eigen structures (No Memory Duplication)
-Eigen::Map<MT> A_eigen(octave_A.fortran_vec(), m, n);
-Eigen::Map<VT> b_eigen(octave_b.fortran_vec(), m);
+// Octave data -> C++ temporary (copy 1)
+std::vector<double> A_cpp(octave_A.data(), octave_A.data() + octave_A.numel());
+// C++ temporary -> Eigen (copy 2)
+Eigen::MatrixXd A_eigen = Eigen::Map<Eigen::MatrixXd>(A_cpp.data(), m, n);
+```
 
-// Create H-polytope from mapped data
-Hpolytope P(n, A_eigen, b_eigen);
+**Our approach (1 copy total):**
+```cpp
+Eigen::Map<MT> A_eigen(octave_A.fortran_vec(), m, n);  // Zero-copy view into Octave memory
+Hpolytope P(n, A_eigen, b_eigen);  // Single copy into polytope's internal storage
 ```
 
 **Benefits:**

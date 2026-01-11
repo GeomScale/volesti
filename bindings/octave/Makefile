@@ -44,6 +44,7 @@ test: $(TARGET)
 	@echo "Running Octave binding tests..."
 	@octave --eval "addpath('inst'); cd('test'); test_Hvol" && \
 	octave --eval "addpath('inst'); cd('test'); test_Vvol" && \
+	octave --eval "addpath('inst'); cd('test'); test_generators" && \
 	echo "All tests passed!" || echo "Some tests failed!"
 
 # Phony targets
