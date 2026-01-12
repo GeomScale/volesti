@@ -5,6 +5,37 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+/*
+ Multiphase Monte Carlo Sampling (MMCS) interface.
+
+ This header implements the MMCS algorithm used to generate samples
+ with a prescribed effective sample size (ESS) from a convex polytope.
+
+ High-level overview:
+  - MMCS proceeds in phases
+  - Each phase generates correlated samples via a random walk
+  - ESS is estimated online using sliding windows
+  - Optional rounding is applied between phases to improve conditioning
+
+ Role in the sampling pipeline:
+  - Coordinates sampling, ESS estimation, and rounding
+  - Uses diagnostics internally (ESS window estimator)
+  - Produces samples in the original (unrounded) space
+
+ Important assumptions:
+  - The polytope is full-dimensional and bounded
+  - A feasible starting point exists
+  - ESS estimates are approximate and heuristic
+
+ Notes:
+  - MMCS targets *effective* sample size, not raw sample count
+  - Termination depends on ESS estimates, not exact convergence
+  - Diagnostics used here should be interpreted conservatively
+
+ This layer contains algorithmic control logic and intentionally
+ delegates random-walk behavior to WalkTypePolicy.
+*/
+
 #ifndef MMCS_HPP
 #define MMCS_HPP
 
