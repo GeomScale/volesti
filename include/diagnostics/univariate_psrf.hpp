@@ -19,6 +19,31 @@
     Output: The value of PSRF of D.B. Rubin and A. Gelman for each coordinate
 */
 
+// Univariate Potential Scale Reduction Factor (PSRF) diagnostic.
+//
+// This implements the original Rubin & Gelman (1992) PSRF for a *single*
+// MCMC chain by splitting it into two consecutive segments.
+//
+// Assumptions:
+//  - Samples correspond to a single MCMC chain
+//  - Chain is approximately stationary (post burn-in)
+//  - Columns are consecutive samples
+//  - Number of samples N >= 4
+//
+// Interpretation:
+//  - PSRF values close to 1 indicate potential convergence
+//  - Values significantly larger than 1 suggest lack of convergence
+//  - A common heuristic is PSRF < 1.1, but this is not a guarantee
+//
+// Notes:
+//  - This is a single-chain variant obtained by splitting the chain in half
+//  - It does NOT detect multimodality or poor mixing reliably
+//  - Passing PSRF does not imply correctness of the target distribution
+//
+// Limitations:
+//  - Highly autocorrelated chains may produce misleadingly small PSRF
+//  - Very short chains lead to unstable variance estimates
+
 #ifndef DIAGNOSTICS_MARGINAL_PSRF_HPP
 #define DIAGNOSTICS_MARGINAL_PSRF_HPP
 

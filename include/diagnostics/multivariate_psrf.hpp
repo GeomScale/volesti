@@ -19,6 +19,34 @@
     Output: The value of multivariate PSRF by S. Brooks and A. Gelman
 */
 
+// Multivariate Potential Scale Reduction Factor (PSRF) diagnostic.
+//
+// This implements the Brooks & Gelman (1998) multivariate PSRF by
+// splitting a single MCMC chain into two consecutive segments and
+// comparing within-chain and between-segment covariance structure.
+//
+// Assumptions:
+//  - Samples correspond to a *single* MCMC chain
+//  - Chain is approximately stationary (post burn-in)
+//  - Columns are consecutive samples
+//  - Number of samples N is sufficiently larger than dimension d
+//  - Within-chain covariance matrix is invertible
+//
+// Interpretation:
+//  - Values close to 1 indicate potential convergence
+//  - Larger values suggest lack of convergence or poor mixing
+//  - As with univariate PSRF, this is a heuristic diagnostic
+//
+// Notes:
+//  - This is a single-chain adaptation via chain splitting
+//  - The largest eigenvalue of W^{-1} B drives the diagnostic
+//  - Passing this diagnostic does not imply correctness of the target distribution
+//
+// Failure modes:
+//  - Near-singular covariance matrices may cause numerical instability
+//  - Highly autocorrelated or multimodal chains may pass spuriously
+//  - Small sample sizes relative to dimension lead to unreliable results
+
 #ifndef DIAGNOSTICS_PSRF_HPP
 #define DIAGNOSTICS_PSRF_HPP
 

@@ -25,6 +25,38 @@
              (vi)  The I-statistic from Raftery and Lewis (1992)
 */
 
+// Raftery–Lewis diagnostic for required sample size estimation.
+//
+// Purpose:
+//  - Estimates the number of iterations needed to estimate a quantile
+//    q with precision r and probability s.
+//
+// Important:
+//  - This is NOT a general convergence diagnostic
+//  - It does not test stationarity or mixing directly
+//
+// Assumptions:
+//  - Samples come from a single, stationary MCMC chain
+//  - Chain can be approximated as first-order Markov after thinning
+//  - Target is estimation of a *quantile*, not full distribution
+//
+// Outputs (per dimension):
+//  [0] k_thin   : thinning factor for approximate Markov property
+//  [1] n_burn   : estimated burn-in length
+//  [2] k_ind    : thinning for approximate independence
+//  [3] n_total  : total draws required (burn-in + sampling)
+//  [4] n_min    : draws required if samples were IID
+//  [5] I_stat   : inefficiency factor (ratio vs IID)
+//
+// Interpretation:
+//  - Large I_stat indicates strong autocorrelation
+//  - Results should be interpreted as *guidelines*, not guarantees
+//
+// Limitations:
+//  - Sensitive to choice of q, r, s
+//  - Unreliable for multimodal or poorly mixing chains
+//  - Not suitable as a standalone convergence test
+
 #ifndef DIAGNOSTICS_RAFTERY_HPP
 #define DIAGNOSTICS_RAFTERY_HPP
 
