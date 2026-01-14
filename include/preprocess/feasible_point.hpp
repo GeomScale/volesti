@@ -13,6 +13,7 @@
 #define FEASIBLE_POINT_HPP
 
 #include <tuple>
+#include <stdexcept>
 
 #include "preprocess/max_inscribed_ball.hpp"
 #include "sampling/sphere.hpp" 
@@ -30,7 +31,7 @@ VT compute_feasible_point(MT const& A, VT const& b)
     std::tie(x, std::ignore, converged) = max_inscribed_ball(A, b, max_iters, 1e-08, feasibility_only);
     if (!converged || ((A * x).array() > b.array()).any())
     {
-        std::runtime_error("The computation of a feasible point failed.");
+        throw std::runtime_error("The computation of a feasible point failed.");
     }
     return x;
 }
