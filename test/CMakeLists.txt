@@ -383,7 +383,8 @@ add_test(NAME test_volumetric_center
 add_test(NAME test_vaidya_center
           COMMAND test_internal_points -tc=test_vaidya_center)
 
-          
+add_executable (test_max_inscribed_ball test_max_inscribed_ball.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_max_inscribed_ball COMMAND test_max_inscribed_ball)
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
