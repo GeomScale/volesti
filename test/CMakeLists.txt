@@ -122,6 +122,8 @@ GetLPSolve()
 include("../external/cmake-files/QD.cmake")
 GetQD()
 
+# add_subdirectory(test)
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 

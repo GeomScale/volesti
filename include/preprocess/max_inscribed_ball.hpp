@@ -7,6 +7,9 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// NOTE:
+// If converge == false, the returned center and radius are invalid
+// and must not be used by downstream code.
 
 #ifndef MAX_INSCRIBED_BALL_HPP
 #define MAX_INSCRIBED_BALL_HPP
@@ -135,7 +138,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         vec_iter3 = s.data();
         vec_iter2 = y.data();
         for (int j = 0; j < m; ++j) {
-            *vec_iter1 = std::min(power_num, (*vec_iter2) / (*vec_iter3));
+            NT denom = std::max((*vec_iter3), NT(1e-14));
+            *vec_iter1 = std::min(power_num, (*vec_iter2) / denom);
             vec_iter1++;
             vec_iter3++;
             vec_iter2++;
@@ -210,8 +214,11 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         y += alphad * dy;
     }
 
-    std::tuple<VT, NT, bool> result = std::make_tuple(x, t, converge);
-    return result;
+    if (!converge) {
+        t = NT(-1);  // invalidate radius explicitly
+    }
+
+    return std::make_tuple(x, t, converge);
 }
 
 #endif // MAX_INSCRIBED_BALL_HPP
