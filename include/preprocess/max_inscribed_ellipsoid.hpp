@@ -9,6 +9,10 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// NOTE:
+// If converged == false, the returned ellipsoid matrix E2 is invalid (empty)
+// and must not be used by downstream code.
+
 
 #ifndef MVE_COMPUTATION_HPP
 #define MVE_COMPUTATION_HPP
@@ -16,6 +20,7 @@
 #include <utility>
 #include <Eigen/Eigen>
 #include "preprocess/rounding_util_functions.hpp"
+#include <stdexcept>
 
 
 /*
@@ -141,15 +146,17 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
                     Rel = 1.0 / eigensolver.eigenvalues().coeff(0);
                     rel = 1.0 / eigensolver.eigenvalues().template tail<1>().value();
                 } else {
-                    std::runtime_error("Computations failed.");
+                    throw std::runtime_error("Computations failed.");
                 }
             }
 
-            if (std::abs((last_r1 - r1) / std::min(NT(std::abs(last_r1)), NT(std::abs(r1)))) < 0.01 &&
-                std::abs((last_r2 - r2) / std::min(NT(abs(last_r2)), NT(std::abs(r2)))) < 0.01 &&
+            NT denom_r1 = std::max(std::min(std::abs(last_r1), std::abs(r1)), NT(1e-14));
+            NT denom_r2 = std::max(std::min(std::abs(last_r2), std::abs(r2)), NT(1e-14));
+
+            if (std::abs((last_r1 - r1) / denom_r1) < 0.01 &&
+                std::abs((last_r2 - r2) / denom_r2) < 0.01 &&
                 Rel / rel > 100.0 &&
                 reg > reg_lim) {
-                
                 converged = false;
                 //Stopped making progress
                 break;
@@ -252,6 +259,7 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
 
     if (!converged) {
         x += x0;
+        E2 = MT_dense();  // empty matrix
     }
 
     return std::make_tuple(E2, x, converged);
