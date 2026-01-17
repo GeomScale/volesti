@@ -1,0 +1,5 @@
+# Ignore temporary data and results
+results/*.csv
+results/*.png
+temp_*.txt
+__pycache__/
