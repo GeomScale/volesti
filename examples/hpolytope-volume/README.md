@@ -1,14 +1,27 @@
 ## Compilation
-Build the example by running the following commands in this directory.
+
+This example demonstrates how to compute the volume of an H-polytope
+using different randomized algorithms provided by volesti.
+
+It is recommended to build the example using an out-of-source build.
 
 ```bash
-cmake . -DLP_SOLVE=_PATH_TO_LIB_FILE
-make
+mkdir build
+cd build
+cmake ..
+make -j$(nproc)
 ```  
-You have to specify the path to liblpsolve55.so/dll/dylib.  
-For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
+Alternatively, a local installation of lp_solve can be specified explicitly:
+```bash
+cmake .. -DLP_SOLVE=/path/to/liblpsolve55.so
+```
 
-## Running:
+## Running
+
+After a successful build, run the executable with:
 ```bash
  ./hpolytopeVolume
 ```
+The program computes the volume of a 4-dimensional H-polytope using
+different randomized algorithms. Due to the randomized nature of the
+methods, results may vary slightly between different runs.
