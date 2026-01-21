@@ -6,7 +6,7 @@
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 //Licensed under GNU LGPL.3, see LICENCE file
-
+ 
 /*
     This function implements the interval diagnostic of Brooks & Gelman.
     It is based on  "General Methods for Monitoring Convergence of Iterative Simulations, 1998" by S. Brooks and A. Gelman

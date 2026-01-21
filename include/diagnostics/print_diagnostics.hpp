@@ -22,7 +22,7 @@
 // Notes:
 //  - ESS and PSRF estimates may be unreliable for very short chains
 //  - Computing ESS is O(N log N) due to FFT-based autocorrelation
-
+ 
 #ifndef DIAGNOSTICS_PRINT_DIAGNOSTICS_HPP
 #define DIAGNOSTICS_PRINT_DIAGNOSTICS_HPP
 

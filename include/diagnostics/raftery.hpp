@@ -42,7 +42,7 @@
 //
 // Outputs (per dimension):
 //  [0] k_thin   : thinning factor for approximate Markov property
-//  [1] n_burn   : estimated burn-in length
+//  [1] n_burn   : estimated burn-in length 
 //  [2] k_ind    : thinning for approximate independence
 //  [3] n_total  : total draws required (burn-in + sampling)
 //  [4] n_min    : draws required if samples were IID

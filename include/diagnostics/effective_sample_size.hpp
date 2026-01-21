@@ -18,7 +18,7 @@
 // Notes:
 //  - ESS is estimated independently per dimension
 //  - Constant or nearly constant chains will result in ESS ≈ 1
-//  - Computation is O(N log N) per dimension due to FFT
+//  - Computation is O(N log N) per dimension due to FFT 
 
 #include <unsupported/Eigen/FFT>
 

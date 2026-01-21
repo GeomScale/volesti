@@ -11,7 +11,7 @@
     This function implements a multivariate version of the Geweke diagnostic.
     It is reduced to Hotelling's Two Sample test, which is a multivariate
     extension of the common two sample Student's t-test. The null hypothesis
-    is that there is no difference between sample means.
+    is that there is no difference between sample means. 
 
     It is based on "Evaluating the accuracy of sampling-based approaches
                     to the calculation of posterior moments, 1992" by J. Geweke

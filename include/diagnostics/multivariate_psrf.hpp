@@ -18,7 +18,7 @@
 
     Output: The value of multivariate PSRF by S. Brooks and A. Gelman
 */
-
+ 
 // Multivariate Potential Scale Reduction Factor (PSRF) diagnostic.
 //
 // This implements the Brooks & Gelman (1998) multivariate PSRF by

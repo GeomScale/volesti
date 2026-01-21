@@ -10,7 +10,7 @@
 
  This header implements the MMCS algorithm used to generate samples
  with a prescribed effective sample size (ESS) from a convex polytope.
-
+ 
  High-level overview:
   - MMCS proceeds in phases
   - Each phase generates correlated samples via a random walk

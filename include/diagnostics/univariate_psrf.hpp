@@ -27,7 +27,7 @@
 // Assumptions:
 //  - Samples correspond to a single MCMC chain
 //  - Chain is approximately stationary (post burn-in)
-//  - Columns are consecutive samples
+//  - Columns are consecutive samples 
 //  - Number of samples N >= 4
 //
 // Interpretation:

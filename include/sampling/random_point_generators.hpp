@@ -11,7 +11,7 @@
  This header defines a collection of *generator adapters* that bridge
  random walk implementations with sampling routines.
 
- Role in the architecture:
+ Role in the architecture: 
   - Generators are thin wrappers around Walk types
   - They are responsible for:
       • constructing the walk

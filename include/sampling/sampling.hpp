@@ -16,12 +16,12 @@
 //
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
-// see <http://www.gnu.org/licenses/>.
+// see <http://www.gnu.org/licenses/>. 
 
 /*
  Sampling interface for VolEsti.
 
- This header provides high-level sampling routines that:
+ This header provides high-level sampling routines that: 
   - generate correlated samples from convex polytopes
   - rely on underlying random walk policies
   - handle burn-in and sample collection
