@@ -16,6 +16,9 @@
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/vpolytope.h"
 #include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "generators/boost_random_number_generator.hpp"
 
 typedef double NT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
