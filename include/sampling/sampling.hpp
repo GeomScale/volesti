@@ -18,6 +18,20 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+/*
+ Sampling interface for VolEsti.
+
+ This header provides high-level sampling routines that:
+  - generate correlated samples from convex polytopes
+  - rely on underlying random walk policies
+  - handle burn-in and sample collection
+
+ Design notes:
+  - Sampling functions assume bounded polytopes
+  - Starting points must be feasible
+  - No convergence guarantees are provided here;
+    diagnostics must be applied externally
+*/
 
 #ifndef SAMPLE_ONLY_H
 #define SAMPLE_ONLY_H

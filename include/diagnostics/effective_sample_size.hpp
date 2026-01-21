@@ -8,6 +8,18 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// Effective Sample Size (ESS) estimation using FFT-based autocorrelation.
+//
+// Assumptions:
+//  - Samples are post burn-in and approximately stationary
+//  - Columns correspond to consecutive samples of a single chain
+//  - Number of samples N >= 2
+//
+// Notes:
+//  - ESS is estimated independently per dimension
+//  - Constant or nearly constant chains will result in ESS ≈ 1
+//  - Computation is O(N log N) per dimension due to FFT
+
 #include <unsupported/Eigen/FFT>
 
 #ifndef DIAGNOSTICS_EFFECTIVE_SAMPLE_SIZE_HPP

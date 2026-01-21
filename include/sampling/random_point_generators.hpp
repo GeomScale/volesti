@@ -5,6 +5,39 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+/*
+ Random Point Generator utilities for VolEsti.
+
+ This header defines a collection of *generator adapters* that bridge
+ random walk implementations with sampling routines.
+
+ Role in the architecture:
+  - Generators are thin wrappers around Walk types
+  - They are responsible for:
+      • constructing the walk
+      • advancing it for a fixed number of steps
+      • extracting points from the walk state
+      • delegating storage via a WalkPolicy (e.g. PushBack)
+
+ Design principles:
+  - Generators are stateless
+  - No convergence or correctness guarantees are provided here
+  - All diagnostics must be applied externally
+  - Memory ownership is delegated to the caller
+
+ Important assumptions:
+  - The provided starting point is feasible
+  - The polytope is bounded (unless explicitly stated otherwise)
+  - Walk parameters are valid for the chosen walk type
+
+ Notes:
+  - Different generators correspond to different target measures
+    (uniform, Gaussian, log-concave, exponential, boundary sampling)
+  - Failure handling is walk-specific (some walks throw, others return flags)
+
+ This layer intentionally contains no statistical logic.
+*/
+
 #ifndef SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 #define SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 
