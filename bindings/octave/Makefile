@@ -1,5 +1,5 @@
 # Makefile for Volesti Octave Interface
-# Compiles the C++ wrapper into a .oct plugin using mkoctfile
+# Compiles the C++ wrappers into .oct plugins using mkoctfile
 
 # Compiler
 MKOCTFILE = mkoctfile
@@ -21,26 +21,26 @@ LPSOLVE_INCLUDE = $(EXTERNAL)/_deps/lpsolve-src
 # Note: EXTERNAL is added so includes like "Spectra/include/..." work
 CXXFLAGS = -I$(VOLESTI_INCLUDE) -I$(EXTERNAL) -I$(EIGEN_INCLUDE) -I$(BOOST_INCLUDE) -I$(LPSOLVE_INCLUDE) -std=c++17 -O2
 
-# Source and output
-SRC = src/volume.cpp
-TARGET = inst/volume.oct
-
 # Linker flags - use shared library and set rpath for runtime loading
 LDFLAGS = -L/usr/lib/lp_solve -llpsolve55 -Wl,-rpath,/usr/lib/lp_solve
 
-# Default target: build the .oct plugin
-all: $(TARGET)
+# Default target: build all .oct plugins
+all: inst/volume.oct inst/sample_points.oct
 
-# Build the .oct plugin from the C++ wrapper
-$(TARGET): $(SRC)
-	$(MKOCTFILE) $(CXXFLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
+# Build the volume.oct plugin
+inst/volume.oct: src/volume.cpp
+	$(MKOCTFILE) $(CXXFLAGS) src/volume.cpp -o inst/volume.oct $(LDFLAGS)
+
+# Build the sample_points.oct plugin
+inst/sample_points.oct: src/sample_points.cpp
+	$(MKOCTFILE) $(CXXFLAGS) src/sample_points.cpp -o inst/sample_points.oct $(LDFLAGS)
 
 # Clean build artifacts
 clean:
-	rm -f $(TARGET) src/*.o
+	rm -f inst/volume.oct inst/sample_points.oct src/*.o
 
 # Run all tests (like ctest)
-test: $(TARGET)
+test: inst/volume.oct inst/sample_points.oct
 	@echo "Running Octave binding tests..."
 	@octave --eval "addpath('inst'); cd('test'); test_Hvol" && \
 	octave --eval "addpath('inst'); cd('test'); test_Vvol" && \

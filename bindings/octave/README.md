@@ -9,17 +9,18 @@ Octave bindings for Volesti's computational geometry library, following the same
 ### Features
 
 - **Volume Computation**: High-dimensional polytope volume using Sequence of Balls (SOB) algorithm
+- **Point Sampling**: MCMC sampling from polytopes using CDHR, RDHR, and Ball Walk
 - **H-Polytope Support**: Polytopes defined by Ax ≤ b (half-space representation)
 - **V-Polytope Support**: Polytopes defined by convex hull of vertices  
 - **Memory Efficient**: The interface uses `Eigen::Map` to minimize memory copying.
-- **Rvolesti-Compatible API**: Same constructor and function names as R bindings
+- **R-Compatible API**: Same function signatures as R bindings for easy cross-language use
 
 ### Directory Structure
 
 ```
 bindings/octave/
-├── src/          # C++ MEX source files
-├── inst/         # User-facing API (M-files)
+├── src/          # C++ source files
+├── inst/         # Compiled .oct plugins and helper functions
 ├── test/         # Test scripts
 └── examples/     # Demo scripts
 ```
@@ -81,22 +82,117 @@ cd bindings/octave
 make
 ```
 
-This compiles `src/volume.cpp` → `inst/volume.oct`.
+This compiles the C++ source files into `.oct` plugins:
+- `src/volume.cpp` → `inst/volume.oct`
+- `src/sample_points.cpp` → `inst/sample_points.oct`
+
+The `.oct` files are compiled plugins (similar to `.so`/`.dll`) that Octave can call directly.
 
 ### Running Tests
 
 ```bash
-# Run all tests (like ctest)
 make test
+```
 
-# Or run individual tests
+Or run individual tests:
+```bash
 octave --eval "addpath('inst'); cd('test'); test_Hvol"
 octave --eval "addpath('inst'); cd('test'); test_Vvol"
+octave --eval "addpath('inst'); cd('test'); test_sample_points"
 ```
 
 ## Usage
 
-### API Functions
+The bindings provide two API styles:
+
+1. **Direct .oct API** (R-style, recommended) - Call compiled functions directly
+2. **Wrapper API** (legacy) - Use helper M-files for polytope objects
+
+### Direct .oct API (Recommended - R-style)
+
+**Setup:**
+```octave
+% Add inst/ directory to your Octave path (do this once per session)
+addpath('/path/to/volesti/bindings/octave/inst');
+```
+
+#### Volume Computation
+
+**H-Polytope (Ax ≤ b):**
+```octave
+% Define 2D unit square
+A = [1 0; -1 0; 0 1; 0 -1];
+b = ones(4, 1);
+
+% Compute volume (default parameters)
+vol = compute_volume(A, b);
+
+% Custom parameters
+vol = compute_volume(A, b, 0.1, 10);           % epsilon=0.1, walk_length=10
+vol = compute_volume(A, b, 0.1, 10, false);    % Silent mode
+```
+
+**V-Polytope (convex hull of vertices):**
+```octave
+% Define 3D cube from 8 vertices
+V = [1 1 1; 1 1 -1; 1 -1 1; 1 -1 -1;
+     -1 1 1; -1 1 -1; -1 -1 1; -1 -1 -1];
+
+vol = compute_volume(V);                       % Returns ~8.0
+vol = compute_volume(V, 0.1, 10);             % Higher accuracy
+```
+
+**Parameters:**
+- `epsilon` : (optional) Error tolerance (default: 1.0, smaller = more accurate)
+- `walk_length` : (optional) Random walk steps (default: 1, larger = better mixing)
+- `verbose` : (optional) Show progress messages (default: true)
+
+#### Point Sampling
+
+Sample points uniformly from polytopes using MCMC.
+
+**H-Polytope:**
+```octave
+A = [1 0; -1 0; 0 1; 0 -1];
+b = ones(4, 1);
+
+% Basic sampling (100 points, default walk)
+samples = sample_points(A, b, 100);            % Returns 2×100 matrix
+
+% Custom walk parameters
+samples = sample_points(A, b, 1000, 1, 10, 50); % RDHR, walk_length=10, nburns=50
+samples = sample_points(A, b, 500, 0);         % CDHR walk
+samples = sample_points(A, b, 200, 2);         % Ball Walk
+```
+
+**V-Polytope:**
+```octave
+V = [0 0 0; 1 0 0; 0 1 0; 0 0 1];  % 3D simplex
+
+samples = sample_points(V, 200);               % 200 samples, default walk (RDHR)
+samples = sample_points(V, 500, 1, 5, 100);   % RDHR, walk_length=5, nburns=100
+```
+
+**Parameters:**
+- `n` : Number of samples to generate
+- `walk_type` : (optional) 0=CDHR, 1=RDHR, 2=BallWalk (default: 0 for H, 1 for V)
+- `walk_length` : (optional) Steps per sample (default: 1)
+- `nburns` : (optional) Burn-in iterations (default: 0)
+- `verbose` : (optional) Show progress messages (default: true)
+
+**Returns:**
+- d×n matrix where each column is a sample point
+
+**Walk Types:**
+- **CDHR** (Coordinate Directions Hit-and-Run): Best for H-polytopes
+- **RDHR** (Random Directions Hit-and-Run): Best for V-polytopes
+- **Ball Walk**: General purpose, requires tuning
+
+---
+
+### Wrapper API (Legacy)
+
+The wrapper API provides M-file helpers for creating polytope objects. This is maintained for backward compatibility.
 
 #### `Hpolytope(A, b)` - Create H-Polytope
 
@@ -226,7 +322,6 @@ The Makefile uses `mkoctfile`, Octave's wrapper around g++/clang++ that handles:
 - **High dimensions**: Performance degrades significantly above ~50D
 - **Numerical precision**: Very small (<1e-8) or large (>1e8) polytopes may have issues
 - **Sparse matrices**: Not optimized (uses dense storage)
-- **Single algorithm**: Only exposes `volume_sequence_of_balls`
 
 These limitations will be addressed in the full implementation.
 
@@ -237,4 +332,3 @@ This code follows Volesti's license (GNU LGPL 3.0).
 ## Contact
 
 For questions or issues related to this PoC, please open an issue on the [Volesti GitHub repository](https://github.com/GeomScale/volesti).
-
