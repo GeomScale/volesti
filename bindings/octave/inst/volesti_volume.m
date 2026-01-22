@@ -69,8 +69,7 @@ function vol = volume_hpolytope(P, varargin)
         verbose = varargin{3};
     end
     
-    % Call the compiled MEX function
-    % Note: compute_volume is the internal MEX function name
+    % Call the compiled MEX function (volume.oct exports 'compute_volume')
     vol = compute_volume(A, b, epsilon, walk_length, verbose);
 end
 
@@ -96,6 +95,5 @@ function vol = volume_vpolytope(P, varargin)
     end
     
     % Call the compiled MEX function with V-polytope signature
-    % Pass only V matrix (not A, b)
     vol = compute_volume(V, epsilon, walk_length, verbose);
 end

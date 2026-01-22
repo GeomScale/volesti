@@ -250,7 +250,7 @@ vol = volesti_volume(P);  % ~8.0
 vol = volesti_volume(P, 0.1, 10);
 ```
 
-**Note:** Function is named `volesti_volume()` instead of `volume()` to avoid conflict with Octave's built-in `volume()` function.
+**Note:** This function is a wrapper around the native `compute_volume` function (compiled as `compute_volume.oct`). It is named `volesti_volume()` to avoid naming conflicts with Octave's built-in `volume()` function.
 
 ### Polytope Generators
 
@@ -281,6 +281,34 @@ Creates a 2d-dimensional polytope as product of two d-dimensional simplices (H-r
 ```matlab
 P = gen_prod_simplex(5);  % Product of two 5D simplices (10D polytope)
 vol = volesti_volume(P);  % Returns ~(1/d!)^2
+```
+
+#### `gen_simplex(d, type)` - Generate Simplex
+
+Creates a d-dimensional unit simplex.
+
+```matlab
+P = gen_simplex(5, 'H');  % 5D simplex in H-representation
+P = gen_simplex(3, 'V');  % 3D simplex in V-representation
+vol = volesti_volume(P);  % Returns 1/d!
+```
+
+#### `gen_skinny_cube(d)` - Generate Skinny Cube (H-rep only)
+
+Creates a skewed hypercube [-1,1]^(d-1) × [-100,100].
+
+```matlab
+P = gen_skinny_cube(10);  % 10D skinny cube
+vol = volesti_volume(P);  % Returns 2^(d-1) * 200
+```
+
+#### `gen_birkhoff(n)` - Generate Birkhoff Polytope (H-rep only)
+
+Creates the n-Birkhoff polytope of doubly stochastic matrices (dimension (n-1)^2). Currently supports n=2 and n=3.
+
+```matlab
+P = gen_birkhoff(3);      % 3-Birkhoff polytope (4D)
+samples = sample_points(P.A, P.b, 100);
 ```
 
 ## Technical Architecture

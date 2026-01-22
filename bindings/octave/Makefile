@@ -25,11 +25,11 @@ CXXFLAGS = -I$(VOLESTI_INCLUDE) -I$(EXTERNAL) -I$(EIGEN_INCLUDE) -I$(BOOST_INCLU
 LDFLAGS = -L/usr/lib/lp_solve -llpsolve55 -Wl,-rpath,/usr/lib/lp_solve
 
 # Default target: build all .oct plugins
-all: inst/volume.oct inst/sample_points.oct
+all: inst/compute_volume.oct inst/sample_points.oct
 
 # Build the volume.oct plugin
-inst/volume.oct: src/volume.cpp
-	$(MKOCTFILE) $(CXXFLAGS) src/volume.cpp -o inst/volume.oct $(LDFLAGS)
+inst/compute_volume.oct: src/volume.cpp
+	$(MKOCTFILE) $(CXXFLAGS) src/volume.cpp -o inst/compute_volume.oct $(LDFLAGS)
 
 # Build the sample_points.oct plugin
 inst/sample_points.oct: src/sample_points.cpp
@@ -37,10 +37,10 @@ inst/sample_points.oct: src/sample_points.cpp
 
 # Clean build artifacts
 clean:
-	rm -f inst/volume.oct inst/sample_points.oct src/*.o
+	rm -f inst/compute_volume.oct inst/volume.oct inst/sample_points.oct src/*.o
 
 # Run all tests (like ctest)
-test: inst/volume.oct inst/sample_points.oct
+test: inst/compute_volume.oct inst/sample_points.oct
 	@echo "Running Octave binding tests..."
 	@octave --eval "addpath('inst'); cd('test'); test_Hvol" && \
 	octave --eval "addpath('inst'); cd('test'); test_Vvol" && \
