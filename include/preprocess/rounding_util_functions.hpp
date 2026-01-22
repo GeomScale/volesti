@@ -242,7 +242,6 @@ inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProdNT> const& op, 
             Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
             DenseMatProd
           >;
-        // The value of ncv is chosen empirically
         return std::make_unique<SymDenseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
     } else if constexpr (std::is_same<SpectraMatProdNT, SparseMatProd>::value)  
     {
@@ -252,7 +251,6 @@ inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProdNT> const& op, 
             Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
             SparseMatProd
           >;
-        // The value of ncv is chosen empirically
         return std::make_unique<SymSparseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
     } else 
     {
@@ -272,7 +270,6 @@ init_Bmat(MT &B, int const n, MT const& A_trans, MT const& A)
         B.resize(n+1, n+1);
     } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
     {
-        // Initialize the structure of matrix B
         typedef Eigen::Triplet<NT> triplet;
         std::vector<triplet> trp;
         for (int i = 0; i < n; i++)
@@ -386,13 +383,11 @@ void get_barrier_hessian_grad(MT const& A, MT const& A_trans, VT const& b,
   VT s = b_Ax.cwiseInverse();
   VT s_sq = s.cwiseProduct(s);
   VT sigma;
-  // Hessian of the log-barrier function
   update_Atrans_Diag_A<NT>(H, A_trans, A, s_sq.asDiagonal());
 
   if constexpr (BarrierType == EllipsoidType::VOLUMETRIC_BARRIER ||
                 BarrierType == EllipsoidType::VAIDYA_BARRIER)
   {
-    // Computing sigma(x)_i = (a_i^T H^{-1} a_i) / (b_i - a_i^Tx)^2
     MT_dense HA = solve_mat(llt, H, A_trans, obj_val);
     MT_dense aiHai = HA.transpose().cwiseProduct(A);
     sigma = (aiHai.rowwise().sum()).cwiseProduct(s_sq);
@@ -403,22 +398,16 @@ void get_barrier_hessian_grad(MT const& A, MT const& A_trans, VT const& b,
     grad.noalias() = A_trans * s;
   } else if constexpr (BarrierType == EllipsoidType::VOLUMETRIC_BARRIER)
   {
-    // Gradient of the volumetric barrier function
     grad.noalias() = A_trans * (s.cwiseProduct(sigma));
-    // Hessian of the volumetric barrier function
     update_Atrans_Diag_A<NT>(H, A_trans, A, s_sq.cwiseProduct(sigma).asDiagonal());
   } else if constexpr (BarrierType == EllipsoidType::VAIDYA_BARRIER)
   {
     const int m = b.size(), d = x.size();
     NT const d_m = NT(d) / NT(m);
-    // Weighted gradient of the log barrier function
     grad.noalias() = A_trans * s;
     grad *= d_m;
-    // Add the gradient of the volumetric function
     grad.noalias() += A_trans * (s.cwiseProduct(sigma));
-    // Weighted Hessian of the log barrier function
     H *= d_m;
-    // Add the Hessian of the volumetric function
     MT Hvol(d, d);
     update_Atrans_Diag_A<NT>(Hvol, A_trans, A, s_sq.cwiseProduct(sigma).asDiagonal());
     H += Hvol;
@@ -448,4 +437,4 @@ void get_step_next_iteration(NT const obj_val_prev, NT const obj_val,
   }
 }
 
-#endif // ROUNDING_UTIL_FUNCTIONS_HPP
+#endif 
