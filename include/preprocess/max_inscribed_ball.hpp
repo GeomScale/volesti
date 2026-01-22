@@ -7,6 +7,9 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+// NOTE:
+// If converge == false, the returned center and radius are invalid
+// and must not be used by downstream code.
 
 #ifndef MAX_INSCRIBED_BALL_HPP
 #define MAX_INSCRIBED_BALL_HPP
@@ -59,13 +62,11 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     }
 }
 
-// Using MT as to deal with both dense and sparse matrices
 template <typename MT, typename VT, typename NT>
 std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, 
                                              unsigned int maxiter, NT tol,
                                              const bool feasibility_only = false) 
 {
-    //typedef matrix_computational_operator<MT> mat_op;
     int m = A.rows(), n = A.cols();
     bool converge = false;
 
@@ -95,7 +96,6 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
-        // KKT residuals
         r1.noalias() = b - (A * x + s + t * e_m);
         r2.noalias() = -A_trans * y;
         r3 = 1.0 - y.sum();
@@ -105,37 +105,33 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         r23(n) = r3;
         gap = -r4.sum();
 
-        // relative residual norms and gap
         prif = r1.norm() / (1.0 + bnrm);
         drif = r23.norm() / 10.0;
         rgap = std::abs(b.dot(y) - t) / (1.0 + std::abs(t));
         total_err = std::max(prif, drif);
         total_err = std::max(total_err, rgap);
 
-        // progress output & check stopping
         if ( (total_err < tol && t > 0) || 
              ( t > 0 && ( (std::abs(t - t_prev) <= tol * std::min(std::abs(t), std::abs(t_prev)) ||
                            std::abs(t - t_prev) <= tol) && i > 10) ) ||
              (feasibility_only && t > tol/2.0 && i > 0) )  
         {
-            //converged
             converge = true;
             break;
         }
 
         if ((dt > 10000.0 * bnrm || t > 10000000.0 * bnrm) && i > 20) 
         {
-            //unbounded
             converge = false;
             break;
         }
 
-        // Shur complement matrix
         vec_iter1 = d.data();
         vec_iter3 = s.data();
         vec_iter2 = y.data();
         for (int j = 0; j < m; ++j) {
-            *vec_iter1 = std::min(power_num, (*vec_iter2) / (*vec_iter3));
+            NT denom = std::max((*vec_iter3), NT(1e-14));
+            *vec_iter1 = std::min(power_num, (*vec_iter2) / denom);
             vec_iter1++;
             vec_iter3++;
             vec_iter2++;
@@ -145,7 +141,6 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         AtDe.noalias() = AtD * e_m;
         update_Bmat<NT>(B, AtDe, d, AtD, A);
 
-        // predictor step & length
         calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
 
         alphap = -1.0;
@@ -166,12 +161,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         alphap = -1.0 / alphap;
         alphad = -1.0 / alphad;
 
-        // determine mu
         ratio = (s + alphap * ds).dot((y + alphad * dy)) / gap;
         sigma = std::min(sigma0, ratio * ratio);
         mu = (sigma * gap) / NT(m);
 
-        // corrector and combined step & length
         mu_ds_dy.noalias() = e_m * mu - ds.cwiseProduct(dy);
         calcstep(A, A_trans, B, llt, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
 
@@ -198,7 +191,6 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         alphap = -1.0 / alphap;
         alphad = -1.0 / alphad;
 
-        // update iterates
         tau = std::max(tau0, 1.0 - gap / NT(m));
         alphap = std::min(1.0, tau * alphap);
         alphad = std::min(1.0, tau * alphad);
@@ -210,8 +202,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         y += alphad * dy;
     }
 
-    std::tuple<VT, NT, bool> result = std::make_tuple(x, t, converge);
-    return result;
-}
+    if (!converge) {
+        t = NT(-1); 
+    }
 
-#endif // MAX_INSCRIBED_BALL_HPP
+    return std::make_tuple(x, t, converge);
+}
+#endif 
