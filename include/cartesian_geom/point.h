@@ -117,9 +117,10 @@ public:
         coeffs += p.getCoefficients();
     }
 
-    void operator+= (const Coeff& coeffs)
+    template<typename Derived>
+    void operator+= (const Eigen::MatrixBase<Derived>& other)
     {
-        this->coeffs += coeffs;
+        this->coeffs += other;
     }
 
     void operator-= (const point& p)
@@ -127,9 +128,10 @@ public:
         coeffs -= p.getCoefficients();
     }
 
-    void operator-= (const Coeff& coeffs)
+    template<typename Derived>
+    void operator-= (const Eigen::MatrixBase<Derived>& other)
     {
-        this->coeffs -= coeffs;
+        this->coeffs -= other;
     }
 
     void operator= (const Coeff& coeffs)
@@ -205,8 +207,7 @@ public:
     }
 
     FT squared_length() const {
-        FT lsq = length();
-        return lsq * lsq;
+        return coeffs.squaredNorm();
     }
 
     FT length() const {
