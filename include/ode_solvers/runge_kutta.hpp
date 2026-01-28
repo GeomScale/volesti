@@ -103,7 +103,7 @@ struct RKODESolver {
         // Calculate k_i s
         y = F(i,ks[ord], t);
         ks[ord][i] = y;
-        y = (eta * bs[i]) * y;
+        y = (eta * bs[ord]) * y;
 
         if (Ks[i] == NULL) {
           xs[i] = xs[i] + y;
