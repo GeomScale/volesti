@@ -428,3 +428,11 @@ TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTH
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
+
+# This test requires FFTW3 and other dependencies skipped in minimal builds.
+if(NOT DISABLE_NLP_ORACLES)
+    add_executable(test_integral_collocation_stability test_integral_collocation_stability.cpp)
+
+    target_link_libraries(test_integral_collocation_stability lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config${Boost_LIBRARIES})
+    add_test(NAME test_integral_collocation_stability COMMAND test_integral_collocation_stability)
+endif()
