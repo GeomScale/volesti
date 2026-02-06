@@ -88,7 +88,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void apply(GenericPolytope &P,
+    inline bool apply(GenericPolytope &P,
                       Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
@@ -125,9 +125,12 @@ struct Walk
             }
             if (it == 50*n){
                 _p = p0;
+                p = _p;
+                return false;
             }
         }
         p = _p;
+        return true;
     }
 
     inline void update_delta(NT L)
