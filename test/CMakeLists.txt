@@ -180,7 +180,7 @@ set(CMAKE_CXX_STANDARD 17)  #enable the c++17 support needed by autodiff
 #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
-add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
 #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
 #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
@@ -189,6 +189,10 @@ add_executable (new_volume_example new_volume_example.cpp)
 add_executable (benchmarks_sob benchmarks_sob.cpp)
 add_executable (benchmarks_cg benchmarks_cg.cpp)
 add_executable (benchmarks_cb benchmarks_cb.cpp)
+
+# Mission 1: Simple Cube Example
+add_executable (simple_cube ../examples/simple_cube.cpp)
+target_link_libraries(simple_cube lp_solve ${MKL_LINK} coverage_config)
 
 add_library(test_main OBJECT test_main.cpp)
 
