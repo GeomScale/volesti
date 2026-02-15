@@ -13,7 +13,7 @@ You might have to specify the path to liblpsolve55.so/dll/dylib. Try these:
 cmake . -DLP_SOLVE=_PATH_TO_LIB_FILE
 make
 ``` 
-TO find where this path is Try this command
+To find where this path is Try this command
 
    find /usr -name "liblpsolve55.so" 2>/dev/null  
    For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
@@ -41,7 +41,7 @@ In the end, the code returns (among others):
    - ESS
    - Time 
 
-There are many custom parameters you can modify:
+There are many custom parameters you can modify. Unfortunatelly, you currently need to modify the source code:
 
 # Choosing your desired sampling method
 
@@ -146,8 +146,8 @@ Time Limit: 3600s per method.
 [AcceleratedBilliardWalk] KS Statistic: 0.0509159
 [AcceleratedBilliardWalk] P-Value:      0.336792
 
-Results are also saved in a file after each sampling in order to save data in case of a crash. The file is called benchmark_results.txt 
-and should look like this:
+Results are also saved in a file after each sampling in order to save data in case of a crash and to make it easier to extract the results. 
+The file is called benchmark_results.txt and should look like this:
 
 Dim, Method, Time(s), Points, ESS
 81, AcceleratedBilliardWalk, 0.248768, 10810, 638
