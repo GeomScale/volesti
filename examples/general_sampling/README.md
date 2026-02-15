@@ -52,8 +52,8 @@ To do that check lines 592-598. Set true to the methods you want to run and fals
 
 In line 138 you can find a function called compute_batch_size. There you can define how many samples each batch will return.
 In order to reach a specific ess we sample in small batches and calculate the ESS. There are a few things to notice here:
-   -> The smaller the batch size, the more time is spent on calculating the ESS. 
-   -> The higher the batch size the more difficult it is to reach the target exactly. 
+   - The smaller the batch size, the more time is spent on calculating the ESS. 
+   - The higher the batch size the more difficult it is to reach the target exactly. 
 
 Thus a compromise is needed. We provide numbers for some of the most common polytopes after many trial and error experiments. You can follow them or use your own.
 
@@ -64,11 +64,11 @@ Calculating the efficiency of these samples, we request as many samplse as neede
 You can turn on/off the dynamic batch size following these steps:
 
 How to turn ON dynamic batch size:
-   -> Comment lines 271-272 and uncomment lines 273-274.
-   -> Uncomment lines 337-352.
+   - Comment lines 271-272 and uncomment lines 273-274.
+   - Uncomment lines 337-352.
 How to turn OFF dynamic batch size:
-   -> Uncomment lines 271-272 and comment lines 273-274.
-   -> Comment lines 337-352.
+   - Uncomment lines 271-272 and comment lines 273-274.
+   - Comment lines 337-352.
 
 Recommendation: Don't start your sampling with the dynamic batch size. There is a chance that the sampler will get stuck or that 
 it will take TOO long to sample 10 times your target. It is better (especially for an unknown polytope) to begin with a small 
@@ -99,16 +99,16 @@ If you want to sample from a custom polytope, we offer an option. The polytope m
 A and b matrices must be in csv form. 
 
 How to use custom mode:
-   -> In line 611 you must set this boolean to true (false for native polytopes)
-   -> In line 618 you must provide the names of the csv files holding A and b matrices. 
+   - In line 611 you must set this boolean to true (false for native polytopes)
+   - In line 618 you must provide the names of the csv files holding A and b matrices. 
 
 # Choose dimensions, target ESS and time limit
 
-   -> In line 582 there is a vector holding the dimensions. Add the dimensions you want the sampling to take place. We later loop this vector
+   - In line 582 there is a vector holding the dimensions. Add the dimensions you want the sampling to take place. We later loop this vector
       so you can add multiple dimensions. (example {3,5,6,7,8,9,10})
-   -> In line 584 you can choose the target ESS. 
-   -> In order to sample only for as many samples as you choose, set target ESS to 1 and batch size to how many samples you want.
-   -> In line 588 is the time limit in seconds. After some sampling methods exceed this limit, the method is aborted and the current results saved.
+   - In line 584 you can choose the target ESS. 
+   - In order to sample only for as many samples as you choose, set target ESS to 1 and batch size to how many samples you want.
+   - In line 588 is the time limit in seconds. After some sampling methods exceed this limit, the method is aborted and the current results saved.
 
 # Rotate polytope
 
@@ -116,17 +116,18 @@ We offer the chance to rotate any polytope around each plane. This is usefull to
 sits aligned with the axis and thus helping some of the sampling methods.
 
 How to rotate a polytope
-   -> In lines 648-649 choose an angle or define your own angle.
+   - In lines 648-649 choose an angle or define your own angle.
 
 # Print the polytope
 
 Sometimes, for debugging purposes it is useful to see the polytope that you sample from. 
 
 How to print the polytope 
-   -> Uncomment or comment line 652
+   - Uncomment or comment line 652
 
 # Expected output (example)
 
+```text
 Starting Benchmark.
 Target ESS: 500
 Time Limit: 3600s per method.
@@ -138,23 +139,19 @@ Time Limit: 3600s per method.
 [AcceleratedBilliardWalk] Current walk_len: 1
 [AcceleratedBilliardWalk] Samples: 10810 | ESS: 638 | Time: 0.248768s
 [AcceleratedBilliardWalk] DONE. Final ESS: 638
-[AcceleratedBilliardWalk] Total generation time: 0.248768 s
-[AcceleratedBilliardWalk] Results saved to benchmark_results.txt
-[AcceleratedBilliardWalk] Total PSRF time = 0.0118244 s
-[AcceleratedBilliardWalk] Total time to calculate ESS = 1.17848 s
-[AcceleratedBilliardWalk] PSRF = 1.00675
-[AcceleratedBilliardWalk] KS Statistic: 0.0509159
-[AcceleratedBilliardWalk] P-Value:      0.336792
+```
 
-Results are also saved in a file after each sampling in order to save data in case of a crash and to make it easier to extract the results. 
-The file is called benchmark_results.txt and should look like this:
+Results are also saved in a file after each sampling...
+The file is called `benchmark_results.txt` and should look like this:
 
+```csv
 Dim, Method, Time(s), Points, ESS
 81, AcceleratedBilliardWalk, 0.248768, 10810, 638
 81, CDHRWalk, 0.188994, 6744, 662
 81, BilliardWalk, 1.12567, 40400, 570
 81, RDHRWalk, 26.7692, 59700, 552
 81, SparseBilliardWalk, 3.03094, 4324, 780
+```
 
 
  
