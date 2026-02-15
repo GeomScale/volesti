@@ -97,7 +97,6 @@ void print_hpoly(const HPOLYTOPE& P) {
     std::cout << std::endl;
 }
 
-
 // Used to write final samples to a file
 void write_to_file(std::string filename, std::vector<Point> const& randPoints) {
     std::ofstream out(filename);
@@ -111,7 +110,6 @@ void write_to_file(std::string filename, std::vector<Point> const& randPoints) {
 PushBackWalkPolicy push_back_policy;
 
 //Useful class to count time and avoid repeating auto chrono etc
-//Add a label when calling an object generator_timer.stop(""); to see time at every loop
 class Timer {
 public:
     Timer(const std::string& name = "") : walk_name(name), total_time(0.0) {}
@@ -136,7 +134,7 @@ private:
     double total_time;
 };
 
-// Function to dynamically compute the batch size based on the walk type and dimension
+// Function to compute the batch size based on the walk type and dimension
 unsigned int compute_batch_size(const std::string& walk_name, unsigned int dim) {
 
     // Default base size
@@ -202,8 +200,6 @@ unsigned int compute_batch_size(const std::string& walk_name, unsigned int dim) 
     else if (walk_name == "VaidyaWalk") {
         batch_size = dim * 150 + 1000;
     }     
-       
-
     return batch_size;
 }
 
@@ -225,7 +221,7 @@ unsigned int compute_ess(const MT& samples) {
     return min_ess;
 }
 
-// Computes PSRF for all accumulated points (no timing inside)
+// Computes PSRF for all accumulated points
 template <typename NT, typename VT, typename MT>
 double compute_psrf(const std::vector<Point>& someSamples) {
     // Convert to Eigen matrix
@@ -271,7 +267,7 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
     unsigned int dim = Polytope.dimension();
 
     Timer t;
-    //Uncommenct these 2 lines and comment lines 269-270 and 334-349 to swap back to manual batch size
+    //Commenct these 2 lines and uncomment lines 273-274 and 337-352 to swap back to dynamic batch size
     unsigned int batch_size = compute_batch_size(walk_name, dim);
     std::cout << "\n[" << walk_name << "] Current batch_size: " << batch_size << "\n";
     //unsigned int batch_size = target_ESS*5;
@@ -301,13 +297,12 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
             std::cout << "[" << walk_name << "] TIMEOUT (" 
                       << generator_timer.get_total_time() << "s > " 
                       << time_limit_sec << "s). Stopping."
-                      << std::string(20, ' ') << "\n"; // Adds 20 spaces to clear the line;
+                      << std::string(20, ' ') << "\n";
             timed_out = true;
             failed_to_converge = true;
             break;
         }
 
-        //unsigned int num_points = batch_size;
         std::vector<Point> batchPoints;
         
         generator_timer.start();
@@ -331,7 +326,7 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
 
             if (current_ESS >= target_ESS) break;
             
-            // Optional: Print progress
+            // Print progress
             std::cout << "[" << walk_name << "] Samples: " << allSamples.size() 
                       << " | ESS: " << current_ESS 
                       << " | Time: " << generator_timer.get_total_time() << "s\r" << std::flush;
@@ -377,7 +372,7 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
     // SAVE TO FILE 
     // Format: Dimension, WalkName, Time, Points, ESS
     std::ofstream outfile;
-    outfile.open("benchmark_results.txt", std::ios_base::app); // Append mode
+    outfile.open("benchmark_results.txt", std::ios_base::app); 
     
     if (outfile.is_open()) {
         outfile << Polytope.dimension() << ", " 
@@ -387,7 +382,7 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
                 << current_ESS << "\n";
         outfile.close();
         std::cout << "[" << walk_name << "] Results saved to benchmark_results.txt"
-                  << std::string(20, ' ') << "\n"; // Adds 20 spaces to clear the line;
+                  << std::string(20, ' ') << "\n"; 
     } else {
         std::cerr << "Unable to open file to write results!\n";
     }
@@ -401,7 +396,7 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
     std::cout << "[" << walk_name << "] Total time to calculate ESS = " << ess_timer.get_total_time() << " s\n";
     std::cout << "[" << walk_name << "] PSRF = " << max_psrf << std::endl;
 
-    // K-S statistical test ////////////////////////////////////////////////////
+    ////////////////// K-S statistical test ////////////////////////////////////////////////////
     MT samples_mat = vector_to_eigen<MT>(allSamples);
     int computed_thin = static_cast<int>(samples_mat.cols() / current_ESS);
     int thin_factor = std::max(10, computed_thin * 2);
@@ -428,6 +423,7 @@ bool sample_using_walk(HPOLYTOPE& Polytope,
     //           expected[i]*100.0, observed[i]*100.0, dev);
     // }
     // std::cout << "-------------------------------\n";
+    ////////////////End of K-S statistical test ////////////////////////////////////////////////////
 
     if (timed_out || failed_to_converge) return false; 
 
@@ -455,7 +451,7 @@ bool sample_using_crhmc(PolytopeType& HP,
     using Grad = ZeroFunctor<Point>;
     using Hess = ZeroFunctor<Point>;
 
-    // --- Configuration ---
+    // Configuration 
     double current_efficiency = 1.0 / 10.0; 
     int n_burns = 1000; 
     int walk_len = 1; // Thinning
@@ -472,10 +468,9 @@ bool sample_using_crhmc(PolytopeType& HP,
 
     std::cout << "[" << walk_name << "] Target ESS: " << target_ESS << "\n";
 
-    // --- The Smart Loop ---
     while (current_ESS < target_ESS) {
         
-        // 1. Calculate how many samples we need
+        // Calculate how many samples we need
         double missing_ESS = target_ESS - current_ESS;
         
         // "Smart Batching": Estimate samples needed based on current efficiency
@@ -484,18 +479,17 @@ bool sample_using_crhmc(PolytopeType& HP,
         
         // Safety clamps
         if (n_samples_needed < 1000) n_samples_needed = 1000; 
-        if (n_samples_needed > 100000) n_samples_needed = 100000; // Cap to prevent memory explosion
+        if (n_samples_needed > 100000) n_samples_needed = 100000; 
 
         std::cout << "[" << walk_name << "][Batch " << batch_count << "] Requesting " 
                   << n_samples_needed << " samples (Efficiency: " << current_efficiency << ")\n";
 
-        // Setup Helper Objects (Must be fresh per run)
+        // Setup Helper Objects (must be fresh per run)
         Func* f = new Func;
         Grad* g = new Grad;
         std::list<Point> batch_list;
 
         // EXECUTE CRHMC
-        // Note: passing 'rng' ensures the random sequence continues, making this valid
         execute_crhmc<PolytopeType, RNGType, std::list<Point>, Grad, Func, Hess, CRHMCWalk, 1>(
             HP, rng, batch_list, walk_len, n_samples_needed, n_burns, g, f
         );
@@ -503,11 +497,9 @@ bool sample_using_crhmc(PolytopeType& HP,
         delete f;
         delete g;
 
-        // Merge Samples
         // We move elements from list to vector to avoid copying
         all_samples.insert(all_samples.end(), batch_list.begin(), batch_list.end());
 
-        // 5. Update Statistics
         // We must convert ALL samples to matrix to calculate total ESS
         MT samples_matrix = MT(HP.dimension(), all_samples.size());
         for (size_t i = 0; i < all_samples.size(); ++i) {
@@ -526,7 +518,7 @@ bool sample_using_crhmc(PolytopeType& HP,
         std::cout << "[" << walk_name << "][Batch " << batch_count << "] Current ESS: " << current_ESS 
                   << " / " << target_ESS << "\n";
 
-        // Break if we are stuck (Efficiency drops too low)
+        // Break if we are stuck (efficiency drops too low)
         if (current_efficiency < 0.0001 && all_samples.size() > 5000) {
             std::cout << "[" << walk_name << "] CRITICAL: Efficiency too low. Stopping.\n";
             break;
@@ -537,15 +529,13 @@ bool sample_using_crhmc(PolytopeType& HP,
     
     total_timer.stop("");
 
-    // --- Final Reporting & Tests ---
-    
-    // 1. PSRF
+    // PSRF
     Timer psrf_timer(walk_name);
     psrf_timer.start();
     double max_psrf = compute_psrf<NT, VT, MT>(all_samples);
     psrf_timer.stop("");
 
-    // 2. KS Test
+    // KS Test
     MT final_matrix = MT(HP.dimension(), all_samples.size());
     for (size_t i = 0; i < all_samples.size(); ++i) {
         final_matrix.col(i) = all_samples[i].getCoefficients();
@@ -616,7 +606,7 @@ int main(int argc, char const *argv[]) {
     std::cout << "Target ESS: " << target_ESS << "\n";
     std::cout << "Time Limit: " << TIME_LIMIT_SEC << "s per method.\n";
 
-    //////CUSTOM Polytopes in A*x<=b form/////////////*******************************************////////////////////////////////////////
+    //////CUSTOM Polytopes in A*x<=b form/////////////////////////////////////////////////////
     // TOGGLE THIS: Set to 'true' for your custom CSVs, 'false' for the Cube/Simplex/... benchmark
     bool USE_CUSTOM_MODEL = false; 
 
@@ -625,7 +615,7 @@ int main(int argc, char const *argv[]) {
     if (USE_CUSTOM_MODEL) {
         try {
             // Load the model ONCE before the loop. Place the csv files in the build folder.
-            custom_polytope = load_custom_polytope<HPOLYTOPE>("agg_A.csv", "agg_b.csv");
+            custom_polytope = load_custom_polytope<HPOLYTOPE>("example_A.csv", "example_b.csv");
             
             // Overwrite dimensions list to run exactly ONCE for the model's dimension
             dimensions = { static_cast<unsigned int>(custom_polytope.dimension()) };
@@ -636,7 +626,7 @@ int main(int argc, char const *argv[]) {
             return 1;
         }
     } 
-    //////End of Custom Polytopes///////////////////*******************************************////////////////////////////////////////
+    //////End of Custom Polytopes//////////////////////////////////////////////////////////
 
     for (auto dim : dimensions) {
         
@@ -650,14 +640,14 @@ int main(int argc, char const *argv[]) {
         } else {
             // Generate desired Polytope 
             //Polytope_simple = generate_cube<HPOLYTOPE>(dim, false);
-            Polytope = generate_birkhoff<HPOLYTOPE>(dim);
+            Polytope_simple = generate_birkhoff<HPOLYTOPE>(dim);
             //Polytope_simple = generate_cross<HPOLYTOPE>(dim, false);
             //Polytope_simple = generate_skinny_cube<HPOLYTOPE>(dim,false);
             //Polytope_simple = generate_simplex<HPOLYTOPE>(dim, false);
             
             //double angle = 53.0 * M_PI / 180.0; //53 deg
-            //double angle = 0.0 * M_PI / 180.0;  //0 deg
-            //Polytope = rotate_all_dims(Polytope_simple, angle);
+            double angle = 0.0 * M_PI / 180.0;  //0 deg
+            Polytope = rotate_all_dims(Polytope_simple, angle);
 
             //print_hpoly(Polytope); //Uncomment to print the polytope
         }
@@ -776,7 +766,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "\n[CRHMCWalk] Skipping (previously timed out).\n";
         }
 
-    } // End dimension loop
+    } // End of for loop for dimensions
 
     std::cout << "\nBenchmark Complete.\n";
     return 0;
