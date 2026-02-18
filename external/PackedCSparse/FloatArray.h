@@ -8,8 +8,8 @@
 //(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
 
 #pragma once
-#if defined(__x86_64__) || defined(__i386__)
-    #include <immintrin.h>
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+#include <immintrin.h>
 #endif
 #include <random>
 #include <type_traits>
