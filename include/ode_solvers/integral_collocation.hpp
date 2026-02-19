@@ -17,8 +17,13 @@
 #ifndef ODE_SOLVERS_INTEGRAL_COLLOCATION_HPP
 #define ODE_SOLVERS_INTEGRAL_COLLOCATION_HPP
 
+#include "basis.hpp"
+
+#ifndef DISABLE_NLP_ORACLES
 #include "nlp_oracles/nlp_hpolyoracles.hpp"
 #include "nlp_oracles/nlp_vpolyoracles.hpp"
+#endif
+
 #include "boost/numeric/ublas/vector.hpp"
 #include "boost/numeric/ublas/io.hpp"
 #include "boost/math/special_functions/chebyshev.hpp"
@@ -156,6 +161,8 @@ struct IntegralCollocationODESolver {
     NT err;
 
     do {
+      X_prev = X;
+
       for (unsigned int ord = 0; ord < order(); ord++) {
         for (unsigned int i = 0; i < xs.size(); i++) {
           for (unsigned int j = i * dim; j < (i + 1) * dim; j++) {
@@ -175,9 +182,7 @@ struct IntegralCollocationODESolver {
         }
       }
 
-      X = X0 + F_op * A_phi;
-
-      X_prev = X;
+      X = X0 + (F_op * A_phi) * (eta / 2.0);
 
       err = sqrt((X - X_prev).squaredNorm());
 
@@ -232,7 +237,7 @@ struct IntegralCollocationODESolver {
 
         // 5. Apply degree-doubling transformation
         // The transformation takes the n Chebyshev transform coefficients c[i]
-         // and creates a complex polynomial of order 2n with coefficients a[i]
+          // and creates a complex polynomial of order 2n with coefficients a[i]
         // such that a[n] = 2 * c[0], a[i] = c[i - n] for i > n and a[i] = c[n - i] for i < n
         // This polynomial h(z) is defined on the complex plane.
         // Its roots are related to the chebyshev transform as: z is a root of
