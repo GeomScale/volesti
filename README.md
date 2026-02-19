@@ -31,8 +31,8 @@
 
 ### ⭐ Credits
 
-* [Contributors and Package History](doc/credits.md)
-* [List of Publications](doc/publications.md)
+* [Contributors and Package History](docs/misc/credits.md)
+* [List of Publications](docs/misc/publications.md)
 
 ### © Copyright and Licensing
 
