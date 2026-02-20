@@ -97,11 +97,14 @@ public:
     }
 
     // Check if point is in K
-    int is_in(Point const& p, NT tol=NT(0)) {
-        for (func g : gs) {
-            if (g(p) > NT(-tol)) return 0;
+    int is_in(Point const& p, NT tol=NT(0)) const {
+        NT max_val = -std::numeric_limits<NT>::max();
+        for (const auto& g : gs) {
+            NT val = g(p);
+            if (val > tol) return 1;
+            if (val > max_val) max_val = val;
         }
-        return -1;
+        return (max_val >= -tol) ? 0 : -1;
     }
 
 };

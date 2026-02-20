@@ -324,19 +324,11 @@ public:
 
 
     //Check if Point p is in H-polytope P:= Ax<=b
-    int is_in(Point const& p, NT tol=NT(0)) const
-    {
-        int m = A.rows();
-        const NT* b_data = b.data();
-
-        for (int i = 0; i < m; i++) {
-            //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
-                return 0;
-
-            b_data++;
-        }
-        return -1;
+    int is_in(Point const& p, NT tol=NT(0)) const {
+        Eigen::Matrix<NT, Eigen::Dynamic, 1> res = A * p.getCoefficients() - b;
+        NT max_val = res.maxCoeff();
+        if (max_val > tol) return 1;
+        return (max_val >= -tol) ? 0 : -1;
     }
 
     // compute intersection point of ray starting from r and pointing to v

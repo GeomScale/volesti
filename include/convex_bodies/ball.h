@@ -54,11 +54,10 @@ public:
         return c.dimension();
     }
 
-    int is_in(Point const& p) const
-    {
-        if (p.squared_length() <= R)
-            return -1;
-        else return 0;
+    int is_in(Point const& p, NT tol = NT(0)) const {
+        NT diff = (p - c).squared_length() - R;
+        if (diff > tol) return 1;
+        return (diff >= -tol) ? 0 : -1;
     }
 
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
