@@ -28,6 +28,13 @@
             radius r
 */
 
+// numerical safeguard to prevent division by near-zero values
+template <typename NT>
+inline NT safe_div(NT num, NT denom) {
+    constexpr NT eps = NT(1e-12);
+    return num / std::max(denom, eps);
+}
+
 template <typename MT, typename llt_type, typename VT, typename NT>
 void calcstep(MT const& A, MT const& A_trans, MT const& B,
               llt_type const& llt, VT &s, VT &y, VT &r1,
@@ -38,7 +45,7 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(),
        *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
     for (int i = 0; i < m; ++i) {
-        *vec_iter1 = ((*vec_iter4) / (*vec_iter2) - (*vec_iter5)) / (*vec_iter3);
+        *vec_iter1 = (safe_div(*vec_iter4, *vec_iter2) - safe_div(*vec_iter5, *vec_iter3));
         vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
     }
 
@@ -54,7 +61,7 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     vec_iter4 = ds.data(); vec_iter5 = s.data();
 
     for (int i = 0; i < m; ++i) {
-        *vec_iter1 = ((*vec_iter2) - (*vec_iter3) * (*vec_iter4)) / (*vec_iter5);
+        *vec_iter1 = safe_div((*vec_iter2) - (*vec_iter3) * (*vec_iter4), *vec_iter5);
         vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
     }
 }
@@ -156,8 +163,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         vec_iter4 = y.data();
 
         for (int j = 0; j < m; ++j) {
-            alphap = std::min(alphap, (*vec_iter1) / (*vec_iter2));
-            alphad = std::min(alphad, (*vec_iter3) / (*vec_iter4));
+            alphap = std::min(alphap, safe_div(*vec_iter1, *vec_iter2));
+            alphad = std::min(alphad, safe_div(*vec_iter3, *vec_iter4));
             vec_iter1++;
             vec_iter2++;
             vec_iter3++;
@@ -188,8 +195,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         vec_iter4 = y.data();
 
         for (int j = 0; j < m; ++j) {
-            alphap = std::min(alphap, (*vec_iter1) / (*vec_iter2));
-            alphad = std::min(alphad, (*vec_iter3) / (*vec_iter4));
+            alphap = std::min(alphap, safe_div(*vec_iter1, *vec_iter2));
+            alphad = std::min(alphad, safe_div(*vec_iter3, *vec_iter4));
             vec_iter1++;
             vec_iter2++;
             vec_iter3++;
