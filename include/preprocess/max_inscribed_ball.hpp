@@ -45,7 +45,7 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(),
        *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
     for (int i = 0; i < m; ++i) {
-        *vec_iter1 = (safe_div(*vec_iter4, *vec_iter2) - safe_div(*vec_iter5, *vec_iter3));
+        *vec_iter1 = safe_div(safe_div(*vec_iter4, *vec_iter2) - (*vec_iter5), *vec_iter3);
         vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
     }
 
