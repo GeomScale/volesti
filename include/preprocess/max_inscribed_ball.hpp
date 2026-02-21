@@ -32,7 +32,9 @@
 template <typename NT>
 inline NT safe_div(NT num, NT denom) {
     constexpr NT eps = NT(1e-12);
-    return num / std::max(denom, eps);
+    if (std::abs(denom) < eps)
+        denom = (denom >= 0 ? eps : -eps);
+    return num / denom;
 }
 
 template <typename MT, typename llt_type, typename VT, typename NT>
