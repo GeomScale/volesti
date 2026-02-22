@@ -28,14 +28,7 @@
 
 // check if an Eigen vector contains NaN or infinite values
 template <typename VT> bool is_inner_point_nan_inf(VT const &p) {
-  typedef Eigen::Array<bool, Eigen::Dynamic, 1> VTint;
-  VTint a = p.array().isNaN();
-  for (int i = 0; i < p.rows(); i++) {
-    if (a(i) || std::isinf(p(i))) {
-      return true;
-    }
-  }
-  return false;
+  return !p.array().isFinite().all();
 }
 
 /// This class describes a polytope in H-representation or an H-polytope
@@ -78,20 +71,19 @@ public:
       : _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball},
         normalized{p.normalized}, has_ball{p.has_ball} {}
 
-  // define matrix A and vector b, s.t. Ax<=b,
-  //  from a matrix that contains both A and b, i.e., [A | b ]
   HPolytope(std::vector<std::vector<NT>> const &Pin) {
     _d = Pin[0][1] - 1;
-    A.resize(Pin.size() - 1, _d);
-    b.resize(Pin.size() - 1);
-    for (unsigned int i = 1; i < Pin.size(); i++) {
-      b(i - 1) = Pin[i][0];
-      for (unsigned int j = 1; j < _d + 1; j++) {
-        A.coeffRef(i - 1, j - 1) = -Pin[i][j];
+    int m = Pin.size() - 1;
+    A.resize(m, _d);
+    b.resize(m);
+    for (int i = 0; i < m; i++) {
+      b(i) = Pin[i + 1][0];
+      // Modernizing theinner loop using Eigen's Map or just better indexing
+      for (int j = 0; j < _d; j++) {
+        A.coeffRef(i, j) = -Pin[i + 1][j + 1];
       }
     }
     has_ball = false;
-    //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
   }
 
   std::pair<Point, NT> InnerBall() const { return _inner_ball; }
@@ -113,13 +105,9 @@ public:
     if (is_normalized()) {
       _inner_ball.second = (b - A * r.getCoefficients()).minCoeff();
     } else {
-      _inner_ball.second = std::numeric_limits<NT>::max();
-      for (int i = 0; i < num_of_hyperplanes(); ++i) {
-        NT dist = (b(i) - A.row(i).dot(r.getCoefficients())) / A.row(i).norm();
-        if (dist < _inner_ball.second) {
-          _inner_ball.second = dist;
-        }
-      }
+      _inner_ball.second =
+          ((b - A * r.getCoefficients()).array() / A.rowwise().norm().array())
+              .minCoeff();
     }
     has_ball = true;
   }
@@ -278,64 +266,47 @@ public:
 
   // Check if Point p is in H-polytope P:= Ax<=b
   int is_in(Point const &p, NT tol = NT(0)) const {
-    int m = A.rows();
-    const NT *b_data = b.data();
-
-    for (int i = 0; i < m; i++) {
-      // Check if corresponding hyperplane is violated
-      if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
-        return 0;
-
-      b_data++;
+    if (((b - A * p.getCoefficients()).array() < -tol).any()) {
+      return 0;
     }
     return -1;
   }
 
-  // compute intersection point of ray starting from r and pointing to v
-  // with polytope discribed by A and b
   std::pair<NT, NT> line_intersect(Point const &r, Point const &v) const {
-
-    NT lamda = 0;
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-    VT sum_nom, sum_denom;
-    // unsigned int i, j;
-    unsigned int j;
-    int m = num_of_hyperplanes();
-
-    sum_nom.noalias() = b - A * r.getCoefficients();
-    sum_denom.noalias() = A * v.getCoefficients();
+    VT sum_nom = b - A * r.getCoefficients();
+    VT sum_denom = A * v.getCoefficients();
 
     auto ratios = sum_nom.array() / sum_denom.array();
     auto valid_plus = (sum_denom.array() != 0) && (ratios > 0);
     auto valid_minus = (sum_denom.array() != 0) && (ratios < 0);
 
-    if (valid_plus.any())
-      min_plus =
-          valid_plus.select(ratios, std::numeric_limits<NT>::max()).minCoeff();
-    if (valid_minus.any())
-      max_minus = valid_minus.select(ratios, std::numeric_limits<NT>::lowest())
-                      .maxCoeff();
+    NT min_plus =
+        valid_plus.any()
+            ? valid_plus.select(ratios, std::numeric_limits<NT>::max())
+                  .minCoeff()
+            : std::numeric_limits<NT>::max();
+    NT max_minus =
+        valid_minus.any()
+            ? valid_minus.select(ratios, std::numeric_limits<NT>::lowest())
+                  .maxCoeff()
+            : std::numeric_limits<NT>::lowest();
+
     return std::make_pair(min_plus, max_minus);
   }
 
-  // compute intersection points of a ray starting from r and pointing to v
-  // with polytope discribed by A and b
   std::pair<NT, NT> line_intersect(Point const &r, Point const &v, VT &Ar,
                                    VT &Av, bool pos = false) const {
-    NT lamda = 0;
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-    VT sum_nom;
-    int m = num_of_hyperplanes(), facet;
-
     Ar.noalias() = A * r.getCoefficients();
-    sum_nom = b - Ar;
+    VT sum_nom = b - Ar;
     Av.noalias() = A * v.getCoefficients();
-    ;
+
     auto ratios = sum_nom.array() / Av.array();
     auto valid_plus = (Av.array() != 0) && (ratios > 0);
     auto valid_minus = (Av.array() != 0) && (ratios < 0);
+
+    NT min_plus = std::numeric_limits<NT>::max();
+    NT max_minus = std::numeric_limits<NT>::lowest();
+    int facet = -1;
 
     if (valid_plus.any()) {
       Eigen::Index idx;
@@ -344,33 +315,30 @@ public:
       if (pos)
         facet = idx;
     }
-    if (valid_minus.any())
+    if (valid_minus.any()) {
       max_minus = valid_minus.select(ratios, std::numeric_limits<NT>::lowest())
                       .maxCoeff();
+    }
+
     if (pos)
-      return std::make_pair(min_plus, facet);
+      return std::make_pair(min_plus, (NT)facet);
     return std::make_pair(min_plus, max_minus);
   }
 
   std::pair<NT, NT> line_intersect(Point const &r, Point const &v, VT &Ar,
                                    VT &Av, NT const &lambda_prev,
                                    bool pos = false) const {
-
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-    VT sum_nom;
-    NT mult;
-    // unsigned int i, j;
-    unsigned int j;
-    int m = num_of_hyperplanes(), facet;
-
     Ar.noalias() += lambda_prev * Av;
-    sum_nom = b - Ar;
+    VT sum_nom = b - Ar;
     Av.noalias() = A * v.getCoefficients();
 
     auto ratios = sum_nom.array() / Av.array();
     auto valid_plus = (Av.array() != 0) && (ratios > 0);
     auto valid_minus = (Av.array() != 0) && (ratios < 0);
+
+    NT min_plus = std::numeric_limits<NT>::max();
+    NT max_minus = std::numeric_limits<NT>::lowest();
+    int facet = -1;
 
     if (valid_plus.any()) {
       Eigen::Index idx;
@@ -379,11 +347,13 @@ public:
       if (pos)
         facet = idx;
     }
-    if (valid_minus.any())
+    if (valid_minus.any()) {
       max_minus = valid_minus.select(ratios, std::numeric_limits<NT>::lowest())
                       .maxCoeff();
+    }
+
     if (pos)
-      return std::make_pair(min_plus, facet);
+      return std::make_pair(min_plus, (NT)facet);
     return std::make_pair(min_plus, max_minus);
   }
 
@@ -410,24 +380,21 @@ public:
   std::pair<NT, int>
   line_first_positive_intersect(Point const &r, Point const &v, VT &Ar, VT &Av,
                                 update_parameters &params) const {
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-
-    NT lamda = 0;
-    VT sum_nom;
-    int m = num_of_hyperplanes();
-    int facet = -1;
-
     Ar.noalias() = A * r.getCoefficients();
-    sum_nom.noalias() = b - Ar;
+    VT sum_nom = b - Ar;
     Av.noalias() = A * v.getCoefficients();
 
     auto ratios = sum_nom.array() / Av.array();
     auto valid_plus = (Av.array() != 0) && (ratios > 0);
+    int m = num_of_hyperplanes();
+
     if (params.facet_prev >= 0 && params.facet_prev < m &&
         std::abs(sum_nom(params.facet_prev)) <= NT(1e-12)) {
       valid_plus(params.facet_prev) = false;
     }
+
+    NT min_plus = std::numeric_limits<NT>::max();
+    int facet = -1;
 
     if (valid_plus.any()) {
       Eigen::Index idx;
@@ -446,28 +413,25 @@ public:
   line_positive_intersect(Point const &r, Point const &v, VT &Ar, VT &Av,
                           NT const &lambda_prev, DenseMT const &AA,
                           update_parameters &params) const {
-
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-
-    NT lamda = 0;
-    NT inner_prev = params.inner_vi_ak;
-    VT sum_nom;
-    int m = num_of_hyperplanes(), facet;
-    int skip = params.facet_prev;
-
     Ar.noalias() += lambda_prev * Av;
     if (params.hit_ball) {
-      Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
+      Av.noalias() +=
+          (-2.0 * params.inner_vi_ak) * (Ar / params.ball_inner_norm);
     } else {
-      Av.noalias() += ((-2.0 * inner_prev) * AA.col(params.facet_prev));
+      Av.noalias() += ((-2.0 * params.inner_vi_ak) * AA.col(params.facet_prev));
     }
-    sum_nom.noalias() = b - Ar;
 
+    VT sum_nom = b - Ar;
     auto ratios = sum_nom.array() / Av.array();
     auto valid_plus = (Av.array() != 0) && (ratios > 0);
-    if (skip >= 0 && skip < m)
-      valid_plus(skip) = false;
+    int m = num_of_hyperplanes();
+
+    if (params.facet_prev >= 0 && params.facet_prev < m) {
+      valid_plus(params.facet_prev) = false;
+    }
+
+    NT min_plus = std::numeric_limits<NT>::max();
+    int facet = -1;
 
     if (valid_plus.any()) {
       Eigen::Index idx;
@@ -587,21 +551,21 @@ public:
         params.L_inv.transpose().template triangularView<Eigen::Lower>().solve(
             v_rounded.getCoefficients());
 
-    NT lambda_min = std::numeric_limits<NT>::max();
-    int facet = -1;
-
     Ar = params.A_original * r_orig;
     Av = params.A_original * v_orig;
 
-    for (int i = 0; i < params.A_original.rows(); ++i) {
-      NT b = params.b_original(i);
-      if (std::abs(Av(i)) > NT(1e-12)) {
-        NT lambda = (b - Ar(i)) / Av(i);
-        if (lambda > NT(1e-12) && lambda < lambda_min) {
-          lambda_min = lambda;
-          facet = i;
-        }
-      }
+    VT sum_nom = params.b_original - Ar;
+    auto ratios = sum_nom.array() / Av.array();
+    auto valid_plus = (Av.array().abs() > NT(1e-12)) && (ratios > NT(1e-12));
+
+    NT lambda_min = std::numeric_limits<NT>::max();
+    int facet = -1;
+
+    if (valid_plus.any()) {
+      Eigen::Index idx;
+      lambda_min = valid_plus.select(ratios, std::numeric_limits<NT>::max())
+                       .minCoeff(&idx);
+      facet = idx;
     }
 
     if (facet != -1) {
@@ -626,18 +590,18 @@ public:
     Ar.noalias() += lambda_prev * Av;
     Av = params.A_original * v_orig;
 
+    VT sum_nom = params.b_original - Ar;
+    auto ratios = sum_nom.array() / Av.array();
+    auto valid_plus = (Av.array().abs() > NT(1e-12)) && (ratios > NT(1e-12));
+
     NT lambda_min = std::numeric_limits<NT>::max();
     int facet = -1;
 
-    for (int i = 0; i < params.A_original.rows(); ++i) {
-      NT b = params.b_original(i);
-      if (std::abs(Av(i)) > NT(1e-12)) {
-        NT lambda = (b - Ar(i)) / Av(i);
-        if (lambda > NT(1e-12) && lambda < lambda_min) {
-          lambda_min = lambda;
-          facet = i;
-        }
-      }
+    if (valid_plus.any()) {
+      Eigen::Index idx;
+      lambda_min = valid_plus.select(ratios, std::numeric_limits<NT>::max())
+                       .minCoeff(&idx);
+      facet = idx;
     }
 
     if (facet != -1) {
@@ -648,121 +612,85 @@ public:
   }
   //-----------------------------------------------------------------------------------//
 
-  // First coordinate ray intersecting convex polytope
   std::pair<NT, NT> line_intersect_coord(Point const &r,
                                          unsigned int const &rand_coord,
                                          VT &lamdas) const {
-
-    NT lamda = 0;
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-    VT sum_denom;
-
-    int m = num_of_hyperplanes();
-
-    sum_denom = A.col(rand_coord);
+    VT sum_denom = A.col(rand_coord);
     lamdas.noalias() = b - A * r.getCoefficients();
 
-    NT *lamda_data = lamdas.data();
-    NT *sum_denom_data = sum_denom.data();
+    auto ratios = lamdas.array() / sum_denom.array();
+    auto valid_plus = (sum_denom.array() != 0) && (ratios > 0);
+    auto valid_minus = (sum_denom.array() != 0) && (ratios < 0);
 
-    for (int i = 0; i < m; i++) {
+    NT min_plus =
+        valid_plus.any()
+            ? valid_plus.select(ratios, std::numeric_limits<NT>::max())
+                  .minCoeff()
+            : std::numeric_limits<NT>::max();
+    NT max_minus =
+        valid_minus.any()
+            ? valid_minus.select(ratios, std::numeric_limits<NT>::lowest())
+                  .maxCoeff()
+            : std::numeric_limits<NT>::lowest();
 
-      if (*sum_denom_data == NT(0)) {
-        // std::cout<<"div0"<<sum_denom<<std::endl;
-        ;
-      } else {
-        lamda = *lamda_data * (1 / *sum_denom_data);
-        if (lamda < min_plus && lamda > 0)
-          min_plus = lamda;
-        if (lamda > max_minus && lamda < 0)
-          max_minus = lamda;
-      }
-      lamda_data++;
-      sum_denom_data++;
-    }
     return std::make_pair(min_plus, max_minus);
   }
 
-  // Not the first coordinate ray intersecting convex
   std::pair<NT, NT> line_intersect_coord(Point const &r, Point const &r_prev,
                                          unsigned int const &rand_coord,
                                          unsigned int const &rand_coord_prev,
                                          VT &lamdas) const {
-    NT lamda = 0;
-    NT min_plus = std::numeric_limits<NT>::max();
-    NT max_minus = std::numeric_limits<NT>::lowest();
-
-    int m = num_of_hyperplanes();
-
     lamdas.noalias() +=
-        (DenseMT)(A.col(rand_coord_prev) *
-                  (r_prev[rand_coord_prev] - r[rand_coord_prev]));
-    NT *data = lamdas.data();
+        A.col(rand_coord_prev) * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+    VT sum_denom = A.col(rand_coord);
 
-    for (int i = 0; i < m; i++) {
-      NT a = A.coeff(i, rand_coord);
+    auto ratios = lamdas.array() / sum_denom.array();
+    auto valid_plus = (sum_denom.array() != 0) && (ratios > 0);
+    auto valid_minus = (sum_denom.array() != 0) && (ratios < 0);
 
-      if (a == NT(0)) {
-        // std::cout<<"div0"<<std::endl;
-        ;
-      } else {
-        lamda = *data / a;
-        if (lamda < min_plus && lamda > 0)
-          min_plus = lamda;
-        if (lamda > max_minus && lamda < 0)
-          max_minus = lamda;
-      }
-      data++;
-    }
+    NT min_plus =
+        valid_plus.any()
+            ? valid_plus.select(ratios, std::numeric_limits<NT>::max())
+                  .minCoeff()
+            : std::numeric_limits<NT>::max();
+    NT max_minus =
+        valid_minus.any()
+            ? valid_minus.select(ratios, std::numeric_limits<NT>::lowest())
+                  .maxCoeff()
+            : std::numeric_limits<NT>::lowest();
+
     return std::make_pair(min_plus, max_minus);
   }
 
   //------------------------------oracles for exponential
   // sampling---------------//////
 
-  std::pair<NT, int> get_positive_quadratic_root(
-      Point const &r, // current poistion
-      Point const &v, // current velocity
-      VT &Ac, // the product Ac where c is the bias vector of the exponential
-              // distribution
-      NT const &T, // the variance of the exponential distribution
-      VT &Ar,      // the product Ar
-      VT &Av,      // the product Av
-      int &facet_prev)
-      const // the facet that the trajectory hit in the previous reflection
-  {
-    NT lamda = 0;
-    NT lamda2 = 0;
-    NT lamda1 = 0;
-    NT alpha;
+  std::pair<NT, int>
+  get_positive_quadratic_root(Point const &r, // current position
+                              Point const &v, // current velocity
+                              VT &Ac,         // biasing vector
+                              NT const &T,    // variance
+                              VT &Ar,         // Ar
+                              VT &Av,         // Av
+                              int &facet_prev) const {
+    Av.noalias() = A * v.getCoefficients();
+    VT sum_nom = Ar - b;
+    VT alpha = -(Ac.array() / (2.0 * T));
+
     NT min_plus = std::numeric_limits<NT>::max();
-    VT sum_nom;
-    int m = num_of_hyperplanes();
     int facet = -1;
 
-    sum_nom = Ar - b;
-    Av.noalias() = A * v.getCoefficients();
-    ;
-
-    NT *Av_data = Av.data();
-    NT *sum_nom_data = sum_nom.data();
-    NT *Ac_data = Ac.data();
-
-    for (int i = 0; i < m; i++) {
-      alpha = -((*Ac_data) / (2.0 * T));
-      if (solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1,
+    for (int i = 0; i < A.rows(); i++) {
+      NT lamda1, lamda2;
+      if (solve_quadratic_polynomial(alpha(i), Av(i), sum_nom(i), lamda1,
                                      lamda2)) {
-        lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i,
-                                                           facet_prev);
-        if (lamda < min_plus && lamda > 0) {
+        NT lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i,
+                                                              facet_prev);
+        if (lamda > 0 && lamda < min_plus) {
           min_plus = lamda;
           facet = i;
         }
       }
-      Av_data++;
-      sum_nom_data++;
-      Ac_data++;
     }
     facet_prev = facet;
     return std::make_pair(min_plus, facet);
@@ -972,16 +900,9 @@ public:
   }
 
   Point grad_log_barrier(Point &x, NT t = NT(100)) {
-    int m = num_of_hyperplanes();
-    NT slack;
-
-    Point total(x.dimension());
-
-    for (int i = 0; i < m; i++) {
-      slack = b(i) - x.dot(A.row(i));
-      total = total + (1 / slack) * A.row(i);
-    }
-    total = (1.0 / t) * total;
+    VT slacks = b - A * x.getCoefficients();
+    Point total(A.transpose() * slacks.cwiseInverse());
+    total.getCoefficients() *= (1.0 / t);
     return total;
   }
 
