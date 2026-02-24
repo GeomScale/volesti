@@ -22,7 +22,7 @@
 #include "random_walks/shake_and_bake_walk.hpp"
 #include "generators/known_polytope_generators.h"
 #include "diagnostics/scaling_ratio.hpp" 
-
+#include "diagnostics/effective_sample_size.hpp"
 
 using NT = double;
 using Kernel = Cartesian<NT>;
@@ -30,7 +30,7 @@ using Point = Kernel::Point;
 using RNG  = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
 using HPoly = HPolytope<Point>;
 using Walker1 = ShakeAndBakeWalk::Walk<HPoly, RNG>;
-
+using Vec= Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 
 int main(int argc, char* argv[])
 {
@@ -45,6 +45,7 @@ int main(int argc, char* argv[])
     NT eps_cli = (argc > 3)
                  ? static_cast<NT>(std::stod(argv[3]))
                  : Walker1::kDefaultEpsilon;      // default value if not manually
+    unsigned min_ess = 0;
 
     //Generating polytope 
     HPoly P;
@@ -125,10 +126,10 @@ int main(int argc, char* argv[])
 
 
     //Scaling ratio test 
-    auto [scales, coverage, max_dev, avg_dev] = scaling_ratio_boundary_test(P, samples1,tol);
-    
+    auto [scale, coverage, max_dev, avg_dev, zc, zpct] = scaling_ratio_boundary_test(P, samples1,tol);
+
     std::cout << "Scaling factors:\n";
-    for (double s : scales) {
+    for (double s : scale) {
         std::cout << s << " ";
     }
     std::cout << "\n\nCoverage matrix (each row = one facet):\n";
@@ -144,6 +145,15 @@ int main(int argc, char* argv[])
         std::cout << "\n";
     }
 
+    // ESS (per dimension) + min_ess 
+    Vec ess = effective_sample_size<NT, Vec, decltype(samples1)>(samples1, min_ess);
+ 
+     std::cout << "\nEffective Sample Size (ESS) per dimension:\n";
+     for (int i = 0; i < ess.size(); ++i) {
+         std::cout << "dim " << i << ": " << std::fixed << std::setprecision(2) << ess(i) << "\n";
+     }
+     std::cout << "min_ess (ceil): " << min_ess << "\n";
+
     //Uniformity deviation analysis 
     std::cout << "\n";
     std::cout << "Facet        Max deviation (%)        Avg deviation (%)\n";
@@ -154,6 +164,6 @@ int main(int argc, char* argv[])
                   << std::setw(22) << avg_dev[f]
                   << "\n";
     }
-
+    std::cout << "Zero facets: " << zc << " (" << zpct << "%)\n";
     return 0;
 }

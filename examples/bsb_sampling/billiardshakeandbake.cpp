@@ -22,6 +22,7 @@
 #include "random_walks/billiard_shake_and_bake_walk.hpp"
 #include "generators/known_polytope_generators.h"
 #include "diagnostics/scaling_ratio.hpp"
+#include "diagnostics/effective_sample_size.hpp"
 
 using NT     = double;
 using Kernel = Cartesian<NT>;
@@ -29,7 +30,7 @@ using Point  = Kernel::Point;
 using RNG    = BoostRandomNumberGenerator<boost::random::mt19937, NT>;
 using HPoly  = HPolytope<Point>;
 using RMode  = BilliardShakeAndBakeWalk::ReflectionMode;
-
+using Vec= Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 using Walker1 = BilliardShakeAndBakeWalk::Walk<HPoly, RNG>;
 
 int main(int argc, char* argv[])
@@ -41,19 +42,19 @@ int main(int argc, char* argv[])
     }
 
     std::string shape  = argv[1];
-    unsigned    cli_n  = std::stoi(argv[2]);
+    unsigned cli_n  = std::stoi(argv[2]);
+    unsigned min_ess = 0;
 
     // Defaults
     int nr_cli = -1; // 0 => auto = ceil(sqrt(dim))
 
-    // argv[3] => nr (ako postoji)
+    // argv[3] => nr 
     if (argc > 3) nr_cli = std::stoi(argv[3]);
 
     NT eps_cli = (argc > 4)
                  ? static_cast<NT>(std::stod(argv[4]))
                  : Walker1::kDefaultEpsilon; 
 
-    // POSLE
     RMode rmode = RMode::InverseExponential;
     if (argc > 5) {
         std::string dist = argv[5];
@@ -83,20 +84,22 @@ int main(int argc, char* argv[])
              : 2;
 
     switch (mode) {
-        case 0:
-            walk_len      = 20  * true_dim;
-            n_samples     = 500 * true_dim;
-            burn_in_iters = 5   * true_dim;
+        case 0:  // cube or simplex
+            walk_len  = 20 * true_dim;
+            n_samples = 500 * true_dim;
+            burn_in_iters = 5  * true_dim;
             break;
-        case 1:
-            walk_len      = 100 * true_dim;
-            n_samples     = 2000 * true_dim;
+
+        case 1:  // birkhoff
+            walk_len = 100 * true_dim;
+            n_samples  = 2000 * true_dim;
             burn_in_iters = 10  * true_dim;
             break;
-        default:
-            walk_len      = 20  * true_dim;
-            n_samples     = 100 * true_dim;
-            burn_in_iters = 20  * true_dim;
+
+        default: 
+            walk_len = 20 * true_dim;
+            n_samples  = 100 * true_dim;
+            burn_in_iters = 20 * true_dim;
             break;
     }
 
@@ -138,10 +141,10 @@ int main(int argc, char* argv[])
               << walk_len   << " steps each.\n";
 
     //Scaling ratio test 
-    auto [scales, coverage, max_dev, avg_dev] = scaling_ratio_boundary_test(P, samples1,tol);
+    auto [scale, coverage, max_dev, avg_dev, zc, zpct] = scaling_ratio_boundary_test(P, samples1,tol);
 
     std::cout << "Scaling factors:\n";
-    for (double s : scales) {
+    for (double s : scale) {
         std::cout << s << " ";
     }
     std::cout << "\n\nCoverage matrix (each row = one facet):\n";
@@ -156,6 +159,14 @@ int main(int argc, char* argv[])
         }
         std::cout << "\n";
     }
+    // ESS (per dimension) + min_ess 
+    Vec ess = effective_sample_size<NT, Vec, decltype(samples1)>(samples1, min_ess);
+ 
+     std::cout << "\nEffective Sample Size (ESS) per dimension:\n";
+     for (int i = 0; i < ess.size(); ++i) {
+         std::cout << "dim " << i << ": " << std::fixed << std::setprecision(2) << ess(i) << "\n";
+     }
+     std::cout << "min_ess (ceil): " << min_ess << "\n";
 
     //Uniformity deviation analysis 
     std::cout << "\n";
@@ -167,5 +178,6 @@ int main(int argc, char* argv[])
                   << std::setw(22) << avg_dev[f]
                   << "\n";
     }
+    std::cout << "Zero facets: " << zc << " (" << zpct << "%)\n";
     return 0;
 }
