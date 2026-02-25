@@ -18,6 +18,14 @@ struct PushBackWalkPolicy
     }
 };
 
+struct NullWalkPolicy{
+
+        template <typename Container, typename Point>
+    inline void apply(Container& /* vec */, const Point& /* p */) const {
+        // Intentionally empty to prevent memory allocation
+    }
+};
+
 template <typename BallPoly>
 struct CountingWalkPolicy
 {
