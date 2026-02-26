@@ -36,6 +36,8 @@ public:
     /// Pointer to matrix B
     MT const *B;
 
+    bool negative;
+
     /// The decomposition we will use
     /// If PARTIAL_LU_DECOMPOSITION is defined, use the Eigen partial LU decomposition,
     /// otherwise full. The partial is faster but assumes that the matrix has full rank.
@@ -52,7 +54,7 @@ public:
     ///
     /// \param[in] A The matrix A
     /// \param[in] B The matrix B
-    DenseProductMatrix(MT const *A, MT const *B) : A(A), B(B) {
+    DenseProductMatrix(MT const *A, MT const *B,bool negative=false) : A(A), B(B),negative(negative) {
         Blu = Decomposition(*B);
         _rows = A->rows();
         _cols = B->cols();
@@ -80,7 +82,10 @@ public:
         // Declaring the vectors like this, we don't copy the values of x_in to v
         // and next of y to y_out
         Eigen::Map<VT> const x(const_cast<double*>(x_in), _rows);
-        VT const v = *A * x;
+        VT v = *A * x;
+
+        if(negative)
+        v=-v;
 
         Eigen::Map<VT> y(y_out, _rows);
         y = Blu.solve(v);
@@ -96,7 +101,10 @@ public:
         // Declaring the vectors like this, we don't copy the values of x_in to v
         // and next of y to y_out
         Eigen::Map<VT> const x(const_cast<double*>(x_in), _rows);
-        VT const v = *A * x;
+        VT  v = *A * x;
+
+        if(negative)
+        v=-v;
 
         Eigen::Map<VT> y(y_out, _rows);
         y = Blu.solve(v);

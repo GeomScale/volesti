@@ -234,8 +234,8 @@ public:
         // This makes the transformation to standard eigenvalue problem. See class for more info.
         // We have the generalized problem  A + lB, or Av = -lBv
         // This class computes the matrix product vector Mv, where M = -B * A^[-1]
-        MT _B = -1 * B; // TODO avoid this allocation
-        DenseProductMatrix<NT> M(&_B, &A);
+
+        DenseProductMatrix<NT> M(&B, &A,true);
 
         // This parameter is for Spectra. It must be larger than #(requested eigenvalues) + 2
         // and smaller than the size of matrix;
@@ -270,8 +270,8 @@ public:
         // This makes the transformation to standard eigenvalue problem. See class for more info.
         // We have the generalized problem  A + lB, or Av = -lBv
         // This class computes the matrix product vector Mv, where M = -B * A^[-1]
-        MT _B = -1 * B; // TODO avoid this allocation
-        DenseProductMatrix<NT> M(&_B, &A);
+
+        DenseProductMatrix<NT> M(&B, &A,true);
 
         // Creating an eigenvalue problem and defining what we need:
         // the  eigenvector of A with largest real.
