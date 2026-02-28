@@ -39,6 +39,7 @@ function(GetSuiteSparse)
                     -DSUITESPARSE_ENABLE_PROJECTS=suitesparse_config\;amd\;colamd\;camd\;ccolamd\;cholmod\;spqr
                     -DCHOLMOD_CAMD=ON
                     -DCHOLMOD_SUPERNODAL=ON
+                    -DSUITESPARSE_USE_OPENMP=OFF
                 WORKING_DIRECTORY ${SUITESPARSE_BUILD_DIR}
                 RESULT_VARIABLE SUITESPARSE_CONFIGURE_RESULT
                 OUTPUT_VARIABLE SUITESPARSE_CONFIGURE_OUTPUT
