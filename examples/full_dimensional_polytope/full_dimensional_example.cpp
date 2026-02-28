@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <iomanip>
+#include <thread>
+#include <chrono>
 #include <Eigen/Eigen>
 #include <Eigen/Sparse>
 
@@ -344,43 +346,27 @@ int main()
     std::cout << "  - N: Nullspace basis (orthonormal columns)" << std::endl;
     std::cout << "  - Mapping: x = shift + N * y" << std::endl;
     
-    std::cout << "\n" << std::string(70, '-') << std::endl;
-    std::cout << "Press Enter to run each example..." << std::endl;
-    std::cin.get();
-    
     // Run all examples
     example_canonical_simplex();
-    std::cout << "\nPress Enter for next example...";
-    std::cin.get();
-    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     example_plane_cube_intersection();
-    std::cout << "\nPress Enter for next example...";
-    std::cin.get();
-    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     example_multiple_constraints();
-    std::cout << "\nPress Enter for next example...";
-    std::cin.get();
-    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     example_sparse_constraint();
-    std::cout << "\nPress Enter for next example...";
-    std::cin.get();
-    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     example_line_segment();
-    std::cout << "\nPress Enter for next example...";
-    std::cin.get();
-    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     example_birkhoff_polytope();
     
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "  ALL EXAMPLES COMPLETED" << std::endl;
     std::cout << std::string(70, '=') << std::endl;
-    
-    std::cout << "\nKEY TAKEAWAYS:" << std::endl;
-    std::cout << "1. The function handles various types of equality constraints" << std::endl;
-    std::cout << "2. Dimension reduction is automatic and efficient" << std::endl;
-    std::cout << "3. The nullspace basis N has orthonormal columns" << std::endl;
-    std::cout << "4. Sparse constraints are preserved where possible" << std::endl;
-    std::cout << "5. The transformation preserves feasibility and structure" << std::endl;
     
     return 0;
 }
