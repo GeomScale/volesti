@@ -94,18 +94,23 @@ else ()
 endif ()
 
 # Compiler flags
-add_definitions(${CMAKE_CXX_FLAGS} "-std=c++17")  # enable C++17 standard
+set(CMAKE_CXX_STANDARD 17)
 add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
+find_package(LAPACK REQUIRED)
+find_package(BLAS REQUIRED)
+
 # Build the example executable
 add_executable(full_dimensional_example full_dimensional_example.cpp)
 
 # Link libraries (including SuiteSparse for the full_dimensional_polytope function)
-target_link_libraries(full_dimensional_example 
-    lp_solve 
-    ${SUITESPARSE_LIBRARIES} 
+target_link_libraries(full_dimensional_example
+    lp_solve
+    ${SUITESPARSE_LIBRARIES}
+    ${LAPACK_LIBRARIES}
+    ${BLAS_LIBRARIES}
     ${MKL_LINK}
 )

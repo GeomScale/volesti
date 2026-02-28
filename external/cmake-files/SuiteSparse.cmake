@@ -36,7 +36,7 @@ function(GetSuiteSparse)
                     -DCMAKE_BUILD_TYPE=Release
                     -DBUILD_SHARED_LIBS=OFF
                     -DBUILD_STATIC_LIBS=ON
-                    -DSUITESPARSE_ENABLE_PROJECTS="suitesparse_config;amd;colamd;camd;ccolamd;cholmod;spqr"
+                    -DSUITESPARSE_ENABLE_PROJECTS=suitesparse_config\;amd\;colamd\;camd\;ccolamd\;cholmod\;spqr
                     -DCHOLMOD_CAMD=ON
                     -DCHOLMOD_SUPERNODAL=ON
                 WORKING_DIRECTORY ${SUITESPARSE_BUILD_DIR}
