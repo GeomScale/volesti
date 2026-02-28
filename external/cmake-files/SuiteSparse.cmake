@@ -9,7 +9,7 @@ function(GetSuiteSparse)
         FetchContent_Declare(
             suitesparse
             GIT_REPOSITORY https://github.com/DrTimothyAldenDavis/SuiteSparse.git
-            GIT_TAG d558c83006d63d1dc62004f30042b3ca484f3f94
+            GIT_TAG v7.12.1
         )
 
         FetchContent_GetProperties(suitesparse)

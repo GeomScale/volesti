@@ -41,9 +41,9 @@ These are typically available on most systems:
 
 The CMake build system will automatically find these dependencies.
 
-### Commit Version
+### Version
 
-The integration uses SuiteSparse commit: `d558c83006d63d1dc62004f30042b3ca484f3f94`
+The integration uses SuiteSparse release: `v7.12.1`
 
 This ensures a stable, tested version of the library.
 
