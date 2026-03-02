@@ -169,6 +169,7 @@ endif(USE_MKL)
 
 include_directories (BEFORE ../external)
 include_directories (BEFORE ../include)
+include_directories (BEFORE ../include/matrix_operations)
 
 #for Eigen
 if (${CMAKE_VERSION} VERSION_LESS "3.12.0")

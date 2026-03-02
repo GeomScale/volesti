@@ -237,24 +237,14 @@ inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProdNT> const& op, 
     using SparseMatProd = Spectra::SparseSymMatProd<NT>;
     if constexpr (std::is_same<SpectraMatProdNT, DenseMatProd>::value)
     {
-        using SymDenseEigsSolver = Spectra::SymEigsSolver
-          <
-            NT, 
-            Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-            DenseMatProd
-          >;
+        using SymDenseEigsSolver = Spectra::SymEigsSolver<DenseMatProd>;
         // The value of ncv is chosen empirically
-        return std::make_unique<SymDenseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
+        return std::make_unique<SymDenseEigsSolver>(*op, 2, std::min(std::max(10, n/5), n));
     } else if constexpr (std::is_same<SpectraMatProdNT, SparseMatProd>::value)  
     {
-        using SymSparseEigsSolver = Spectra::SymEigsSolver
-          <
-            NT, 
-            Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-            SparseMatProd
-          >;
+          using SymSparseEigsSolver = Spectra::SymEigsSolver<SparseMatProd>;
         // The value of ncv is chosen empirically
-        return std::make_unique<SymSparseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
+        return std::make_unique<SymSparseEigsSolver>(*op, 2, std::min(std::max(10, n/5), n));
     } else 
     {
         static_assert(AssertFalseType<SpectraMatProdNT>::value,
