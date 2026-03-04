@@ -243,3 +243,45 @@ TEST_CASE("test_vaidya_center") {
 TEST_CASE("test_max_ball_sparse") {
     call_test_max_ball_sparse<double>();
 }
+
+template <typename NT>
+void call_test_degenerate_inscribed_ball() {
+    typedef Cartesian<NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef typename Hpolytope::MT MT;
+    typedef typename Hpolytope::VT VT;
+
+    std::cout << "\n--- Testing inscribed ball for degenerate (non-full-dimensional) polytope" << std::endl;
+
+    // A 2D polytope (square) embedded in 3D space via z = 0 plane
+    // Constraints: +-x1 <= 1, +-x2 <= 1, x3 <= 0, -x3 <= 0
+    // The polytope has no interior in R^3, so no positive-radius ball exists.
+    MT A(6, 3);
+    VT b(6);
+    A << 1,  0,  0,
+        -1,  0,  0,
+         0,  1,  0,
+         0, -1,  0,
+         0,  0,  1,
+         0,  0, -1;
+    b << 1, 1, 1, 1, 0, 0;
+
+    Hpolytope P(3, A, b);
+    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+
+    // Both solvers should fail gracefully and return a proper failure indicator.
+    // Radius must be negative (the sentinel for failure) and the center must
+    // have the correct ambient dimension (3), not a garbage 1-dimensional point.
+    CHECK(inner_ball.second < NT(0));
+    CHECK(inner_ball.first.dimension() == 3);
+
+    // Calling ComputeInnerBall a second time must also return a failure indicator
+    // without caching the bad result as if it were valid.
+    std::pair<Point, NT> inner_ball2 = P.ComputeInnerBall();
+    CHECK(inner_ball2.second < NT(0));
+}
+
+TEST_CASE("test_degenerate_inscribed_ball") {
+    call_test_degenerate_inscribed_ball<double>();
+}

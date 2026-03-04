@@ -385,6 +385,8 @@ add_test(NAME test_volumetric_center
           COMMAND test_internal_points -tc=test_volumetric_center)
 add_test(NAME test_vaidya_center
           COMMAND test_internal_points -tc=test_vaidya_center)
+add_test(NAME test_degenerate_inscribed_ball
+          COMMAND test_internal_points -tc=test_degenerate_inscribed_ball)
 
 add_executable (full_dimensional_polytope_test full_dimensional_polytope_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME full_dimensional_polytope_canonical_simplex

@@ -145,8 +145,6 @@ public:
     {
         normalize();
         if (!has_ball) {
-            
-            has_ball = true;
             NT const tol = 1e-08;
             std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 5000, tol);
 
@@ -154,17 +152,25 @@ public:
             if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < tol/2.0 ||
                 std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
                 is_inner_point_nan_inf(std::get<0>(inner_ball))) {
-                
+
                 std::cerr << "Failed to compute max inscribed ball, trying to use lpsolve" << std::endl;
                 #ifndef DISABLE_LPSOLVE
-                    _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+                    auto lp_result = ComputeChebychevBall<NT, Point>(A, b);
+                    if (lp_result.second >= tol/2.0) {
+                        _inner_ball = lp_result;
+                        has_ball = true;
+                    } else {
+                        std::cerr << "lpsolve also failed; polytope may not be full-dimensional" << std::endl;
+                        return {Point(_d), NT(-1)};
+                    }
                 #else
-                    std::cerr << "lpsolve is disabled, unable to compute inner ball";
-                    has_ball = false;
+                    std::cerr << "lpsolve is disabled, unable to compute inner ball" << std::endl;
+                    return {Point(_d), NT(-1)};
                 #endif
             } else {
                 _inner_ball.first = Point(std::get<0>(inner_ball));
                 _inner_ball.second = std::get<1>(inner_ball);
+                has_ball = true;
             }
         }
         return _inner_ball;
