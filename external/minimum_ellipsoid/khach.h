@@ -57,7 +57,12 @@
   bool InvertMatrix(const MTT<T> &input,
                     MTT<T> &inverse)
   {
-    inverse = input.inverse();
+    Eigen::FullPivLU<MTT<T>> lu(input);
+    if (!lu.isInvertible())
+    {
+      return false;
+    }
+    inverse = lu.inverse();
     return !is_nan(inverse);
   }
 

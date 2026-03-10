@@ -9,7 +9,7 @@ libqd.a: $(QD_OBJECTS)
 	$(AR) rc libqd.a $(QD_OBJECTS)
 
 .cc.o:
-	$(CC) $(CFLAGS) $(CPICFLAGS) $(QD_CPPFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CXXPICFLAGS) $(QD_CPPFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(QD_OBJECTS) libqd.a
