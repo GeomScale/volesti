@@ -74,11 +74,11 @@ bool perform_mmcs_step(Polytope &P,
     Walk walk(P, p, rng, WalkType.param);
     ESSestimator<NT, VT, MT> estimator(window, P.dimension());
 
-    walk.template parameters_burnin(P, p, 10 + int(std::log(NT(P.dimension()))), 10, rng);
+    walk.parameters_burnin(P, p, 10 + int(std::log(NT(P.dimension()))), 10, rng);
 
     while (!done)
     {
-        walk.template get_starting_point(P, p, q, 10, rng);
+        walk.get_starting_point(P, p, q, 10, rng);
         for (int i = 0; i < window; i++)
         {
             walk.apply(P, q, walk_length, rng);
