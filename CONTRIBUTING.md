@@ -36,6 +36,7 @@ Other helpful links:
 - https://opensource.com/article/18/1/step-step-guide-git
 
 ## Testing the development branch of volesti (get the tools ready)
+
 Clone the repository,
 
     git clone git@github.com:GeomScale/volesti.git volesti
