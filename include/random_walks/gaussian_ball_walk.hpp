@@ -53,7 +53,7 @@ struct Walk
     }
 
     Walk (Polytope& P, Point const& p, NT const& a,
-          RandomNumberGenerator &rng)
+          RandomNumberGenerator &rng) : _a_i(a)
     {
         _delta = compute_delta(P, a);
     }
@@ -62,10 +62,19 @@ struct Walk
           Point const& p,
           NT const& a,
           RandomNumberGenerator &rng,
-          parameters const& params)
+          parameters const& params) : _a_i(a)
     {
         _delta = params.set_delta ? params.m_L
                                   : compute_delta(P, a);
+    }
+
+    template<typename BallPolytope>
+    inline void apply(BallPolytope const& P,
+                      Point &p,
+                      unsigned int const& walk_length,
+                      RandomNumberGenerator& rng)
+    {
+        apply(P, p, _a_i, walk_length, rng);
     }
 
     template<typename BallPolytope>
@@ -100,6 +109,7 @@ struct Walk
 
 private :
     NT _delta;
+    NT _a_i;
 };
 
 };

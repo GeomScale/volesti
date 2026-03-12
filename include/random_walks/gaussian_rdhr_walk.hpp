@@ -80,12 +80,24 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk(Polytope&, Point const&, NT const&, RandomNumberGenerator&)
+    Walk(Polytope&, Point const&, NT const& a, RandomNumberGenerator&) : _a_i(a)
     {}
 
-    Walk(Polytope&, Point const&, NT const&, RandomNumberGenerator&,
-         parameters&)
+    Walk(Polytope&, Point const&, NT const& a, RandomNumberGenerator&,
+         parameters&) : _a_i(a)
     {}
+
+    template
+    <
+        typename BallPolytope
+    >
+    inline void apply(BallPolytope const& P,
+                      Point &p,
+                      unsigned int const& walk_length,
+                      RandomNumberGenerator &rng)
+    {
+        apply(P, p, _a_i, walk_length, rng);
+    }
 
     template
     <
@@ -110,6 +122,9 @@ struct Walk
             chord_random_point_generator_exp(lower, upper, a_i, p, rng);
         }
     }
+
+private:
+    NT _a_i;
 };
 
 };
