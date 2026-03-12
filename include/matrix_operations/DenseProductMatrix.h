@@ -82,11 +82,7 @@ public:
         // Declaring the vectors like this, we don't copy the values of x_in to v
         // and next of y to y_out
         Eigen::Map<VT> const x(const_cast<double*>(x_in), _rows);
-        VT v = *A * x;
-
-        if(negative)
-        v=-v;
-
+        VT v = negative ? -(*A * x) : *A * x;
         Eigen::Map<VT> y(y_out, _rows);
         y = Blu.solve(v);
     }
@@ -101,11 +97,7 @@ public:
         // Declaring the vectors like this, we don't copy the values of x_in to v
         // and next of y to y_out
         Eigen::Map<VT> const x(const_cast<double*>(x_in), _rows);
-        VT  v = *A * x;
-
-        if(negative)
-        v=-v;
-
+        VT v = negative ? -(*A * x) : *A * x;
         Eigen::Map<VT> y(y_out, _rows);
         y = Blu.solve(v);
     }
