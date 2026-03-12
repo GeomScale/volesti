@@ -18,12 +18,12 @@ struct PushBackWalkPolicy
     }
 };
 
-struct NullWalkPolicy{
-
-        template <typename Container, typename Point>
-    inline void apply(Container& /* vec */, const Point& /* p */) const {
-        // Intentionally empty to prevent memory allocation
-    }
+struct NullWalkPolicy
+{
+    template <typename Container, typename Point>
+    inline void apply(Container& /* vec */, const Point& /* p */) const
+     {
+     }
 };
 
 template <typename BallPoly>
