@@ -36,10 +36,6 @@ Other helpful links:
 - https://opensource.com/article/18/1/step-step-guide-git
 
 ## Testing the development branch of volesti (get the tools ready)
-
-> **⚠️ Important Note on Building:**
-> The root directory of this repository follows an R package structure and does not contain a `CMakeLists.txt` file. To compile the C++ source code, you **must** navigate into the `test/` directory (or `examples/`) where the build system is defined. Running `cmake` from the root will result in an error.
-
 Clone the repository,
 
     git clone git@github.com:GeomScale/volesti.git volesti
