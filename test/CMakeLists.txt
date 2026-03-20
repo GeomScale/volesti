@@ -65,8 +65,6 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
 else()
@@ -420,7 +418,6 @@ set_target_properties(crhmc_sampling_test
                               PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 
 TARGET_LINK_LIBRARIES(new_volume_example lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(new_volume_example lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_sob_hpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_sob_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cg_hpolytope lp_solve coverage_config)
@@ -428,7 +425,6 @@ TARGET_LINK_LIBRARIES(volume_cg_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_hpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_zonotopes lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(rounding_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mcmc_diagnostics_test lp_solve ${MKL_LINK} coverage_config)
