@@ -359,6 +359,12 @@ add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_inte
 add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
 add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
+add_executable (order_polytope_le_test order_polytope_le_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME order_polytope_le_trigonometric_intersect COMMAND order_polytope_le_test -tc=trigonometric_intersect)
+add_test(NAME order_polytope_le_quadratic_intersect COMMAND order_polytope_le_test -tc=quadratic_intersect)
+add_test(NAME order_polytope_le_volume_comparison COMMAND order_polytope_le_test -tc=volume_comparison)
+add_test(NAME order_polytope_le_count COMMAND order_polytope_le_test -tc=le_count)
+
 add_executable (matrix_sampling_test sampling_correlation_matrices_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_corre_spectra_classes COMMAND matrix_sampling_test -tc=corre_spectra)
 add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
@@ -426,5 +432,6 @@ TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLV
 TARGET_LINK_LIBRARIES(logconcave_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
+TARGET_LINK_LIBRARIES(order_polytope_le_test lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
