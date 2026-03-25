@@ -35,7 +35,7 @@ eval_grad_f <- function(z) {
     grad[length(z)] <- -1
     return(grad)
 }
-## constraint: ||ai||^T*x + ai*r - bi <= 0
+## constraint: ai^T*x + ||ai||_2*r - bi <= 0
 eval_g_ineq <- function(z, A, b) {
     x <- z[-length(z)]
     r <- z[length(z)]
