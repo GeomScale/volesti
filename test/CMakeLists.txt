@@ -188,6 +188,9 @@ add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
 #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
 #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
+add_executable(inner_ball_example inner_ball_example.cpp)
+target_link_libraries(inner_ball_example PUBLIC lp_solve)
+
 add_executable (new_volume_example new_volume_example.cpp)
 add_executable (benchmarks_sob benchmarks_sob.cpp)
 add_executable (benchmarks_cg benchmarks_cg.cpp)
