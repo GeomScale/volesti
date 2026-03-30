@@ -81,7 +81,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
     }
     bool converge = false;
 
-    NT bnrm = b_norm.norm();
+    NT bnrm = b.norm();
     VT o_m = VT::Zero(m), o_n = VT::Zero(n), e_m = VT::Ones(m);
 
     VT x = o_n, y = e_m / m;
