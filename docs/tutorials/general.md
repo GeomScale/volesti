@@ -2,7 +2,9 @@
 
 > This is a merge of a series of volesti tutorials presented in university courses and seminars in 2016-2018.
 
-`volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
+`volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes 
+given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). 
+There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
 
 We can download the `R` package from the [CRAN webpage](https://CRAN.R-project.org/package=volesti).
 
@@ -22,8 +24,8 @@ help("sample_points")
 Let’s try our first volesti command to estimate the volume of a 3-dimensional cube $\{-1\leq x_i \leq 1,x_i \in \mathbb R\ |\ i=1,2,3\}$
 
 ```r
-P <- GenCube(3,'H')
-print(volume(P))
+P = volesti::gen_cube(3, 'H')
+print(volesti::volume(P))
 ```
 
 What is the exact volume of P? Did we obtain a good estimation?
@@ -37,14 +39,17 @@ Sampling in the square.
 ```r
 library(ggplot2)
 
-x1<-runif(1000, min = -1, max = 1)
-x2<-runif(1000, min = -1, max = 1)
+x1 <- runif(1000, min = -1, max = 1)
+x2 <- runif(1000, min = -1, max = 1)
 
-g<-ggplot(data.frame( x=x1, y=x2 )) + geom_point( aes(x=x, y=y))
+g <- ggplot(data.frame( x=x1, y=x2 )) + geom_point( aes(x=x, y=y))
 
-g<-g+annotate("path",
-   x=cos(seq(0,2*pi,length.out=100)),
-   y=sin(seq(0,2*pi,length.out=100)),color="red")+coord_fixed()
+g <- g + annotate(
+    "path",
+    x = cos(seq(0, 2*pi, length.out=100)),
+    y = sin(seq(0, 2*pi, length.out=100)),
+    color="red") + 
+   coord_fixed()
 
 plot(g)
 ```
@@ -56,10 +61,11 @@ Can we estimate the volume of the red ball via sampling? Solution: rejection sam
 ```r
 # run in around 1 min
 for (d in 2:20) {
-  num_of_points <- 100000
-  count_inside <- 0
 
-  points1 <- matrix(nrow=d, ncol=num_of_points)
+  num_of_points <- 100000
+  count_inside  <- 0
+  points1       <- matrix(nrow=d, ncol=num_of_points)
+
   for (i in 1:d) {
     x <- runif(num_of_points, min = -1, max = 1)
     for (j in 1:num_of_points) {
@@ -73,10 +79,11 @@ for (d in 2:20) {
     }
   }
   vol_estimation <- count_inside*2^d/num_of_points
-  vol_exact <- pi^(d/2)/gamma(d/2+1)
+  vol_exact      <- pi^(d/2)/gamma(d/2+1)
 
-  cat(d, vol_estimation, vol_exact, abs(vol_estimation- vol_exact)/
-vol_exact, "\n")
+  cat(
+    d, vol_estimation, vol_exact, abs(vol_estimation - vol_exact)/ vol_exact, "\n"
+  )
 }
 ```
 
@@ -107,16 +114,21 @@ vol_exact, "\n")
 
 `volesti` supports the following three types of random walks
 
-1. Ball walk (BW)
+1. Ball walk (BaW)
 2. Random directions hit-and-run (RDHR)
 3. Coordinate directions hit-and-run (CDHR)
+4. Billiard walk  (BiW)
+5. boundary sampling by keeping the extreme points of CDHR (BCDHR)
+6. boundary sampling by keeping the extreme points of RDHR (BRDHR)
+
 
 | BW | RDHR | CDHR |
 |:------:|:-------:|:------:|
 |![](figs/ball5.png) | ![](figs/hnr3.png) | ![](figs/cdhr4.png) |
 
 
-There are two important parameters `cost per step` and `mixing time` that affects the accuracy and performance of the walks. Below we illustrate this by choosing different walk steps for each walk while sampling on the 100-dimensional cube.
+There are two important parameters `cost per step` and `mixing time` that affects the accuracy and performance of the walks. 
+Below we illustrate this by choosing different walk steps for each walk while sampling on the 100-dimensional cube.
 
 
 ```r
@@ -124,12 +136,21 @@ There are two important parameters `cost per step` and `mixing time` that affect
 library(ggplot2)
 library(volesti)
 for (step in c(1,20,100,150)){
-  for (walk in c("CDHR", "RDHR", "BW")){
-    P <- GenCube(100, 'H')
-    points1 <- sample_points(P, WalkType = walk, walk_step = step, N=1000)
-    g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
-geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
-ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step, walk)))
+ 
+  for (walk in c("CDHR", "RDHR", "BaW", "BiW")){
+ 
+    P <- volesti::gen_cube(100, 'H')
+ 
+    points1 = sample_points(P, n = 1000, random_walk = list("walk" = walk, "walk_length" = step))
+ 
+    g <- plot(
+      ggplot(data.frame( x=points1[1,], y=points1[2,] )
+      ) +
+      geom_point( 
+        aes(x=x, y=y, color=walk)) + 
+        coord_fixed(xlim = c(-1,1), ylim = c(-1,1)) + 
+        ggtitle(sprintf("walk length=%s", step, walk))
+      )
   }
 }
 ```
@@ -151,12 +172,14 @@ Now let's compute our first example. The volume of the 3-dimensional cube.
 ```r
 library(geometry)
 
-PV <- GenCube(3,'V')
+PV <- volesti::gen_cube(3, 'V')
+
+
 str(PV)
 
 #P = GenRandVpoly(3, 6, body = 'cube')
-tim1 <- system.time({ geom_values = convhulln(PV$V, options = 'FA') })
-tim2 <- system.time({ vol2 = volume(PV) })
+tim1 <- system.time({ geom_values = convhulln(PV@V, options = 'FA') })
+tim2 <- system.time({ vol2 = volesti::volume(PV) })
 
 cat(sprintf("exact vol = %f\napprx vol = %f\nrelative error = %f\n",
             geom_values$vol, vol2, abs(geom_values$vol-vol2)/geom_values$vol))
@@ -165,11 +188,11 @@ cat(sprintf("exact vol = %f\napprx vol = %f\nrelative error = %f\n",
 Now try a higher dimensional example. By setting the `error` parameter we can control the apporximation of the algorithm.
 
 ```r
-PH = GenCube(10,'H')
+PH = volesti::gen_cube(10, 'H')
 volumes <- list()
 for (i in 1:10) {
   # default parameters
-  volumes[[i]] <- volume(PH, error=1)
+  volumes[[i]] <- volesti::volume(PH, settings = list(error=1))
 }
 options(digits=10)
 summary(as.numeric(volumes))
@@ -178,7 +201,7 @@ summary(as.numeric(volumes))
 ```r
 volumes <- list()
 for (i in 1:10) {
-  volumes[[i]] <- volume(PH, error=0.5)
+  volumes[[i]] <- volesti::volume(PH, settings = list(error=0.5))
 }
 summary(as.numeric(volumes))
 ```
@@ -188,12 +211,13 @@ Deterministic algorithms for volume are limited to low dimensions (e.g. less tha
 ```r
 library(geometry)
 
-P = GenRandVpoly(15, 30)
+P = volesti::gen_rand_vpoly(15, 30)
+
 # this will return an error about memory allocation, i.e. the dimension is too high for qhull
-tim1 <- system.time({ geom_values = convhulln(P$V, options = 'FA') })
+tim1 <- system.time({ geom_values = geometry::convhulln(P@V, options = 'FA') })
 
 #warning: this also takes a lot of time in v1.0.3
-print(volume(P))
+print(volesti::volume(P))
 ```
 
 ### Volume of Birkhoff polytopes
@@ -233,7 +257,7 @@ Our random walks perform poorly on those polytopes espacially as the dimension i
 ```r
 library(ggplot2)
 
-P = GenSkinnyCube(2)
+P = volesti::gen_skinny_cube(2)
 points1 = sample_points(P, WalkType = "CDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
@@ -241,12 +265,12 @@ ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom
 ```
 
 ```r
-P = GenSkinnyCube(10)
+P = volesti::gen_skinny_cube(10)
 points1 = sample_points(P, WalkType = "CDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
-P = GenSkinnyCube(100)
+P = volesti::gen_skinny_cube(100)
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
 ```
@@ -259,7 +283,7 @@ library(ggplot2)
 
 d <- 10
 
-P = GenSkinnyCube(d)
+P = volesti::gen_skinny_cube(d)
 points1 = sample_points(P, WalkType = "CDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
 
@@ -270,28 +294,28 @@ ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom
 
 exact <- 2^d*100
 cat("exact volume                 = ", exact , "\n")
-cat("volume estimation (no round) = ", volume(P, WalkType = "RDHR", rounding=FALSE), "\n")
-cat("volume estimation (rounding) = ", volume(P, WalkType = "RDHR", rounding=TRUE), "\n")
+cat("volume estimation (no round) = ", volesti::volume(P, WalkType = "RDHR", rounding=FALSE), "\n")
+cat("volume estimation (rounding) = ", volesti::volume(P, WalkType = "RDHR", rounding=TRUE), "\n")
 
 # 1st step of rounding
 res1 = round_polytope(P)
 points2 = sample_points(res1$P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points2[1,]), y = c(points2[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-volesti <- volume(res1$P) * res1$round_value
+volesti <- volesti::volume(res1$P) * res1$round_value
 cat("volume estimation (1st step) = ", volesti, " rel. error=", abs(exact-volesti)/exact,"\n")
 
 # 2nd step of rounding
 res2 = round_polytope(res1$P)
 points2 = sample_points(res2$P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points2[1,]), y = c(points2[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-volesti <- volume(res2$P) * res1$round_value * res2$round_value
+volesti <- volesti::volume(res2$P) * res1$round_value * res2$round_value
 cat("volume estimation (2nd step) = ", volesti, " rel. error=", abs(exact-volesti)/exact,"\n")
 
 # 3rd step of rounding
 res3 = round_polytope(res2$P)
 points2 = sample_points(res3$P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points2[1,]), y = c(points2[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-volesti <- volume(res3$P) * res1$round_value * res2$round_value * res3$round_value
+volesti <- volesti::volume(res3$P) * res1$round_value * res2$round_value * res3$round_value
 cat("volume estimation (3rd step) = ", volesti, " rel. error=", abs(exact-volesti)/exact,"\n")
 ```
 
@@ -308,14 +332,14 @@ adaptIntegrate(f, lowerLimit = c(-1, -1, -1), upperLimit = c(1, 1, 1))$integral
 
 # Simple Monte Carlo integration
 # https://en.wikipedia.org/wiki/Monte_Carlo_integration
-P = GenCube(3, 'H')
+P = volesti::gen_cube(3, 'H')
 num_of_points <- 10000
 points1 <- sample_points(P, WalkType = "RDHR", walk_step = 100, N=num_of_points)
 int<-0
 for (i in 1:num_of_points){
   int <- int + f(points1[,i])
 }
-V <- volume(P)
+V <- volesti::volume(P)
 print(int*V/num_of_points)
 ```
 
@@ -335,10 +359,15 @@ The following example from [notes](https://inf.ethz.ch/personal/fukudak/lect/pcl
 We can approximate this number by the following code.
 
 ```r
-A = matrix(c(-1,0,1,0,0,0,-1,1,0,0,0,-1,0,1,0,0,0,0,-1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1), ncol=5, nrow=14, byrow=TRUE)
+A = matrix(
+  c(-1,0,1,0,0,0,-1,1,0,0,0,-1,0,1,0,0,0,0,-1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1), ncol=5, 
+  nrow=14, 
+  byrow=TRUE
+)
 b = c(0,0,0,0,0,0,0,0,0,1,1,1,1,1)
-P = Hpolytope$new(A, b)
-volume(P,error=0.2)*factorial(5)
+P = volesti::Hpolytope(A = A, b = b)
+
+volesti::volume(P, settings = list(error=0.2)) * factorial(5)
 ```
 
 
@@ -354,9 +383,15 @@ library('plotly')
 ```r
 MatReturns <- read.table("https://stanford.edu/class/ee103/data/returns.txt", sep=",")
 MatReturns = MatReturns[-c(1,2),]
-dates = as.character(MatReturns$V1)
+
+dates      = as.character(MatReturns$V1)
 MatReturns = as.matrix(MatReturns[,-c(1,54)])
-MatReturns = matrix(as.numeric(MatReturns [,]),nrow = dim(MatReturns )[1], ncol = dim(MatReturns )[2], byrow = FALSE)
+MatReturns = matrix(
+  as.numeric(MatReturns [,]),
+  nrow = dim(MatReturns )[1], 
+  ncol = dim(MatReturns )[2], 
+  byrow = FALSE
+)
 
 #starting_date = "2008-12-18" ##crisis period
 #stopping_date = "2009-03-13"
@@ -368,9 +403,10 @@ row1 = which(dates %in% starting_date)
 row2 = which(dates %in% stopping_date)
 
 nassets = dim(MatReturns)[2]
-W=row1:row2
 
-compRet = rep(1,nassets)
+W = row1:row2
+
+compRet = rep(1, nassets)
 for (j in 1:nassets) {
   for (k in W) {
     compRet[j] = compRet[j] * (1 + MatReturns[k, j])
@@ -378,8 +414,13 @@ for (j in 1:nassets) {
   compRet[j] = compRet[j] - 1
 }
 
-mass = copula2(h = compRet, E = cov(MatReturns[row1:row2,]), numSlices = 100, N=1000000)
+mass = volesti::copula(
+  r1    = compRet,
+  sigma = cov(MatReturns[row1:row2,]),
+  m     = 100,
+  n     = 1000000
+)
 
-plot_ly(z = ~mass) %>% add_surface(showscale=FALSE)
+plotly::plot_ly(z = ~mass) %>% add_surface(showscale=FALSE)
 ```
 
