@@ -67,14 +67,26 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
 {
     //typedef matrix_computational_operator<MT> mat_op;
     int m = A.rows(), n = A.cols();
+    MT A_norm = A;
+    VT b_norm = b;
+
+    for (int i = 0; i < m; ++i)
+    {
+        NT norm = A_norm.row(i).norm();
+        if (norm > 0)
+        {
+            A_norm.row(i) /= norm;
+            b_norm(i) /= norm;
+        }
+    }
     bool converge = false;
 
     NT bnrm = b.norm();
     VT o_m = VT::Zero(m), o_n = VT::Zero(n), e_m = VT::Ones(m);
 
     VT x = o_n, y = e_m / m;
-    NT t = b.minCoeff() - 1.0;
-    VT s = b - e_m * t;
+    NT t = b_norm.minCoeff() - 1.0;
+    VT s = b_norm - e_m * t;
 
     VT dx = o_n;
     VT dxc = dx, ds = o_m;
@@ -88,15 +100,15 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
     NT const tau0 = 0.995, power_num = 5.0 * std::pow(10.0, 15.0);
     NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
 
-    MT B, AtD(n, m), A_trans = A.transpose();
+    MT B, AtD(n, m), A_trans = A_norm.transpose();
 
-    init_Bmat<NT>(B, n, A_trans, A);
+    init_Bmat<NT>(B, n, A_trans, A_norm);
     auto llt = initialize_chol<NT>(B);
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
         // KKT residuals
-        r1.noalias() = b - (A * x + s + t * e_m);
+        r1.noalias() = b_norm - (A_norm * x + s + t * e_m);
         r2.noalias() = -A_trans * y;
         r3 = 1.0 - y.sum();
         r4 = -s.cwiseProduct(y);
@@ -108,7 +120,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         // relative residual norms and gap
         prif = r1.norm() / (1.0 + bnrm);
         drif = r23.norm() / 10.0;
-        rgap = std::abs(b.dot(y) - t) / (1.0 + std::abs(t));
+        rgap = std::abs(b_norm.dot(y) - t) / (1.0 + std::abs(t));
         total_err = std::max(prif, drif);
         total_err = std::max(total_err, rgap);
 
@@ -143,10 +155,10 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         update_A_Diag<NT>(AtD, A_trans, d.asDiagonal()); // AtD = A_trans*d.asDiagonal()
 
         AtDe.noalias() = AtD * e_m;
-        update_Bmat<NT>(B, AtDe, d, AtD, A);
+        update_Bmat<NT>(B, AtDe, d, AtD, A_norm);
 
         // predictor step & length
-        calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
+        calcstep(A_norm, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
 
         alphap = -1.0;
         alphad = -1.0;
@@ -173,7 +185,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
 
         // corrector and combined step & length
         mu_ds_dy.noalias() = e_m * mu - ds.cwiseProduct(dy);
-        calcstep(A, A_trans, B, llt, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
+        calcstep(A_norm, A_trans, B, llt, s, y, o_m, o_n, 0.0, mu_ds_dy, dxc, dsc, dtc, dyc, tmp, rhs);
 
         dx += dxc;
         ds += dsc;
