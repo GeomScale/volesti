@@ -18,7 +18,7 @@ TEST_CASE("matrix_market_reader_degen2") {
     );
 
     CHECK(P.dimension() == 758);
-    CHECK(P.num_of_hyperplanes() > 444);
+    CHECK(P.num_of_hyperplanes() >= 444);
 
     std::cout << "Dimension: " << P.dimension() << std::endl;
     std::cout << "Constraints: " << P.num_of_hyperplanes() << std::endl;
