@@ -8,8 +8,11 @@ Installation Guide
 
 To compile the tests of the C++ interface simply
 
+Run the following commands from the root of the repository:
+
 ```bash
-mkdir -p test/build && cd test/build
+cd test
+mkdir -p build && cd build
 cmake ..
 make
 ```
@@ -29,7 +32,7 @@ Also to install `mkl` related dependencies, run the following,
     sudo ldconfig
     export CPLUS_INCLUDE_PATH="/opt/intel/mkl/include:$CPLUS_INCLUDE_PATH"
 
-You can run the tests by `cmake test` or `ctest -jK` where `K` the number of `CPU` threads. By adding the option `--verbose` to `ctest` you get more information about the tests, *e.g.* time per test, volume computed and the name of the polytope or convex body.
+You can run the tests by `ctest -jK` where `K` the number of `CPU` threads. By adding the option `--verbose` to `ctest` you get more information about the tests, *e.g.* time per test, volume computed and the name of the polytope or convex body.
 
 ### Development environment from Docker container
 ---
