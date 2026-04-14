@@ -4,7 +4,11 @@
 
 `volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
 
-We can download the `R` package from the [CRAN webpage](https://CRAN.R-project.org/package=volesti).
+# How you can download volesti 
+
+Install the latest version from GitHub
+install.packages("devtools")
+devtools::install_github("GeomScale/Rvolesti") 
 
 ```r
 # first load the volesti library
@@ -22,7 +26,7 @@ help("sample_points")
 Let’s try our first volesti command to estimate the volume of a 3-dimensional cube $\{-1\leq x_i \leq 1,x_i \in \mathbb R\ |\ i=1,2,3\}$
 
 ```r
-P <- GenCube(3,'H')
+P <- gen_cube(3,'H')
 print(volume(P))
 ```
 
@@ -123,13 +127,32 @@ There are two important parameters `cost per step` and `mixing time` that affect
 #run in few secs
 library(ggplot2)
 library(volesti)
-for (step in c(1,20,100,150)){
-  for (walk in c("CDHR", "RDHR", "BW")){
-    P <- GenCube(100, 'H')
-    points1 <- sample_points(P, WalkType = walk, walk_step = step, N=1000)
-    g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
-geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
-ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step, walk)))
+
+# Parameters to iterate through
+walk_steps <- c(1, 20, 100, 150)
+walk_types <- c("CDHR", "RDHR", "BW")
+
+for (step in walk_steps) {
+  for (walk in walk_types) {
+    # Updated: gen_cube instead of GenCube
+    P <- gen_cube(100, 'H')
+    
+    # Updated: sample_points function call
+    # Note: ensure WalkType and walk_step are lowercase as per latest API
+    points1 <- sample_points(P, WalkType = walk, walk_step = step, n = 1000)
+    
+    # ggplot2 visualization
+    # Converting matrix to data frame: points1 is usually d x n
+    df <- data.frame(x = points1[1, ], y = points1[2, ])
+    
+    g <- ggplot(df, aes(x = x, y = y)) +
+      geom_point(color = "steelblue", alpha = 0.6) + 
+      coord_fixed(xlim = c(-1, 1), ylim = c(-1, 1)) + 
+      labs(title = paste("Walk:", walk, "| Length:", step),
+           subtitle = "Projection of 100D Cube to 2D") +
+      theme_minimal()
+    
+    print(g)
   }
 }
 ```
@@ -151,10 +174,10 @@ Now let's compute our first example. The volume of the 3-dimensional cube.
 ```r
 library(geometry)
 
-PV <- GenCube(3,'V')
+PV <- gen_cube(3,'V')
 str(PV)
 
-#P = GenRandVpoly(3, 6, body = 'cube')
+#P = gen_rand_vpoly(3, 6, body = 'cube')
 tim1 <- system.time({ geom_values = convhulln(PV$V, options = 'FA') })
 tim2 <- system.time({ vol2 = volume(PV) })
 
@@ -165,7 +188,7 @@ cat(sprintf("exact vol = %f\napprx vol = %f\nrelative error = %f\n",
 Now try a higher dimensional example. By setting the `error` parameter we can control the apporximation of the algorithm.
 
 ```r
-PH = GenCube(10,'H')
+PH = gen_cube(10,'H')
 volumes <- list()
 for (i in 1:10) {
   # default parameters
@@ -188,7 +211,7 @@ Deterministic algorithms for volume are limited to low dimensions (e.g. less tha
 ```r
 library(geometry)
 
-P = GenRandVpoly(15, 30)
+P = gen_rand_vpoly(15, 30)
 # this will return an error about memory allocation, i.e. the dimension is too high for qhull
 tim1 <- system.time({ geom_values = convhulln(P$V, options = 'FA') })
 
@@ -207,8 +230,17 @@ obtained via massive parallel computation.
 
 ```r
 library(volesti)
-P <- fileToMatrix('data/birk10.ine')
-exact <- 727291284016786420977508457990121862548823260052557333386607889/828160860106766855125676318796872729344622463533089422677980721388055739956270293750883504892820848640000000
+library(volesti)
+
+# This finds the internal path to the example file provided by the package
+path <- system.file("extdata", "birk10.ine", package = "volesti")
+
+# Check if the file exists before trying to read it
+if (path == "") {
+  stop("Example file not found. Please ensure volesti is installed correctly.")
+}
+
+P <- fileToMatrix(path)
 
 # warning the following will take around half an hour
 #print(volume(P, Algo = 'CG'))
@@ -233,7 +265,7 @@ Our random walks perform poorly on those polytopes espacially as the dimension i
 ```r
 library(ggplot2)
 
-P = GenSkinnyCube(2)
+P = gen_skinny_cube(2)
 points1 = sample_points(P, WalkType = "CDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
@@ -241,12 +273,12 @@ ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom
 ```
 
 ```r
-P = GenSkinnyCube(10)
+P = gen_skinny_cube(10)
 points1 = sample_points(P, WalkType = "CDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
-P = GenSkinnyCube(100)
+P = gen_skinny_cube(100)
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
 ```
@@ -259,11 +291,11 @@ library(ggplot2)
 
 d <- 10
 
-P = GenSkinnyCube(d)
+P = gen_skinny_cube(d)
 points1 = sample_points(P, WalkType = "CDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
 
-P <- rand_rotate(P)$P
+P <- rotate_polytope(P)
 
 points1 = sample_points(P, WalkType = "RDHR", N=1000)
 ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
@@ -308,7 +340,7 @@ adaptIntegrate(f, lowerLimit = c(-1, -1, -1), upperLimit = c(1, 1, 1))$integral
 
 # Simple Monte Carlo integration
 # https://en.wikipedia.org/wiki/Monte_Carlo_integration
-P = GenCube(3, 'H')
+P = gen_cube(3, 'H')
 num_of_points <- 10000
 points1 <- sample_points(P, WalkType = "RDHR", walk_step = 100, N=num_of_points)
 int<-0
@@ -337,7 +369,7 @@ We can approximate this number by the following code.
 ```r
 A = matrix(c(-1,0,1,0,0,0,-1,1,0,0,0,-1,0,1,0,0,0,0,-1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1), ncol=5, nrow=14, byrow=TRUE)
 b = c(0,0,0,0,0,0,0,0,0,1,1,1,1,1)
-P = Hpolytope$new(A, b)
+P = make_h_polytope(A, b)
 volume(P,error=0.2)*factorial(5)
 ```
 
@@ -347,7 +379,7 @@ volume(P,error=0.2)*factorial(5)
 For a specific set of assets in a stock market, portfolios are characterized by their return and their risk which is the variance of the portfolios’ returns (volatility). Copulas are approximations of the bivariate joint distribution of return and volatility.
 
 ```r
-#install.packages('plotly')
+install.packages('plotly')
 library('plotly')
 ```
 

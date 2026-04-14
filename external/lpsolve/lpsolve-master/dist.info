@@ -1,0 +1,13 @@
+--- This file is part of Flymir LuaDist project
+
+name = "lpsolve"
+version = "scm"
+
+desc = "Mixed Integer Linear Programming (MILP) solver"
+author = "Peter Notebaert and Kjell Eikland"
+license = "LGPL"
+url = "http://lpsolve.sourceforge.net"
+maintainer = "Tai Chi Minh Ralph Eastwood"
+
+depends = {
+}
