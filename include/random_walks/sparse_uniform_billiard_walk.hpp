@@ -18,6 +18,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "sampling/sphere.hpp"
 #include "generators/boost_random_number_generator.hpp"
+#include "preprocess/barrier_center_ellipsoid.hpp"
 
 struct SparseBilliardWalk {
 
@@ -54,6 +55,54 @@ struct Walk
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     SparseRowMT _A_original;
+
+    // Custom Constructor
+    template <typename GenericPolytope>
+    Walk(GenericPolytope& P, const Point& p, RandomNumberGenerator& rng)
+    {
+        using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+        using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+
+        _Len = NT(6.0) * std::sqrt(static_cast<double>(P.dimension()));
+
+        MT A_dense = MT(P.get_mat());
+        VT b_dense = P.get_vec();
+
+        auto result = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, NT>(
+            A_dense, b_dense
+        );
+
+        MT H_dense = std::get<0>(result);
+        bool converged = std::get<2>(result);
+
+        if (!converged) {
+             // Fallback: If analytic center fails, use local Hessian at 'p'
+             // (This ensures code doesn't crash on tough polytopes)
+             VT p_coeffs = p.getCoefficients();
+             VT slack = b_dense - A_dense * p_coeffs;
+             MT S_inv_sq = MT::Zero(P.num_of_hyperplanes(), P.num_of_hyperplanes());
+             for (unsigned int i = 0; i < P.num_of_hyperplanes(); ++i) {
+                 NT s_val = (slack(i) < 1e-12) ? 1e-12 : slack(i);
+                 S_inv_sq(i, i) = 1.0 / (s_val * s_val);
+             }
+             H_dense = A_dense.transpose() * S_inv_sq * A_dense;
+        }
+
+        SparseMT H = H_dense.sparseView();
+
+        compute_cholesky_and_transformations(H);
+
+        _b = P.get_vec();
+        _A_original = P.get_mat().sparseView();
+        _oracle_params.emplace(_L_inv, _A_original, _b);
+
+        VT p_original = p.getCoefficients();
+        VT p_rounded = _L_inv.transpose().template triangularView<Eigen::Lower>() * p_original; 
+        Point p_rounded_point(p_rounded);
+
+        initialize(P, p_rounded_point, rng);
+    }
+    // End of custom constructor
     
     template <typename GenericPolytope>
     Walk(GenericPolytope& P, const Point& p, RandomNumberGenerator& rng,
@@ -258,4 +307,4 @@ private:
 };
 };
 
-#endif // RANDOM_WALKS_SPARSE_BILLIARD_WALK_HPP
+#endif // RANDOM_WALKS_SPARSE_BILLIARD_WALK_HPP 
