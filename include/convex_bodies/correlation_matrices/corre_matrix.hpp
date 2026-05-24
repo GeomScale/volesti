@@ -10,6 +10,9 @@
 #ifndef VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
 #define VOLESTI_CONVEX_BODIES_CORRELATION_MATRICES_CORRE_MATRIX_HPP
 
+#include <ostream>
+#include <iostream>
+
 /// This class handles the PointType used by CorreSpectra_MT class.
 /// Every point is a correlation matrix and only the lower triangular part is stored.
 /// @tparam NT Number Type

@@ -10,7 +10,7 @@
 #ifndef VOLESTI_SLIDING_WINDOW_HPP
 #define VOLESTI_SLIDING_WINDOW_HPP
 
-
+#include <list>
 /// Computes the relative error
 /// \tparam NT Numeric type
 /// \param[in] approx The approximated value
