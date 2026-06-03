@@ -212,6 +212,68 @@ public:
         if (A.rows() != A.cols() || B.rows() != B.cols() || A.rows() != B.rows()) {
             return {LARGE_VAL(), -LARGE_VAL()};
         }
+
+        // retrieve corresponding eigenvector
+        eigenvector = ges.eigenvectors().col(index);
+#elif defined(SPECTRA_EIGENVALUES_SOLVER)
+        // Transform the problem to a standard eigenvalue problem and use the general eigenvalue solver of Spectra
+
+        // This makes the transformation to standard eigenvalue problem. See class for more info.
+        // We have the generalized problem  A + lB, or Av = -lBv
+        // This class computes the matrix product vector Mv, where M = -B * A^[-1]
+
+        DenseProductMatrix<NT> M(&B, &A,true);
+
+        // This parameter is for Spectra. It must be larger than #(requested eigenvalues) + 2
+        // and smaller than the size of matrix;
+        int ncv = 3;
+
+        // Prepare to solve Mx = (1/l)x
+        // we want the smallest positive eigenvalue in the original problem,
+        // so in this the largest positive eigenvalue;
+        Spectra::GenEigsSolver<NT, Spectra::LARGEST_REAL, DenseProductMatrix<NT> > eigs(&M, 1, ncv);
+
+        // compute
+        eigs.init();
+        eigs.compute();
+
+        //retrieve result and invert to get required eigenvalue of the original problem
+        if (eigs.info() != Spectra::SUCCESSFUL) {
+            eigenvector.setZero(A.rows());
+            return NT(0);
+        }
+
+        lambdaMinPositive = 1/((eigs.eigenvalues())(0).real());
+
+        // retrieve corresponding eigenvector
+        int matrixDim = A.rows();
+        eigenvector.resize(matrixDim);
+        for (int i = 0; i < matrixDim; i++)
+            eigenvector(i) =  (eigs.eigenvectors()).col(0)(i);
+
+#elif defined(ARPACK_EIGENVALUES_SOLVER)
+        // Transform the problem to a standard eigenvalue problem and use the general eigenvalue solver of ARPACK++
+
+        // This makes the transformation to standard eigenvalue problem. See class for more info.
+        // We have the generalized problem  A + lB, or Av = -lBv
+        // This class computes the matrix product vector Mv, where M = -B * A^[-1]
+
+        DenseProductMatrix<NT> M(&B, &A,true);
+
+        // Creating an eigenvalue problem and defining what we need:
+        // the  eigenvector of A with largest real.
+        ARNonSymStdEig<NT, DenseProductMatrix<NT> >
+
+        dprob(A.cols(), 1, &M, &DenseProductMatrix<NT>::MultMv, std::string ("LR"), 8<A.rows() ? 8 : A.rows(), 0.000);//, 100*3);
+
+        // compute
+        if (dprob.FindEigenvectors() == 0) {
+            std::cout << "Failed\n";
+            // if failed with default (and fast) parameters, try with stable (and slow)
+            dprob.ChangeNcv(A.cols()/10);
+            if (dprob.FindEigenvectors() == 0) {
+                std::cout << "\tFailed Again\n";
+                return NT(0);
         
         const int n = A.rows();
         const NT tolerance = std::max(NT(1e-12), 
