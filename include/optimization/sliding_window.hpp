@@ -3,64 +3,79 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2020 Apostolos Chalkis
 
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLESTI_SLIDING_WINDOW_HPP
 #define VOLESTI_SLIDING_WINDOW_HPP
 
+#include <list>
+#include <cmath>
 
-/// Computes the relative error
-/// \tparam NT Numeric type
-/// \param[in] approx The approximated value
-/// \param[in] exact The exact value
-/// \return The relative error
-template <typename NT>
-NT relativeError(NT approx, NT exact) {
-    return std::fabs((exact - approx) / exact);
-}
-
-
-/// A sliding window, which allows to get the relative error of approximations
-/// \tparam NT Numeric type
+/// Sliding window for tracking convergence based on relative error
+/// Maintains a fixed-size window of recent values to detect when optimization
+/// has converged by comparing the oldest and newest entries.
+/// \tparam NT Numeric type for stored values
 template<typename NT>
 class SlidingWindow {
 public:
-
-    /// The stored approximations
-    std::list<NT> approximations;
-    /// The size of the window
+    /// Stored values (newest at front, oldest at back)
+    std::list<NT> values;
+    
+    /// Maximum number of values to store in the window
     int windowSize;
-    /// The number of entries in list approximations
+    
+    /// Current number of entries in the window
     int numEntries;
-
-    /// Constructor
-    /// \param[in] windowSize The size of the window
-    SlidingWindow(int windowSize) : windowSize(windowSize) {
-        numEntries = 0;
-    }
-
-    /// Adds an approximation in the window to the front of the list
-    /// \param[in] approximation The new approximation
-    void push(NT approximation) {
-        // if window is full, remove the oldest value
+    
+    /// Construct a sliding window with specified size
+    /// \param[in] windowSize Maximum number of values to store
+    SlidingWindow(int windowSize) : windowSize(windowSize), numEntries(0) {}
+    
+    /// Add a new value to the window
+    /// Adds value to the front of the window. If window is full,
+    /// removes the oldest value from the back.
+    /// \param[in] value The new value to add
+    void push(NT value) {
+        // If window is full, remove the oldest value
         if (numEntries >= windowSize) {
-            approximations.pop_back();
-        }
-        else
+            values.pop_back();
+        } else {
             numEntries++;
-
-        approximations.push_front(approximation);
+        }
+        values.push_front(value);
     }
-
-    /// \return The relative error between the youngest and oldest approximations
-    double getRelativeError() {
-        if (numEntries < windowSize)
-            return 1;
-
-        return relativeError(approximations.back(), approximations.front());
+    
+    /// Calculate relative error between newest and oldest values
+    /// Computes |oldest - newest| / |oldest| to measure convergence.
+    /// Returns 1.0 if window not full or to avoid division by zero.
+    /// \return Relative error in range [0, infinity), or 1.0 if not converged
+    NT getRelativeError() const {
+        if (numEntries < windowSize) {
+            return NT(1); // Not converged yet
+        }
+        NT newest = values.front();
+        NT oldest = values.back();
+        if (std::abs(oldest) < NT(1e-10)) {
+            return NT(1); // Avoid division by zero
+        }
+        return std::abs((oldest - newest) / oldest);
+    }
+    
+    /// Check if window is full
+    /// \return True if window has collected windowSize entries, false otherwise
+    bool isFull() const {
+        return numEntries >= windowSize;
+    }
+    
+    /// Clear all values from the window
+    /// Resets the window to empty state.
+    void clear() {
+        values.clear();
+        numEntries = 0;
     }
 };
 
-#endif //VOLESTI_SLIDING_WINDOW_HPP
+#endif // VOLESTI_SLIDING_WINDOW_HPP
