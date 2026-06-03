@@ -5,6 +5,7 @@
 
 // Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 // Modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
+// Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -160,7 +161,8 @@ public:
         }
 
         // compute Matrix B
-        lmi.evaluateWithoutA0(v, precomputedValues.B);
+        // lmi.evaluateWithoutA0(v, precomputedValues.B);
+        lmi.evaluateWithoutA0(v, precomputedValues.B, /*complete_mat=*/true);
     }
 
 
@@ -172,7 +174,8 @@ public:
             lmi.evaluate(p, precomputedValues.C);
         }
 
-        lmi.evaluateWithoutA0(v, precomputedValues.B);
+        // lmi.evaluateWithoutA0(v, precomputedValues.B);
+        lmi.evaluateWithoutA0(v, precomputedValues.B, /*complete_mat=*/true);
     }
 
     /// Computes the distance d we must travel on the parametrized polynomial curve \[at^2 + bt + c \],
@@ -222,6 +225,7 @@ public:
         // we may not have to compute A!
         if (!precomputedValues.computed_A)
             lmi.evaluate(a, precomputedValues.A);
+
 
         return EigenvaluesProblem.symGeneralizedProblem(precomputedValues.A, *(lmi.getMatrix(coordinate)));
     }
@@ -378,19 +382,25 @@ public:
     }
 
     void shift(VT e) {
-        MT A0 = getLMI().get_A0();
-        std::vector<MT> matrices = getLMI().getMatrices();
-
-        int d = matrices.size();
-
-        for (int i = 1; i < d; ++i) {
-            A0 = A0 + e(i-1)*matrices[i];
-        }
-
-        lmi.set_A0(A0);
-
-        _inner_ball.first = PointType(dimension());
+    MT A0 = getLMI().get_A0();
+    std::vector<MT> matrices = getLMI().getMatrices();
+    int d = matrices.size();
+    
+    // Kahan summation algorithm for matrix accumulation
+    MT sum = A0;
+    MT c = MT::Zero(A0.rows(), A0.cols());  // Compensation matrix initialized to zero
+    
+    for (int i = 1; i < d; ++i) {
+        MT term = e(i-1) * matrices[i];     // Current term to add
+        MT y = term - c;                    // Subtract the compensation
+        MT t = sum + y;                     // Tentative sum
+        c = (t - sum) - y;                  // Update compensation: capture lost precision
+        sum = t;                            // Update sum
     }
+    
+    lmi.set_A0(sum);
+    _inner_ball.first = PointType(dimension());
+}
 
     /// Computes the reflected direction at a point on the boundary of the spectrahedron.
     /// \param[in] r A point on the boundary of the spectrahedron
@@ -436,11 +446,6 @@ public:
         return lmi;
     }
 
-    /// Estimates the diameter of the spectrahedron. It samples points uniformly with coordinate directions
-    /// hit and run, and returns the maximum distance between them.
-    /// \tparam Point
-    /// \param[in] numPoints The number of points to sample for the estimation
-    /// \return An estimation of the diameter of the spectrahedron
     template <typename RNGType>
     NT estimateDiameter(int const numPoints, PointType const & interiorPoint, RNGType &rng) {
 
@@ -488,12 +493,12 @@ public:
         return maxDistance;
     }
 
-    int is_in(PointType const& p, NT tol=NT(0)) const
+    bool is_in(PointType const& p, NT tol=NT(0)) const
     {
         if (isExterior(p.getCoefficients())) {
-            return 0;
+            return false;
         }
-        return -1;
+        return true;
     }
 
     /// Find out is lmi(current position) = mat is in the exterior of the spectrahedron
@@ -509,6 +514,8 @@ public:
     bool isExterior(VT const & pos) const {
         return !lmi.isNegativeSemidefinite(pos);
     }
+
+
 };
 
 #endif //VOLESTI_SPECTRAHEDRON_H

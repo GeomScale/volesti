@@ -1,10 +1,13 @@
 # VolEsti (volume computation and sampling library)
-# Copyright (c) 2012-2020 Vissarion Fisikopoulos
-# Copyright (c) 2018-2020 Apostolos Chalkis
-# Copyright (c) 2021 Vaibhav Thakkar
+
+# Copyright (c) 2012-2025 Vissarion Fisikopoulos
+# Copyright (c) 2018-2025 Apostolos Chalkis
+# Copyright (c) 2020-2025 Elias Tsigaridas
 
 # Contributed and/or modified by Vaibhav Thakkar
 # Contributed and/or modified by Ioannis Iakovidis
+# Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
+
 # Licensed under GNU LGPL.3, see LICENCE file
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
@@ -113,6 +116,9 @@ GetAutodiff()
 include("../external/cmake-files/Eigen.cmake")
 GetEigen()
 
+include("../external/cmake-files/Spectra.cmake")
+GetSpectra()
+
 include("../external/cmake-files/Boost.cmake")
 GetBoost()
 
@@ -121,6 +127,9 @@ GetLPSolve()
 
 include("../external/cmake-files/QD.cmake")
 GetQD()
+
+include("../external/cmake-files/SuiteSparse.cmake")
+GetSuiteSparse()
 
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
@@ -163,6 +172,7 @@ endif(USE_MKL)
 
 include_directories (BEFORE ../external)
 include_directories (BEFORE ../include)
+include_directories (BEFORE ../include/matrix_operations)
 
 #for Eigen
 if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -383,6 +393,26 @@ add_test(NAME test_volumetric_center
 add_test(NAME test_vaidya_center
           COMMAND test_internal_points -tc=test_vaidya_center)
 
+add_executable (full_dimensional_polytope_test full_dimensional_polytope_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME full_dimensional_polytope_canonical_simplex
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_canonical_simplex)
+add_test(NAME full_dimensional_polytope_simple_feasible
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_simple_feasible)
+add_test(NAME full_dimensional_polytope_line_segment
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_line_segment)
+add_test(NAME full_dimensional_polytope_high_dimensional
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_high_dimensional)
+add_test(NAME full_dimensional_polytope_multiple_constraints
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_multiple_constraints)
+add_test(NAME full_dimensional_polytope_hypercube_intersection
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_hypercube_intersection)
+add_test(NAME full_dimensional_polytope_sparse_constraint
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_sparse_constraint)
+add_test(NAME full_dimensional_polytope_orthogonality
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_orthogonality)
+add_test(NAME full_dimensional_polytope_infeasible
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_infeasible)
+
           
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
@@ -428,3 +458,6 @@ TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTH
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
+find_package(LAPACK REQUIRED)
+find_package(BLAS REQUIRED)
+TARGET_LINK_LIBRARIES(full_dimensional_polytope_test lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
