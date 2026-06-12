@@ -20,6 +20,8 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
+include("../../external/cmake-files/Spectra.cmake")
+GetSpectra()
 include_directories (BEFORE ../../external)
 include_directories (BEFORE ../../include/generators)
 include_directories (BEFORE ../../include/volume)

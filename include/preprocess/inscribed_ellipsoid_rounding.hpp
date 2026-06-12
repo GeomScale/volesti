@@ -91,6 +91,7 @@ std::tuple<MT, VT, NT> inscribed_ellipsoid_rounding(Polytope &P,
         Spectra::DenseSymMatProd<NT> op(E);
         // The value of ncv is chosen empirically
         Spectra::SymEigsSolver<Spectra::DenseSymMatProd<NT>> eigs(op, 2, std::min(std::max(10, int(d)/5), int(d)));
+        eigs.init();
         int nconv = eigs.compute(Spectra::SortRule::BothEnds);
         if (eigs.info() == Spectra::CompInfo::Successful) {
             R = 1.0 / eigs.eigenvalues().coeff(1);
