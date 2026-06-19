@@ -71,4 +71,16 @@ endif(NOT APPLE)
   ${LP_SOLVE_DIR}/lp_utils.c
   ${LP_SOLVE_DIR}/lp_wlp.c)
 
+  # Force lp_solve to be compiled as pure C (not C++)
+  set_target_properties(lp_solve PROPERTIES
+  LINKER_LANGUAGE C
+  C_STANDARD 99
+  C_STANDARD_REQUIRED YES
+  )
+
+  # Remove accidental C++ flags
+  target_compile_options(lp_solve PRIVATE
+  $<$<COMPILE_LANGUAGE:C>:-std=c99>
+  )
+
 endfunction()
