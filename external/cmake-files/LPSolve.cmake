@@ -17,7 +17,7 @@ endif(NOT APPLE)
 
       if(NOT lpsolve_POPULATED)
           message(STATUS "lp_solve library not found locally, downloading it.")
-          FetchContent_Populate(lpsolve)
+          FetchContent_MakeAvailable(lpsolve)
       endif()
 
       set(LP_SOLVE_DIR "${lpsolve_SOURCE_DIR}")
@@ -29,21 +29,8 @@ endif(NOT APPLE)
 
   endif()
 
-  #to disable interactive mode of lp_solve lex parser
-  add_compile_options(-DYY_NEVER_INTERACTIVE)
-
-  add_compile_options(-DLoadInverseLib=0)
-  add_compile_options(-DLoadLanguageLib=0)
-  add_compile_definitions(RoleIsExternalInvEngine)
-  add_compile_definitions(INVERSE_ACTIVE=3)
-  add_compile_options(-DLoadableBlasLib=0)
-
+  # Main lp_solve header (needed globally for lp_oracles)
   include_directories (BEFORE ${LP_SOLVE_DIR})
-  include_directories (BEFORE ${LP_SOLVE_DIR}/bfp)
-  include_directories (BEFORE ${LP_SOLVE_DIR}/bfp/bfp_LUSOL)
-  include_directories (BEFORE ${LP_SOLVE_DIR}/bfp/bfp_LUSOL/LUSOL)
-  include_directories (BEFORE ${LP_SOLVE_DIR}/colamd)
-  include_directories (BEFORE ${LP_SOLVE_DIR}/shared)
 
   add_library (lp_solve
   ${LP_SOLVE_DIR}/bfp/bfp_LUSOL/lp_LUSOL.c
@@ -70,5 +57,22 @@ endif(NOT APPLE)
   ${LP_SOLVE_DIR}/lp_SOS.c
   ${LP_SOLVE_DIR}/lp_utils.c
   ${LP_SOLVE_DIR}/lp_wlp.c)
+
+  # Scoped compile definitions & includes — prevents leaking to SuiteSparse etc.
+  target_compile_definitions(lp_solve PRIVATE
+    YY_NEVER_INTERACTIVE
+    LoadInverseLib=0
+    LoadLanguageLib=0
+    LoadableBlasLib=0
+    RoleIsExternalInvEngine
+    INVERSE_ACTIVE=3
+  )
+  target_include_directories(lp_solve PRIVATE
+    ${LP_SOLVE_DIR}/bfp
+    ${LP_SOLVE_DIR}/bfp/bfp_LUSOL
+    ${LP_SOLVE_DIR}/bfp/bfp_LUSOL/LUSOL
+    ${LP_SOLVE_DIR}/colamd
+    ${LP_SOLVE_DIR}/shared
+  )
 
 endfunction()

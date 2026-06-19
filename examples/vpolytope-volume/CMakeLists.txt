@@ -65,6 +65,8 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../../external/cmake-files/Spectra.cmake")
+GetSpectra()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 

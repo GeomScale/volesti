@@ -204,51 +204,213 @@ public:
     }
 
     /// Solve generalized symmetric eigenvalue problem B*v = λ*(-A)*v
-    /// Finds both minimum positive and maximum negative eigenvalues simultaneously
+    /// Returns intersection distances t = 1/λ for the positive and negative
+    /// directions of the generalized problem (A + t*B)v = 0.
     /// \param[in] A Symmetric matrix (multiplied by -1 in problem formulation)
     /// \param[in] B Symmetric matrix
-    /// \return Pair (min_positive_eigenvalue, max_negative_eigenvalue)
+    /// \return Pair (t_pos, t_neg) — distances to boundary in ± coordinate directions
     static std::pair<NT, NT> symGeneralizedProblem(const MT& A, const MT& B) {
         if (A.rows() != A.cols() || B.rows() != B.cols() || A.rows() != B.rows()) {
             return {LARGE_VAL(), -LARGE_VAL()};
         }
-        
+
         const int n = A.rows();
-        const NT tolerance = std::max(NT(1e-12), 
+        const NT tolerance = std::max(NT(1e-12),
                                     std::max(A.norm(), B.norm()) * eps() * NT(100000));
-        
+
         try {
             MT neg_A = -A;
             Eigen::GeneralizedSelfAdjointEigenSolver<MT> solver(B, neg_A, Eigen::EigenvaluesOnly);
-            
+
             if (solver.info() != Eigen::Success) {
                 return {LARGE_VAL(), -LARGE_VAL()};
             }
-            
+
             auto eigenvals = solver.eigenvalues();
-            
-            NT min_pos = LARGE_VAL();
-            NT max_neg = -LARGE_VAL();
-            
-            // Single forward pass (eigenvalues sorted increasing)
-            // Keep updating max_neg, then grab first min_pos and exit
-            for (int i = 0; i < n; ++i) {
-                NT lambda = eigenvals(i);
-                
-                if (std::abs(lambda) < tolerance) continue;
-                
-                if (lambda < -tolerance) {
-                    max_neg = lambda;  // Keep updating (moving toward zero)
-                } else if (lambda > tolerance) {
-                    min_pos = lambda;  // First positive = minimum positive
-                    break;  // Done! Have both values
-                }
-            }
-            
-            return {min_pos, max_neg};
+
+            // Match old Spectra BOTH_ENDS semantics:
+            //   ev(0) = most negative λ, ev(1) = most positive λ
+            //   Return (1/ev(1), 1/ev(0)) = (t_pos, t_neg)
+            // t = 1/λ: smallest t_pos = 1/largest λ; t_neg closest to 0 = 1/most negative λ
+            // Eigenvalues are sorted increasing, so:
+            //   eigenvals(0) = most negative, eigenvals(n-1) = most positive
+            NT lambda_most_neg = eigenvals(0);
+            NT lambda_most_pos = eigenvals(n - 1);
+
+            NT t_pos = (lambda_most_pos > tolerance)  ? NT(1) / lambda_most_pos : LARGE_VAL();
+            NT t_neg = (lambda_most_neg < -tolerance) ? NT(1) / lambda_most_neg : -LARGE_VAL();
+            return {t_pos, t_neg};
         } catch (...) {
             return {LARGE_VAL(), -LARGE_VAL()};
         }
+    }
+
+    /// Find minimum positive t such that (A + t*B)v = 0 for some v ≠ 0
+    /// Solves the generalized eigenvalue problem using Eigen's self-adjoint solver.
+    /// Requires one of A or -A to be positive definite.
+    /// \param[in] A Constant coefficient matrix (typically lmi(p) — positive semidefinite)
+    /// \param[in] B Linear coefficient matrix (typically directional derivative)
+    /// \param[out] eigvec Eigenvector corresponding to minimum positive t
+    /// \return Minimum positive t, or infinity if none exists
+    NT minPosLinearEigenvalue(const MT& A, const MT& B, VT& eigvec) const {
+        const int n = A.rows();
+        if (n == 0) return LARGE_VAL();
+
+        try {
+            // Test if A is positive definite via Cholesky
+            Eigen::LLT<MT> llt_A;
+            llt_A.compute(A);
+            const bool A_is_pd = (llt_A.info() == Eigen::Success);
+
+            if (A_is_pd) {
+                // Use solver(-B, A): solves (-B)v = λ*A*v → t = 1/λ
+                MT neg_B = -B;
+                Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(neg_B, A);
+                if (ges.info() != Eigen::Success) return LARGE_VAL();
+
+                auto eigenvals = ges.eigenvalues();
+                // Eigenvalues sorted increasing; find largest positive λ
+                for (int i = n - 1; i >= 0; --i) {
+                    NT lambda = eigenvals(i);
+                    if (lambda > eps() * NT(10)) {
+                        eigvec = ges.eigenvectors().col(i);
+                        return NT(1) / lambda;
+                    }
+                }
+            }
+
+            // Test if B is positive definite via Cholesky
+            Eigen::LLT<MT> llt_B;
+            llt_B.compute(B);
+            const bool B_is_pd = (llt_B.info() == Eigen::Success);
+
+            if (B_is_pd) {
+                // Use solver(-A, B): solves (-A)v = λ*B*v → t = λ
+                MT neg_A = -A;
+                Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(neg_A, B);
+                if (ges.info() != Eigen::Success) return LARGE_VAL();
+
+                auto eigenvals = ges.eigenvalues();
+                // Eigenvalues sorted increasing; find smallest positive λ (which is t)
+                for (int i = 0; i < n; ++i) {
+                    NT lambda = eigenvals(i);
+                    if (lambda > eps() * NT(10)) {
+                        eigvec = ges.eigenvectors().col(i);
+                        return lambda;
+                    }
+                }
+            }
+
+            // Fallback: use GeneralizedEigenSolver which handles non-PD matrices
+            Eigen::GeneralizedEigenSolver<MT> ges(A, B);
+            if (ges.info() != Eigen::Success) return LARGE_VAL();
+
+            auto alphas = ges.alphas();
+            auto betas = ges.betas();
+            NT min_pos_t = LARGE_VAL();
+            int best_idx = -1;
+
+            for (int i = 0; i < n; ++i) {
+                std::complex<NT> lambda = alphas(i) / betas(i);
+                if (std::abs(lambda.imag()) > eps() * NT(10)) continue;
+                NT t = -lambda.real();  // (A + t*B)v = 0 → t = -λ for Av = λ*Bv
+                if (t > eps() * NT(10) && t < min_pos_t) {
+                    min_pos_t = t;
+                    best_idx = i;
+                }
+            }
+
+            if (best_idx >= 0) {
+                eigvec = ges.eigenvectors().col(best_idx).real();
+                return min_pos_t;
+            }
+        } catch (...) {}
+
+        return LARGE_VAL();
+    }
+
+    /// Variant of minPosLinearEigenvalue using the symmetric generalized approach
+    /// Solves (A + t*B)v = 0 for the smallest positive t
+    /// Uses solver(B, A) → Bv = λAv → Av + (1/λ)Bv = 0 → t = 1/λ (largest λ)
+    /// The caller typically passes A = -precomputedValues.A, B = precomputedValues.B
+    /// so the internal call is ges(B, -precomputedValues.A).
+    /// \param[in] A Coefficient matrix (as-is from caller, no sign change)
+    /// \param[in] B Coefficient matrix
+    /// \param[out] eigvec Eigenvector for the minimum positive t
+    /// \return Minimum positive t, or infinity if none exists
+    NT minPosLinearEigenvalue_EigenSymSolver(const MT& A, const MT& B, VT& eigvec) const {
+        const int n = A.rows();
+        if (n == 0) return LARGE_VAL();
+
+        try {
+            // ges(B, A): matches original code's ges(B_param, A_param)
+            Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B, A);
+            if (ges.info() != Eigen::Success) return LARGE_VAL();
+
+            auto eigenvals = ges.eigenvalues();
+            // Eigenvalues sorted increasing; find largest positive λ → smallest t = 1/λ
+            for (int i = n - 1; i >= 0; --i) {
+                NT lambda = eigenvals(i);
+                if (lambda > eps() * NT(10)) {
+                    eigvec = ges.eigenvectors().col(i);
+                    return NT(1) / lambda;
+                }
+            }
+
+            // Fallback: try GeneralizedEigenSolver
+            Eigen::GeneralizedEigenSolver<MT> ges2(A, B);
+            if (ges2.info() != Eigen::Success) return LARGE_VAL();
+
+            auto alphas = ges2.alphas();
+            auto betas = ges2.betas();
+            NT min_pos_t = LARGE_VAL();
+            int best_idx = -1;
+
+            for (int i = 0; i < n; ++i) {
+                std::complex<NT> lambda = alphas(i) / betas(i);
+                if (std::abs(lambda.imag()) > eps() * NT(10)) continue;
+                NT t = -lambda.real();  // (A + t*B)v = 0 → t = -λ for Av = λBv
+                if (t > eps() * NT(10) && t < min_pos_t) {
+                    min_pos_t = t;
+                    best_idx = i;
+                }
+            }
+
+            if (best_idx >= 0) {
+                eigvec = ges2.eigenvectors().col(best_idx).real();
+                return min_pos_t;
+            }
+        } catch (...) {}
+
+        return LARGE_VAL();
+    }
+
+    /// Check if symmetric matrix A is positive semidefinite
+    /// Uses LDLT decomposition which handles semidefinite matrices gracefully
+    /// \param[in] A Symmetric matrix
+    /// \return true if A is positive semidefinite, false otherwise
+    bool isPositiveSemidefinite(const MT& A) const {
+        Eigen::LDLT<MT> A_ldlt(A);
+        if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
+            return true;
+        return false;
+    }
+
+    /// Check if a matrix is a correlation matrix
+    /// Returns true if all diagonal elements are 1 and the matrix is PSD
+    /// \param[in] matrix Input matrix
+    /// \param[in] tol Tolerance for checking unit diagonal
+    /// \return true if matrix is a valid correlation matrix
+    bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8) {
+        // Check if all diagonal elements are ones
+        for (int i = 0; i < matrix.rows(); i++) {
+            if (std::abs(matrix(i, i) - 1.0) > tol) {
+                return false;
+            }
+        }
+        // Check positive semidefiniteness
+        if (isPositiveSemidefinite(matrix)) return true;
+        return false;
     }
 
     /// Check if symmetric matrix M is negative definite

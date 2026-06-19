@@ -72,6 +72,8 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../../external/cmake-files/Spectra.cmake")
+GetSpectra()
 include_directories (BEFORE ../../external)
 include_directories (BEFORE ../../external/minimum_ellipsoid)
 include_directories (BEFORE ../../include/generators)
