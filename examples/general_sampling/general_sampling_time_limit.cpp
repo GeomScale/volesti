@@ -592,7 +592,7 @@ typedef SparseBilliardWalk::template Walk<HPOLYTOPE, RNGType> SparseBilliardaWal
 int main(int argc, char const *argv[]) {
 
     // You can adjust dimensions as needed
-    std::vector<unsigned int> dimensions = {500};
+    std::vector<unsigned int> dimensions = {25};
     // Select target ESS
     unsigned int target_ESS = 800;
 
@@ -606,7 +606,7 @@ int main(int argc, char const *argv[]) {
     // Choose what methods to use. True is used, false is not used.
     std::map<std::string, bool> active_methods;
     active_methods["AcceleratedBilliardWalk"] = true;
-    active_methods["CDHRWalk"]                = true;
+    active_methods["CDHRWalk"]                = false;
     active_methods["BallWalk"]                = false;
     active_methods["BilliardWalk"]            = false;
     active_methods["RDHRWalk"]                = false;
@@ -624,14 +624,14 @@ int main(int argc, char const *argv[]) {
 
     //////CUSTOM Polytopes in A*x<=b form/////////////*******************************************////////////////////////////////////////
     // TOGGLE THIS: Set to 'true' for your custom CSVs, 'false' for the Cube/Simplex/... benchmark
-    bool USE_CUSTOM_MODEL = false; 
+    bool USE_CUSTOM_MODEL = true; 
 
     HPOLYTOPE custom_polytope; // Placeholder for the loaded model
 
     if (USE_CUSTOM_MODEL) {
         try {
             // Load the model ONCE before the loop. Place the csv files in the build folder.
-            custom_polytope = load_custom_polytope<HPOLYTOPE>("agg_A.csv", "agg_b.csv");
+            custom_polytope = load_custom_polytope<HPOLYTOPE>("Birkhoff25_volumetric_barrier_A.csv", "Birkhoff25_volumetric_barrier_b.csv");
             
             // Overwrite dimensions list to run exactly ONCE for the model's dimension
             dimensions = { static_cast<unsigned int>(custom_polytope.dimension()) };
@@ -656,19 +656,19 @@ int main(int argc, char const *argv[]) {
         } else {
             // Generate desired Polytope 
             //Polytope_simple = generate_cube<HPOLYTOPE>(dim, false);
-            //Polytope_simple = generate_birkhoff<HPOLYTOPE>(dim);
+            Polytope_simple = generate_birkhoff<HPOLYTOPE>(dim);
             //Polytope_simple = generate_cross<HPOLYTOPE>(dim, false);
             //Polytope_simple = generate_skinny_cube<HPOLYTOPE>(dim,false);
             //Polytope_simple = generate_simplex<HPOLYTOPE>(dim, false);
 
             // Generate order polytopes
-            unsigned int m = 3 * dim;
-            int current_seed = base_seed + dim;
-            std::cout << "\nCreating order polytope...\n";
-            Polytope_simple = random_orderpoly<HPOLYTOPE, double>(dim, m, current_seed);
+            // unsigned int m = 3 * dim;
+            // int current_seed = base_seed + dim;
+            // std::cout << "\nCreating order polytope...\n";
+            // Polytope_simple = random_orderpoly<HPOLYTOPE, double>(dim, m, current_seed);
             
-            double angle = 53.0 * M_PI / 180.0; //53 deg
-            //double angle = 0.0 * M_PI / 180.0;  //0 deg
+            //double angle = 53.0 * M_PI / 180.0; //53 deg
+            double angle = 0.0 * M_PI / 180.0;  //0 deg
             Polytope = rotate_all_dims(Polytope_simple, angle);
 
             //print_hpoly(Polytope); //Uncomment to print the polytope

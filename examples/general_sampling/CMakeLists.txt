@@ -56,9 +56,11 @@ endif()
 include_directories(BEFORE ../../include)
 include_directories(BEFORE ../../external)
 include_directories(BEFORE ../../external/minimum_ellipsoid)
+include_directories(BEFORE ../../include/convex_bodies)
+include_directories(BEFORE ../../include/generators)
 
 # --------------------------------------------------------
 # 5. Targets
 # --------------------------------------------------------
 add_executable(general_sampling_time_limit general_sampling_time_limit.cpp)
-target_link_libraries(general_sampling_time_limit ${LP_SOLVE} qd pthread)
+target_link_libraries(general_sampling_time_limit ${LP_SOLVE} QD_LIB pthread)
