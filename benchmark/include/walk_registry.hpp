@@ -9,35 +9,32 @@
 #include "walk_result.hpp"
 
 /*
- * The goal here is to decouple walk selection from walk implementation. Rather than
- * directly instantiating specific walk types throughout the codebase, every
- * sampling method is registered under a string identifier and exposed through
- * a common callable interface.
+ * This file allows sampling methods to be selected by name at runtime,
+ * instead of creating specific walk types directly in the code.
  *
- * The RunFunction type defines the standardized signature that every walk
- * execution routine must follow. This allows all methods, regardless of their
- * underlying implementation, to be stored and invoked uniformly.
+ * Every walk is registered with a string name and exposed through the same
+ * function interface. This makes it possible to store and execute different
+ * walk implementations in a uniform way.
  *
- * The WalkRegistry maps method names to executable functions. The registry 
- * acts as a lookup table that enables runtime selection of sampling algorithms 
- * based on user configuration, command-line arguments, or benchmark settings.
+ * RunFunction defines the common function signature that all registered walks
+ * must follow.
  *
- * The execute_walk() helper wraps the generic sample_using_walk() function,
- * converting a walk type into a registry-compatible callable. This allows
- * template-based walk implementations to be registered and invoked through
- * the same runtime interface.
+ * WalkRegistry stores the mapping between walk names and their corresponding
+ * execution functions. It acts as a lookup table, making it easy to choose a
+ * sampling method based on user input or benchmark settings.
  *
- * The registration functions provide:
+ * The execute_walk() helper adapts template-based walk implementations so they
+ * can be stored in the registry and called through the common interface.
  *
- *   - register_walk(): Adds a walk implementation to the registry.
- *   - get_walk_registry(): Accesses the global registry instance.
- *   - initialize_all_walks(): Registers all available walk methods at startup.
+ * Main functions:
  *
- * Together with walk_adapters.hpp, this file forms the core abstraction layer
- * of the framework: walk_adapters.hpp unifies algorithm interfaces, while
- * walk_registry.hpp enables dynamic selection and execution of any registered
- * sampling method through a common lookup mechanism.
-*/
+ *   - register_walk(): Registers a walk in the registry.
+ *   - get_walk_registry(): Returns the global registry.
+ *   - initialize_all_walks(): Registers all available walks.
+ *
+ * Together with walk_adapters.hpp, this file provides the infrastructure for
+ * selecting and running sampling methods through a single, consistent interface.
+ */
 
 // Each walk must match this callable signature
 using RunFunction = std::function<WalkResult(

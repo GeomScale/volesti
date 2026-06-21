@@ -5,19 +5,18 @@
 #include "walk_parameters.hpp"
 #include "random_walks/random_walks.hpp" 
 
-
 #include "sampling/sampling.hpp"
 /*
  * -----------------
  * This file provides a uniform interface for all random walk implementations
  * used.
  *
- * Different walk algorithms in Volesti expose different constructor signatures
- * and apply() methods. In particular, most uniform samplers can be constructed
- * as Walk(P, p, rng), while for example Gaussian samplers require additional 
- * parameters (e.g. scale parameter a_i) and different apply() signatures.
+ * Different walk algorithms expose different constructor signatures
+ * and apply() methods. For example, most uniform samplers can be constructed
+ * as Walk(P, p, rng), while Gaussian samplers require additional 
+ * parameters (e.g. parameter a_i) and different apply() signatures.
  *
- * To avoid special-case handling throughout the benchmark code, this file
+ * To avoid having special cases throughout the benchmark code, this file
  * introduces the WalkAdapter abstraction. Each adapter exposes a common
  * apply_batch() function that:
  *

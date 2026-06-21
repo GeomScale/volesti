@@ -7,6 +7,7 @@
 #include "walk_adapters.hpp"
 #include "diagnostics.hpp"
 #include "progress_bar.hpp"
+#include "dynamic_batch_size.hpp"
 
 #include "sampling/random_point_generators.hpp"
 #include <iostream>
@@ -133,27 +134,7 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
 
             // THE DYNAMIC BATCH SIZE 
             if (config.use_dynamic_batch) {
-                double ess_per_sample = (double)current_ESS / (double)allSamples.size();
-                
-                if (ess_per_sample > 1e-6) {
-                    unsigned int remaining_ESS = config.target_ESS - current_ESS;
-                    
-                    if (current_ESS < (config.target_ESS * 0.85)) {
-                        // We are less than 85% to the target.
-                        // Since ESS generation usually improves over time, we intentionally 
-                        // ask for ONLY 80% of what the math predicts. This prevents massive overshoots.
-                        unsigned int samples_needed = static_cast<unsigned int>((remaining_ESS / ess_per_sample) * 0.80);
-                        batch_size = std::max(samples_needed, 500u);
-                    } else {
-                        // We are in the final 15%.
-                        // Now the ess_per_sample is highly accurate. We add a small 5% buffer 
-                        // to ensure we cross the finish line and don't waste time on tiny micro-batches.
-                        unsigned int samples_needed = static_cast<unsigned int>((remaining_ESS / ess_per_sample) * 1.05);
-                        batch_size = std::max(samples_needed, 500u);
-                    }
-                } else {
-                    batch_size *= 1.5; 
-                }
+                batch_size = compute_next_batch_size(config.target_ESS, current_ESS, allSamples.size(), batch_size);
             }
 
             std::cout << " | Next Batch: " << batch_size << std::flush;
