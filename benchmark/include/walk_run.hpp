@@ -67,7 +67,7 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                     unsigned int current_chunk = std::min(chunk_size, batch_size - generated_this_batch);
                     std::vector<Point> chunkPoints;
                     
-                    // The main call. Since we set up our functions using the adapters, the same call is valid for all methods
+                    // The main call. The same call is valid for all methods
                     WalkAdapter<WalkType>::apply_batch(
                         walk, Polytope, starting_point, current_chunk, walk_len, chunkPoints, config, rng, walk_timer
                     );
