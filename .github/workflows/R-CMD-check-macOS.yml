@@ -27,6 +27,7 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      _R_CHECK_FORCE_SUGGESTS_: false
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
@@ -41,24 +42,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org'))"
-          Rscript -e "install.packages('devtools', dependencies=TRUE, repos='https://cloud.r-project.org')"
-          Rscript -e "install.packages(c('rcmdcheck', 'Rcpp', 'RcppEigen', 'BH', 'testthat', 'downloader', 'xfun'), repos='https://cloud.r-project.org')"
+          Rscript -e "install.packages(c('rcmdcheck', 'Rcpp', 'RcppEigen', 'BH', 'testthat'), dependencies = TRUE, repos = 'https://cloud.r-project.org')"
 
       - name: Checkout Rvolesti repository
-        run: git clone https://github.com/GeomScale/Rvolesti.git;
+        run: |
+          git clone https://github.com/GeomScale/Rvolesti.git
 
       - name: Upgrade with current develop of volesti
         run: |
-          cp -rf include Rvolesti/src/volesti
-          cp -rf external Rvolesti/src
+          mkdir -p Rvolesti/src/volesti
+          cp -rf include Rvolesti/src/volesti/
+          rsync -a external/ Rvolesti/src/external/
+          # Download Spectra 1.1.0 (newer than bundled in Rvolesti) and replace old version
+          curl -sL https://github.com/yixuan/spectra/archive/refs/tags/v1.1.0.tar.gz | tar xz -C /tmp/
+          rm -rf Rvolesti/src/external/Spectra /tmp/spectra-1.1.0/benchmark /tmp/spectra-1.1.0/test /tmp/spectra-1.1.0/examples /tmp/spectra-1.1.0/.github /tmp/spectra-1.1.0/doxygen /tmp/spectra-1.1.0/cmake
+          find /tmp/spectra-1.1.0 -name '.??*' -not -name '.gitignore' -delete 2>/dev/null || true
+          mv /tmp/spectra-1.1.0 Rvolesti/src/external/Spectra
+          # Add Spectra include path to Makevars
+          sed -i '' 's|^PKG_CPPFLAGS=.*|& -Iexternal/Spectra/include|' Rvolesti/src/Makevars
 
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         run: |
           cd Rvolesti/
-          Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'warning', check_dir = 'check')"
+          Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'error', check_dir = 'check')"
 
       - name: Upload check results
         if: failure()
