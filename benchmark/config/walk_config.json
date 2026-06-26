@@ -8,7 +8,7 @@
         "polytope_choice": "Cube",
         "custom_A_file": "Cube_50_A.csv",
         "custom_b_file": "Cube_50_b.csv",
-        "dynamic_batch_size": true,
+        "dynamic_batch_size": false,
         "write_to_file": true,
         "rounding": false
     },
@@ -24,8 +24,8 @@
         "VaidyaWalk":               { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
         "GaussianBallWalk":         { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0, "a_i_param": 1.0 },
         "GaussianCDHRWalk":         { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0, "a_i_param": 1.0 },
-        "BilliardShakeAndBakeWalk": { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
-        "ShakeAndBakeWalk":         { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
+        "BilliardShakeAndBakeWalk": { "enabled": true, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
+        "ShakeAndBakeWalk":         { "enabled": true, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
         "BCDHRWalk":                { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
         "BRDHRWalk":                { "enabled": false, "samples": 1000, "walk_len_multiplier": 2, "walk_len_base": 0 },
         "CRHMCWalk":                { "enabled": false, "samples": 1000, "walk_len_multiplier": 0, "walk_len_base": 1 }

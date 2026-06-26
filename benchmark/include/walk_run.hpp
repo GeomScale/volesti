@@ -40,6 +40,9 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
     unsigned int batch_size = get_initial_batch_size(walk_name, config);
     unsigned int walk_len = compute_dynamic_walk_len(walk_name, dim, config);
 
+    // initiallize the walk
+    auto walk = WalkAdapter<WalkType>::init(Polytope, starting_point, config, rng);
+
     // Timer objects that stored the time
     Timer walk_timer(walk_name);
     Timer ess_timer(walk_name);
@@ -66,7 +69,7 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                     
                     // The main call. Since we set up our functions using the adapters, the same call is valid for all methods
                     WalkAdapter<WalkType>::apply_batch(
-                        Polytope, starting_point, current_chunk, walk_len, chunkPoints, config, rng, walk_timer
+                        walk, Polytope, starting_point, current_chunk, walk_len, chunkPoints, config, rng, walk_timer
                     );
 
                     if (!chunkPoints.empty()) {
@@ -90,8 +93,8 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                 
                 std::vector<Point> singleBatchPoints;
                 WalkAdapter<WalkType>::apply_batch(
-                    Polytope, starting_point, batch_size, walk_len, singleBatchPoints, config, rng, walk_timer
-                );
+                        walk, Polytope, starting_point, batch_size, walk_len, singleBatchPoints, config, rng, walk_timer
+                    );
 
                 if (!singleBatchPoints.empty()) {
                     starting_point = singleBatchPoints.back();
