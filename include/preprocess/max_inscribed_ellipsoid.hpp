@@ -132,7 +132,7 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
             auto op = get_mat_prod_op<NT>(E2);
             auto eigs = get_eigs_solver<NT>(op, n);
             eigs->init();
-            int nconv = eigs->compute();
+            int nconv = eigs->compute(Spectra::SortRule::BothEnds);
             if (eigs->info() == Spectra::CompInfo::Successful) {
                 Rel = 1.0 / eigs->eigenvalues().coeff(1);
                 rel = 1.0 / eigs->eigenvalues().coeff(0);

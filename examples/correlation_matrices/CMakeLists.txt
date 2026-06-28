@@ -81,6 +81,8 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../../external/cmake-files/Spectra.cmake")
+GetSpectra()
 if (BUILTIN_EIGEN)
     include_directories (BEFORE ../../external/_deps/Eigen)
 else ()
@@ -103,7 +105,7 @@ if (USE_MKL)
 endif(USE_MKL)
 
 # Find lpsolve library
-find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+set(LP_SOLVE lp_solve)  # use lp_solve CMake target from GetLPSolve()
 
 if (NOT LP_SOLVE)
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
