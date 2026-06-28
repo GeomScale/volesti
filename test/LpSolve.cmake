@@ -13,7 +13,7 @@ function(GetLPSolve)
 
         if(NOT lpsolve_POPULATED)
             message(STATUS "lp_solve library not found locally, downloading it.")
-            FetchContent_Populate(lpsolve)
+            FetchContent_MakeAvailable(lpsolve)
         endif()
 
         set(LP_SOLVE_DIR "${lpsolve_SOURCE_DIR}/src")

@@ -73,6 +73,8 @@ GetBoost()
 include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
+include("../../external/cmake-files/Spectra.cmake")
+GetSpectra()
 include("../../external/cmake-files/QD.cmake")
 GetQD()
 

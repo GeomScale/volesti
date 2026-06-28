@@ -16,7 +16,10 @@ function(GetSuiteSparse)
 
         if(NOT suitesparse_POPULATED)
             message(STATUS "SuiteSparse library not found locally, downloading it.")
-            FetchContent_Populate(suitesparse)
+            # Only build what volesti needs: SPQR + CHOLMOD + their deps
+            set(SUITESPARSE_ENABLE_PROJECTS "suitesparse_config;amd;colamd;cholmod;spqr" CACHE STRING "" FORCE)
+            set(CHOLMOD_CAMD OFF CACHE BOOL "" FORCE)
+            FetchContent_MakeAvailable(suitesparse)
             
             set(SUITESPARSE_SOURCE_DIR ${suitesparse_SOURCE_DIR})
             set(SUITESPARSE_BUILD_DIR ${suitesparse_BINARY_DIR})
@@ -36,8 +39,8 @@ function(GetSuiteSparse)
                     -DCMAKE_BUILD_TYPE=Release
                     -DBUILD_SHARED_LIBS=OFF
                     -DBUILD_STATIC_LIBS=ON
-                    -DSUITESPARSE_ENABLE_PROJECTS=suitesparse_config\;amd\;colamd\;camd\;ccolamd\;cholmod\;spqr
-                    -DCHOLMOD_CAMD=ON
+                    "-DSUITESPARSE_ENABLE_PROJECTS=suitesparse_config;amd;colamd;cholmod;spqr"
+                    -DCHOLMOD_CAMD=OFF
                     -DCHOLMOD_SUPERNODAL=ON
                     -DSUITESPARSE_USE_OPENMP=OFF
                 WORKING_DIRECTORY ${SUITESPARSE_BUILD_DIR}
@@ -98,33 +101,27 @@ function(GetSuiteSparse)
     find_library(CHOLMOD_LIB NAMES libcholmod.a libcholmod.dylib cholmod PATHS ${SUITESPARSE_DIR}/lib NO_DEFAULT_PATH)
     find_library(AMD_LIB NAMES libamd.a libamd.dylib amd PATHS ${SUITESPARSE_DIR}/lib NO_DEFAULT_PATH)
     find_library(COLAMD_LIB NAMES libcolamd.a libcolamd.dylib colamd PATHS ${SUITESPARSE_DIR}/lib NO_DEFAULT_PATH)
-    find_library(CAMD_LIB NAMES libcamd.a libcamd.dylib camd PATHS ${SUITESPARSE_DIR}/lib NO_DEFAULT_PATH)
-    find_library(CCOLAMD_LIB NAMES libccolamd.a libccolamd.dylib ccolamd PATHS ${SUITESPARSE_DIR}/lib NO_DEFAULT_PATH)
     find_library(SUITESPARSECONFIG_LIB NAMES libsuitesparseconfig.a libsuitesparseconfig.dylib suitesparseconfig PATHS ${SUITESPARSE_DIR}/lib NO_DEFAULT_PATH)
-    
+
     # Verify all libraries were found
-    if(NOT SPQR_LIB OR NOT CHOLMOD_LIB OR NOT AMD_LIB OR NOT COLAMD_LIB OR NOT CAMD_LIB OR NOT CCOLAMD_LIB OR NOT SUITESPARSECONFIG_LIB)
+    if(NOT SPQR_LIB OR NOT CHOLMOD_LIB OR NOT AMD_LIB OR NOT COLAMD_LIB OR NOT SUITESPARSECONFIG_LIB)
         message(FATAL_ERROR "Failed to find one or more SuiteSparse libraries in ${SUITESPARSE_DIR}/lib")
     else()
         message(STATUS "Found SPQR: ${SPQR_LIB}")
         message(STATUS "Found CHOLMOD: ${CHOLMOD_LIB}")
         message(STATUS "Found AMD: ${AMD_LIB}")
         message(STATUS "Found COLAMD: ${COLAMD_LIB}")
-        message(STATUS "Found CAMD: ${CAMD_LIB}")
-        message(STATUS "Found CCOLAMD: ${CCOLAMD_LIB}")
         message(STATUS "Found SuiteSparseConfig: ${SUITESPARSECONFIG_LIB}")
     endif()
 
     # Create an interface library for SuiteSparse
     if(NOT TARGET SuiteSparse::SPQR)
         add_library(SuiteSparse::SPQR INTERFACE IMPORTED GLOBAL)
-        target_link_libraries(SuiteSparse::SPQR INTERFACE 
+        target_link_libraries(SuiteSparse::SPQR INTERFACE
             ${SPQR_LIB}
             ${CHOLMOD_LIB}
             ${AMD_LIB}
             ${COLAMD_LIB}
-            ${CAMD_LIB}
-            ${CCOLAMD_LIB}
             ${SUITESPARSECONFIG_LIB}
         )
         target_include_directories(SuiteSparse::SPQR INTERFACE 
@@ -134,13 +131,11 @@ function(GetSuiteSparse)
     endif()
 
     # Export the library list for direct use
-    set(SUITESPARSE_LIBRARIES 
+    set(SUITESPARSE_LIBRARIES
         ${SPQR_LIB}
         ${CHOLMOD_LIB}
         ${AMD_LIB}
         ${COLAMD_LIB}
-        ${CAMD_LIB}
-        ${CCOLAMD_LIB}
         ${SUITESPARSECONFIG_LIB}
         PARENT_SCOPE
     )
