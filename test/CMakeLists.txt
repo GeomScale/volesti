@@ -68,43 +68,6 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-
-if(DISABLE_NLP_ORACLES)
-  add_definitions(-DDISABLE_NLP_ORACLES)
-else()
-  find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
-  find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
-  find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-  find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
-  find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-  find_library(FFTW3 NAMES libfftw3.so.3 PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-
-  if (NOT IFOPT)
-
-    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
-
-  elseif (NOT GMP)
-
-    message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
-
-  elseif (NOT MPSOLVE)
-
-    message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
-
-  elseif (NOT FFTW3)
-
-    message(FATAL_ERROR "This program requires the fftw3 library, and will not be compiled.")
-
-  else()
-    message(STATUS "Library ifopt found: ${IFOPT}")
-    message(STATUS "Library gmp found: ${GMP}")
-    message(STATUS "Library mpsolve found: ${MPSOLVE}")
-    message(STATUS "Library fftw3 found:" ${FFTW3})
-
-  endif(NOT IFOPT)
-
-endif(DISABLE_NLP_ORACLES)
 
 if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
@@ -427,7 +390,6 @@ set_target_properties(crhmc_sampling_test
                               PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
 
 TARGET_LINK_LIBRARIES(new_volume_example lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(new_volume_example lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_sob_hpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_sob_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cg_hpolytope lp_solve coverage_config)
@@ -435,7 +397,6 @@ TARGET_LINK_LIBRARIES(volume_cg_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_hpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_zonotopes lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(rounding_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mcmc_diagnostics_test lp_solve ${MKL_LINK} coverage_config)
