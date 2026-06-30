@@ -11,10 +11,22 @@
 #ifndef ORDER_POLYTOPE_H
 #define ORDER_POLYTOPE_H
 
+// Prevent Windows max/min macros from conflicting with std::numeric_limits
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+// Ensure M_PI is defined on MSVC
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+#include <cmath>
+
 #include <iostream>
 #include "misc/poset.h"
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
+#include "root_finders/quadratic_polynomial_solvers.hpp"
 #ifndef DISABLE_LPSOLVE
     #include "lp_oracles/solve_lp.h"
 #endif
@@ -554,6 +566,202 @@ public:
         return std::make_pair(min_plus, facet);
     }
     //------------------------------------------------------------------------------//
+
+
+    //--------- oracles for Gaussian HMC (exact) sampling ----------//
+
+    // Boundary oracle for exact HMC with spherical Gaussian target.
+    // Computes the first positive time t at which the trigonometric trajectory
+    //   p(t) = cos(ω·t)·r + sin(ω·t)/ω · v
+    // hits a facet of the order polytope Ax <= b.
+    //
+    // Exploits the sparse structure of the order polytope:
+    //   - Box facets (i < d):       A_i·r = -r_i,        A_i·v = -v_i
+    //   - Box facets (d <= i < 2d): A_i·r = r_{i-d},     A_i·v = v_{i-d}
+    //   - Relation facets (i>=2d):  A_i·r = r_a - r_b,   A_i·v = v_a - v_b
+    // Each product is O(1), so the total cost is O(d + num_relations) instead
+    // of O(d × m) for a generic dense HPolytope.
+    std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
+                                                        NT const& omega, int &facet_prev) const
+    {
+        constexpr NT pi_2 = NT(2.0) * M_PI;
+        NT t = std::numeric_limits<NT>::max();
+
+        unsigned int rows = num_of_hyperplanes();
+        int facet = -1;
+
+        const NT omega_sqr = omega * omega;
+        const NT pi_2_omega = pi_2 / omega;
+
+        VT Ar_coeffs = vec_mult(r.getCoefficients());
+        VT Av_coeffs = vec_mult(v.getCoefficients());
+
+        NT* ar_data = Ar_coeffs.data();
+        NT* av_data = Av_coeffs.data();
+        const NT* b_data = b.data();
+
+        for (unsigned int i = 0; i < rows; ++i)
+        {
+            NT ar_i = *ar_data;
+            NT av_i = *av_data;
+            NT b_i  = *b_data;
+
+            NT C = std::sqrt(ar_i * ar_i + (av_i * av_i) / omega_sqr);
+            NT Phi = std::atan((-av_i) / (ar_i * omega));
+
+            if (av_i < 0.0 && Phi < 0.0) {
+                Phi += M_PI;
+            } else if (av_i > 0.0 && Phi > 0.0) {
+                Phi -= M_PI;
+            }
+
+            if (C > b_i) {
+                NT acos_b = std::acos(b_i / C);
+                NT t1 = (acos_b - Phi) / omega;
+                if (facet_prev == (int)i && std::abs(t1) < 1e-10){
+                    t1 = pi_2_omega;
+                }
+
+                NT t2 = (-acos_b - Phi) / omega;
+                if (facet_prev == (int)i && std::abs(t2) < 1e-10){
+                    t2 = pi_2_omega;
+                }
+
+                t1 += (t1 < NT(0)) ? pi_2_omega : NT(0);
+                t2 += (t2 < NT(0)) ? pi_2_omega : NT(0);
+
+                NT tmin = std::min(t1, t2);
+
+                if (tmin < t && tmin > NT(0)) {
+                    facet = i;
+                    t = tmin;
+                }
+            }
+
+            ar_data++;
+            av_data++;
+            b_data++;
+        }
+        facet_prev = facet;
+        return std::make_pair(t, facet);
+    }
+
+
+    //--------- oracles for Exponential HMC sampling ----------//
+
+    // Helper: given two roots of a quadratic, pick the first positive intersection
+    // time while avoiding the previously-hit facet.
+    NT pick_first_intersection_time_with_boundary(NT const& lamda1, NT const& lamda2,
+                                                   int const& current_facet,
+                                                   int const& previous_facet) const
+    {
+        if (lamda1 == lamda2)
+        {
+            return lamda1;
+        }
+        NT lamda;
+        const double tol = 1e-10;
+        std::pair<NT, NT> minmax_values = std::minmax(lamda1, lamda2);
+
+        lamda = (previous_facet == current_facet)
+            ? minmax_values.second < NT(tol) ? minmax_values.first : minmax_values.second
+            : minmax_values.second;
+
+        if (lamda1 * lamda2 < NT(0))
+        {
+            lamda = (previous_facet == current_facet)
+            ? (minmax_values.second < NT(tol)) ? minmax_values.first : minmax_values.second
+            : minmax_values.second;
+        }
+        else
+        {
+            lamda = (previous_facet == current_facet)
+            ? (minmax_values.first >= NT(0) && minmax_values.first < NT(tol))
+            ? minmax_values.second : minmax_values.first
+            : minmax_values.first;
+        }
+        return lamda;
+    }
+
+
+    // Internal helper for quadratic intersection.
+    // Given pre-computed Ar (= A*r) and the current velocity v,
+    // computes Av = A*v using the sparse structure, then finds the
+    // first positive root of the quadratic boundary equation for each facet.
+    std::pair<NT, int> get_positive_quadratic_root(Point const& r,
+                                                    Point const& v,
+                                                    VT& Ac,
+                                                    NT const& T,
+                                                    VT& Ar,
+                                                    VT& Av,
+                                                    int& facet_prev) const
+    {
+        NT lamda = 0, lamda1 = 0, lamda2 = 0;
+        NT alpha;
+        NT min_plus = std::numeric_limits<NT>::max();
+        VT sum_nom;
+        unsigned int rows = num_of_hyperplanes();
+        int facet = -1;
+
+        sum_nom = Ar - b;
+        Av.noalias() = vec_mult(v.getCoefficients());
+
+        NT* Av_data = Av.data();
+        NT* sum_nom_data = sum_nom.data();
+        NT* Ac_data = Ac.data();
+
+        for (unsigned int i = 0; i < rows; i++)
+        {
+            alpha = -((*Ac_data) / (2.0 * T));
+            if (solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2))
+            {
+                lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
+                if (lamda < min_plus && lamda > 0)
+                {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+            Av_data++;
+            sum_nom_data++;
+            Ac_data++;
+        }
+        facet_prev = facet;
+        return std::make_pair(min_plus, facet);
+    }
+
+
+    // Quadratic boundary oracle (initial call, no previous lambda).
+    // Used by the ExponentialHamiltonianMonteCarloExactWalk.
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ac,
+                                                     NT const& T,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     int& facet_prev) const
+    {
+        Ar.noalias() = vec_mult(r.getCoefficients());
+        return get_positive_quadratic_root(r, v, Ac, T, Ar, Av, facet_prev);
+    }
+
+
+    // Quadratic boundary oracle (subsequent call with previous lambda).
+    // Used by the ExponentialHamiltonianMonteCarloExactWalk after a reflection.
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ac,
+                                                     NT const& T,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     NT const& lambda_prev,
+                                                     int& facet_prev) const
+    {
+        Ar.noalias() += ((lambda_prev * lambda_prev) / (-2.0*T)) * Ac + lambda_prev * Av;
+        return get_positive_quadratic_root(r, v, Ac, T, Ar, Av, facet_prev);
+    }
+    //--------------------------------------------------------------//
+
 
 
     // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
