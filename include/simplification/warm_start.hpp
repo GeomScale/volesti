@@ -154,9 +154,9 @@ namespace simplification {
             return result;
         }
         
-        bool simplified = true;
-        while (simplified) {
-            simplified = false;
+        bool simplified = false;
+        while (!simplified) {
+            simplified = true;
             for (unsigned k = 0; k < d; ++k) {
                 double bl = highs.getLp().col_lower_[k];
                 double bu = highs.getLp().col_upper_[k];
@@ -205,7 +205,7 @@ namespace simplification {
                 if (config.fix_dimensions && tight) {
                     NT mid = (max_val+min_val)/NT(2);
                     fix_dimension(highs, k, mid);
-                    simplified = true;
+                    simplified = false;
                     continue;
                 }
 
@@ -213,11 +213,11 @@ namespace simplification {
                 if (upper_redundant && !std::isinf(bu)) {
                     highs.changeColBounds(k, bl, kHighsInf);
                     bu = highs.getLp().col_upper_[k];
-                    simplified = true;
+                    simplified = false;
                 } 
                 if (lower_redundant && !std::isinf(bl)) {
                     highs.changeColBounds(k, -kHighsInf, bu);
-                    simplified = true;
+                    simplified = false;
                 }
             }
 

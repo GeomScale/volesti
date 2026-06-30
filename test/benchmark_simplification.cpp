@@ -50,9 +50,10 @@ void benchmark(std::string const& model, bool dimension_fixing) {
 }
 
 int main() {
-    for (auto const& model : std::filesystem::directory_iterator(BIGG_DIR)) {
-        benchmark(model.path().string(), false); // without dimension fixing
-        benchmark(model.path().string(), true);  // with dimension fixing
+    for (auto const& file : std::filesystem::directory_iterator(BIGG_DIR)) {
+        if (file.path().extension() != ".json") continue;
+        benchmark(file.path().string(), false); // without dimension fixing
+        benchmark(file.path().string(), true);  // with dimension fixing
     }
 
     return 0;
