@@ -388,7 +388,7 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
 
         Ar.noalias() = A * r.getCoefficients();
         sum_nom = b - Ar;
@@ -432,7 +432,7 @@ public:
         NT mult;
         //unsigned int i, j;
         unsigned int j;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
 
         Ar.noalias() += lambda_prev*Av;
         sum_nom = b - Ar;
@@ -546,7 +546,7 @@ public:
         NT lamda = 0;
         NT inner_prev = params.inner_vi_ak;
         VT sum_nom;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
         int skip = params.facet_prev;
 
         Ar.noalias() += lambda_prev*Av;
@@ -649,7 +649,7 @@ public:
 
         NT lamda = 0;
         VT sum_nom;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
         int skip = params.facet_prev;
 
         Ar.noalias() += lambda_prev*Av;
