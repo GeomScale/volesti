@@ -1,0 +1,28 @@
+# Codecov configuration for volesti
+# https://docs.codecov.com/docs/codecovyml-reference
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+
+# Fix path mapping for CI runner
+fixes:
+  - "/home/runner/work/volesti/volesti/::"
+
+ignore:
+  - "external/"
+  - "test/"
+  - "_deps/"
+  - "examples/"
+  - "R-proj/"
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false

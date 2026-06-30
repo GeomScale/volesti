@@ -24,6 +24,13 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache external dependencies (Eigen, Spectra, SuiteSparse)
+        uses: actions/cache@v4
+        with:
+          path: external/_deps
+          key: deps-${{ runner.os }}-${{ matrix.config.compiler }}-${{ hashFiles('external/cmake-files/*.cmake') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ matrix.config.compiler }}-
       - run: sudo apt-get update || true;
              sudo apt-get install ${{ matrix.config.compiler }} lp-solve libopenblas-dev liblapack-dev;
              rm -rf build;
@@ -32,3 +39,53 @@ jobs:
              cmake -D CMAKE_CXX_COMPILER=${{ matrix.config.compiler }} -D DISABLE_NLP_ORACLES=ON -D USE_MKL=OFF ../test;
              make -j$(nproc);
              ctest -j$(nproc) --verbose;
+
+  coverage:
+    name: Coverage (gcc)
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache external dependencies (Eigen, Spectra, SuiteSparse)
+        uses: actions/cache@v4
+        with:
+          path: external/_deps
+          key: deps-${{ runner.os }}-${{ matrix.config.compiler }}-${{ hashFiles('external/cmake-files/*.cmake') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ matrix.config.compiler }}-
+      - name: Build and test with coverage
+        run: |
+          sudo apt-get update || true
+          sudo apt-get install -y g++-12 gcc-12 lp-solve libopenblas-dev liblapack-dev
+          sudo apt-get install -y gcovr 2>/dev/null || pip install gcovr 2>/dev/null || pip install --break-system-packages gcovr 2>/dev/null || true
+          rm -rf build
+          mkdir build
+          cd build
+          cmake -D CMAKE_CXX_COMPILER=g++-12 -D DISABLE_NLP_ORACLES=ON -D USE_MKL=OFF -D CODE_COVERAGE=ON ../test
+          make -j$(nproc)
+          ctest -j$(nproc) --verbose -E "crhmc_polytope_test_preparation|crhmc_test_polytope_sampling" --timeout 300 || true
+      - name: Generate coverage report
+        if: success() || failure()
+        run: |
+          cd build
+          echo "=== gcda files found ==="
+          find . -name '*.gcda' | wc -l
+          echo "=== Running gcov ==="
+          for gcda in $(find . -name '*.gcda'); do
+            gcov-12 -o $(dirname $gcda) ${gcda%.gcda}.gcno 2>&1 | grep -E "File|Lines" | head -2
+          done || true
+          echo "=== Generating XML ==="
+          gcovr --gcov-executable gcov-12 --root .. --exclude '.*external.*' --exclude '.*test.*' --exclude '.*_deps.*' --xml -o coverage.xml 2>&1
+          echo "Exit: $?"
+          ls -la coverage.xml 2>&1 || true
+          head -5 coverage.xml 2>&1 || true
+      - name: Upload coverage to Codecov
+        if: success() || failure()
+        uses: codecov/codecov-action@v5
+        with:
+          files: build/coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+          disable_search: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
