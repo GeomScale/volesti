@@ -56,7 +56,7 @@ public:
 
     int is_in(Point const& p) const
     {
-        if (p.squared_length() <= R)
+        if ((p-c).squared_length() <= R)
             return -1;
         else return 0;
     }

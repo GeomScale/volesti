@@ -225,8 +225,47 @@ void call_test_vaidya_center() {
     CHECK((Hessian - Hessian_sp).norm() < 1e-12);
 }
 
+template <typename NT>
+void call_test_ball_is_in() {
+    typedef Cartesian<NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef Ball<Point> BallType;
+
+    std::cout << "\n--- Testing Ball::is_in with non-origin center" << std::endl;
+
+    // Ball centered at (3, 4) with radius 5 (R = 25 because we store R²)
+    Point center(2);  // 2D point
+    center.set_coord(0, 3.0);  // x = 3
+    center.set_coord(1, 4.0);  // y = 4
+    BallType B(center, NT(25));  // radius² = 25, so radius = 5
+
+    // Point at center → must be inside
+    Point p_inside(2);
+    p_inside.set_coord(0, 3.0);
+    p_inside.set_coord(1, 4.0);
+    CHECK(B.is_in(p_inside) == -1);  // -1 means inside
+
+    // Origin (0,0) → distance from center = sqrt(9+16) = 5 → on boundary
+    // Slightly outside: (0, 0) with radius 4.9
+    Point p_outside(2);
+    p_outside.set_coord(0, 0.0);
+    p_outside.set_coord(1, 0.0);
+    // Distance from (3,4) to (0,0) = 5, which equals radius
+    // So this point is ON the boundary → is_in returns -1 (<=)
+    // Let's use a point clearly outside: (10, 10)
+    Point p_far(2);
+    p_far.set_coord(0, 10.0);
+    p_far.set_coord(1, 10.0);
+    CHECK(B.is_in(p_far) == 0);  // 0 means outside
+}
+
+
 TEST_CASE("test_max_ball") {
     call_test_max_ball<double>();
+}
+
+TEST_CASE("ball_is_in_non_origin_center") {
+    call_test_ball_is_in<double>();
 }
 
 TEST_CASE("test_feasibility_point") {
