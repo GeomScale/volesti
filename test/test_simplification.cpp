@@ -22,10 +22,11 @@ typedef MetabolicPolytope<Point> Polytope;
 typedef typename Polytope::MT MT;
 typedef typename Polytope::VT VT;
 
-void test_cube_no_change(unsigned d) {
+void test_cube_no_change(unsigned d) 
+{
     Polytope P1 = Polytope::cube(d);
     simplification::Config config;
-    auto result = simplification::warm_start::simplify(P1, config);
+    auto result = simplification::simplify(P1, config);
     Polytope P2 = result.P;
 
     CHECK(result.bounds_relaxed == 0);
@@ -36,7 +37,8 @@ void test_cube_no_change(unsigned d) {
     CHECK(P2.getEqualityBounds() == P1.getEqualityBounds());
 }
 
-void test_cube_relaxed_bounds(unsigned d) {
+void test_cube_relaxed_bounds(unsigned d) 
+{
     unsigned m = 2*d;
     VT b_l(m);
     VT b_u(m);
@@ -62,7 +64,7 @@ void test_cube_relaxed_bounds(unsigned d) {
     }
 
     Polytope P1 = Polytope(m, A_eq, b_l, b_u, b_eq);
-    auto result = simplification::warm_start::simplify(P1);
+    auto result = simplification::simplify(P1);
     Polytope P2 = result.P;
 
     CHECK(result.bounds_relaxed == 2*d);
@@ -71,10 +73,11 @@ void test_cube_relaxed_bounds(unsigned d) {
     CHECK(P2.getEqualityBounds() == P1.getEqualityBounds());
 }
 
-void test_simplex_relaxed_bounds(unsigned d) {
+void test_simplex_relaxed_bounds(unsigned d) 
+{
     Polytope P1 = Polytope::simplex(d);
     simplification::Config config;
-    auto result = simplification::warm_start::simplify(P1, config);
+    auto result = simplification::simplify(P1, config);
     Polytope P2 = result.P;
 
     // All upper bounds are redundant and relaxed
@@ -92,7 +95,8 @@ void test_simplex_relaxed_bounds(unsigned d) {
     CHECK(P1.getEqualityBounds() == P2.getEqualityBounds());
 }
 
-void test_cube_degenerate_dimensions(unsigned d) {
+void test_cube_degenerate_dimensions(unsigned d) 
+{
     unsigned m = 2*d;
     VT b_l(m);
     VT b_u(m);
@@ -112,7 +116,7 @@ void test_cube_degenerate_dimensions(unsigned d) {
     Polytope P1 = Polytope(m, A_eq, b_l, b_u, b_eq);
     simplification::Config config;
     config.fix_dimensions = true;
-    auto result = simplification::warm_start::simplify(P1, config);
+    auto result = simplification::simplify(P1, config);
     Polytope P2 = result.P;
 
     CHECK(result.bounds_relaxed == 2*d);

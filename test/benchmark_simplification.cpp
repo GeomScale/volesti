@@ -27,13 +27,13 @@ typedef typename Polytope::MT MT;
 typedef typename Polytope::VT VT;
 
 void benchmark(std::string const& model, bool dimension_fixing) {
-    Polytope P = bigg::parse_from_json<Point>(model);
+    Polytope P = parse_from_json<Point>(model);
 
     simplification::Config config;
     config.fix_dimensions = dimension_fixing;
 
     auto start = std::chrono::high_resolution_clock::now();
-    auto result = simplification::warm_start::simplify(P, config);
+    auto result = simplification::simplify(P, config);
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed = std::chrono::duration<double>(end-start).count();
 

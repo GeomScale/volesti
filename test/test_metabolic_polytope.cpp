@@ -23,7 +23,8 @@ typedef typename Polytope::VT VT;
 
 static const std::string ECOLI_JSON = std::string(BIGG_DIR)+"/e_coli_core.json";
 
-void test_construction(unsigned d) {
+void test_construction(unsigned d) 
+{
     VT b_u = VT::Ones(d);
     VT b_l = -VT::Ones(d);
     MT A_eq(0, d);
@@ -40,7 +41,8 @@ void test_construction(unsigned d) {
     CHECK(P.getNumFiniteBounds() == 2*d);
 }
 
-void test_copy(unsigned d) {
+void test_copy(unsigned d) 
+{
     Polytope P1 = Polytope::cube(d);
     Polytope P2(P1);
 
@@ -51,8 +53,9 @@ void test_copy(unsigned d) {
     CHECK(P1.getUpperBounds() == P2.getUpperBounds());
 }
 
-void test_ecoli_construction() {
-    Polytope P = bigg::parse_from_json<Point>(ECOLI_JSON);
+void test_ecoli_construction() 
+{
+    Polytope P = parse_from_json<Point>(ECOLI_JSON);
 
     CHECK(P.getDimension() == 95);
     CHECK(P.getEqualities().rows() == 72);

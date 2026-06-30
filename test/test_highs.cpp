@@ -12,7 +12,8 @@
 #include "Highs.h"
 #include <vector>
 
-void call_test_small_lp() {
+void call_test_small_lp()
+{
     // Small LP: max x+y s.t. x+y <= 2, x,y>= 0
     // Optimal: x=1, y=1, obj=2
     Highs highs;
@@ -35,7 +36,8 @@ void call_test_small_lp() {
     CHECK(std::abs(highs.getObjectiveValue()-2.0) < 1e-10);
 }
 
-void call_test_infeasible_lp() {
+void call_test_infeasible_lp() 
+{
     // LP: min 0 s.t. x >= 1 x <= -1
     // Infeasible LP
     Highs highs;
@@ -53,7 +55,8 @@ void call_test_infeasible_lp() {
     CHECK(highs.getModelStatus() == HighsModelStatus::kInfeasible);
 }
 
-void call_test_unbounded_lp() {
+void call_test_unbounded_lp() 
+{
     // LP: min -x s.t. x >= 0
     // Unbounded LP
     Highs highs;
@@ -67,7 +70,8 @@ void call_test_unbounded_lp() {
     CHECK(highs.getModelStatus() == HighsModelStatus::kUnbounded);
 }
 
-void call_test_max_inner_ball_lp(unsigned d) {
+void call_test_max_inner_ball_lp(unsigned d) 
+{
     // LP: max r s.t. a^Tx+r||ai|| <= bi
     // For the hypercube the constraints are (+/-)x+r<=1
     // Optimal: r=1 x=(0,0,...,0)

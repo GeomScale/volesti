@@ -19,13 +19,14 @@
 #include <limits>
 
 namespace simplification {
-namespace warm_start {
     // Builds the LP that describes the feasible region of the Polytope.
     // @tparam Point the point type of the polytope
     // @param P the MetabolicPolytope
     // @param highs the highs model
     template <typename Point>
-    void build_lp(MetabolicPolytope<Point> const& P, Highs & highs) {
+    void build_lp_model(MetabolicPolytope<Point> const& P, 
+                        Highs& highs) 
+    {
         typedef typename MetabolicPolytope<Point>::MT MT;
         typedef typename MetabolicPolytope<Point>::VT VT;
 
@@ -55,13 +56,12 @@ namespace warm_start {
     // Builds the output MetabolicPolytope after simplification by reading the
     // column bounds and equality rows directly from the HiGHS model.
     // @tparam Point the point type of the polytope
-    // @param P the original MetabolicPolytope
     // @param highs the HiGHS model after simplification
     // @return the simplified MetabolicPolytope
     template <typename Point>
-    MetabolicPolytope<Point> build_simplified_polytope( MetabolicPolytope<Point> const& P,
-                                                        Highs const& highs
-                                                    ) {
+    void build_simplified_polytope(Highs const& highs, 
+                                   MetabolicPolytope<Point> & P) 
+    {
         typedef typename MetabolicPolytope<Point>::MT MT;
         typedef typename MetabolicPolytope<Point>::VT VT;
         typedef typename MetabolicPolytope<Point>::NT NT;
@@ -69,10 +69,10 @@ namespace warm_start {
 
         const NT INF = std::numeric_limits<NT>::infinity();
 
-        unsigned d = P.getDimension();
-
         HighsLp lp = highs.getLp();
         
+        unsigned d = (unsigned)highs.getNumCol();
+
         // Grabs the lower/upper bounds of the reaction variables
         
         VT b_l_new(d), b_u_new(d);
@@ -103,7 +103,7 @@ namespace warm_start {
         A_eq_new.setFromTriplets(triplets.begin(), triplets.end());
         A_eq_new.makeCompressed();
 
-        return MetabolicPolytope<Point>(
+        P =  MetabolicPolytope<Point>(
             d,
             A_eq_new,
             b_l_new,
@@ -125,8 +125,8 @@ namespace warm_start {
     // @return the simplified MetabolicPolytope
     template <typename Point>
     Result<Point> simplify(MetabolicPolytope<Point> const& P, 
-                                Config const& config = Config{}
-                            ) {               
+                           Config const& config = Config{}) 
+    {               
         typedef typename MetabolicPolytope<Point>::NT NT;
 
         auto is_free = [](double bl, double bu){return std::isinf(bu) && std::isinf(bl);};
@@ -143,7 +143,7 @@ namespace warm_start {
         highs.setOptionValue("output_flag", false);
         highs.setOptionValue("solver", "simplex");
         highs.setOptionValue("simplex_strategy", 4);
-        build_lp(P, highs);
+        build_lp_model(P, highs);
 
         // Verifies the LP is not empty
         highs.run();
@@ -225,7 +225,8 @@ namespace warm_start {
 
 
         Result<Point> result;
-        MetabolicPolytope Pnew = build_simplified_polytope(P, highs);
+        MetabolicPolytope<Point> Pnew;
+        build_simplified_polytope(highs, Pnew);
         result.dims_fixed = Pnew.getNumEqualities()-P.getNumEqualities();
         result.bounds_relaxed = P.getNumFiniteBounds()-Pnew.getNumFiniteBounds();
         result.P = Pnew;
@@ -233,5 +234,4 @@ namespace warm_start {
         return result;
     }
 }
-}  
 #endif
