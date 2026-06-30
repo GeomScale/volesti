@@ -78,13 +78,12 @@ public:
     }
 
     template <typename T>
-    void copy_array(T* source, T* result, size_t count)
-    {
-        T* tarray;
-        tarray = new T[count];
+    T*  copy_array(T* source , T* result , size_t count)
+   {
+        T* tarray = new T[count];
         std::copy_n(source, count, tarray);
         delete [] result;
-        result = tarray;
+        return tarray;                 //Returning New pointer instead of  assigning it locally
     }
 
     VPolytope& operator=(const VPolytope& other)
@@ -93,16 +92,16 @@ public:
             _d = other._d;
             V = other.V;
             b = other.b;
-
-            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
-            copy_array(other.conv_comb2, conv_comb2, V.rows() + 1);
-            copy_array(other.conv_mem, conv_mem, V.rows());
-            copy_array(other.row, row, V.rows() + 1);
-            copy_array(other.colno, colno, V.rows() + 1);
-            copy_array(other.colno_mem, colno_mem, V.rows());
-        }
-        return *this;
+conv_comb  = copy_array(other.conv_comb,  conv_comb,  V.rows() + 1);
+conv_comb2 = copy_array(other.conv_comb2, conv_comb2, V.rows() + 1);
+conv_mem   = copy_array(other.conv_mem,   conv_mem,   V.rows());
+row        = copy_array(other.row,        row,        V.rows() + 1);
+colno      = copy_array(other.colno,      colno,      V.rows() + 1);
+colno_mem  = copy_array(other.colno_mem,  colno_mem,  V.rows());
+                          }
+       return *this;
     }
+
 
     VPolytope& operator=(VPolytope&& other)
     {
