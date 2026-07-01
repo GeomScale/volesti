@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cmath>
 #include <utility>
+#include <vector>
+#include <algorithm>
 #include <Eigen/Eigen>
 
 /// This class represents the intersection of a simplex with the unit ball.
@@ -131,9 +133,8 @@ public:
 
         // Check ball condition
         VT diff = p_vec - x0;
-        if (diff.squaredNorm() > NT(1) + tol) {
-            return 0;
-        }
+        NT radius_tol = NT(1) + tol;
+        if (diff.squaredNorm() > radius_tol * radius_tol) return 0;
 
         // Check simplex inequalities A p <= b
         VT temp = b - A * p_vec;
@@ -159,7 +160,8 @@ public:
 
         // Ball membership check.
         VT diff = p_vec - x0;
-        if (diff.squaredNorm() > NT(1) + tol) return 0;
+        NT radius_tol = NT(1) + tol;
+        if (diff.squaredNorm() > radius_tol * radius_tol) return 0;
 
         // Update cached A*x along the great-circle rotation:
         // x(lambda) = cos(lambda) * r + sin(lambda) * v.
