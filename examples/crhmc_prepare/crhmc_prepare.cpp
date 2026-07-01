@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
   {
     std::cout << "Usage: ./crhmc_prepare [file_name_string]\n";
     std::cout << "Example file name= "
-                 "../../test/metabolic_full_dim/polytope_e_coli.ine\n";
+                 "../data/metabolic_full_dim/polytope_e_coli.ine\n";
     exit(1);
   }
   std::string fileName(argv[1]);

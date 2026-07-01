@@ -68,44 +68,6 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-
-if(DISABLE_NLP_ORACLES)
-  add_definitions(-DDISABLE_NLP_ORACLES)
-else()
-  find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
-  find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
-  find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-  find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
-  find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-  find_library(FFTW3 NAMES libfftw3.so.3 PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-
-  if (NOT IFOPT)
-
-    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
-
-  elseif (NOT GMP)
-
-    message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
-
-  elseif (NOT MPSOLVE)
-
-    message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
-
-  elseif (NOT FFTW3)
-
-    message(FATAL_ERROR "This program requires the fftw3 library, and will not be compiled.")
-
-  else()
-    message(STATUS "Library ifopt found: ${IFOPT}")
-    message(STATUS "Library gmp found: ${GMP}")
-    message(STATUS "Library mpsolve found: ${MPSOLVE}")
-    message(STATUS "Library fftw3 found:" ${FFTW3})
-
-  endif(NOT IFOPT)
-
-endif(DISABLE_NLP_ORACLES)
-
 if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -136,11 +98,10 @@ add_library(coverage_config INTERFACE)
 
 option(CODE_COVERAGE "Enable coverage reporting" OFF)
 if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  # Add required flags (GCC & LLVM/Clang)
   target_compile_options(coverage_config INTERFACE
-    -O1        # O0 (or no) optimization takes too much time and causes CircleCI test failure.
-    -g         # generate debug info
-    --coverage # sets all required flags
+    -O1
+    -g
+    --coverage
   )
   if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
     target_link_options(coverage_config INTERFACE --coverage)
@@ -171,6 +132,7 @@ else()
 endif(USE_MKL)
 
 include_directories (BEFORE ../external)
+include_directories (BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories (BEFORE ../include)
 include_directories (BEFORE ../include/matrix_operations)
 
@@ -181,357 +143,33 @@ else ()
   add_compile_definitions("EIGEN_NO_DEBUG")
 endif ()
 
-add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
-#add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
-#add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
-
-add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
-set(CMAKE_CXX_STANDARD 17)  #enable the c++17 support needed by autodiff
-#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
+add_definitions(${CMAKE_CXX_FLAGS} "-g")
+add_definitions(${CMAKE_CXX_FLAGS} "-O3")
+set(CMAKE_CXX_STANDARD 17)
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 add_definitions(${CMAKE_CXX_FLAGS} "-DMKL_ILP64")
-#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
-#add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
+# Shared test_main object library
 add_library(test_main OBJECT test_main.cpp)
 
-add_executable (convex_body_test convex_body_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME convex_body_test_basic COMMAND convex_body_test -tc=convex_body)
-TARGET_LINK_LIBRARIES(convex_body_test coverage_config)
-
-add_executable (new_volume_example new_volume_example.cpp)
-add_executable (benchmarks_sob benchmarks_sob.cpp)
-add_executable (benchmarks_cg benchmarks_cg.cpp)
-add_executable (benchmarks_cb benchmarks_cb.cpp)
-
-add_executable (generators_test generators_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_known_polytope_generators COMMAND generators_test -tc=known_polytope_generators)
-TARGET_LINK_LIBRARIES(generators_test lp_solve ${MKL_LINK} coverage_config)
-
-add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_psrf COMMAND mcmc_diagnostics_test -tc=psrf)
-add_test(NAME test_univariate_psrf COMMAND mcmc_diagnostics_test -tc=univariate_psrf)
-add_test(NAME test_interval_psrf COMMAND mcmc_diagnostics_test -tc=interval_psrf)
-add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
-add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
-add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
-add_executable (poset_misc_test poset_misc_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_poset_default_ctor COMMAND poset_misc_test -tc="Poset default constructor")
-add_test(NAME test_poset_verify_valid COMMAND poset_misc_test -tc="Poset verify valid")
-add_test(NAME test_poset_verify_empty COMMAND poset_misc_test -tc="Poset verify empty relations")
-add_test(NAME test_poset_verify_single COMMAND poset_misc_test -tc="Poset verify single element")
-add_test(NAME test_poset_verify_oob COMMAND poset_misc_test -tc="Poset verify out of range element")
-add_test(NAME test_poset_verify_oob2 COMMAND poset_misc_test -tc="Poset verify out of range negative-like")
-add_test(NAME test_poset_verify_cycle COMMAND poset_misc_test -tc="Poset verify cycle")
-add_test(NAME test_poset_verify_selfloop COMMAND poset_misc_test -tc="Poset verify self-loop")
-add_test(NAME test_poset_valid_ctor COMMAND poset_misc_test -tc="Poset valid constructor")
-add_test(NAME test_poset_invalid_ctor COMMAND poset_misc_test -tc="Poset invalid constructor throws")
-add_test(NAME test_poset_get_rel COMMAND poset_misc_test -tc="Poset get_relation")
-add_test(NAME test_poset_num_elem COMMAND poset_misc_test -tc="Poset num_elem and num_relations")
-add_test(NAME test_poset_is_in_double COMMAND poset_misc_test -tc="Poset is_in with double")
-add_test(NAME test_poset_is_in_tol COMMAND poset_misc_test -tc="Poset is_in with tolerance")
-add_test(NAME test_poset_is_in_empty COMMAND poset_misc_test -tc="Poset is_in empty poset always true")
-add_test(NAME test_poset_topo COMMAND poset_misc_test -tc="Poset topologically_sorted_list")
-add_test(NAME test_poset_topo_single COMMAND poset_misc_test -tc="Poset topologically_sorted_list single element")
-add_test(NAME test_read_obj COMMAND poset_misc_test -tc="read_objective basic")
-add_test(NAME test_read_obj_empty COMMAND poset_misc_test -tc="read_objective empty stream")
-add_test(NAME test_read_ps_basic COMMAND poset_misc_test -tc="read_pointset basic numeric")
-add_test(NAME test_read_ps_frac COMMAND poset_misc_test -tc="read_pointset with fractions")
-add_test(NAME test_read_ps_neg COMMAND poset_misc_test -tc="read_pointset with negatives")
-add_test(NAME test_read_ps_skip COMMAND poset_misc_test -tc="read_pointset skip comment lines")
-add_test(NAME test_read_ps_empty COMMAND poset_misc_test -tc="read_pointset empty")
-add_test(NAME test_read_poset_file COMMAND poset_misc_test -tc="read_poset_from_file basic")
-add_test(NAME test_read_poset_empty COMMAND poset_misc_test -tc="read_poset_from_file empty relations")
-add_test(NAME test_read_poset_adj COMMAND poset_misc_test -tc="read_poset_from_file_adj_matrix valid")
-add_test(NAME test_read_poset_adj_inv COMMAND poset_misc_test -tc="read_poset_from_file_adj_matrix invalid size")
-add_test(NAME test_read_poset_adj_empty COMMAND poset_misc_test -tc="read_poset_from_file_adj_matrix empty")
-add_test(NAME test_read_ib COMMAND poset_misc_test -tc="read_inner_ball basic")
-add_test(NAME test_poset_is_in_int COMMAND poset_misc_test -tc="Poset is_in with int")
-add_test(NAME test_poset_copy COMMAND poset_misc_test -tc="Poset copy constructor")
-add_test(NAME test_poset_assign COMMAND poset_misc_test -tc="Poset assignment")
-
-	add_executable (small_utils_test small_utils_test.cpp $<TARGET_OBJECTS:test_main>)
-	add_test(NAME test_known_gens COMMAND small_utils_test -tc="known_polytope_generators")
-	add_test(NAME test_convex_body_utils COMMAND small_utils_test -tc="convex_body")
-	add_test(NAME test_poset_additional COMMAND small_utils_test -tc="Poset transitive chain")
-
-add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
-add_test(NAME test_john COMMAND sampling_test -tc=john)
-add_test(NAME test_vaidya COMMAND sampling_test -tc=vaidya)
-add_test(NAME test_brdhr COMMAND sampling_test -tc=brdhr)
-add_test(NAME test_bcdhr COMMAND sampling_test -tc=bcdhr)
-add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
-add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
-add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
-add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
-add_test(NAME test_sparse COMMAND sampling_test -tc=sparse)
-
-add_executable (shake_and_bake_test shake_and_bake_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_shake_and_bake COMMAND shake_and_bake_test -tc=shake_and_bake)
-
-add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
-
-add_executable (billiard_shake_and_bake_test billiard_shake_and_bake_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_billiard_shake_and_bake COMMAND billiard_shake_and_bake_test -tc=billiard_shake_and_bake)
-
-add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME ode_solvers_test_first_order
-        COMMAND ode_solvers_test -tc=first_order)
-add_test(NAME ode_solvers_test_second_order
-        COMMAND ode_solvers_test -tc=second_order)
-
-add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME root_finders_test_root_finders
-        COMMAND root_finders_test -tc=root_finders)
-
-#add_executable (benchmarks_crhmc benchmarks_crhmc.cpp )
-#add_executable (benchmarks_crhmc_sampling benchmarks_crhmc_sampling.cpp )
-
-add_executable (crhmc_polytope_preparation_test crhmc_polytope_preparation_test.cpp  $<TARGET_OBJECTS:test_main>)
-add_test(NAME crhmc_polytope_test_preparation
-        COMMAND crhmc_polytope_preparation_test -tc=test_preparation_crhmc)
-add_test(NAME crhmc_test_fixed_vars
-        COMMAND crhmc_polytope_preparation_test -tc=test_fixed_vars_crhmc)
-add_test(NAME crhmc_test_dep_vars
-        COMMAND crhmc_polytope_preparation_test -tc=test_dep_vars_crhmc)
-add_test(NAME crhmc_test_center_computation
-        COMMAND crhmc_polytope_preparation_test -tc=test_center_computation)
-
-
-add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME boundary_oracles_test_h_poly_oracles
-  COMMAND boundary_oracles_test -tc=h_poly_oracles)
-
-add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
-add_test(NAME volume_sob_hpolytope_cross COMMAND volume_sob_hpolytope -tc=cross)
-add_test(NAME volume_sob_hpolytope_birkhoff COMMAND volume_sob_hpolytope -tc=birk)
-add_test(NAME volume_sob_hpolytope_prod_simplex COMMAND volume_sob_hpolytope -tc=prod_simplex)
-add_test(NAME volume_sob_hpolytope_simplex COMMAND volume_sob_hpolytope -tc=simplex)
-add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=skinny_cube)
-add_test(NAME volume_sob_hpolytope_cube_overflow COMMAND volume_sob_hpolytope -tc=cube_overflow)
-set_property(TEST volume_sob_hpolytope_cube_overflow PROPERTY TIMEOUT 1)
-
-add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
-add_test(NAME volume_sob_vpolytope_cross COMMAND volume_sob_vpolytope -tc=cross)
-add_test(NAME volume_sob_vpolytope_simplex COMMAND volume_sob_vpolytope -tc=simplex)
-
-add_executable (volume_cg_hpolytope volume_cg_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_cg_hpolytope_cube COMMAND volume_cg_hpolytope -tc=cube)
-add_test(NAME volume_cg_hpolytope_cross COMMAND volume_cg_hpolytope -tc=cross)
-add_test(NAME volume_cg_hpolytope_birkhoff COMMAND volume_cg_hpolytope -tc=birk)
-add_test(NAME volume_cg_hpolytope_prod_simplex COMMAND volume_cg_hpolytope -tc=prod_simplex)
-add_test(NAME volume_cg_hpolytope_simplex COMMAND volume_cg_hpolytope -tc=simplex)
-add_test(NAME volume_cg_hpolytope_skinny_cube COMMAND volume_cg_hpolytope -tc=skinny_cube)
-add_test(NAME volume_cg_hpolytope_sparse_simplex COMMAND volume_cg_hpolytope -tc=sparse_simplex)
-
-add_executable (volume_cg_vpolytope volume_cg_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_cg_vpolytope_cube COMMAND volume_cg_vpolytope -tc=cube)
-add_test(NAME volume_cg_vpolytope_cross COMMAND volume_cg_vpolytope -tc=cross)
-add_test(NAME volume_cg_vpolytope_simplex COMMAND volume_cg_vpolytope -tc=simplex)
-
-add_executable (volume_cb_hpolytope volume_cb_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_cb_hpolytope_cube COMMAND volume_cb_hpolytope -tc=cube)
-add_test(NAME volume_cb_hpolytope_cross COMMAND volume_cb_hpolytope -tc=cross)
-add_test(NAME volume_cb_hpolytope_birkhoff COMMAND volume_cb_hpolytope -tc=birk)
-add_test(NAME volume_cb_hpolytope_prod_simplex COMMAND volume_cb_hpolytope -tc=prod_simplex)
-add_test(NAME volume_cb_hpolytope_simplex COMMAND volume_cb_hpolytope -tc=simplex)
-add_test(NAME volume_cb_hpolytope_skinny_cube COMMAND volume_cb_hpolytope -tc=skinny_cube)
-
-add_executable (volume_cb_vpolytope volume_cb_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_cb_vpolytope_cube COMMAND volume_cb_vpolytope -tc=cube)
-add_test(NAME volume_cb_vpolytope_cross COMMAND volume_cb_vpolytope -tc=cross)
-add_test(NAME volume_cb_vpolytope_simplex COMMAND volume_cb_vpolytope -tc=simplex)
-
-add_executable (volume_cb_zonotopes volume_cb_zonotopes.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_cb_zonotopes_uniform_zonotopes
-          COMMAND volume_cb_zonotopes -tc=uniform_zonotopes)
-
-add_executable (zonotope_gen_test zonotope_gen_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME zonotope_gen_test COMMAND zonotope_gen_test -tc=zonotope_generators)
-
-add_executable (volume_cb_vpoly_intersection_vpoly volume_cb_vpoly_intersection_vpoly.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME volume_cb_vpoly_intersection_vpoly_random_vpoly_sphere
-          COMMAND volume_cb_vpoly_intersection_vpoly -tc=random_vpoly_sphere)
-
-add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_round_min_ellipsoid
-          COMMAND rounding_test -tc=round_min_ellipsoid)
-add_test(NAME test_round_max_ellipsoid
-          COMMAND rounding_test -tc=round_max_ellipsoid)
-add_test(NAME test_round_svd
-          COMMAND rounding_test -tc=round_svd)
-add_test(NAME test_round_log_barrier_test
-          COMMAND rounding_test -tc=round_log_barrier_test)
-add_test(NAME round_max_ellipsoid_sparse
-          COMMAND rounding_test -tc=round_max_ellipsoid_sparse)
-add_test(NAME round_volumetric_barrier_test
-          COMMAND rounding_test -tc=round_volumetric_barrier_test)
-add_test(NAME round_vaidya_barrier_test
-          COMMAND rounding_test -tc=round_vaidya_barrier_test)
-add_test(NAME round_sparse_test
-          COMMAND rounding_test -tc=round_sparse)
-
-
-
-add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME logconcave_sampling_test_hmc
-        COMMAND logconcave_sampling_test -tc=hmc)
-add_test(NAME logconcave_sampling_test_uld
-        COMMAND logconcave_sampling_test -tc=uld)
-add_test(NAME logconcave_sampling_test_exponential_biomass_sampling
-        COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
-add_test(NAME logconcave_sampling_test_nuts_hmc_truncated
-        COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc_truncated)
-add_test(NAME logconcave_sampling_test_nuts_hmc
-        COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc)
-
-
-
-add_executable (crhmc_sampling_test crhmc_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME crhmc_sampling_test_crhmc
-        COMMAND crhmc_sampling_test -tc=crhmc)
-add_test(NAME crhmc_test_polytope_sampling
-        COMMAND crhmc_sampling_test -tc=test_polytope_sampling_crhmc)
-add_test(NAME crhmc_test_sparse_sampling
-        COMMAND crhmc_sampling_test -tc=test_sampling_sparse_problem)
-add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME simple_mc_integration_over_limits
-        COMMAND simple_mc_integration -tc=rectangle)
-add_test(NAME simple_mc_integration_over_cubes
-        COMMAND simple_mc_integration -tc=cube)
-add_test(NAME simple_mc_integration_over_simplices
-        COMMAND simple_mc_integration -tc=simplex)
-add_test(NAME simple_mc_integration_over_product_simplices
-    COMMAND simple_mc_integration -tc=prod_simplex)
-add_test(NAME simple_mc_integration_over_cross_polytopes
-    COMMAND simple_mc_integration -tc=cross)
-add_test(NAME simple_mc_integration_over_birkhoff_polytopes
-    COMMAND simple_mc_integration -tc=birkhoff)
-
-add_executable (order_polytope order_polytope.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME order_polytope_basics COMMAND order_polytope -tc=basics)
-add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
-add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
-add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
-
-add_executable (matrix_sampling_test sampling_correlation_matrices_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_corre_spectra_classes COMMAND matrix_sampling_test -tc=corre_spectra)
-add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
-add_test(NAME test_new_billiard_uniform COMMAND matrix_sampling_test -tc=new_billiard_uniform)
-add_test(NAME test_new_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform)
-add_test(NAME test_new_ball_uniform_MT COMMAND matrix_sampling_test -tc=new_ball_uniform_MT)
-add_test(NAME test_new_rdhr_uniform_MT COMMAND matrix_sampling_test -tc=new_rdhr_uniform_MT)
-add_test(NAME test_new_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_billiard_uniform_MT)
-add_test(NAME test_new_accelerated_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform_MT)
-
-add_executable (test_internal_points test_internal_points.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_max_ball
-          COMMAND test_internal_points -tc=test_max_ball)
-add_test(NAME test_feasibility_point
-          COMMAND test_internal_points -tc=test_feasibility_point)
-add_test(NAME test_analytic_center
-          COMMAND test_internal_points -tc=test_analytic_center)
-add_test(NAME test_max_ball_sparse
-          COMMAND test_internal_points -tc=test_max_ball_sparse)
-add_test(NAME test_volumetric_center
-          COMMAND test_internal_points -tc=test_volumetric_center)
-add_test(NAME test_vaidya_center
-          COMMAND test_internal_points -tc=test_vaidya_center)
-
-add_executable (print_table_test print_table_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME test_print_table_empty COMMAND print_table_test -tc="VariadicTable::empty_table")
-add_test(NAME test_print_table_single_row COMMAND print_table_test -tc="VariadicTable::single_row")
-add_test(NAME test_print_table_multi_row COMMAND print_table_test -tc="VariadicTable::multiple_rows_and_types")
-add_test(NAME test_print_table_scientific COMMAND print_table_test -tc="VariadicTable::column_format_scientific")
-add_test(NAME test_print_table_fixed COMMAND print_table_test -tc="VariadicTable::column_format_fixed")
-add_test(NAME test_print_table_percent COMMAND print_table_test -tc="VariadicTable::column_format_percent")
-add_test(NAME test_print_table_precision COMMAND print_table_test -tc="VariadicTable::column_precision")
-add_test(NAME test_print_table_static_size COMMAND print_table_test -tc="VariadicTable::static_column_size")
-add_test(NAME test_print_table_padding COMMAND print_table_test -tc="VariadicTable::custom_cell_padding")
-TARGET_LINK_LIBRARIES(print_table_test coverage_config)
-
-	add_executable (sdpa_format_test sdpa_format_test.cpp $<TARGET_OBJECTS:test_main>)
-	add_test(NAME test_sdpa_raw_roundtrip COMMAND sdpa_format_test -tc="sdpa_raw_roundtrip")
-	add_test(NAME test_sdpa_spectrahedron_roundtrip COMMAND sdpa_format_test -tc="sdpa_spectrahedron_roundtrip")
-	add_test(NAME test_sdpa_comment_lines COMMAND sdpa_format_test -tc="sdpa_comment_lines")
-	add_test(NAME test_sdpa_diagonal_blocks COMMAND sdpa_format_test -tc="sdpa_diagonal_blocks")
-	add_test(NAME test_sdpa_error_truncated COMMAND sdpa_format_test -tc="sdpa_error_truncated_file")
-TARGET_LINK_LIBRARIES(sdpa_format_test coverage_config)
-
-add_executable (full_dimensional_polytope_test full_dimensional_polytope_test.cpp $<TARGET_OBJECTS:test_main>)
-add_test(NAME full_dimensional_polytope_canonical_simplex
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_canonical_simplex)
-add_test(NAME full_dimensional_polytope_simple_feasible
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_simple_feasible)
-add_test(NAME full_dimensional_polytope_line_segment
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_line_segment)
-add_test(NAME full_dimensional_polytope_high_dimensional
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_high_dimensional)
-add_test(NAME full_dimensional_polytope_multiple_constraints
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_multiple_constraints)
-add_test(NAME full_dimensional_polytope_hypercube_intersection
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_hypercube_intersection)
-add_test(NAME full_dimensional_polytope_sparse_constraint
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_sparse_constraint)
-add_test(NAME full_dimensional_polytope_orthogonality
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_orthogonality)
-add_test(NAME full_dimensional_polytope_infeasible
-          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_infeasible)
-
-          
-
-set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
-
-#set_target_properties(benchmarks_crhmc
-#                              PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
-#set_target_properties(benchmarks_crhmc_sampling
-#															PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
-set_target_properties(crhmc_polytope_preparation_test
-                              PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
-set_target_properties(crhmc_sampling_test
-                              PROPERTIES COMPILE_FLAGS ${ADDITIONAL_FLAGS})
-
-TARGET_LINK_LIBRARIES(new_volume_example lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(new_volume_example lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_sob_hpolytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_sob_vpolytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cg_hpolytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cg_vpolytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_hpolytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_vpolytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_zonotopes lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(zonotope_gen_test lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(rounding_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(mcmc_diagnostics_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(sampling_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(poset_misc_test coverage_config)
-TARGET_LINK_LIBRARIES(small_utils_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(billiard_shake_and_bake_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(shake_and_bake_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(mmcs_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(benchmarks_sob lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(benchmarks_cg lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(benchmarks_cb lp_solve ${MKL_LINK} coverage_config)
-#TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling lp_solve ${MKL_LINK} QD_LIB coverage_config)
-#TARGET_LINK_LIBRARIES(benchmarks_crhmc lp_solve ${MKL_LINK} QD_LIB  coverage_config)
-TARGET_LINK_LIBRARIES(simple_mc_integration lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(ode_solvers_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
-TARGET_LINK_LIBRARIES(boundary_oracles_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(crhmc_polytope_preparation_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
-TARGET_LINK_LIBRARIES(logconcave_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
-TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
-TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
+# LAPACK/BLAS (used by full_dimensional_polytope_test)
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
-TARGET_LINK_LIBRARIES(full_dimensional_polytope_test lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
+
+# ---- Test subdirectories mirroring include/ structure ----
+
+add_subdirectory(benchmarks)
+add_subdirectory(convex_bodies)
+add_subdirectory(diagnostics)
+add_subdirectory(generators)
+add_subdirectory(integration)
+add_subdirectory(lp_oracles)
+add_subdirectory(misc)
+add_subdirectory(ode_solvers)
+add_subdirectory(preprocess)
+add_subdirectory(random_walks)
+add_subdirectory(root_finders)
+add_subdirectory(sampling)
+add_subdirectory(volume)

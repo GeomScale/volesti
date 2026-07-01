@@ -979,10 +979,10 @@ void call_test_benchmark_polytopes_grid_search() {
        std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
        std::make_tuple(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex", false),
        std::make_tuple(generate_birkhoff<Hpolytope>(10), "10_birkhoff", false),
-       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
+       std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
     };
 
     Hpolytope P;
@@ -1031,31 +1031,31 @@ void call_test_benchmark_spectrahedra_grid_search() {
 
     std::ifstream in1;
     spectrahedron spectrahedron1;
-    in1.open("spectra_data/sdp_prob_200_15.txt", std::ifstream::in);
+    in1.open("../data/spectra_data/sdp_prob_200_15.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in1, spectrahedron1, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron1, "S_200_15", true));
 
     std::ifstream in2;
     spectrahedron spectrahedron2;
-    in2.open("spectra_data/sdp_prob_400_20.txt", std::ifstream::in);
+    in2.open("../data/spectra_data/sdp_prob_400_20.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in2, spectrahedron2, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron2, "S_400_20", true));
 
     std::ifstream in3;
     spectrahedron spectrahedron3;
-    in3.open("spectra_data/sdp_prob_600_25.txt", std::ifstream::in);
+    in3.open("../data/spectra_data/sdp_prob_600_25.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in3, spectrahedron3, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron3, "S_600_25", true));
 
     std::ifstream in4;
     spectrahedron spectrahedron4;
-    in4.open("spectra_data/sdp_prob_800_30.txt", std::ifstream::in);
+    in4.open("../data/spectra_data/sdp_prob_800_30.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in4, spectrahedron4, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron4, "S_800_30", true));
 
     std::ifstream in5;
     spectrahedron spectrahedron5;
-    in5.open("spectra_data/sdp_prob_1000_35.txt", std::ifstream::in);
+    in5.open("../data/spectra_data/sdp_prob_1000_35.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in5, spectrahedron5, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron5, "S_1000_35", true));
 
@@ -1120,19 +1120,19 @@ void call_test_exp_sampling() {
     std::vector<std::tuple<Hpolytope, Point, std::string, bool>> polytopes;
 
 
-    if (exists_check("metabolic_full_dim/e_coli_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_e_coli.ine")){
-      Point biomass_function_e_coli = load_biomass_function<Point, NT>("metabolic_full_dim/e_coli_biomass_function.txt");
-      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), biomass_function_e_coli, "e_coli", true));
+    if (exists_check("../data/metabolic_full_dim/e_coli_biomass_function.txt") && exists_check("../data/metabolic_full_dim/polytope_e_coli.ine")){
+      Point biomass_function_e_coli = load_biomass_function<Point, NT>("../data/metabolic_full_dim/e_coli_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_e_coli.ine"), biomass_function_e_coli, "e_coli", true));
     }
 
-    if (exists_check("metabolic_full_dim/iAT_PTL_636_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_iAT_PTL_636.ine")){
-      Point biomass_function_iAT = load_biomass_function<Point, NT>("metabolic_full_dim/iAT_PTL_636_biomass_function.txt");
-      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAT_PTL_636.ine"), biomass_function_iAT, "iAT_PTL_636", true));
+    if (exists_check("../data/metabolic_full_dim/iAT_PTL_636_biomass_function.txt") && exists_check("../data/metabolic_full_dim/polytope_iAT_PTL_636.ine")){
+      Point biomass_function_iAT = load_biomass_function<Point, NT>("../data/metabolic_full_dim/iAT_PTL_636_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_iAT_PTL_636.ine"), biomass_function_iAT, "iAT_PTL_636", true));
     }
 
-    if (exists_check("metabolic_full_dim/recon1_function.txt") && exists_check("metabolic_full_dim/polytope_recon1.ine")){
-      Point biomass_function_recon1 = load_biomass_function<Point, NT>("metabolic_full_dim/recon1_biomass_function.txt");
-      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon1.ine"), biomass_function_recon1, "recon1", true));
+    if (exists_check("../data/metabolic_full_dim/recon1_function.txt") && exists_check("../data/metabolic_full_dim/polytope_recon1.ine")){
+      Point biomass_function_recon1 = load_biomass_function<Point, NT>("../data/metabolic_full_dim/recon1_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_recon1.ine"), biomass_function_recon1, "recon1", true));
     }
 
     Hpolytope P;

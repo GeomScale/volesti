@@ -1,0 +1,15 @@
+# Out-of-source build artifacts
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+*.o
+*.a
+*.so
+*.gcda
+*.gcno
+*.gcov
+Testing/
+compile_commands.json

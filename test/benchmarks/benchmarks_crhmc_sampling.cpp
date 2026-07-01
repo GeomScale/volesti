@@ -369,17 +369,17 @@ void call_test_benchmark_polytope() {
     test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
-  if (exists_check("../test/netlib/afiro.ine")) {
-    Hpolytope P = read_polytope<Hpolytope, NT>("../test/netlib/afiro.ine");
+  if (exists_check("../data/netlib/afiro.ine")) {
+    Hpolytope P = read_polytope<Hpolytope, NT>("../data/netlib/afiro.ine");
     std::string name = "afiro";
     bool centered = true;
     double target_time = 100; // secs
     test_benchmark_polytope<NT, Point, Hpolytope, simdLen>(stream, P, name, target_time, centered);
   }
 
-  if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
+  if (exists_check("../data/metabolic_full_dim/polytope_e_coli.ine")) {
     Hpolytope P =
-        read_polytope<Hpolytope, NT>("../test/metabolic_full_dim/polytope_e_coli.ine");
+        read_polytope<Hpolytope, NT>("../data/metabolic_full_dim/polytope_e_coli.ine");
     std::string name = "e_coli";
     bool centered = true;
     double target_time = 600; // secs

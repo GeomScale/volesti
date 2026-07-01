@@ -131,7 +131,7 @@ static SDPTestResult run_sdp_test(const SDPTestCase& test_case) {
 // Individual test case wrappers for better test organization
 static void test_sdp_2x8() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp__2_8_d.txt",
+        .filename = "../data/spectra_data/sdp__2_8_d.txt",
         .expected_minimum = -1.3888e+00,
         .relative_error = 1e-2,
         .additive_error_factor = 5e-2, 
@@ -147,7 +147,7 @@ static void test_sdp_2x8() {
 
 static void test_sdp_20x20() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp_prob_20_20_d.txt",
+        .filename = "../data/spectra_data/sdp_prob_20_20_d.txt",
         .expected_minimum = -1.6535356e+00,
         .relative_error = 1e-3,
         .additive_error_factor = 5e-2,  
@@ -163,7 +163,7 @@ static void test_sdp_20x20() {
 
 static void test_sdp_20x30() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp__20_30_d.txt",
+        .filename = "../data/spectra_data/sdp__20_30_d.txt",
         .expected_minimum = -1.89076e+01,
         .relative_error = 1e-3,
         .additive_error_factor = 5e-2, 
@@ -179,7 +179,7 @@ static void test_sdp_20x30() {
 
 static void test_sdp_50x40() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp__50_40_d.txt",
+        .filename = "../data/spectra_data/sdp__50_40_d.txt",
         .expected_minimum = -3.1513966779338073e+01,
         .relative_error = 1e-3,
         .additive_error_factor = 5e-2, 
@@ -195,7 +195,7 @@ static void test_sdp_50x40() {
 
 static void test_sdp_20x100() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp__20_100_d.txt",
+        .filename = "../data/spectra_data/sdp__20_100_d.txt",
         .expected_minimum = -6.74974e+00,
         .relative_error = 1e-3,
         .additive_error_factor = 5e-2,
@@ -211,7 +211,7 @@ static void test_sdp_20x100() {
 
 static void test_sdp_50x200() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp__50_200_d.txt",
+        .filename = "../data/spectra_data/sdp__50_200_d.txt",
         .expected_minimum = -7.71954e+00,
         .relative_error = 1e-3,
         .additive_error_factor = 5e-2,
@@ -227,7 +227,7 @@ static void test_sdp_50x200() {
 
 static void test_sdp_200x15() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp_prob_200_15_d.txt",
+        .filename = "../data/spectra_data/sdp_prob_200_15_d.txt",
         .expected_minimum = -3.1610166002684946e+12,
         .relative_error = 1e-4,
         .additive_error_factor = 5e-2, 
@@ -243,7 +243,7 @@ static void test_sdp_200x15() {
 
 static void test_sdp_400x20() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp_prob_400_20_d.txt",
+        .filename = "../data/spectra_data/sdp_prob_400_20_d.txt",
         .expected_minimum = -8.7728166762094482e+11,
         .relative_error = 1e-4,
         .additive_error_factor = 5e-2, 
@@ -259,7 +259,7 @@ static void test_sdp_400x20() {
 
 static void test_sdp_600x25() {
     SDPTestCase test_case = {
-        .filename = "../spectra_data/sdp_prob_600_25_d.txt",
+        .filename = "../data/spectra_data/sdp_prob_600_25_d.txt",
         .expected_minimum = -1.3547280395306393e+11,
         .relative_error = 1e-2,
         .additive_error_factor = 5e-2,  
