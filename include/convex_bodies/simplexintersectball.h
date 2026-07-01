@@ -34,6 +34,11 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
 
+        static NT pi()
+    {
+        return std::acos(NT(-1));
+    }
+
 private:
     unsigned int _d;  // dimension
     MT           A;   // matrix A
@@ -384,7 +389,7 @@ public:
 
                 eval = (*Ar_data) * std::cos(C1) + (*Av_data) * std::sin(C1) - (*b_data);
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05))) {
-                    C1 = M_PI - C1;
+                    C1 = pi() - C1;
                 }
 
                 if (C1 < min_plus && C1 > NT(0)) {
@@ -395,17 +400,17 @@ public:
                     set_negative_root = true;
                 }
 
-                if (C1 > max_root && C1 < NT(2) * M_PI) {
+                if (C1 > max_root && C1 < NT(2) * pi()) {
                     max_root = C1;
                 }
 
-                if ((C1 < min_root) && (C1 > (-NT(2) * M_PI))) {
+                if ((C1 < min_root) && (C1 > (-NT(2) * pi()))) {
                     min_root = C1;
                 }
 
                 eval = (*Ar_data) * std::cos(C2) + (*Av_data) * std::sin(C2) - (*b_data);
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05))) {
-                    C2 = M_PI - C2;
+                    C2 = pi() - C2;
                 }
 
                 if (C2 < min_plus && C2 > NT(0)) {
@@ -416,11 +421,11 @@ public:
                     set_negative_root = true;
                 }
 
-                if (C2 > max_root && C2 < NT(2) * M_PI) {
+                if (C2 > max_root && C2 < NT(2) * pi()) {
                     max_root = C2;
                 }
 
-                if (C2 < min_root && C2 > (-NT(2) * M_PI)) {
+                if (C2 < min_root && C2 > (-NT(2) * pi())) {
                     min_root = C2;
                 }
             }
@@ -432,7 +437,7 @@ public:
 
         if (!set_negative_root) {
             if (pos_D) {
-                max_minus = max_root - NT(2) * M_PI;
+                max_minus = max_root - NT(2) * pi();
             } else {
                 max_minus = NT(0);
             }
@@ -440,9 +445,9 @@ public:
 
         if (!set_positive_root) {
             if (pos_D) {
-                min_plus = min_root + NT(2) * M_PI;
+                min_plus = min_root + NT(2) * pi();
             } else {
-                min_plus = NT(2) * M_PI;
+                min_plus = NT(2) * pi();
             }
         }
 
@@ -539,7 +544,7 @@ public:
 
                 eval = (*Ar_data) * std::cos(C1) + (*Av_data) * std::sin(C1) - (*b_data);
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05))) {
-                    C1 = M_PI - C1;
+                    C1 = pi() - C1;
                 }
 
                 if (C1 < min_plus && C1 > NT(0)) {
@@ -548,14 +553,14 @@ public:
                     facet = i;
                 }
 
-                if ((C1 < min_root) && (C1 > (-NT(2) * M_PI))) {
+                if ((C1 < min_root) && (C1 > (-NT(2) * pi()))) {
                     min_root = C1;
                     facet_min = i;
                 }
 
                 eval = (*Ar_data) * std::cos(C2) + (*Av_data) * std::sin(C2) - (*b_data);
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05))) {
-                    C2 = M_PI - C2;
+                    C2 = pi() - C2;
                 }
 
                 if (C2 < min_plus && C2 > NT(0)) {
@@ -564,7 +569,7 @@ public:
                     facet = i;
                 }
 
-                if (C2 < min_root && C2 > (-NT(2) * M_PI)) {
+                if (C2 < min_root && C2 > (-NT(2) * pi())) {
                     min_root = C2;
                     facet_min = i;
                 }
@@ -577,10 +582,10 @@ public:
 
         if (!set_positive_root) {
             if (pos_D) {
-                min_plus = min_root + NT(2) * M_PI;
+                min_plus = min_root + NT(2) * pi();
                 facet = facet_min;
             } else {
-                min_plus = NT(2) * M_PI;
+                min_plus = NT(2) * pi();
             }
         }
 
@@ -649,18 +654,18 @@ public:
                         - (*b_data);
 
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05))) {
-                    C1 = M_PI - C1;
+                    C1 = pi() - C1;
                 }
 
-                if (C1 > M_PI) {
-                    C1 -= NT(2) * M_PI;
-                } else if (C1 < -M_PI) {
-                    C1 += NT(2) * M_PI;
+                if (C1 > pi()) {
+                    C1 -= NT(2) * pi();
+                } else if (C1 < -pi()) {
+                    C1 += NT(2) * pi();
                 }
 
-                if ((C1 > -M_PI) && (C1 < NT(0))) {
+                if ((C1 > -pi()) && (C1 < NT(0))) {
                     neg_roots.push_back(C1);
-                } else if ((C1 < M_PI) && (C1 > NT(0))) {
+                } else if ((C1 < pi()) && (C1 > NT(0))) {
                     pos_roots.push_back(C1);
                 }
 
@@ -669,18 +674,18 @@ public:
                      - (*b_data);
 
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05))) {
-                    C2 = M_PI - C2;
+                    C2 = pi() - C2;
                 }
 
-                if (C2 > M_PI) {
-                    C2 -= NT(2) * M_PI;
-                } else if (C2 < -M_PI) {
-                    C2 += NT(2) * M_PI;
+                if (C2 > pi()) {
+                    C2 -= NT(2) * pi();
+                } else if (C2 < -pi()) {
+                    C2 += NT(2) * pi();
                 }
 
-                if ((C2 > -M_PI) && (C2 < NT(0))) {
+                if ((C2 > -pi()) && (C2 < NT(0))) {
                     neg_roots.push_back(C2);
-                } else if ((C2 < M_PI) && (C2 > NT(0))) {
+                } else if ((C2 < pi()) && (C2 > NT(0))) {
                     pos_roots.push_back(C2);
                 }
             }
