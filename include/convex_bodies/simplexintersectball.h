@@ -151,10 +151,10 @@ public:
     }
 
     int is_in_optimized(Point const& p,
-                    VT& Ar,
-                    VT& Av,
-                    NT const& lambda_prev,
-                    NT tol = NT(0)) const
+                         VT& Ar,
+                         VT& Av,
+                         NT const& lambda_prev,
+                         NT tol = NT(0)) const
     {
         VT p_vec = p.getCoefficients();
 
@@ -334,7 +334,7 @@ public:
         return std::make_pair(min_plus, max_minus);
     }
 
-        // Compute intersection angles of the great circle
+    // Compute intersection angles of the great circle
     // x(lambda) = cos(lambda) * r + sin(lambda) * v
     // with the simplex boundary A x <= b.
     //
