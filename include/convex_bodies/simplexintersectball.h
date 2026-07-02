@@ -2,7 +2,6 @@
 #define SIMPLEXINTERSECTBALL_H
 
 #include <limits>
-#include <iostream>
 #include <cmath>
 #include <utility>
 #include <vector>
@@ -31,8 +30,7 @@ public:
     typedef Point                                             PointType;
     typedef typename Point::FT                                NT;
     typedef MT_type                                           MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> DenseMT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT; 
 
         static NT pi()
     {
@@ -45,27 +43,20 @@ private:
     VT           b;   // vector b, such that A x <= b
     MT           V;   // simplex vertices, stored column-wise
     VT           x0;  // center of the unit ball
-    VT           Vnorms;
+
 
 public:
     SimplexIntersectBall() {}
 
     SimplexIntersectBall(unsigned int d_,
-                         MT const& A_,
-                         VT const& b_,
-                         MT const& V_,
-                         VT const& x0_)
-        : _d{d_}, A{A_}, b{b_}, V{V_}, x0{x0_}
+                     MT const& A_,
+                     VT const& b_,
+                     MT const& V_,
+                     VT const& x0_)
+    : _d{d_}, A{A_}, b{b_}, V{V_}, x0{x0_}
     {
-        Vnorms = V.colwise().norm();
-        Vnorms = Vnorms.cwiseProduct(Vnorms);
     }
 
-    // Copy constructor
-    SimplexIntersectBall(SimplexIntersectBall<Point, MT_type> const& p)
-        : _d{p._d}, A{p.A}, b{p.b}, V{p.V}, x0{p.x0}, Vnorms{p.Vnorms}
-    {
-    }
 
     // Return dimension
     unsigned int dimension() const
@@ -119,8 +110,6 @@ public:
     void set_vertices(MT const& V2)
     {
         V = V2;
-        Vnorms = V.colwise().norm();
-        Vnorms = Vnorms.cwiseProduct(Vnorms);
     }
 
     // Change ball center
@@ -621,7 +610,7 @@ public:
     }
 
 
-        // Compute all intersection roots of the great circle
+    // Compute all intersection roots of the great circle
     // x(lambda) = cos(lambda) * r + sin(lambda) * v
     // with the simplex boundary A x <= b.
     //
