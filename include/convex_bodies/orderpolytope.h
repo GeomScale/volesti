@@ -13,10 +13,11 @@
 
 #include <iostream>
 #include "misc/poset.h"
+#include "math.h"
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
-#ifndef DISABLE_LPSOLVE
-    #include "lp_oracles/solve_lp.h"
+#ifndef DISABLE_HIGHS
+    #include "lp_oracles/solve_lp.hpp"
 #endif
 
 /// This class represents an order polytope parameterized by a point type
@@ -214,13 +215,18 @@ public:
 
 
     //Compute Chebyshev ball of the polytope P:= Ax<=b
-    //Use LpSolve library
+    //Use HiGHS library
     std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
         std::pair<Point, NT> inner_ball;
-        #ifndef DISABLE_LPSOLVE
-            inner_ball = ComputeChebychevBall<NT, Point>(_A, b); // use lpsolve library
+        #ifndef DISABLE_HIGHS
+            auto ball = compute_chebychev_ball<NT, Point>(_A, b); // use HiGHS library
+            if (ball.solved) {
+                inner_ball = ball.value;
+            } else {
+                inner_ball = {ball.value.first, -1.0};
+            }
         #else
 
             if (inner_ball.second <= NT(0)) {

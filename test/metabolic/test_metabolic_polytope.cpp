@@ -8,10 +8,11 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+#include <string>
 #include "doctest.h"
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
-#include "convex_bodies/metabolic_polytope.h"
+#include "convex_bodies/metabolic_polytope.hpp"
 #include "io/bigg_parser.hpp"
 
 typedef double NT;

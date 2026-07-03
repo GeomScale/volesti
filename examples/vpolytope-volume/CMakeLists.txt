@@ -62,8 +62,8 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
@@ -101,4 +101,4 @@ add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
 add_executable (vpolytopevolume vpolytopevolume.cpp)
-TARGET_LINK_LIBRARIES(vpolytopevolume lp_solve)
+TARGET_LINK_LIBRARIES(vpolytopevolume highs::highs)

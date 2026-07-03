@@ -68,9 +68,9 @@ endif ()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-# lp_solve
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+# HiGHS
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
@@ -97,4 +97,4 @@ add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
 add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
 add_executable(hpolytopeVolume hpolytopeVolume.cpp)
-target_link_libraries(hpolytopeVolume PUBLIC lp_solve)
+target_link_libraries(hpolytopeVolume PUBLIC highs::highs)

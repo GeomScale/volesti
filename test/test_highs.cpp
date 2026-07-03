@@ -8,9 +8,9 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+#include <vector>
 #include "doctest.h"
 #include "Highs.h"
-#include <vector>
 
 void call_test_small_lp()
 {

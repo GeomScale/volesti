@@ -11,7 +11,6 @@
 #ifndef BIGG_PARSER_HPP
 #define BIGG_PARSER_HPP
 
-#include "convex_bodies/metabolic_polytope.h"
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <vector>
@@ -19,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include <limits>
+#include "convex_bodies/metabolic_polytope.hpp"
 
 // Parses a BiGG JSON model into a MetabolicPolytope.
 // The model is represented as:
