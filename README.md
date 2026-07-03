@@ -2,6 +2,9 @@
 
 **VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
 
+*** This is the low_volatility branch that contains the code for the 
+paper "Reassessing the Low-Volatility Anomaly through the Geometry of Portfolio Choice". For more details see [R-proj/readme.md](R-proj/readme.md).
+
 [![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
 [![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)
 ![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)

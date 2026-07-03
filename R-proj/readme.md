@@ -34,9 +34,10 @@ result <- sample_ptfs_constant_volatility(
   M    = 2000                           # points per random walk
 )
 
-samples <- result$overall_samples[[1]]  # matrix: rows = assets, cols = portfolios
-colSums(samples)                        # all 1.0; long-only simplex constraint met
-mean(diag(t(samples) %*% sigma %*% samples))  # ~0.3; target volatility matched
+samples <- result$overall_samples[[1]]  # matrix: rows = assets, 
+                                        # cols = portfolios
+colSums(samples)                        # long-only simplex constraint
+mean(diag(t(samples) %*% sigma %*% samples))  # ~0.3; target volatility
 ```
 
 See `run_minimal_example.R` for a complete worked example.
