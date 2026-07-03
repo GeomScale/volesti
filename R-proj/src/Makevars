@@ -2,5 +2,5 @@ PKG_CPPFLAGS= -I../../include
 
 PKG_CXXFLAGS= -Wno-deprecated-declarations -lm -ldl -Wno-ignored-attributes -DBOOST_NO_AUTO_PTR -DDISABLE_NLP_ORACLES
 
-CXX_STD = CXX11
+CXX_STD = CXX17
 

@@ -38,6 +38,7 @@ compute_interior_point_single_component <- function(A, b, x0) {
   
   rad = Inf
   
+  m = nrow(A)
   for (i in 1:m) {
     q = A[i,]
     rad_temp = abs(b[i]) / sqrt(sum(q^2))
