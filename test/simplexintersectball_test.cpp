@@ -219,3 +219,50 @@ TEST_CASE("simplexintersectball_3d_tetrahedron_reflection")
     CHECK(v(1) == doctest::Approx(1.0));
     CHECK(v(2) == doctest::Approx(0.0));
 }
+
+TEST_CASE("simplexintersectball_3d_tetrahedron_gc_all_roots")
+{
+    SimplexBall K = make_3d_tetrahedron_unit_ball();
+
+    NT inv_sqrt3 = NT(1) / std::sqrt(NT(3));
+    NT inv_sqrt2 = NT(1) / std::sqrt(NT(2));
+
+    VT r_vec(3);
+    r_vec << inv_sqrt3, inv_sqrt3, inv_sqrt3;
+    Point r(r_vec);
+
+    VT v_vec(3);
+    v_vec << inv_sqrt2, -inv_sqrt2, 0;
+    Point v(v_vec);
+
+    VT Ar;
+    VT Av;
+
+    std::pair<VT, VT> roots = K.gc_intersect_all_roots(r, v, Ar, Av);
+
+    NT alpha = std::atan(std::sqrt(NT(2) / NT(3)));
+
+    CHECK(roots.first.rows() >= 1);
+    CHECK(roots.second.rows() >= 1);
+
+    bool found_negative_alpha = false;
+    for (int i = 0; i < roots.first.rows(); ++i)
+    {
+        if (std::abs(roots.first(i) + alpha) < NT(1e-08))
+        {
+            found_negative_alpha = true;
+        }
+    }
+
+    bool found_positive_alpha = false;
+    for (int i = 0; i < roots.second.rows(); ++i)
+    {
+        if (std::abs(roots.second(i) - alpha) < NT(1e-08))
+        {
+            found_positive_alpha = true;
+        }
+    }
+
+    CHECK(found_negative_alpha);
+    CHECK(found_positive_alpha);
+}
