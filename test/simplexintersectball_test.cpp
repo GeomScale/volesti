@@ -169,6 +169,32 @@ TEST_CASE("simplexintersectball_3d_tetrahedron_gc_intersection")
     CHECK(interval.second == doctest::Approx(-alpha));
 }
 
+TEST_CASE("simplexintersectball_3d_tetrahedron_gc_intersection_positive")
+{
+    SimplexBall K = make_3d_tetrahedron_unit_ball();
+
+    NT inv_sqrt3 = NT(1) / std::sqrt(NT(3));
+    NT inv_sqrt2 = NT(1) / std::sqrt(NT(2));
+
+    VT r_vec(3);
+    r_vec << inv_sqrt3, inv_sqrt3, inv_sqrt3;
+    Point r(r_vec);
+
+    VT v_vec(3);
+    v_vec << inv_sqrt2, -inv_sqrt2, 0;
+    Point v(v_vec);
+
+    VT Ar;
+    VT Av;
+
+    std::pair<NT, int> hit = K.gc_intersect_positive(r, v, Ar, Av);
+
+    NT alpha = std::atan(std::sqrt(NT(2) / NT(3)));
+
+    CHECK(hit.first == doctest::Approx(alpha));
+    CHECK(hit.second == 1);
+}
+
 TEST_CASE("simplexintersectball_3d_tetrahedron_reflection")
 {
     SimplexBall K = make_3d_tetrahedron_unit_ball();
