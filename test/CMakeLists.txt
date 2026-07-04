@@ -419,6 +419,8 @@ add_test(NAME simplexintersectball_3d_tetrahedron_gc_intersection
           COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_gc_intersection)
 add_test(NAME simplexintersectball_3d_tetrahedron_gc_intersection_positive
           COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_gc_intersection_positive)
+add_test(NAME simplexintersectball_incremental_rotation_matches_fresh
+          COMMAND simplexintersectball_test -tc=simplexintersectball_incremental_rotation_matches_fresh)
 add_test(NAME simplexintersectball_3d_tetrahedron_gc_all_roots
           COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_gc_all_roots)
 add_test(NAME simplexintersectball_3d_tetrahedron_reflection

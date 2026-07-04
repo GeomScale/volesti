@@ -19,10 +19,10 @@ SimplexBall make_3d_tetrahedron_unit_ball()
     // Tetrahedron in R^3:
     // x >= 0, y >= 0, z >= 0, x + y + z <= 2
     MT A(4, 3);
-    A << -1,  0,  0,
-          0, -1,  0,
-          0,  0, -1,
-          1,  1,  1;
+    A << -1, 0, 0,
+        0, -1, 0,
+        0, 0, -1,
+        1, 1, 1;
 
     VT b(4);
     b << 0, 0, 0, 2;
@@ -31,8 +31,8 @@ SimplexBall make_3d_tetrahedron_unit_ball()
     // (0,0,0), (2,0,0), (0,2,0), (0,0,2)
     MT V(3, 4);
     V << 0, 2, 0, 0,
-         0, 0, 2, 0,
-         0, 0, 0, 2;
+        0, 0, 2, 0,
+        0, 0, 0, 2;
 
     VT x0(3);
     x0 << 0, 0, 0;
@@ -47,9 +47,9 @@ TEST_CASE("simplexintersectball_basic_membership")
     // Simplex in R^2:
     // x >= 0, y >= 0, x + y <= 1
     MT A(3, 2);
-    A << -1,  0,
-          0, -1,
-          1,  1;
+    A << -1, 0,
+        0, -1,
+        1, 1;
 
     VT b(3);
     b << 0, 0, 1;
@@ -57,7 +57,7 @@ TEST_CASE("simplexintersectball_basic_membership")
     // Vertices stored column-wise: (0,0), (1,0), (0,1)
     MT V(2, 3);
     V << 0, 1, 0,
-         0, 0, 1;
+        0, 0, 1;
 
     VT x0(2);
     x0 << 0, 0;
@@ -89,16 +89,16 @@ TEST_CASE("simplexintersectball_line_intersection")
     unsigned int d = 2;
 
     MT A(3, 2);
-    A << -1,  0,
-          0, -1,
-          1,  1;
+    A << -1, 0,
+        0, -1,
+        1, 1;
 
     VT b(3);
     b << 0, 0, 1;
 
     MT V(2, 3);
     V << 0, 1, 0,
-         0, 0, 1;
+        0, 0, 1;
 
     VT x0(2);
     x0 << 0, 0;
@@ -195,12 +195,39 @@ TEST_CASE("simplexintersectball_3d_tetrahedron_gc_intersection_positive")
     CHECK(hit.second == 1);
 }
 
+TEST_CASE("simplexintersectball_incremental_rotation_matches_fresh")
+{
+    SimplexBall K = make_3d_tetrahedron_unit_ball();
+
+    NT inv_sqrt3 = NT(1) / std::sqrt(NT(3));
+    NT inv_sqrt2 = NT(1) / std::sqrt(NT(2));
+
+    VT r0(3);
+    r0 << inv_sqrt3, inv_sqrt3, inv_sqrt3;
+    VT v0(3);
+    v0 << inv_sqrt2, -inv_sqrt2, 0;
+    Point pr0(r0), pv0(v0);
+
+    VT Ar, Av;
+    K.gc_intersect(pr0, pv0, Ar, Av);
+
+    NT lambda = 0.3;
+    std::pair<NT, NT> inc = K.gc_intersect(pr0, pv0, Ar, Av, lambda);
+
+    VT r1 = std::cos(lambda) * r0 + std::sin(lambda) * v0;
+    Point pr1(r1);
+    VT Ar2, Av2;
+    std::pair<NT, NT> fresh = K.gc_intersect(pr1, pv0, Ar2, Av2);
+
+    CHECK(inc.first == doctest::Approx(fresh.first));
+    CHECK(inc.second == doctest::Approx(fresh.second));
+}
+
 TEST_CASE("simplexintersectball_3d_tetrahedron_reflection")
 {
     SimplexBall K = make_3d_tetrahedron_unit_ball();
 
     NT inv_sqrt2 = NT(1) / std::sqrt(NT(2));
-
     // Point on the unit sphere and on the facet y = 0
     VT p(3);
     p << inv_sqrt2, 0, inv_sqrt2;
