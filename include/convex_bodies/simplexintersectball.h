@@ -36,6 +36,11 @@ public:
         return std::acos(NT(-1));
     }
 
+    static NT trig_tol()
+    {
+        return NT(1e-05);
+    }
+
 private:
     unsigned int _d; // dimension
     MT A;            // matrix A
@@ -63,13 +68,13 @@ private:
         C2 = std::asin((Av_i * b_i - Ar_i * sqrtD) / denom);
 
         NT eval = Ar_i * std::cos(C1) + Av_i * std::sin(C1) - b_i;
-        if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+        if (!(eval > -trig_tol() && eval < trig_tol()))
         {
             C1 = pi() - C1;
         }
 
         eval = Ar_i * std::cos(C2) + Av_i * std::sin(C2) - b_i;
-        if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+        if (!(eval > -trig_tol() && eval < trig_tol()))
         {
             C2 = pi() - C2;
         }
