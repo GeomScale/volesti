@@ -47,4 +47,14 @@ bool segment_intersects_ball(
            (t2 >= -tol && t2 <= NT(1) + tol);
 }
 
+template <typename NT>
+bool point_is_inside_ball(
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& p,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& center,
+    NT radius = NT(1),
+    NT tol = NT(1e-10))
+{
+    return (p - center).squaredNorm() < radius * radius - tol;
+}
+
 #endif

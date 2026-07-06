@@ -35,3 +35,20 @@ TEST_CASE("simplexball_components_segment_intersects_ball")
     v << 2, 0;
     CHECK(segment_intersects_ball(u, v, center, NT(1)));
 }
+
+TEST_CASE("simplexball_components_point_is_inside_ball")
+{
+    VT center(2);
+    center << 0, 0;
+
+    VT p(2);
+
+    p << 0.5, 0.0;
+    CHECK(point_is_inside_ball(p, center, NT(1)));
+
+    p << 1.0, 0.0;
+    CHECK_FALSE(point_is_inside_ball(p, center, NT(1)));
+
+    p << 1.5, 0.0;
+    CHECK_FALSE(point_is_inside_ball(p, center, NT(1)));
+}
