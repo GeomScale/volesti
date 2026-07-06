@@ -88,3 +88,33 @@ TEST_CASE("simplexball_components_build_graph")
     CHECK(graph(0, 2) == 1);
     CHECK(graph(2, 0) == 1);
 }
+
+TEST_CASE("simplexball_components_connected_components_from_graph")
+{
+    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> graph(5, 5);
+    graph.setZero();
+
+    // Component 1: 0 -- 1
+    graph(0, 1) = 1;
+    graph(1, 0) = 1;
+
+    // Component 2: 2 -- 3
+    graph(2, 3) = 1;
+    graph(3, 2) = 1;
+
+    // Vertex 4 is isolated and should be ignored.
+
+    std::vector<std::vector<int>> components =
+        connected_components_from_graph(graph);
+
+    CHECK(components.size() == 2);
+
+    CHECK(components[0].size() == 2);
+    CHECK(components[1].size() == 2);
+
+    CHECK(components[0][0] == 0);
+    CHECK(components[0][1] == 1);
+
+    CHECK(components[1][0] == 2);
+    CHECK(components[1][1] == 3);
+}

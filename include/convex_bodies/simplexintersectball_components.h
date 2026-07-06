@@ -2,6 +2,8 @@
 #define SIMPLEXINTERSECTBALL_COMPONENTS_H
 
 #include <cmath>
+#include <vector>
+#include <queue>
 #include <Eigen/Eigen>
 
 template <typename NT>
@@ -101,6 +103,69 @@ Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> build_simplex_ball_graph(
     }
 
     return adjacency;
+}
+
+inline std::vector<std::vector<int>> connected_components_from_graph(
+    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> const& adjacency)
+{
+    int n = adjacency.rows();
+
+    std::vector<int> visited(n, 0);
+    std::vector<std::vector<int>> components;
+
+    for (int start = 0; start < n; ++start)
+    {
+        if (visited[start])
+        {
+            continue;
+        }
+
+        bool isolated_removed_vertex = true;
+        for (int j = 0; j < n; ++j)
+        {
+            if (adjacency(start, j) != 0 || adjacency(j, start) != 0)
+            {
+                isolated_removed_vertex = false;
+                break;
+            }
+        }
+
+        if (isolated_removed_vertex)
+        {
+            visited[start] = 1;
+            continue;
+        }
+
+        std::vector<int> component;
+        std::queue<int> queue;
+
+        visited[start] = 1;
+        queue.push(start);
+
+        while (!queue.empty())
+        {
+            int current = queue.front();
+            queue.pop();
+
+            component.push_back(current);
+
+            for (int next = 0; next < n; ++next)
+            {
+                if (!visited[next] && adjacency(current, next) != 0)
+                {
+                    visited[next] = 1;
+                    queue.push(next);
+                }
+            }
+        }
+
+        if (!component.empty())
+        {
+            components.push_back(component);
+        }
+    }
+
+    return components;
 }
 
 #endif
