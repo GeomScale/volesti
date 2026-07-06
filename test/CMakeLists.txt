@@ -436,8 +436,13 @@ add_test(NAME simplexball_components_tetrahedron_finds_two_components
           COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_finds_two_components)
 add_test(NAME simplexball_components_tetrahedron_starting_points
           COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_starting_points)
+add_test(NAME simplexball_components_tetrahedron_starting_points_with_chebyshev_center
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_starting_points_with_chebyshev_center)
 add_test(NAME simplexball_components_tetrahedron_filters_interior_vertex
           COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_filters_interior_vertex)
+add_test(NAME simplexball_components_chebyshev_center_intersect_ball
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_chebyshev_center_intersect_ball)
+TARGET_LINK_LIBRARIES(simplexintersectball_components_test lp_solve coverage_config)
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
