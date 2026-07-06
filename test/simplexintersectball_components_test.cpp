@@ -118,3 +118,26 @@ TEST_CASE("simplexball_components_connected_components_from_graph")
     CHECK(components[1][0] == 2);
     CHECK(components[1][1] == 3);
 }
+
+TEST_CASE("simplexball_components_find_components_from_vertices")
+{
+    VT center(2);
+    center << 0, 0;
+
+    // Same 4 vertices as before:
+    // left, right, top, bottom around the unit ball.
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 4);
+    vertices << -2,  2,  0,  0,
+                 0,  0,  2, -2;
+
+    std::vector<std::vector<int>> components =
+        find_simplex_ball_components(vertices, center, NT(1));
+
+    CHECK(components.size() == 1);
+
+    CHECK(components[0].size() == 4);
+    CHECK(components[0][0] == 0);
+    CHECK(components[0][1] == 2);
+    CHECK(components[0][2] == 3);
+    CHECK(components[0][3] == 1);
+}

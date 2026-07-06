@@ -438,6 +438,9 @@ add_test(NAME simplexball_components_build_graph
           COMMAND simplexintersectball_components_test -tc=simplexball_components_build_graph)
 add_test(NAME simplexball_components_connected_components_from_graph
           COMMAND simplexintersectball_components_test -tc=simplexball_components_connected_components_from_graph)
+add_test(NAME simplexball_components_find_components_from_vertices
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_find_components_from_vertices)
+          
           
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 

@@ -168,4 +168,17 @@ inline std::vector<std::vector<int>> connected_components_from_graph(
     return components;
 }
 
+template <typename NT>
+std::vector<std::vector<int>> find_simplex_ball_components(
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& vertices,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& center,
+    NT radius = NT(1),
+    NT tol = NT(1e-10))
+{
+    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> adjacency =
+        build_simplex_ball_graph(vertices, center, radius, tol);
+
+    return connected_components_from_graph(adjacency);
+}
+
 #endif
