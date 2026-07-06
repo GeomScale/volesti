@@ -429,9 +429,9 @@ add_test(NAME full_dimensional_polytope_orthogonality
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_orthogonality)
 add_test(NAME full_dimensional_polytope_infeasible
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_infeasible)
-
-          
-
+add_executable (simplexintersectball_components_test simplexintersectball_components_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME simplexball_components_segment_intersects_ball
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_segment_intersects_ball)
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
