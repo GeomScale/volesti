@@ -440,8 +440,18 @@ add_test(NAME simplexball_components_connected_components_from_graph
           COMMAND simplexintersectball_components_test -tc=simplexball_components_connected_components_from_graph)
 add_test(NAME simplexball_components_find_components_from_vertices
           COMMAND simplexintersectball_components_test -tc=simplexball_components_find_components_from_vertices)
+add_test(NAME simplexball_components_radial_starting_point_from_vertex
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_radial_starting_point_from_vertex)       
+ 
           
-          
+
+
+
+
+
+
+
+
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc

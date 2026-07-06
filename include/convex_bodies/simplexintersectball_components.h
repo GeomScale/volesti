@@ -181,4 +181,24 @@ std::vector<std::vector<int>> find_simplex_ball_components(
     return connected_components_from_graph(adjacency);
 }
 
+template <typename NT>
+Eigen::Matrix<NT, Eigen::Dynamic, 1> radial_starting_point_from_vertex(
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& vertex,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& center,
+    NT radius = NT(1),
+    NT tol = NT(1e-10))
+{
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    VT direction = vertex - center;
+    NT norm = direction.norm();
+
+    if (norm <= tol)
+    {
+        return center;
+    }
+
+    return center + radius * direction / norm;
+}
+
 #endif

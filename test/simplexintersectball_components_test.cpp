@@ -141,3 +141,27 @@ TEST_CASE("simplexball_components_find_components_from_vertices")
     CHECK(components[0][2] == 3);
     CHECK(components[0][3] == 1);
 }
+
+TEST_CASE("simplexball_components_radial_starting_point_from_vertex")
+{
+    VT center(2);
+    center << 0, 0;
+
+    VT vertex(2);
+    vertex << 2, 0;
+
+    VT p = radial_starting_point_from_vertex(vertex, center, NT(1));
+
+    CHECK(p.rows() == 2);
+    CHECK(p(0) == doctest::Approx(1.0));
+    CHECK(p(1) == doctest::Approx(0.0));
+    CHECK(p.norm() == doctest::Approx(1.0));
+
+    vertex << 0, -3;
+
+    p = radial_starting_point_from_vertex(vertex, center, NT(1));
+
+    CHECK(p(0) == doctest::Approx(0.0));
+    CHECK(p(1) == doctest::Approx(-1.0));
+    CHECK(p.norm() == doctest::Approx(1.0));
+}
