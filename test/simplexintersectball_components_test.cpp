@@ -234,3 +234,38 @@ TEST_CASE("simplexball_components_find_starting_points_for_components")
     CHECK(p.norm() == doctest::Approx(1.0));
     CHECK(point_satisfies_halfspaces(A, b, p));
 }
+
+TEST_CASE("simplexball_components_and_starting_points")
+{
+    VT center(2);
+    center << 0, 0;
+
+    // Triangle:
+    // x >= 0, y >= 0, x + y <= 2
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(3, 2);
+    A << -1,  0,
+          0, -1,
+          1,  1;
+
+    VT b(3);
+    b << 0, 0, 2;
+
+    // Vertices stored column-wise: (0,0), (2,0), (0,2)
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 3);
+    vertices << 0, 2, 0,
+                0, 0, 2;
+
+    std::pair<std::vector<std::vector<int>>, std::vector<VT>> result =
+        find_simplex_ball_components_and_starting_points(vertices, A, b, center, NT(1));
+
+    std::vector<std::vector<int>> components = result.first;
+    std::vector<VT> starting_points = result.second;
+
+    CHECK(components.size() == 1);
+    CHECK(starting_points.size() == 1);
+
+    VT p = starting_points[0];
+
+    CHECK(p.norm() == doctest::Approx(1.0));
+    CHECK(point_satisfies_halfspaces(A, b, p));
+}

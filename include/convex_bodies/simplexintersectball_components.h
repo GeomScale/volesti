@@ -282,4 +282,25 @@ find_starting_points_for_components(
     return starting_points;
 }
 
+template <typename NT>
+std::pair<
+    std::vector<std::vector<int>>,
+    std::vector<Eigen::Matrix<NT, Eigen::Dynamic, 1>>>
+find_simplex_ball_components_and_starting_points(
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& vertices,
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& A,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& b,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& center,
+    NT radius = NT(1),
+    NT tol = NT(1e-10))
+{
+    std::vector<std::vector<int>> components =
+        find_simplex_ball_components(vertices, center, radius, tol);
+
+    std::vector<Eigen::Matrix<NT, Eigen::Dynamic, 1>> starting_points =
+        find_starting_points_for_components(vertices, components, A, b, center, radius, tol);
+
+    return std::make_pair(components, starting_points);
+}
+
 #endif
