@@ -269,3 +269,24 @@ TEST_CASE("simplexball_components_and_starting_points")
     CHECK(p.norm() == doctest::Approx(1.0));
     CHECK(point_satisfies_halfspaces(A, b, p));
 }
+
+TEST_CASE("simplexball_components_finds_two_components")
+{
+    VT center(2);
+    center << 0, 0;
+
+    // Two clusters on opposite sides of the unit ball.
+    // Within each cluster, the segment stays outside the ball.
+    // Between clusters, every segment crosses the ball.
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 4);
+    vertices << -2, -2,  2,  2,
+                -0.2, 0.2, -0.2, 0.2;
+
+    std::vector<std::vector<int>> components =
+        find_simplex_ball_components(vertices, center, NT(1));
+
+    CHECK(components.size() == 2);
+
+    CHECK(components[0].size() == 2);
+    CHECK(components[1].size() == 2);
+}

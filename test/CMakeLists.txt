@@ -448,7 +448,8 @@ add_test(NAME simplexball_components_find_starting_points_for_components
           COMMAND simplexintersectball_components_test -tc=simplexball_components_find_starting_points_for_components)
 add_test(NAME simplexball_components_and_starting_points
           COMMAND simplexintersectball_components_test -tc=simplexball_components_and_starting_points)
-
+add_test(NAME simplexball_components_finds_two_components
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_finds_two_components)
 
 
 
