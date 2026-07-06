@@ -165,3 +165,72 @@ TEST_CASE("simplexball_components_radial_starting_point_from_vertex")
     CHECK(p(1) == doctest::Approx(-1.0));
     CHECK(p.norm() == doctest::Approx(1.0));
 }
+
+TEST_CASE("simplexball_components_find_starting_point_for_component")
+{
+    VT center(2);
+    center << 0, 0;
+
+    // Triangle:
+    // x >= 0, y >= 0, x + y <= 2
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(3, 2);
+    A << -1,  0,
+          0, -1,
+          1,  1;
+
+    VT b(3);
+    b << 0, 0, 2;
+
+    // Vertices stored column-wise: (0,0), (2,0), (0,2)
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 3);
+    vertices << 0, 2, 0,
+                0, 0, 2;
+
+    std::vector<int> component;
+    component.push_back(1); // vertex (2,0)
+    component.push_back(2); // vertex (0,2)
+
+    std::pair<bool, VT> result =
+        find_starting_point_for_component(vertices, component, A, b, center, NT(1));
+
+    CHECK(result.first);
+
+    VT p = result.second;
+
+    CHECK(p.norm() == doctest::Approx(1.0));
+    CHECK(point_satisfies_halfspaces(A, b, p));
+}
+
+TEST_CASE("simplexball_components_find_starting_points_for_components")
+{
+    VT center(2);
+    center << 0, 0;
+
+    // Triangle:
+    // x >= 0, y >= 0, x + y <= 2
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(3, 2);
+    A << -1,  0,
+          0, -1,
+          1,  1;
+
+    VT b(3);
+    b << 0, 0, 2;
+
+    // Vertices stored column-wise: (0,0), (2,0), (0,2)
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 3);
+    vertices << 0, 2, 0,
+                0, 0, 2;
+
+    std::vector<std::vector<int>> components;
+    components.push_back({1, 2});
+
+    std::vector<VT> starting_points =
+        find_starting_points_for_components(vertices, components, A, b, center, NT(1));
+
+    CHECK(starting_points.size() == 1);
+
+    VT p = starting_points[0];
+
+    CHECK(p.norm() == doctest::Approx(1.0));
+    CHECK(point_satisfies_halfspaces(A, b, p));
+}

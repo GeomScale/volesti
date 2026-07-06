@@ -442,9 +442,10 @@ add_test(NAME simplexball_components_find_components_from_vertices
           COMMAND simplexintersectball_components_test -tc=simplexball_components_find_components_from_vertices)
 add_test(NAME simplexball_components_radial_starting_point_from_vertex
           COMMAND simplexintersectball_components_test -tc=simplexball_components_radial_starting_point_from_vertex)       
- 
-          
-
+ add_test(NAME simplexball_components_find_starting_point_for_component
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_find_starting_point_for_component)
+add_test(NAME simplexball_components_find_starting_points_for_components
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_find_starting_points_for_components)
 
 
 

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <queue>
+#include <utility>
 #include <Eigen/Eigen>
 
 template <typename NT>
@@ -199,6 +200,86 @@ Eigen::Matrix<NT, Eigen::Dynamic, 1> radial_starting_point_from_vertex(
     }
 
     return center + radius * direction / norm;
+}
+
+template <typename NT>
+bool point_satisfies_halfspaces(
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& A,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& b,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& p,
+    NT tol = NT(1e-10))
+{
+    for (int i = 0; i < A.rows(); ++i)
+    {
+        if (A.row(i).dot(p) > b(i) + tol)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template <typename NT>
+std::pair<bool, Eigen::Matrix<NT, Eigen::Dynamic, 1>>
+find_starting_point_for_component(
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& vertices,
+    std::vector<int> const& component,
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& A,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& b,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& center,
+    NT radius = NT(1),
+    NT tol = NT(1e-10))
+{
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    for (int vertex_index : component)
+    {
+        VT vertex = vertices.col(vertex_index);
+        VT candidate = radial_starting_point_from_vertex(vertex, center, radius, tol);
+
+        bool on_sphere =
+            std::abs((candidate - center).norm() - radius) <= NT(100) * tol;
+
+        if (on_sphere && point_satisfies_halfspaces(A, b, candidate, tol))
+        {
+            return std::make_pair(true, candidate);
+        }
+    }
+
+    VT empty(center.rows());
+    empty.setZero();
+
+    return std::make_pair(false, empty);
+}
+
+template <typename NT>
+std::vector<Eigen::Matrix<NT, Eigen::Dynamic, 1>>
+find_starting_points_for_components(
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& vertices,
+    std::vector<std::vector<int>> const& components,
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> const& A,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& b,
+    Eigen::Matrix<NT, Eigen::Dynamic, 1> const& center,
+    NT radius = NT(1),
+    NT tol = NT(1e-10))
+{
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    std::vector<VT> starting_points;
+
+    for (std::vector<int> const& component : components)
+    {
+        std::pair<bool, VT> result =
+            find_starting_point_for_component(vertices, component, A, b, center, radius, tol);
+
+        if (result.first)
+        {
+            starting_points.push_back(result.second);
+        }
+    }
+
+    return starting_points;
 }
 
 #endif
