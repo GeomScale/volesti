@@ -52,3 +52,39 @@ TEST_CASE("simplexball_components_point_is_inside_ball")
     p << 1.5, 0.0;
     CHECK_FALSE(point_is_inside_ball(p, center, NT(1)));
 }
+
+TEST_CASE("simplexball_components_build_graph")
+{
+    VT center(2);
+    center << 0, 0;
+
+    // 4 vertices around the unit ball.
+    // Edges through the ball should be removed.
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 4);
+    vertices << -2,  2,  0,  0,
+                 0,  0,  2, -2;
+
+    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> graph =
+        build_simplex_ball_graph(vertices, center, NT(1));
+
+    CHECK(graph.rows() == 4);
+    CHECK(graph.cols() == 4);
+
+    // No self-loops.
+    CHECK(graph(0, 0) == 0);
+    CHECK(graph(1, 1) == 0);
+    CHECK(graph(2, 2) == 0);
+    CHECK(graph(3, 3) == 0);
+
+    // Segment from (-2,0) to (2,0) crosses the ball.
+    CHECK(graph(0, 1) == 0);
+    CHECK(graph(1, 0) == 0);
+
+    // Segment from (0,2) to (0,-2) crosses the ball.
+    CHECK(graph(2, 3) == 0);
+    CHECK(graph(3, 2) == 0);
+
+    // Segment from (-2,0) to (0,2) is tangent/outside boundary-connected.
+    CHECK(graph(0, 2) == 1);
+    CHECK(graph(2, 0) == 1);
+}

@@ -434,6 +434,8 @@ add_test(NAME simplexball_components_segment_intersects_ball
           COMMAND simplexintersectball_components_test -tc=simplexball_components_segment_intersects_ball)
 add_test(NAME simplexball_components_point_is_inside_ball
           COMMAND simplexintersectball_components_test -tc=simplexball_components_point_is_inside_ball)
+add_test(NAME simplexball_components_build_graph
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_build_graph)
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
