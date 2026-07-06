@@ -543,12 +543,12 @@ void call_test_polytope_sampling_sparse_problem(){
   using Point = typename Kernel::Point;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using ConstraintProblem =constraint_problem<SpMat, Point>;
-  if(exists_check("../test/netlib/degen2.mm")){
+  if(exists_check("../data/netlib/degen2.mm")){
     std::cout<<"Problem name: degen2" << std::endl;
     SpMat A;
     VT b, lb, ub;
     int dimension;
-    load_problem(A, b, lb, ub, dimension, "../test/netlib/degen2");
+    load_problem(A, b, lb, ub, dimension, "../data/netlib/degen2");
 
     SpMat Acol = SpMat(A);   
     Acol.makeCompressed();

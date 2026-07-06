@@ -39,9 +39,10 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   using PolytopeType = HPolytope<Point>;
   using Opts = opts<NT>;
 
+  std::cout << "Testing crhmc reading e coli..." << std::endl;
   std::ifstream inp;
   std::vector<std::vector<NT>> Pin;
-  std::string fileName("../test/metabolic_full_dim/polytope_e_coli.ine");
+  std::string fileName("../data/metabolic_full_dim/polytope_e_coli.ine");
   inp.open(fileName, std::ifstream::in);
   read_pointset(inp, Pin);
   inp.close();
@@ -52,12 +53,14 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   input.Aineq = HP.get_mat();
   input.bineq = HP.get_vec();
   options.EnableReordering = false;
+  std::cout << "heavy preprocessing..." << std::endl;
   CrhmcProblem P = CrhmcProblem(input, options);
 
+  std::cout << "Testing crhmc writing test output." << std::endl;
   int m = 342;
   int n = 366;
   std::ifstream testdata;
-  std::string testDataFileName("../test/crhmc_polytope_test_output.txt");
+  std::string testDataFileName("crhmc_polytope_test_output.txt");
   testdata.open(testDataFileName, std::ifstream::in);
   int size;
   testdata >> size;
@@ -66,6 +69,8 @@ template <typename NT> void test_crhmc_polytope_preprocessing() {
   testdata >> size;
 
   // CHECK(size == n);
+  std::cout << "Testing crhmc testdata >> Matrxidata." << std::endl;
+
   MT A = MT(P.Asp);
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {

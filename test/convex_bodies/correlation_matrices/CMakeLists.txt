@@ -1,0 +1,12 @@
+# Correlation matrix sampling tests
+
+add_executable(matrix_sampling_test sampling_correlation_matrices_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_corre_spectra_classes COMMAND matrix_sampling_test -tc=corre_spectra)
+add_test(NAME test_new_ball_uniform COMMAND matrix_sampling_test -tc=new_ball_uniform)
+add_test(NAME test_new_billiard_uniform COMMAND matrix_sampling_test -tc=new_billiard_uniform)
+add_test(NAME test_new_accelerated_billiard_uniform COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform)
+add_test(NAME test_new_ball_uniform_MT COMMAND matrix_sampling_test -tc=new_ball_uniform_MT)
+add_test(NAME test_new_rdhr_uniform_MT COMMAND matrix_sampling_test -tc=new_rdhr_uniform_MT)
+add_test(NAME test_new_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_billiard_uniform_MT)
+add_test(NAME test_new_accelerated_billiard_uniform_MT COMMAND matrix_sampling_test -tc=new_accelerated_billiard_uniform_MT)
+TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)

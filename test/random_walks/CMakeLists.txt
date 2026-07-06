@@ -1,0 +1,32 @@
+# Random walk tests (sampling, shake-and-bake, logconcave)
+
+add_executable(sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
+add_test(NAME test_john COMMAND sampling_test -tc=john)
+add_test(NAME test_vaidya COMMAND sampling_test -tc=vaidya)
+add_test(NAME test_brdhr COMMAND sampling_test -tc=brdhr)
+add_test(NAME test_bcdhr COMMAND sampling_test -tc=bcdhr)
+add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
+add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
+add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
+add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
+add_test(NAME test_sparse COMMAND sampling_test -tc=sparse)
+TARGET_LINK_LIBRARIES(sampling_test lp_solve ${MKL_LINK} coverage_config)
+
+add_executable(shake_and_bake_test shake_and_bake_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_shake_and_bake COMMAND shake_and_bake_test -tc=shake_and_bake)
+TARGET_LINK_LIBRARIES(shake_and_bake_test lp_solve ${MKL_LINK} coverage_config)
+
+add_executable(billiard_shake_and_bake_test billiard_shake_and_bake_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_billiard_shake_and_bake COMMAND billiard_shake_and_bake_test -tc=billiard_shake_and_bake)
+TARGET_LINK_LIBRARIES(billiard_shake_and_bake_test lp_solve ${MKL_LINK} coverage_config)
+
+add_executable(logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME logconcave_sampling_test_hmc COMMAND logconcave_sampling_test -tc=hmc)
+add_test(NAME logconcave_sampling_test_uld COMMAND logconcave_sampling_test -tc=uld)
+add_test(NAME logconcave_sampling_test_exponential_biomass_sampling COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
+add_test(NAME logconcave_sampling_test_nuts_hmc_truncated COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc_truncated)
+add_test(NAME logconcave_sampling_test_nuts_hmc COMMAND logconcave_sampling_test -tc=benchmark_nuts_hmc)
+TARGET_LINK_LIBRARIES(logconcave_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+
+add_subdirectory(crhmc)

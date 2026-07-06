@@ -93,22 +93,22 @@ int main() {
   assert(preparation_time < 0.5);
   std::cout << "Assertion (preparation_time< 0.5 secs) passed!" << std::endl
             << std::endl;
-  if (exists_check("../test/metabolic_full_dim/polytope_e_coli.ine")) {
+  if (exists_check("../data/metabolic_full_dim/polytope_e_coli.ine")) {
     preparation_time =
-        benchmark("../test/metabolic_full_dim/polytope_e_coli.ine");
+        benchmark("../data/metabolic_full_dim/polytope_e_coli.ine");
     assert(preparation_time < 2.0);
     std::cout << "Assertion (preparation_time< 2 secs) passed!" << std::endl
               << std::endl;
   }
-  if (exists_check("../test/netlib/afiro.ine")) {
-    preparation_time = benchmark("../test/netlib/afiro.ine");
+  if (exists_check("../data/netlib/afiro.ine")) {
+    preparation_time = benchmark("../data/netlib/afiro.ine");
     assert(preparation_time < 0.3);
     std::cout << "Assertion (preparation_time< 0.3 secs) passed!" << std::endl
               << std::endl;
   }
-  if (exists_check("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
+  if (exists_check("../data/metabolic_full_dim/polytope_iAB_RBC_283.ine")) {
     preparation_time =
-        benchmark("../test/metabolic_full_dim/polytope_iAB_RBC_283.ine");
+        benchmark("../data/metabolic_full_dim/polytope_iAB_RBC_283.ine");
     assert(preparation_time < 400);
     std::cout << "Assertion (preparation_time< 400 secs) passed!" << std::endl
               << std::endl;

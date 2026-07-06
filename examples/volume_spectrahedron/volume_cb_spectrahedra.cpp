@@ -36,7 +36,7 @@ void example_volume(){
     std::ifstream in1;
     spectrahedron spectra;
     Point objFunction;
-    in1.open("./../../test/spectra_data/sdp_prob_20_20.txt", std::ifstream::in);
+    in1.open("./../../test/data/spectra_data/sdp_prob_20_20.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in1, spectra, objFunction);
 
     // Setup the parameters
