@@ -432,29 +432,12 @@ add_test(NAME full_dimensional_polytope_infeasible
 add_executable (simplexintersectball_components_test simplexintersectball_components_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME simplexball_components_segment_intersects_ball
           COMMAND simplexintersectball_components_test -tc=simplexball_components_segment_intersects_ball)
-add_test(NAME simplexball_components_point_is_inside_ball
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_point_is_inside_ball)
-add_test(NAME simplexball_components_build_graph
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_build_graph)
-add_test(NAME simplexball_components_connected_components_from_graph
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_connected_components_from_graph)
-add_test(NAME simplexball_components_find_components_from_vertices
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_find_components_from_vertices)
-add_test(NAME simplexball_components_radial_starting_point_from_vertex
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_radial_starting_point_from_vertex)       
- add_test(NAME simplexball_components_find_starting_point_for_component
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_find_starting_point_for_component)
-add_test(NAME simplexball_components_find_starting_points_for_components
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_find_starting_points_for_components)
-add_test(NAME simplexball_components_and_starting_points
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_and_starting_points)
-add_test(NAME simplexball_components_finds_two_components
-          COMMAND simplexintersectball_components_test -tc=simplexball_components_finds_two_components)
-
-
-
-
-
+add_test(NAME simplexball_components_tetrahedron_finds_two_components
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_finds_two_components)
+add_test(NAME simplexball_components_tetrahedron_starting_points
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_starting_points)
+add_test(NAME simplexball_components_tetrahedron_filters_interior_vertex
+          COMMAND simplexintersectball_components_test -tc=simplexball_components_tetrahedron_filters_interior_vertex)
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc

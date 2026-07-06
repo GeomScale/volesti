@@ -9,284 +9,117 @@ typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
 TEST_CASE("simplexball_components_segment_intersects_ball")
 {
-    VT center(2);
-    center << 0, 0;
+    VT center(3);
+    center << 0, 0, 0;
 
-    VT u(2);
-    VT v(2);
+    VT u(3);
+    VT v(3);
 
     // Segment crosses the unit ball.
-    u << -2, 0;
-    v << 2, 0;
+    u << -2, 0, 0;
+    v << 2, 0, 0;
     CHECK(segment_intersects_ball(u, v, center, NT(1)));
 
     // Segment stays outside the unit ball.
-    u << 2, 2;
-    v << 3, 2;
+    u << 2, 2, 0;
+    v << 3, 2, 0;
     CHECK_FALSE(segment_intersects_ball(u, v, center, NT(1)));
 
     // Segment is tangent to the unit ball.
-    u << -1, 1;
-    v << 1, 1;
-    CHECK(segment_intersects_ball(u, v, center, NT(1)));
-
-    // Segment starts inside the unit ball.
-    u << 0, 0;
-    v << 2, 0;
+    u << -1, 1, 0;
+    v << 1, 1, 0;
     CHECK(segment_intersects_ball(u, v, center, NT(1)));
 }
 
-TEST_CASE("simplexball_components_point_is_inside_ball")
+TEST_CASE("simplexball_components_tetrahedron_finds_two_components")
 {
-    VT center(2);
-    center << 0, 0;
+    VT center(3);
+    center << 0, 0, 0;
 
-    VT p(2);
-
-    p << 0.5, 0.0;
-    CHECK(point_is_inside_ball(p, center, NT(1)));
-
-    p << 1.0, 0.0;
-    CHECK_FALSE(point_is_inside_ball(p, center, NT(1)));
-
-    p << 1.5, 0.0;
-    CHECK_FALSE(point_is_inside_ball(p, center, NT(1)));
-}
-
-TEST_CASE("simplexball_components_build_graph")
-{
-    VT center(2);
-    center << 0, 0;
-
-    // 4 vertices around the unit ball.
-    // Edges through the ball should be removed.
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 4);
-    vertices << -2,  2,  0,  0,
-                 0,  0,  2, -2;
-
-    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> graph =
-        build_simplex_ball_graph(vertices, center, NT(1));
-
-    CHECK(graph.rows() == 4);
-    CHECK(graph.cols() == 4);
-
-    // No self-loops.
-    CHECK(graph(0, 0) == 0);
-    CHECK(graph(1, 1) == 0);
-    CHECK(graph(2, 2) == 0);
-    CHECK(graph(3, 3) == 0);
-
-    // Segment from (-2,0) to (2,0) crosses the ball.
-    CHECK(graph(0, 1) == 0);
-    CHECK(graph(1, 0) == 0);
-
-    // Segment from (0,2) to (0,-2) crosses the ball.
-    CHECK(graph(2, 3) == 0);
-    CHECK(graph(3, 2) == 0);
-
-    // Segment from (-2,0) to (0,2) is tangent/outside boundary-connected.
-    CHECK(graph(0, 2) == 1);
-    CHECK(graph(2, 0) == 1);
-}
-
-TEST_CASE("simplexball_components_connected_components_from_graph")
-{
-    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> graph(5, 5);
-    graph.setZero();
-
-    // Component 1: 0 -- 1
-    graph(0, 1) = 1;
-    graph(1, 0) = 1;
-
-    // Component 2: 2 -- 3
-    graph(2, 3) = 1;
-    graph(3, 2) = 1;
-
-    // Vertex 4 is isolated and should be ignored.
+    // Non-degenerate tetrahedron in R^3.
+    // Vertices 0 and 1 form one component.
+    // Vertices 2 and 3 form the other component.
+    // Every edge between the two pairs intersects the unit ball.
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(3, 4);
+    vertices << -2, -2,  2,  2,
+                -0.2, 0.2, -0.2, 0.2,
+                -0.2, 0.2,  0.2, -0.2;
 
     std::vector<std::vector<int>> components =
-        connected_components_from_graph(graph);
+        find_simplex_ball_components(vertices, center, NT(1));
 
-    CHECK(components.size() == 2);
+    REQUIRE(components.size() == 2);
 
     CHECK(components[0].size() == 2);
-    CHECK(components[1].size() == 2);
-
     CHECK(components[0][0] == 0);
     CHECK(components[0][1] == 1);
 
+    CHECK(components[1].size() == 2);
     CHECK(components[1][0] == 2);
     CHECK(components[1][1] == 3);
 }
 
-TEST_CASE("simplexball_components_find_components_from_vertices")
+TEST_CASE("simplexball_components_tetrahedron_starting_points")
 {
-    VT center(2);
-    center << 0, 0;
+    VT center(3);
+    center << 0, 0, 0;
 
-    // Same 4 vertices as before:
-    // left, right, top, bottom around the unit ball.
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 4);
-    vertices << -2,  2,  0,  0,
-                 0,  0,  2, -2;
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(3, 4);
+    vertices << -2, -2,  2,  2,
+                -0.2, 0.2, -0.2, 0.2,
+                -0.2, 0.2,  0.2, -0.2;
 
-    std::vector<std::vector<int>> components =
-        find_simplex_ball_components(vertices, center, NT(1));
+    // H-representation of the tetrahedron above.
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(4, 3);
+    A <<  1,  10,  10,
+          1, -10, -10,
+         -1,  10, -10,
+         -1, -10,  10;
 
-    CHECK(components.size() == 1);
+    VT b(4);
+    b << 2, 2, 2, 2;
 
-    CHECK(components[0].size() == 4);
-    CHECK(components[0][0] == 0);
-    CHECK(components[0][1] == 2);
-    CHECK(components[0][2] == 3);
-    CHECK(components[0][3] == 1);
-}
-
-TEST_CASE("simplexball_components_radial_starting_point_from_vertex")
-{
-    VT center(2);
-    center << 0, 0;
-
-    VT vertex(2);
-    vertex << 2, 0;
-
-    VT p = radial_starting_point_from_vertex(vertex, center, NT(1));
-
-    CHECK(p.rows() == 2);
-    CHECK(p(0) == doctest::Approx(1.0));
-    CHECK(p(1) == doctest::Approx(0.0));
-    CHECK(p.norm() == doctest::Approx(1.0));
-
-    vertex << 0, -3;
-
-    p = radial_starting_point_from_vertex(vertex, center, NT(1));
-
-    CHECK(p(0) == doctest::Approx(0.0));
-    CHECK(p(1) == doctest::Approx(-1.0));
-    CHECK(p.norm() == doctest::Approx(1.0));
-}
-
-TEST_CASE("simplexball_components_find_starting_point_for_component")
-{
-    VT center(2);
-    center << 0, 0;
-
-    // Triangle:
-    // x >= 0, y >= 0, x + y <= 2
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(3, 2);
-    A << -1,  0,
-          0, -1,
-          1,  1;
-
-    VT b(3);
-    b << 0, 0, 2;
-
-    // Vertices stored column-wise: (0,0), (2,0), (0,2)
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 3);
-    vertices << 0, 2, 0,
-                0, 0, 2;
-
-    std::vector<int> component;
-    component.push_back(1); // vertex (2,0)
-    component.push_back(2); // vertex (0,2)
-
-    std::pair<bool, VT> result =
-        find_starting_point_for_component(vertices, component, A, b, center, NT(1));
-
-    CHECK(result.first);
-
-    VT p = result.second;
-
-    CHECK(p.norm() == doctest::Approx(1.0));
-    CHECK(point_satisfies_halfspaces(A, b, p));
-}
-
-TEST_CASE("simplexball_components_find_starting_points_for_components")
-{
-    VT center(2);
-    center << 0, 0;
-
-    // Triangle:
-    // x >= 0, y >= 0, x + y <= 2
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(3, 2);
-    A << -1,  0,
-          0, -1,
-          1,  1;
-
-    VT b(3);
-    b << 0, 0, 2;
-
-    // Vertices stored column-wise: (0,0), (2,0), (0,2)
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 3);
-    vertices << 0, 2, 0,
-                0, 0, 2;
-
-    std::vector<std::vector<int>> components;
-    components.push_back({1, 2});
-
-    std::vector<VT> starting_points =
-        find_starting_points_for_components(vertices, components, A, b, center, NT(1));
-
-    CHECK(starting_points.size() == 1);
-
-    VT p = starting_points[0];
-
-    CHECK(p.norm() == doctest::Approx(1.0));
-    CHECK(point_satisfies_halfspaces(A, b, p));
-}
-
-TEST_CASE("simplexball_components_and_starting_points")
-{
-    VT center(2);
-    center << 0, 0;
-
-    // Triangle:
-    // x >= 0, y >= 0, x + y <= 2
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> A(3, 2);
-    A << -1,  0,
-          0, -1,
-          1,  1;
-
-    VT b(3);
-    b << 0, 0, 2;
-
-    // Vertices stored column-wise: (0,0), (2,0), (0,2)
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 3);
-    vertices << 0, 2, 0,
-                0, 0, 2;
+    VT interior_point(3);
+    interior_point << 0, 0, 0;
 
     std::pair<std::vector<std::vector<int>>, std::vector<VT>> result =
-        find_simplex_ball_components_and_starting_points(vertices, A, b, center, NT(1));
+        find_simplex_ball_components_and_starting_points(
+            vertices, A, b, interior_point, center, NT(1));
 
-    std::vector<std::vector<int>> components = result.first;
-    std::vector<VT> starting_points = result.second;
+    REQUIRE(result.first.size() == 2);
+    REQUIRE(result.second.size() == 2);
 
-    CHECK(components.size() == 1);
-    CHECK(starting_points.size() == 1);
-
-    VT p = starting_points[0];
-
-    CHECK(p.norm() == doctest::Approx(1.0));
-    CHECK(point_satisfies_halfspaces(A, b, p));
+    for (VT const& p : result.second)
+    {
+        CHECK(p.rows() == 3);
+        CHECK(p.norm() == doctest::Approx(1.0));
+        CHECK(point_satisfies_halfspaces(A, b, p));
+    }
 }
 
-TEST_CASE("simplexball_components_finds_two_components")
+TEST_CASE("simplexball_components_tetrahedron_filters_interior_vertex")
 {
-    VT center(2);
-    center << 0, 0;
+    VT center(3);
+    center << 0, 0, 0;
 
-    // Two clusters on opposite sides of the unit ball.
-    // Within each cluster, the segment stays outside the ball.
-    // Between clusters, every segment crosses the ball.
-    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(2, 4);
-    vertices << -2, -2,  2,  2,
-                -0.2, 0.2, -0.2, 0.2;
+    // Non-degenerate tetrahedron with one vertex inside the unit ball.
+    // Vertex 3 is inside and should be ignored.
+    // Vertex 0 remains an isolated active component.
+    // Vertices 1 and 2 remain connected.
+    Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> vertices(3, 4);
+    vertices << -2,  2,  2,  0,
+                 0,  0,  0.5, 0.1,
+                 0,  0,  0.5, 0;
 
     std::vector<std::vector<int>> components =
         find_simplex_ball_components(vertices, center, NT(1));
 
-    CHECK(components.size() == 2);
+    REQUIRE(components.size() == 2);
 
-    CHECK(components[0].size() == 2);
+    CHECK(components[0].size() == 1);
+    CHECK(components[0][0] == 0);
+
     CHECK(components[1].size() == 2);
+    CHECK(components[1][0] == 1);
+    CHECK(components[1][1] == 2);
 }
