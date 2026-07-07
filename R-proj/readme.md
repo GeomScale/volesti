@@ -36,11 +36,13 @@ result <- sample_ptfs_constant_volatility(
 
 samples <- result$overall_samples[[1]]  # matrix: rows = assets, 
                                         # cols = portfolios
-colSums(samples)                        # long-only simplex constraint
-mean(diag(t(samples) %*% sigma %*% samples))  # ~0.3; target volatility
+samples <- result$overall_samples[[1]]  # matrix: rows = assets, cols = portfolios
+sum(abs(colSums(samples) - 1))          # long-only simplex constraint met
+# check that all sampled portfolios have variance equal to c up to numerical precision
+sum(abs(diag(t(samples) %*% sigma %*% samples) - c)) 
 ```
 
-See `run_minimal_example.R` for a complete worked example.
+See `run_minimal.R` for a minimal example.
 
 ## Reproducing the paper
 
