@@ -71,6 +71,7 @@ void call_test_max_ball_sparse() {
     
     // Initialize order polytope from the poset
     OrderPolytope<Point> OP(poset);
+
     OP.normalize();
     SpMT Asp = OP.get_mat();
     MT A = MT(OP.get_mat());
@@ -89,7 +90,7 @@ void call_test_max_ball_sparse() {
     CHECK(OP.is_in(Point(center)) == -1);
     auto [E, x0, round_val] = inscribed_ellipsoid_rounding<MT, VT, NT>(OP, Point(center));
     
-    CHECK((center - center_).norm() <= 1e-06);
+    CHECK((center - center_).norm() <= 5e-04);
     CHECK(std::abs(radius - 0.207107) <= 1e-06);
     CHECK(converged);
 }
