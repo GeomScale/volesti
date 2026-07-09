@@ -70,6 +70,9 @@ struct RichardsonExtrapolationODESolver {
   void initialize_solver() {
     solver = new RKODESolver<Point, NT, Polytope, func>(t, eta, xs, F, bounds{NULL});
   }
+  ~RichardsonExtrapolationODESolver() {
+      delete solver;
+  }
 
   void step(int k, bool accepted) {
     xs_prev = xs;
