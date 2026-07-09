@@ -82,146 +82,158 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    config.dimension = dimension;
     config.polytope_choice = polytope_cli_choice;
 
-    HPOLYTOPE Polytope_simple;
-    try {
-        Polytope_simple = create_polytope(config.polytope_choice, config.dimension, config);
-    } 
-    catch (const std::exception& e) {
-        std::cerr << e.what() << "\n";
-        std::cerr << ">>> Error. Please fix the config or file paths.\n";
-        return 1; 
-    }
-
-    config.dimension = Polytope_simple.dimension();
-    dimension = config.dimension; 
-
-    // Print basic info
-    cout << "Target ESS: " << config.target_ESS << "\n";
-    cout << "Dimension: " << dimension << "\n";
-    cout << "Polytope: " << config.polytope_choice << "\n";
-
-    double angle = config.angle; 
-    cout << "Rotation angle is: " << angle << "\n";
-    cout << "Dynamic batch size is on: " << config.use_dynamic_batch << "\n";
-    cout << "Rounding is on: " << config.rounding << "\n";
-
-    cout << "\n" << string(40, '=') << "\n";
-    cout << "*** Running for dimension " << dimension << " ***\n";
-    
-    // We need this copy to pass the original polytope to the metrics if roundeing was on.
-    HPOLYTOPE Polytope_rotated = rotate_all_dims(Polytope_simple, angle);
-    HPOLYTOPE Polytope = Polytope_rotated;
-    
-    auto inner = Polytope.ComputeInnerBall();
-    Point center = inner.first;
-
-    // Variables to store transformation data
-    MT T;
-    VT shift;
-    NT round_val = 1.0;
-
-    // ****ROUNDING***** 
-    if (config.rounding) {
-        cout << "[ROUNDING] Rounding is enabled. Applying max inscribed ellipsoid rounding...\n";
-        
-        // Pass the pre-computed center into the rounding function
-        // Use john ellispoid
-        // Polytope is passed by reference so we shouldnt need to define a new one.
-        auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT>(Polytope, center);
-        
-        // Unpack the transformation data
-        T = std::get<0>(rounding_result);
-        shift = std::get<1>(rounding_result);
-        round_val = std::get<2>(rounding_result);
-        
-        // Since rounding shifts the polytope to the origin we will use 0,0,0,0,0 ... as center.
-        center = Point(VT::Zero(Polytope.dimension()));
-        
-        cout << "[ROUNDING] Rounding complete. Round value: " << round_val << "\n\n";
-    }
-    // --------------------------
-
-    // Setup RNG 
-    RNGType rng(Polytope.dimension());
-
-    auto run_method = [&](const string& method_name) {
-
-        // Access registry
-        auto& registry = get_walk_registry();
-        auto walk_it = registry.find(method_name);
-
-        if (walk_it != registry.end()) {
-            
-            WalkResult result = walk_it->second(
-                Polytope,
-                center,
-                rng,
-                config,
-                method_name
-            );
-
-            if (!result.samples.empty()) {
-
-                // Reverse rounding
-                if (config.rounding) {
-                    for (auto& pt : result.samples) {
-                
-                        // Apply the reverse transformation: T * vector + shift
-                        pt = T * pt.getCoefficients() + shift; 
-                    }
-                }
-                // ----------------------------------
-
-                // Write samples to txt file for later use
-                if (config.write_to_file) {
-                    std::filesystem::create_directory("results");
-                    std::string filename = "results/" + config.polytope_choice + "_" + method_name + "_samples.txt";
-                    
-                    std::cout << "[" << method_name << "] Saving " << result.samples.size() 
-                              << " points to " << filename << "...\n";
-                              
-                    write_to_file(filename, result.samples);
-                    
-                    std::cout << "[" << method_name << "] File saved successfully.\n";
-                }
-
-                // Process results
-                process_and_print_results(
-                    result.samples, 
-                    Polytope_rotated, 
-                    method_name, 
-                    result.generation_time, 
-                    result.final_ess,
-                    result.ess_time        
-                );
-            } else {
-                cout << "!!! " << method_name << " failed to generate points.\n";
-            }
-            
-        } else {
-            cout << "!!! Unknown walk type skipped: " << method_name << "\n";
-            return;
-        }
-    };
-
-    // If the user picked "All", iterate through the JSON keys. Otherwise, just run the one they requested.
-    if (walk_choice == "All") {
-        for (const auto& pair : config.walk_settings) {
-
-            if(pair.second.enabled) {
-                run_method(pair.first);
-            } 
-            else {
-               // cout << "--- Skipping " << pair.first << " (Disabled in JSON) ---\n";
-            }
-        }
+    std::vector<unsigned int> dimensions_to_run;
+    if (config.polytope_choice == "Custom") {
+        dimensions_to_run = { 0 };
     } else {
-        run_method(walk_choice);
+        dimensions_to_run = config.dimensions;
     }
 
+    for (unsigned int current_dim : dimensions_to_run) {
+
+        config.dimension = current_dim;
+        HPOLYTOPE Polytope_simple;
+        try {
+            Polytope_simple = create_polytope(config.polytope_choice, config.dimension, config);
+        } 
+        catch (const std::exception& e) {
+            std::cerr << e.what() << "\n";
+            std::cerr << ">>> Error. Please fix the config or file paths.\n";
+            return 1; 
+        }
+
+        config.dimension = Polytope_simple.dimension();
+        dimension = config.dimension; 
+
+        // Print basic info
+        cout << "Target ESS: " << config.target_ESS << "\n";
+        cout << "Dimension: " << dimension << "\n";
+        cout << "Polytope: " << config.polytope_choice << "\n";
+
+        double angle = config.angle; 
+        cout << "Rotation angle is: " << angle << "\n";
+        cout << "Dynamic batch size is on: " << config.use_dynamic_batch << "\n";
+        cout << "Rounding is on: " << config.rounding << "\n";
+
+        cout << "\n" << string(40, '=') << "\n";
+        cout << "*** Running for dimension " << dimension << " ***\n";
+        
+        // We need this copy to pass the original polytope to the metrics if roundeing was on.
+        HPOLYTOPE Polytope_rotated = rotate_all_dims(Polytope_simple, angle);
+        HPOLYTOPE Polytope = Polytope_rotated;
+        
+        auto inner = Polytope.ComputeInnerBall();
+        Point center = inner.first;
+
+        // Variables to store transformation data
+        MT T;
+        VT shift;
+        NT round_val = 1.0;
+
+        // ****ROUNDING***** 
+        if (config.rounding) {
+            cout << "[ROUNDING] Rounding is enabled. Applying max inscribed ellipsoid rounding...\n";
+            
+            // Pass the pre-computed center into the rounding function
+            // Use john ellispoid
+            // Polytope is passed by reference so we shouldnt need to define a new one.
+            auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT>(Polytope, center);
+            
+            // Unpack the transformation data
+            T = std::get<0>(rounding_result);
+            shift = std::get<1>(rounding_result);
+            round_val = std::get<2>(rounding_result);
+            
+            // Since rounding shifts the polytope to the origin we will use 0,0,0,0,0 ... as center.
+            center = Point(VT::Zero(Polytope.dimension()));
+            
+            cout << "[ROUNDING] Rounding complete. Round value: " << round_val << "\n\n";
+        }
+        // --------------------------
+
+        // Setup RNG 
+        RNGType rng(Polytope.dimension());
+
+        auto run_method = [&](const string& method_name) {
+
+            // Access registry
+            auto& registry = get_walk_registry();
+            auto walk_it = registry.find(method_name);
+
+            if (walk_it != registry.end()) {
+                
+                WalkResult result = walk_it->second(
+                    Polytope,
+                    center,
+                    rng,
+                    config,
+                    method_name
+                );
+
+                if (!result.samples.empty()) {
+
+                    // Reverse rounding
+                    if (config.rounding) {
+                        for (auto& pt : result.samples) {
+                    
+                            // Apply the reverse transformation: T * vector + shift
+                            pt = T * pt.getCoefficients() + shift; 
+                        }
+                    }
+                    // ----------------------------------
+
+                    // Write samples to txt file for later use
+                    if (config.write_to_file) {
+                        std::filesystem::create_directory("results");
+                        std::string filename = "results/" + config.polytope_choice + "_" + 
+                                               std::to_string(dimension) + "_" + 
+                                               method_name + "_samples.txt";
+                        
+                        std::cout << "[" << method_name << "] Saving " << result.samples.size() 
+                                << " points to " << filename << "...\n";
+                                
+                        write_to_file(filename, result.samples);
+                        
+                        std::cout << "[" << method_name << "] File saved successfully.\n";
+                    }
+
+                    // Process results
+                    process_and_print_results(
+                        result.samples, 
+                        Polytope_rotated, 
+                        method_name, 
+                        result.generation_time, 
+                        result.final_ess,
+                        result.ess_time,
+                        result.walk_len        
+                    );
+                } else {
+                    cout << "!!! " << method_name << " failed to generate points.\n";
+                }
+                
+            } else {
+                cout << "!!! Unknown walk type skipped: " << method_name << "\n";
+                return;
+            }
+        };
+
+        // If the user picked "All", iterate through the JSON keys. Otherwise, just run the one they requested.
+        if (walk_choice == "All") {
+            for (const auto& pair : config.walk_settings) {
+
+                if(pair.second.enabled) {
+                    run_method(pair.first);
+                } 
+                else {
+                // cout << "--- Skipping " << pair.first << " (Disabled in JSON) ---\n";
+                }
+            }
+        } else {
+            run_method(walk_choice);
+        }
+    }
     cout << "\nBenchmark Complete.\n";
     return 0;
 }

@@ -15,7 +15,17 @@ BenchmarkConfig load_benchmark_config(const std::string& filepath) {
         config.target_ESS      = pt.get<unsigned int>("global_settings.target_ESS", 500);
         config.time_limit_sec  = pt.get<double>("global_settings.time_limit_sec", 1200.0);
         config.base_seed       = pt.get<int>("global_settings.base_seed", 42);
-        config.dimension       = pt.get<unsigned int>("global_settings.dimension", 100);
+
+        //dimensions array 
+        auto dims_node = pt.get_child_optional("global_settings.dimensions");
+        if (dims_node) {
+            for (const auto& item : *dims_node) {
+                config.dimensions.push_back(item.second.get_value<unsigned int>());
+            }
+        } else {
+            // fallback for older configs
+            config.dimensions.push_back(pt.get<unsigned int>("global_settings.dimensions", 100));
+        }
 
         config.polytope_choice = pt.get<std::string>("global_settings.polytope_choice", "Cube");
         config.custom_A_file   = pt.get<std::string>("global_settings.custom_A_file", "");

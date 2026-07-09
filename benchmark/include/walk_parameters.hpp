@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 // In this file you can find functions for configuration structures and helper
 // functions used to control benchmark experiments for random walks.
@@ -24,7 +25,8 @@ struct BenchmarkConfig {
     double time_limit_sec;
     int base_seed;
     unsigned int dimension;
-    unsigned int angle;
+    std::vector<unsigned int> dimensions;
+    double angle;
     std::string polytope_choice;
     std::string custom_A_file;
     std::string custom_b_file;

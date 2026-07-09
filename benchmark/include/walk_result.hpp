@@ -12,6 +12,7 @@ struct WalkResult {
     unsigned int final_ess;
     double generation_time;
     double ess_time;
+    unsigned int walk_len;
 };
 
 
@@ -22,6 +23,7 @@ struct WalkStatistics {
     double ks_p_value;
     double total_time;
     double ess_time;
+    double mixing_ratio;
 };
 
 WalkStatistics process_and_print_results(
@@ -30,5 +32,6 @@ WalkStatistics process_and_print_results(
     const std::string& walk_name, 
     double total_generation_time,
     unsigned int precalculated_ess,
-    double total_ess_time
+    double total_ess_time,
+    unsigned int walk_len
 );

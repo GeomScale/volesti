@@ -78,8 +78,18 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                     allSamples.insert(allSamples.end(), chunkPoints.begin(), chunkPoints.end());
                     generated_this_batch += chunkPoints.size();
 
-                    // Draw progress bar
-                    draw_progress_bar(walk_name, generated_this_batch, batch_size);
+                    // calculate total samples across all batches + what we just generated
+                    unsigned int total_generated_so_far = allSamples.size();
+
+                    // Draw progress bar with live mixing ratio
+                    draw_progress_bar(
+                        walk_name, 
+                        generated_this_batch, 
+                        batch_size, 
+                        total_generated_so_far, 
+                        current_ESS, 
+                        walk_len
+                    );
 
                     if (walk_timer.get_total_time() > config.time_limit_sec) {
                         break;
@@ -156,5 +166,5 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
     double final_gen_time = walk_timer.get_total_time();
     double final_ess_time = ess_timer.get_total_time();
     
-    return { allSamples, current_ESS, final_gen_time, final_ess_time };
+    return { allSamples, current_ESS, final_gen_time, final_ess_time, walk_len };
 }
