@@ -4,6 +4,9 @@
 
 `volesti` is a `C++` package (with an `R` interface) for computing estimations of volume of polytopes given by a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume estimation and algorithms for sampling, rounding and rotating polytopes.
 
+**Note:** This tutorial is based on package version **1.2.0** from CRAN.  
+
+
 We can download the `R` package from the [CRAN webpage](https://CRAN.R-project.org/package=volesti).
 
 ```r
@@ -22,7 +25,7 @@ help("sample_points")
 Let’s try our first volesti command to estimate the volume of a 3-dimensional cube $\{-1\leq x_i \leq 1,x_i \in \mathbb R\ |\ i=1,2,3\}$
 
 ```r
-P <- GenCube(3,'H')
+P <- gen_cube(3,'H')
 print(volume(P))
 ```
 
@@ -124,9 +127,9 @@ There are two important parameters `cost per step` and `mixing time` that affect
 library(ggplot2)
 library(volesti)
 for (step in c(1,20,100,150)){
-  for (walk in c("CDHR", "RDHR", "BW")){
-    P <- GenCube(100, 'H')
-    points1 <- sample_points(P, WalkType = walk, walk_step = step, N=1000)
+  for (walk in c("CDHR", "RDHR", "BaW")){
+    P <- gen_cube(100, 'H')
+    points1 = sample_points(P, n = 1000, random_walk = list("walk" = walk, "walk_length" = step))
     g<-plot(ggplot(data.frame( x=points1[1,], y=points1[2,] )) +
 geom_point( aes(x=x, y=y, color=walk)) + coord_fixed(xlim = c(-1,1),
 ylim = c(-1,1)) + ggtitle(sprintf("walk length=%s", step, walk)))
@@ -151,25 +154,25 @@ Now let's compute our first example. The volume of the 3-dimensional cube.
 ```r
 library(geometry)
 
-PV <- GenCube(3,'V')
+PV <- gen_cube(3,'V')
 str(PV)
 
 #P = GenRandVpoly(3, 6, body = 'cube')
-tim1 <- system.time({ geom_values = convhulln(PV$V, options = 'FA') })
+tim1 <- system.time({ geom_values = convhulln(PV@V, options = 'FA') })
 tim2 <- system.time({ vol2 = volume(PV) })
 
 cat(sprintf("exact vol = %f\napprx vol = %f\nrelative error = %f\n",
-            geom_values$vol, vol2, abs(geom_values$vol-vol2)/geom_values$vol))
+            geom_values$vol, vol2$volume, abs(geom_values$vol-vol2$volume)/geom_values$vol))
 ```
 
 Now try a higher dimensional example. By setting the `error` parameter we can control the apporximation of the algorithm.
 
 ```r
-PH = GenCube(10,'H')
+PH = gen_cube(10,'H')
 volumes <- list()
 for (i in 1:10) {
   # default parameters
-  volumes[[i]] <- volume(PH, error=1)
+  volumes[[i]] <- volume(PH, settings = list("error" = 1))$volume
 }
 options(digits=10)
 summary(as.numeric(volumes))
@@ -178,7 +181,7 @@ summary(as.numeric(volumes))
 ```r
 volumes <- list()
 for (i in 1:10) {
-  volumes[[i]] <- volume(PH, error=0.5)
+  volumes[[i]] <- volume(PH, settings = list("error" = 0.5))$volume
 }
 summary(as.numeric(volumes))
 ```
@@ -188,12 +191,9 @@ Deterministic algorithms for volume are limited to low dimensions (e.g. less tha
 ```r
 library(geometry)
 
-P = GenRandVpoly(15, 30)
-# this will return an error about memory allocation, i.e. the dimension is too high for qhull
-tim1 <- system.time({ geom_values = convhulln(P$V, options = 'FA') })
-
-#warning: this also takes a lot of time in v1.0.3
-print(volume(P))
+P = gen_rand_vpoly(15, 30)
+tim1 <- system.time({ geom_values = convhulln(P@V, options = 'FA') })
+print(volume(P)$volume)
 ```
 
 ### Volume of Birkhoff polytopes
@@ -207,11 +207,11 @@ obtained via massive parallel computation.
 
 ```r
 library(volesti)
-P <- fileToMatrix('data/birk10.ine')
+P <- gen_birkhoff(10)
 exact <- 727291284016786420977508457990121862548823260052557333386607889/828160860106766855125676318796872729344622463533089422677980721388055739956270293750883504892820848640000000
 
-# warning the following will take around half an hour
-#print(volume(P, Algo = 'CG'))
+time <- system.time({ vol <- volume(B)$volume })
+print(vol)
 ```
 
 Compare our computed estimation with the "normalized" floating point version of  $\text{vol}(\mathcal{B}_{10})$
@@ -233,66 +233,27 @@ Our random walks perform poorly on those polytopes espacially as the dimension i
 ```r
 library(ggplot2)
 
-P = GenSkinnyCube(2)
-points1 = sample_points(P, WalkType = "CDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
-points1 = sample_points(P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
+d <- 100
+P = gen_skinny_cube(d)
+P <- rotate_polytope(P)$P
+for (walk in c("CDHR", "RDHR", "BaW")){
+points1 = sample_points(P, n = 1000, random_walk = list("walk" = walk, "walk_length" = 100))
+cat(walk, min(ess(points1)),"\n")
+}
 ```
 
 ```r
-P = GenSkinnyCube(10)
-points1 = sample_points(P, WalkType = "CDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
-points1 = sample_points(P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
-P = GenSkinnyCube(100)
-points1 = sample_points(P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(xlim = c(-100,100), ylim = c(-10,10))
+points1 = sample_points(P, n = 1000, random_walk = list("walk" = "aBiW", "walk_length" = 1))
+cat(walk, min(ess(points1)),"\n")
 ```
-
-
-Then we examine the problem of rounding by sampling in the original and then in the rounded polytope and look at the effect in volume computation.
+Applying a rounding algorithm improves the convergence of walks.
 
 ```r
-library(ggplot2)
-
-d <- 10
-
-P = GenSkinnyCube(d)
-points1 = sample_points(P, WalkType = "CDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed(ylim = c(-10,10))
-
-P <- rand_rotate(P)$P
-
-points1 = sample_points(P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points1[1,]), y = c(points1[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-
-exact <- 2^d*100
-cat("exact volume                 = ", exact , "\n")
-cat("volume estimation (no round) = ", volume(P, WalkType = "RDHR", rounding=FALSE), "\n")
-cat("volume estimation (rounding) = ", volume(P, WalkType = "RDHR", rounding=TRUE), "\n")
-
-# 1st step of rounding
-res1 = round_polytope(P)
-points2 = sample_points(res1$P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points2[1,]), y = c(points2[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-volesti <- volume(res1$P) * res1$round_value
-cat("volume estimation (1st step) = ", volesti, " rel. error=", abs(exact-volesti)/exact,"\n")
-
-# 2nd step of rounding
-res2 = round_polytope(res1$P)
-points2 = sample_points(res2$P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points2[1,]), y = c(points2[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-volesti <- volume(res2$P) * res1$round_value * res2$round_value
-cat("volume estimation (2nd step) = ", volesti, " rel. error=", abs(exact-volesti)/exact,"\n")
-
-# 3rd step of rounding
-res3 = round_polytope(res2$P)
-points2 = sample_points(res3$P, WalkType = "RDHR", N=1000)
-ggplot(data.frame(x = c(points2[1,]), y = c(points2[2,])), aes(x=x, y=y)) + geom_point() +labs(x =" ", y = " ")+coord_fixed()
-volesti <- volume(res3$P) * res1$round_value * res2$round_value * res3$round_value
-cat("volume estimation (3rd step) = ", volesti, " rel. error=", abs(exact-volesti)/exact,"\n")
+Pr <- round_polytope(P)$P
+for (walk in c("CDHR", "RDHR", "BaW")){
+points1 = sample_points(Pr, n = 1000, random_walk = list("walk" = walk, "walk_length" = 100))
+cat(walk, min(ess(points1)),"\n")
+}
 ```
 
 
@@ -308,14 +269,14 @@ adaptIntegrate(f, lowerLimit = c(-1, -1, -1), upperLimit = c(1, 1, 1))$integral
 
 # Simple Monte Carlo integration
 # https://en.wikipedia.org/wiki/Monte_Carlo_integration
-P = GenCube(3, 'H')
+P = gen_cube(3, 'H')
 num_of_points <- 10000
-points1 <- sample_points(P, WalkType = "RDHR", walk_step = 100, N=num_of_points)
+points1 <- sample_points(P,random_walk = list("Walk" = "RDHR", "walk_length" = 100), n=num_of_points)
 int<-0
 for (i in 1:num_of_points){
   int <- int + f(points1[,i])
 }
-V <- volume(P)
+V <- volume(P)$volume
 print(int*V/num_of_points)
 ```
 
@@ -337,8 +298,8 @@ We can approximate this number by the following code.
 ```r
 A = matrix(c(-1,0,1,0,0,0,-1,1,0,0,0,-1,0,1,0,0,0,0,-1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,-1), ncol=5, nrow=14, byrow=TRUE)
 b = c(0,0,0,0,0,0,0,0,0,1,1,1,1,1)
-P = Hpolytope$new(A, b)
-volume(P,error=0.2)*factorial(5)
+P = Hpolytope(A=A, b=b)
+volume(P)$volume*factorial(5)
 ```
 
 
@@ -352,7 +313,7 @@ library('plotly')
 ```
 
 ```r
-MatReturns <- read.table("https://stanford.edu/class/ee103/data/returns.txt", sep=",")
+MatReturns <- read.table("https://gist.githubusercontent.com/keithwind/26db2b1f1208b79b34db8232407ac132/raw/403f2e75d1eea5458515bd7be65a99fb33125436/MatReturns.txt", sep=",")
 MatReturns = MatReturns[-c(1,2),]
 dates = as.character(MatReturns$V1)
 MatReturns = as.matrix(MatReturns[,-c(1,54)])
@@ -378,7 +339,7 @@ for (j in 1:nassets) {
   compRet[j] = compRet[j] - 1
 }
 
-mass = copula2(h = compRet, E = cov(MatReturns[row1:row2,]), numSlices = 100, N=1000000)
+mass = copula(r1 = compRet, sigma = cov(MatReturns[row1:row2,]), m = 100, n=1000000)
 
 plot_ly(z = ~mass) %>% add_surface(showscale=FALSE)
 ```
