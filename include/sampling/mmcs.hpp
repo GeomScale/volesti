@@ -74,11 +74,11 @@ bool perform_mmcs_step(Polytope &P,
     Walk walk(P, p, rng, WalkType.param);
     ESSestimator<NT, VT, MT> estimator(window, P.dimension());
 
-    walk.template parameters_burnin(P, p, 10 + int(std::log(NT(P.dimension()))), 10, rng);
+    walk.template parameters_burnin<Polytope>(P, p, 10 + int(std::log(NT(P.dimension()))), 10, rng);
 
     while (!done)
     {
-        walk.template get_starting_point(P, p, q, 10, rng);
+        walk.template get_starting_point<Polytope>(P, p, q, 10, rng);
         for (int i = 0; i < window; i++)
         {
             walk.apply(P, q, walk_length, rng);
@@ -231,14 +231,14 @@ void mmcs(Polytope const& Pin,
         total_neff += Neff_sampled;
         Neff_sampled = 0;
 
-        MT Samples = TotalRandPoints.transpose(); //do not copy TODO!
+        // Optimized: avoid transpose copy by working directly with rows
+        S.conservativeResize(P.dimension(), total_number_of_samples_in_P0 + total_samples);
         for (int i = 0; i < total_samples; i++)
         {
-            Samples.col(i) = T * Samples.col(i) + T_shift;
+            // Transform each sample: T * sample + T_shift, then store as column in S
+            S.col(total_number_of_samples_in_P0 + i).noalias() = 
+                T * TotalRandPoints.row(i).transpose() + T_shift;
         }
-
-        S.conservativeResize(P.dimension(), total_number_of_samples_in_P0 + total_samples);
-        S.block(0, total_number_of_samples_in_P0, P.dimension(), total_samples) = Samples.block(0, 0, P.dimension(), total_samples);
         total_number_of_samples_in_P0 += total_samples;
         if (!complete)
         {

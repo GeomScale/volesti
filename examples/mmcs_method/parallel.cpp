@@ -85,14 +85,14 @@ void run_main()
         total_neff += Neff_sampled;
         Neff_sampled = 0;
         
-        MT Samples = TotalRandPoints.transpose(); //do not copy TODO!
+        // Optimized: avoid transpose copy by working directly with rows
+        S.conservativeResize(P.dimension(), total_number_of_samples_in_P0 + total_samples);
         for (int i = 0; i < total_samples; i++)
         {
-            Samples.col(i) = T * Samples.col(i) + T_shift;
+            // Transform each sample: T * sample + T_shift, then store as column in S
+            S.col(total_number_of_samples_in_P0 + i).noalias() = 
+                T * TotalRandPoints.row(i).transpose() + T_shift;
         }
-        
-        S.conservativeResize(P.dimension(), total_number_of_samples_in_P0 + total_samples);
-        S.block(0, total_number_of_samples_in_P0, P.dimension(), total_samples) = Samples.block(0, 0, P.dimension(), total_samples);
         total_number_of_samples_in_P0 += total_samples;
         if (!complete) 
         {
