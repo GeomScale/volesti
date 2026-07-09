@@ -48,13 +48,14 @@ void uniform_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef RandomPointGenerator <walk> RandomPointGenerator;
+    typedef RandomPointGenerator <walk> SamplingGenerator;
+    typedef RandomPointGenerator<walk, false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, nburns, walk_len, randPoints,
                                     push_back_policy, rng);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
+
+    SamplingGenerator::apply(P, p, rnum, walk_len, randPoints,
                                 push_back_policy, rng);
 
 
@@ -84,15 +85,16 @@ void uniform_sampling(PointList &randPoints,
 
     //RandomNumberGenerator rng(P.dimension());
     PushBackWalkPolicy push_back_policy;
-    typedef RandomPointGenerator<walk> RandomPointGenerator;
-
+    typedef RandomPointGenerator <walk> SamplingGenerator;
+    typedef RandomPointGenerator<walk, false> BurnInGenerator;
+    
     Point p = starting_point;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, nburns, walk_len, randPoints,
                                     push_back_policy, rng, WalkType.param);
-        randPoints.clear();
+     
     }
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, rnum, walk_len, randPoints,
                                 push_back_policy, rng, WalkType.param);
 }
 
@@ -124,14 +126,14 @@ void uniform_sampling_boundary(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef BoundaryRandomPointGenerator <walk> BoundaryRandomPointGenerator;
+    typedef BoundaryRandomPointGenerator <walk> SamplingGenerator;
+    typedef BoundaryRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        BoundaryRandomPointGenerator::apply(P, p, nburns, walk_len,
+        BurnInGenerator::apply(P, p, nburns, walk_len,
                                             randPoints, push_back_policy, rng);
-        randPoints.clear();
     }
     unsigned int n = rnum / 2;
-    BoundaryRandomPointGenerator::apply(P, p, rnum / 2, walk_len,
+    SamplingGenerator::apply(P, p, rnum / 2, walk_len,
                                         randPoints, push_back_policy, rng);
 
 }
@@ -167,13 +169,13 @@ void gaussian_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef GaussianRandomPointGenerator <walk> RandomPointGenerator;
+    typedef GaussianRandomPointGenerator <walk> SamplingGenerator;
+    typedef GaussianRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, a, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, a, nburns, walk_len, randPoints,
                                     push_back_policy, rng);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, a, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, a, rnum, walk_len, randPoints,
                                 push_back_policy, rng);
 
 
@@ -210,13 +212,13 @@ void gaussian_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef GaussianRandomPointGenerator <walk> RandomPointGenerator;
+    typedef GaussianRandomPointGenerator <walk> SamplingGenerator;
+    typedef GaussianRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, a, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, a, nburns, walk_len, randPoints,
                                     push_back_policy, rng, WalkType.param);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, a, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, a, rnum, walk_len, randPoints,
                                 push_back_policy, rng, WalkType.param);
 }
 
@@ -305,16 +307,15 @@ void logconcave_sampling(PointList &randPoints,
 
     walk logconcave_walk(&P, p, F, f, params);
 
-    typedef LogconcaveRandomPointGenerator<walk> RandomPointGenerator;
-    
+    typedef LogconcaveRandomPointGenerator<walk> SamplingGenerator;
+    typedef LogconcaveRandomPointGenerator<walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(nburns, walk_len, randPoints,
+        BurnInGenerator::apply(nburns, walk_len, randPoints,
                                 push_back_policy, rng, logconcave_walk);
     }
     logconcave_walk.disable_adaptive();
-    randPoints.clear();
 
-    RandomPointGenerator::apply(rnum, walk_len, randPoints,
+    SamplingGenerator::apply(rnum, walk_len, randPoints,
                                 push_back_policy, rng, logconcave_walk);
 }
 
@@ -417,13 +418,12 @@ void crhmc_sampling(PointList &randPoints,
 
   walk crhmc_walk = walk(problem, p, input.df, input.f, params);
 
-  typedef CrhmcRandomPointGenerator<walk> RandomPointGenerator;
-
-  RandomPointGenerator::apply(problem, p, nburns, walk_len, randPoints,
+  typedef CrhmcRandomPointGenerator<walk> SamplingGenerator;
+  typedef CrhmcRandomPointGenerator<walk,false> BurnInGenerator;
+  BurnInGenerator::apply(problem, p, nburns, walk_len, randPoints,
                               push_back_policy, rng, F, f, params, crhmc_walk);
   //crhmc_walk.disable_adaptive();
-  randPoints.clear();
-  RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
+  SamplingGenerator::apply(problem, p, rnum, walk_len, randPoints,
                               push_back_policy, rng, F, f, params, crhmc_walk, simdLen, raw_output);
 }
 #include "ode_solvers/ode_solvers.hpp"
@@ -533,13 +533,13 @@ void exponential_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
+    typedef ExponentialRandomPointGenerator <walk> SamplingGenerator;
+    typedef ExponentialRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, c, a, nburns, walk_len, randPoints,
                                     push_back_policy, rng);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, c, a, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, c, a, rnum, walk_len, randPoints,
                                 push_back_policy, rng);
 }
 
@@ -574,13 +574,13 @@ void exponential_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
+    typedef ExponentialRandomPointGenerator <walk> SamplingGenerator;
+    typedef ExponentialRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, c, a, nburns, walk_len, randPoints,
                                     push_back_policy, rng, WalkType.param);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, c, a, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, c, a, rnum, walk_len, randPoints,
                                 push_back_policy, rng, WalkType.param);
 }
 
@@ -616,13 +616,13 @@ void exponential_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
+    typedef ExponentialRandomPointGenerator <walk> SamplingGenerator;
+    typedef ExponentialRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
                                     push_back_policy, rng);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
                                 push_back_policy, rng);
 }
 
@@ -658,13 +658,13 @@ void exponential_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
+    typedef ExponentialRandomPointGenerator <walk> SamplingGenerator;
+    typedef ExponentialRandomPointGenerator <walk,false> BurnInGenerator;
     if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
+        BurnInGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
                                     push_back_policy, rng, WalkType.param);
-        randPoints.clear();
     }
-    RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
+    SamplingGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
                                 push_back_policy, rng, WalkType.param);
 }
 
