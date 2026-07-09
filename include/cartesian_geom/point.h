@@ -112,14 +112,29 @@ public:
         return coeffs.sum();
     }
 
+    template<typename T>
+    void operator+= (const T& other)
+    {
+        if (other.rows() == 1 && other.cols() == d && d > 1) {
+            this->coeffs += other.transpose();
+        } else {
+            this->coeffs += other;
+        }
+    }
+    
     void operator+= (const point& p)
     {
         coeffs += p.getCoefficients();
     }
-
-    void operator+= (const Coeff& coeffs)
+    
+    template<typename T>
+    void operator-= (const T& other)
     {
-        this->coeffs += coeffs;
+        if (other.rows() == 1 && other.cols() == d && d > 1) {
+            this->coeffs -= other.transpose();
+        } else {
+            this->coeffs -= other;
+        }
     }
 
     void operator-= (const point& p)
@@ -127,10 +142,6 @@ public:
         coeffs -= p.getCoefficients();
     }
 
-    void operator-= (const Coeff& coeffs)
-    {
-        this->coeffs -= coeffs;
-    }
 
     void operator= (const Coeff& coeffs)
     {
@@ -205,8 +216,7 @@ public:
     }
 
     FT squared_length() const {
-        FT lsq = length();
-        return lsq * lsq;
+        return coeffs.squaredNorm();
     }
 
     FT length() const {
