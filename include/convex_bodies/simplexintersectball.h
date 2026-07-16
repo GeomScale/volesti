@@ -36,11 +36,6 @@ public:
         return std::acos(NT(-1));
     }
 
-    static NT trig_tol()
-    {
-        return NT(1e-05);
-    }
-
 private:
     unsigned int _d; // dimension
     MT A;            // matrix A
@@ -48,36 +43,39 @@ private:
     MT V;            // simplex vertices, stored column-wise
     VT x0;           // center of the unit ball
 
-    bool compute_facet_roots(NT const &Ar_i,
-                             NT const &Av_i,
-                             NT const &b_i,
-                             NT &C1,
-                             NT &C2) const
+    bool compute_facet_roots(NT const& Ar_i,
+                            NT const& Av_i,
+                            NT const& b_i,
+                            NT& C1,
+                            NT& C2) const
     {
-        NT denom = Ar_i * Ar_i + Av_i * Av_i;
-        NT D = denom - b_i * b_i;
+        NT const denom =
+            Ar_i * Ar_i + Av_i * Av_i;
+
+        NT const D =
+            denom - b_i * b_i;
 
         if (D <= NT(0))
         {
             return false;
         }
 
-        NT sqrtD = std::sqrt(D);
+        NT const radius =
+            std::sqrt(denom);
 
-        C1 = std::asin((Av_i * b_i + Ar_i * sqrtD) / denom);
-        C2 = std::asin((Av_i * b_i - Ar_i * sqrtD) / denom);
+        NT const phase =
+            std::atan2(Av_i, Ar_i);
 
-        NT eval = Ar_i * std::cos(C1) + Av_i * std::sin(C1) - b_i;
-        if (!(eval > -trig_tol() && eval < trig_tol()))
-        {
-            C1 = pi() - C1;
-        }
+        NT const cosine =
+            std::max(
+                NT(-1),
+                std::min(NT(1), b_i / radius));
 
-        eval = Ar_i * std::cos(C2) + Av_i * std::sin(C2) - b_i;
-        if (!(eval > -trig_tol() && eval < trig_tol()))
-        {
-            C2 = pi() - C2;
-        }
+        NT const offset =
+            std::acos(cosine);
+
+        C1 = phase + offset;
+        C2 = phase - offset;
 
         return true;
     }
@@ -568,37 +566,72 @@ public:
         bool set_positive_root = false;
         bool pos_D = false;
 
+        NT const root_tolerance =
+            NT(64) * std::numeric_limits<NT>::epsilon();
+
         const NT *Av_data = Av.data();
         const NT *Ar_data = Ar.data();
         const NT *b_data = b.data();
 
         for (int i = 0; i < m; i++)
         {
-            if (compute_facet_roots(*Ar_data, *Av_data, *b_data, C1, C2))
+            NT const scale =
+                std::max(
+                    NT(1),
+                    std::max(
+                        std::abs(*Ar_data),
+                        std::max(
+                            std::abs(*Av_data),
+                            std::abs(*b_data))));
+
+            NT const equation_tolerance =
+                NT(128) *
+                std::numeric_limits<NT>::epsilon() *
+                scale;
+
+            // If the current point lies on this facet and the tangent
+            // direction points outside, the collision is immediate.
+            if (std::abs(*Ar_data - *b_data) <=
+                    equation_tolerance &&
+                *Av_data > equation_tolerance)
+            {
+                return std::make_pair(NT(0), i);
+            }
+
+            if (compute_facet_roots(
+                    *Ar_data,
+                    *Av_data,
+                    *b_data,
+                    C1,
+                    C2))
             {
                 pos_D = true;
 
-                if (C1 < min_plus && C1 > NT(0))
+                if (C1 < min_plus &&
+                    C1 > root_tolerance)
                 {
                     min_plus = C1;
                     set_positive_root = true;
                     facet = i;
                 }
 
-                if ((C1 < min_root) && (C1 > (-NT(2) * pi())))
+                if ((C1 < min_root) &&
+                    (C1 > (-NT(2) * pi())))
                 {
                     min_root = C1;
                     facet_min = i;
                 }
 
-                if (C2 < min_plus && C2 > NT(0))
+                if (C2 < min_plus &&
+                    C2 > root_tolerance)
                 {
                     min_plus = C2;
                     set_positive_root = true;
                     facet = i;
                 }
 
-                if (C2 < min_root && C2 > (-NT(2) * pi()))
+                if (C2 < min_root &&
+                    C2 > (-NT(2) * pi()))
                 {
                     min_root = C2;
                     facet_min = i;
