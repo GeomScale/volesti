@@ -408,6 +408,23 @@ add_test(NAME full_dimensional_polytope_hypercube_intersection
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_hypercube_intersection)
 add_test(NAME full_dimensional_polytope_sparse_constraint
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_sparse_constraint)
+add_executable (simplexintersectball_test simplexintersectball_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME simplexintersectball_basic_membership
+          COMMAND simplexintersectball_test -tc=simplexintersectball_basic_membership)
+add_test(NAME simplexintersectball_line_intersection
+          COMMAND simplexintersectball_test -tc=simplexintersectball_line_intersection)
+add_test(NAME simplexintersectball_3d_tetrahedron_membership
+          COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_membership)
+add_test(NAME simplexintersectball_3d_tetrahedron_gc_intersection
+          COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_gc_intersection)
+add_test(NAME simplexintersectball_3d_tetrahedron_gc_intersection_positive
+          COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_gc_intersection_positive)
+add_test(NAME simplexintersectball_incremental_rotation_matches_fresh
+          COMMAND simplexintersectball_test -tc=simplexintersectball_incremental_rotation_matches_fresh)
+add_test(NAME simplexintersectball_3d_tetrahedron_gc_all_roots
+          COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_gc_all_roots)
+add_test(NAME simplexintersectball_3d_tetrahedron_reflection
+          COMMAND simplexintersectball_test -tc=simplexintersectball_3d_tetrahedron_reflection)
 add_test(NAME full_dimensional_polytope_orthogonality
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_orthogonality)
 add_test(NAME full_dimensional_polytope_infeasible
