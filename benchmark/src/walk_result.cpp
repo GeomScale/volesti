@@ -36,6 +36,8 @@ WalkStatistics process_and_print_results(
     // Convert to Eigen Matrix
     MT samples_mat = vector_to_eigen<MT>(samples);
 
+    std::cout << std::fixed << std::setprecision(4);
+
     // ESS and mixing rate
     std::cout << "[" << walk_name << "] Final ESS: " << stats.final_ess << "\n";
     std::cout << "[" << walk_name << "] Mixing Ratio (Steps/ESS): " << stats.mixing_ratio << "\n";

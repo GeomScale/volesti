@@ -9,6 +9,7 @@
 //Timer is a class to count the time for each random walk.
 //write to file is used to write the results to a file.
 //vector to eigen converts a vector in an eigen compatible form. (eigen is numpy for c++) 
+//determine auto walk is used to choose a walk based on the polytope structure.
 
 
 class Timer {
@@ -41,3 +42,5 @@ MT vector_to_eigen(const std::vector<Point>& someSamples) {
     }
     return samples;
 }
+
+std::string determine_auto_walk(unsigned int dim);

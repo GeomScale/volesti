@@ -9,6 +9,7 @@
 #include "../include/geometry_utils.hpp"
 #include "../include/walk_result.hpp"
 #include "../include/walk_registry.hpp"
+#include "../include/menu.hpp"
 
 #include "../include/polytope_generation.hpp"
 #include "known_polytope_generators.h"
@@ -84,6 +85,15 @@ int main(int argc, char** argv) {
 
     config.polytope_choice = polytope_cli_choice;
 
+    // --- NEW MENU LOGIC ---
+    if (config.show_menu) {
+        bool continue_to_benchmark = run_interactive_menu(config, walk_choice);
+        if (!continue_to_benchmark) {
+            return 0; // Exit gracefully if they chose 3
+        }
+    }
+    // ---------------------------
+
     std::vector<unsigned int> dimensions_to_run;
     if (config.polytope_choice == "Custom") {
         dimensions_to_run = { 0 };
@@ -116,6 +126,7 @@ int main(int argc, char** argv) {
         cout << "Rotation angle is: " << angle << "\n";
         cout << "Dynamic batch size is on: " << config.use_dynamic_batch << "\n";
         cout << "Rounding is on: " << config.rounding << "\n";
+        cout << "Auto-walk is on: " << (config.auto_walk ? "true" : "false") << "\n";
 
         cout << "\n" << string(40, '=') << "\n";
         cout << "*** Running for dimension " << dimension << " ***\n";
@@ -218,9 +229,14 @@ int main(int argc, char** argv) {
                 return;
             }
         };
-
+        // Auto-walk handles the selection if enabled
+        if (config.auto_walk) {
+            string auto_selected_walk = determine_auto_walk(dimension);
+            cout << "\n[Auto-Walk] Dimension " << dimension << " overriding config to run: " << auto_selected_walk << "\n";
+            run_method(auto_selected_walk);
+        }
         // If the user picked "All", iterate through the JSON keys. Otherwise, just run the one they requested.
-        if (walk_choice == "All") {
+        else if (walk_choice == "All") {
             for (const auto& pair : config.walk_settings) {
 
                 if(pair.second.enabled) {

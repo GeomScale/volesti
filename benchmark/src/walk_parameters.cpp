@@ -30,12 +30,12 @@ BenchmarkConfig load_benchmark_config(const std::string& filepath) {
         config.polytope_choice = pt.get<std::string>("global_settings.polytope_choice", "Cube");
         config.custom_A_file   = pt.get<std::string>("global_settings.custom_A_file", "");
         config.custom_b_file   = pt.get<std::string>("global_settings.custom_b_file", "");
-        
         config.angle           = pt.get<unsigned int>("global_settings.rotation_angle", 0);
         config.use_dynamic_batch = pt.get<bool>("global_settings.dynamic_batch_size", true);
         config.write_to_file     = pt.get<bool>("global_settings.write_to_file", false);
-
         config.rounding          = pt.get<bool>("global_settings.rounding", false);
+        config.auto_walk         = pt.get<bool>("global_settings.auto_walk", false);
+        config.show_menu         = pt.get<bool>("global_settings.show_menu", false);
 
         // Iterate through the walks JSON object
         for (const auto& walk_node : pt.get_child("walks")) {

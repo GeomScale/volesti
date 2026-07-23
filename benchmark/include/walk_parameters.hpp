@@ -33,6 +33,8 @@ struct BenchmarkConfig {
     bool use_dynamic_batch;
     bool write_to_file;
     bool rounding;
+    bool auto_walk;
+    bool show_menu;
 
     std::map<std::string, WalkSettings> walk_settings;
 };

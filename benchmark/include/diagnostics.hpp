@@ -24,7 +24,7 @@
 template <typename NT, typename VT, typename MT>
 unsigned int compute_ess(const MT& samples) {
     unsigned int min_ess = 0;
-    // Call Volesti's internal ESS function
+    // call internal ESS function
     VT ess_vector = effective_sample_size<NT, VT, MT>(samples, min_ess);
     return min_ess;
 }

@@ -30,6 +30,8 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
     // ESS placeholder and loop number
     unsigned int current_ESS = 0;
     unsigned int loop_step = 1;
+    unsigned int previous_ESS = 0;
+    double estimated_remaining_seconds = -1.0;
 
     // Random generator and placeholder matrix for samples
     typedef RandomPointGenerator<WalkType> Generator;
@@ -47,21 +49,40 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
     Timer walk_timer(walk_name);
     Timer ess_timer(walk_name);
     walk_timer.start();
+    Timer global_timer("TotalTime");
+    global_timer.start();
 
     // Main while loop. We sample intil we hit target ESS.
     while (current_ESS < config.target_ESS) {
         
         std::vector<Point> batchPoints;
+
+        // here we calculate the live time estimate for the upcoming batch 
+        double elapsed_walk_time = walk_timer.get_total_time();
+        unsigned int samples_so_far = allSamples.size();
+
+        if (samples_so_far > 0 && elapsed_walk_time > 0.01 && current_ESS > 0) {
+            // how many samples we generate per second
+            double samples_per_sec = static_cast<double>(samples_so_far) / elapsed_walk_time;
+            // how many samples are still needed to reach Target ESS
+            double remaining_ess_needed = static_cast<double>(config.target_ESS) - current_ESS;
+            // Samples needed = (Remaining ESS) * (Average samples required per 1 ESS)
+            double estimated_remaining_samples = remaining_ess_needed * (static_cast<double>(samples_so_far) / current_ESS);
+            // ETA = Remaining Samples / Sample Rate
+            estimated_remaining_seconds = estimated_remaining_samples / samples_per_sec;
+        } else {
+            estimated_remaining_seconds = -1.0; // Still on the first batch / no ESS data yet
+        }
             
         // Progress Bar
         unsigned int chunk_size = 250; // How many samples to generate before updating the bar
         unsigned int generated_this_batch = 0;
 
-        // For all methods minus Riemannian: Chunking & Progress Bar
         if constexpr (WalkAdapter<WalkType>::supports_chunking) {
                 
                 unsigned int chunk_size = 250; 
                 unsigned int generated_this_batch = 0;
+                unsigned int samples_before_this_batch = allSamples.size();
 
                 while (generated_this_batch < batch_size) {
                     unsigned int current_chunk = std::min(chunk_size, batch_size - generated_this_batch);
@@ -77,18 +98,18 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                     }
                     allSamples.insert(allSamples.end(), chunkPoints.begin(), chunkPoints.end());
                     generated_this_batch += chunkPoints.size();
+                    double global_elapsed_seconds = global_timer.get_total_time();
 
-                    // calculate total samples across all batches + what we just generated
-                    unsigned int total_generated_so_far = allSamples.size();
-
-                    // Draw progress bar with live mixing ratio
+                    // Draw progress bar with mixing ratio
                     draw_progress_bar(
                         walk_name, 
                         generated_this_batch, 
                         batch_size, 
-                        total_generated_so_far, 
+                        samples_before_this_batch, 
                         current_ESS, 
-                        walk_len
+                        walk_len,
+                        global_elapsed_seconds,
+                        estimated_remaining_seconds
                     );
 
                     if (walk_timer.get_total_time() > config.time_limit_sec) {
@@ -100,6 +121,11 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                 std::cout << "\r" << std::string(100, ' ') << "\r[" << walk_name 
                         << "] Generating massive batch of " << batch_size 
                         << " points (Tuning physics engine)..." << std::flush;
+
+                // If you want an ETA output printed here, you can do:
+                if (estimated_remaining_seconds >= 0.0) {
+                    std::cout << " (ETA: " << static_cast<int>(estimated_remaining_seconds) << "s remaining)..." << std::flush;
+                }       
                 
                 std::vector<Point> singleBatchPoints;
                 WalkAdapter<WalkType>::apply_batch(
@@ -129,7 +155,7 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
             ess_timer.stop("");
             walk_timer.start();
 
-            std::cout << "\r" << std::string(100, ' ') << "\r[" << walk_name << "] Samples: " << allSamples.size() 
+            std::cout << "\r" << std::string(120, ' ') << "\r[" << walk_name << "] Samples: " << allSamples.size() 
                     << " | ESS: " << current_ESS;
 
             // If the user has dynamic_batch_size off we end here after "samples" number of samples are generated.
@@ -147,10 +173,19 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
 
             // THE DYNAMIC BATCH SIZE 
             if (config.use_dynamic_batch) {
-                batch_size = compute_next_batch_size(config.target_ESS, current_ESS, allSamples.size(), batch_size);
+                batch_size = compute_next_batch_size(
+                    config.target_ESS, 
+                    current_ESS, 
+                    previous_ESS,    
+                    allSamples.size(), 
+                    batch_size,
+                    config.dimension
+                );
             }
 
             std::cout << " | Next Batch: " << batch_size << std::flush;
+
+            previous_ESS = current_ESS;
 
             // Failsafe
             if (loop_step > 30 && current_ESS < config.target_ESS) {
@@ -162,7 +197,7 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
     }
 
     std::cout << "\n[" << walk_name << "] DONE. Samples Generated: " << allSamples.size() << "\n";
-    
+    //global_timer.stop("Total Execution Time");
     double final_gen_time = walk_timer.get_total_time();
     double final_ess_time = ess_timer.get_total_time();
     

@@ -53,3 +53,17 @@ void write_to_file(std::string filename, std::vector<Point> const& randPoints) {
     // Reset cout back to standard output
     std::cout.rdbuf(coutbuf); 
 }
+
+std::string determine_auto_walk(unsigned int dim) {
+    if (dim >= 1 && dim <= 10) {
+        return "BallWalk";
+    } else if (dim >= 11 && dim <= 20) {
+        return "RDHRWalk";
+    } else if (dim >= 21 && dim <= 30) {
+        return "BilliardWalk";
+    } else if (dim >= 31 && dim <= 49) {
+        return "CDHRWalk";
+    } else { 
+        return "AcceleratedBilliardWalk";
+    }
+}

@@ -1,16 +1,18 @@
 {
     "global_settings": {
-        "target_ESS": 1500,
+        "target_ESS": 3000,
         "time_limit_sec": 30.0,
         "base_seed": 42,
-        "dimensions": [10, 20, 30, 40, 50],
+        "dimensions": [50],
         "rotation_angle": 53,
         "polytope_choice": "Cube",
         "custom_A_file": "Cube_50_A.csv",
         "custom_b_file": "Cube_50_b.csv",
         "dynamic_batch_size": true,
         "write_to_file": true,
-        "rounding": false
+        "rounding": false,
+        "auto_walk": false,
+        "show_menu": true
     },
 "walks": {
         "BallWalk":                 { "enabled": true, "samples": 20000, "walk_len_multiplier": 2, "walk_len_base": 0 },
