@@ -1,503 +1,453 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2020 Vissarion Fisikopoulos
-// Copyright (c) 2020 Apostolos Chalkis
-
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 // Contributed and modified by Huu Phuoc Le as part of Google Summer of Code 2022 program
+// Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLESTI_EIGENVALUESPROBLEMS_H
 #define VOLESTI_EIGENVALUESPROBLEMS_H
 
-/// Uncomment the solver the function minPosGeneralizedEigenvalue uses
-/// Eigen solver for generalized eigenvalue problem
-//#define EIGEN_EIGENVALUES_SOLVER
-/// Spectra standard eigenvalue problem
-#define SPECTRA_EIGENVALUES_SOLVER
-/// ARPACK++ standard eigenvalues solver
-//#define ARPACK_EIGENVALUES_SOLVER
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
 
-#include <Spectra/include/Spectra/SymEigsSolver.h>
-#include "DenseProductMatrix.h"
-#include "EigenDenseMatrix.h"
+// Spectra library for eigenvalue problems
+#include <Spectra/GenEigsSolver.h>
+#include <Spectra/MatOp/DenseGenMatProd.h>
 
-#include "Spectra/include/Spectra/SymGEigsSolver.h"
-#include "Spectra/include/Spectra/GenEigsSolver.h"
-
-/// Solve eigenvalues problems
-/// \tparam NT Numeric Type
-/// \tparam MT Matrix Type
-/// \tparam VT Vector Type
-template<typename NT, typename MT, typename VT>
+/// Solver for various eigenvalue problems arising in convex optimization
+/// Provides methods for quadratic eigenvalue problems (QEP), generalized eigenvalue
+/// problems, and negative definiteness checks via eigenvalue analysis.
+/// \tparam NT Numeric type for scalar values
+/// \tparam MT Matrix type (defaults to Eigen::Matrix with dynamic dimensions)
+/// \tparam VT Vector type (defaults to Eigen::Matrix column vector with dynamic size)
+template<typename NT,
+         typename MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>,
+         typename VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>>
 class EigenvaluesProblems {
+private:
+    /// Machine epsilon for numeric type NT
+    static constexpr NT eps() { return std::numeric_limits<NT>::epsilon(); }
+    
+    /// Square root of machine epsilon (used for moderate tolerance checks)
+    static constexpr NT sqrt_eps() { return std::sqrt(eps()); }
+    
+    /// Largest representable value for numeric type NT
+    static constexpr NT LARGE_VAL() { return std::numeric_limits<NT>::max(); }
+    
+    /// Machine epsilon alias for consistency with existing code
+    static constexpr NT EPS() { return std::numeric_limits<NT>::epsilon(); }
 
-};
+    /// Operator for structured quadratic eigenvalue problem (QEP) linearization
+    /// Implements the matrix-vector product for the linearized system C1^{-1}C0
+    /// where the original QEP is: (A + λB + λ²C)v = 0
+    class QEPOperator {
+    private:
+        const MT& A_;  ///< Coefficient matrix A in QEP
+        const MT& B_;  ///< Coefficient matrix B in QEP
+        const MT& C_;  ///< Coefficient matrix C in QEP (must be positive definite)
+        const int n_;  ///< Dimension of original problem
+        mutable Eigen::LLT<MT> lltC_;    ///< Cholesky decomposition of C (LLT)
+        mutable Eigen::LDLT<MT> ldltC_;  ///< LDLT decomposition of C (fallback)
+        mutable bool chol_computed_ = false;  ///< Flag indicating if decomposition is computed
+        mutable bool use_llt_ = false;        ///< Flag indicating which decomposition to use
+        
+    public:
+        using Scalar = NT;  ///< Scalar type required by Spectra library
 
+        /// Construct QEP operator from coefficient matrices
+        /// \param[in] A Constant term matrix
+        /// \param[in] B Linear term matrix
+        /// \param[in] C Quadratic term matrix (should be positive definite)
+        QEPOperator(const MT& A, const MT& B, const MT& C)
+            : A_(A), B_(B), C_(C), n_(A.rows()) {}
 
-/// A specialization of the template class EigenvaluesProblems for dense Eigen matrices and vectors.
-/// \tparam NT Numer Type
-template<typename NT>
-class EigenvaluesProblems<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,Eigen::Dynamic,1> > {
+        /// Number of rows in linearized system (twice original dimension)
+        int rows() const { return 2 * n_; }
+        
+        /// Number of columns in linearized system (twice original dimension)
+        int cols() const { return 2 * n_; }
+
+        /// Perform matrix-vector product y = Op * x for Spectra eigenvalue solver
+        /// Implements the linearized QEP system operator using efficient factorizations
+        /// \param[in] x_in Input vector of size 2*n
+        /// \param[out] y_out Output vector of size 2*n
+        void perform_op(const NT* x_in, NT* y_out) const {
+            Eigen::Map<const VT> x(x_in, 2*n_);
+            Eigen::Map<VT> y(y_out, 2*n_);
+            
+            // Compute factorization once on first call (lazy initialization)
+            // Try LLT first (faster for positive definite matrices)
+            if (!chol_computed_) {
+                lltC_.compute(C_);
+                if (lltC_.info() == Eigen::Success) {
+                    use_llt_ = true;
+                } else {
+                    ldltC_.compute(C_);
+                    use_llt_ = false;
+                }
+                chol_computed_ = true;
+            }
+            
+            // Compute right-hand side: rhs = B * x.head(n) + x.tail(n)
+            VT rhs(n_);
+            rhs.noalias() = B_ * x.head(n_);
+            rhs += x.tail(n_);
+            
+            // Solve C * y.head(n) = -rhs using precomputed factorization
+            if (use_llt_) {
+                y.head(n_).noalias() = lltC_.solve(-rhs);
+            } else if (ldltC_.info() == Eigen::Success) {
+                y.head(n_).noalias() = ldltC_.solve(-rhs);
+            } else {
+                // Fallback to QR decomposition (extremely rare, for robustness)
+                y.head(n_).noalias() = C_.colPivHouseholderQr().solve(-rhs);
+            }
+            
+            // Set bottom half of output: y.tail(n) = x.head(n)
+            y.tail(n_) = x.head(n_);
+        }
+    };
+
+    /// Solve quadratic eigenvalue problem to find smallest positive parameter
+    /// Solves (B0 + t*B1 + t²*B2)v = 0 for the smallest positive t
+    /// Uses Spectra library with linearization approach via QEPOperator
+    /// \param[in] B0 Constant coefficient matrix
+    /// \param[in] B1 Linear coefficient matrix
+    /// \param[in] B2 Quadratic coefficient matrix
+    /// \param[out] eigvec Eigenvector corresponding to smallest positive t
+    /// \return Smallest positive value of t, or infinity if none exists
+    static NT solveQEP(const MT& B0, const MT& B1, const MT& B2, VT& eigvec) {
+    const int m = B0.rows();
+    if (m == 0) return std::numeric_limits<NT>::infinity();
+    
+    try {
+        QEPOperator op(B0, B1, B2);
+        
+        // Empirical choice: request 2 eigenvalues to improve chances of finding valid positive t
+        // for faster convergence use nev = 1, but more unstable, may miss valid eigenvalue
+        const int nev = 1; 
+        const int ncv = std::min(10, 2*m);
+        
+        Spectra::GenEigsSolver<QEPOperator> solver(op, nev, ncv);
+        solver.init();
+        
+        int nconv = solver.compute(Spectra::SortRule::LargestMagn, 1500, NT(1e-10));
+        
+        if (nconv > 0 && solver.info() == Spectra::CompInfo::Successful) {
+            auto eigenvals = solver.eigenvalues();
+            auto eigenvecs = solver.eigenvectors();
+            
+            const NT tol = std::max(NT(1e-8) * B0.norm(), eps());
+            
+            // Find largest positive lambda (smallest positive t)
+            NT best_lambda = NT(0);
+            int best_idx = -1;
+            
+            for (int i = 0; i < nconv; ++i) {
+                // Skip complex eigenvalues
+                if (std::abs(eigenvals(i).imag()) > tol) continue;
+                
+                NT lambda = eigenvals(i).real();
+                
+                // We want largest positive lambda (gives smallest t = 1/lambda)
+                if (lambda > tol && lambda > best_lambda) {
+                    VT candidate = eigenvecs.col(i).real().head(m);
+                    
+                    if (candidate.squaredNorm() > tol * tol) {
+                        best_lambda = lambda;
+                        best_idx = i;
+                        eigvec = candidate;
+                    }
+                }
+            }
+            
+            if (best_idx >= 0) {
+                eigvec.normalize();
+                return NT(1) / best_lambda;
+            }
+        }
+    } catch (...) {
+        return std::numeric_limits<NT>::infinity();
+    }
+    
+    return std::numeric_limits<NT>::infinity();
+}
+
 public:
-    /// The type for Eigen Matrix
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    /// The type for Eigen vector
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-    /// The type of a complex Eigen Vector for handling eigenvectors
-#if defined(EIGEN_EIGENVALUES_SOLVER) || defined (SPECTRA_EIGENVALUES_SOLVER)
-    typedef typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType CVT;
-#elif defined(ARPACK_EIGENVALUES_SOLVER)
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> CVT;
-#endif
+    /// Find minimum positive eigenvalue for quadratic eigenvalue problem
+    /// Solves (A + t*B + t²*C)v = 0 to find smallest positive t
+    /// Used in convex optimization for barrier function step size computation
+    /// \param[in] A Constant coefficient matrix
+    /// \param[in] B Linear coefficient matrix
+    /// \param[in] C Quadratic coefficient matrix
+    /// \param[in,out] X Auxiliary matrix (unused, kept for API compatibility)
+    /// \param[in,out] Y Auxiliary matrix (unused, kept for API compatibility)
+    /// \param[out] eigvec Eigenvector corresponding to minimum positive eigenvalue
+    /// \param[in] updateOnly Unused flag (kept for API compatibility)
+    /// \param[in] num_constraints Unused parameter (kept for API compatibility)
+    /// \return Minimum positive t satisfying the QEP, or infinity if none exists
+    NT minPosQuadraticEigenvalue(const MT& A, const MT& B, const MT& C,
+                                 MT& /*X*/, MT& /*Y*/, VT& eigvec,
+                                 bool /*updateOnly*/ = false,
+                                 int  /*num_constraints*/ = 0)
+    {
+        
+        NT result = solveQEP(A, B, C, eigvec);
+        
+        if (result <= NT(0) || !std::isfinite(result)) {
+            return std::numeric_limits<NT>::infinity();
+        }
+        
+        return result;
+    }
 
-    /// The type of a pair of NT
-    typedef std::pair<NT, NT> NTpair;
+    /// Solve generalized symmetric eigenvalue problem B*v = λ*(-A)*v
+    /// Returns intersection distances t = 1/λ for the positive and negative
+    /// directions of the generalized problem (A + t*B)v = 0.
+    /// \param[in] A Symmetric matrix (multiplied by -1 in problem formulation)
+    /// \param[in] B Symmetric matrix
+    /// \return Pair (t_pos, t_neg) — distances to boundary in ± coordinate directions
+    static std::pair<NT, NT> symGeneralizedProblem(const MT& A, const MT& B) {
+        if (A.rows() != A.cols() || B.rows() != B.cols() || A.rows() != B.rows()) {
+            return {LARGE_VAL(), -LARGE_VAL()};
+        }
 
+        const int n = A.rows();
+        const NT tolerance = std::max(NT(1e-12),
+                                    std::max(A.norm(), B.norm()) * eps() * NT(100000));
 
-    /// Find the smallest eigenvalue of M
-    /// \param M a symmetric matrix
-    /// \return smallest eigenvalue
-    NT findSymEigenvalue(MT const & M) {
-        EigenDenseMatrix<NT> _M(&M);
+        try {
+            MT neg_A = -A;
+            Eigen::GeneralizedSelfAdjointEigenSolver<MT> solver(B, neg_A, Eigen::EigenvaluesOnly);
 
-//#define NOT_WORKING
-#ifdef NOT_WORKING
-        // Creating an eigenvalue problem and defining what we need:
-        // the smallest eigenvalue of M.
-        ARNonSymStdEig<NT, EigenDenseMatrix<NT> >
-                dprob(M.cols(), 1, &_M, &EigenDenseMatrix<NT>::MultMv, std::string ("LR"), 8, 0.0, 100*15);
-
-        // compute
-        if (dprob.FindEigenvectors() == 0) {
-            std::cout << "Failed in findSymEigenvalue\n";
-            // if failed with default (and fast) parameters, try with stable (and slow)
-            dprob.ChangeNcv(M.cols()/10);
-            if (dprob.FindEigenvectors() == 0) {
-                std::cout << "\tFailed Again\n";
-                return NT(0);
+            if (solver.info() != Eigen::Success) {
+                return {LARGE_VAL(), -LARGE_VAL()};
             }
-        }
 
-        if (!dprob.EigenvaluesFound()) {
-            // if failed to find eigenvalues
-            return NT(0);
-        }
+            auto eigenvals = solver.eigenvalues();
 
-        // retrieve eigenvalue of the original system
-        return dprob.EigenvalueReal(0);
-#elif defined(SPECTRA)
-        // This parameter is for Spectra. It must be larger than #(requested eigenvalues) + 2
-        // and smaller than the size of matrix;
-        int ncv = M.cols()/10 + 5;
-        if (ncv > M.cols()) ncv = M.cols();
+            // Match old Spectra BOTH_ENDS semantics:
+            //   ev(0) = most negative λ, ev(1) = most positive λ
+            //   Return (1/ev(1), 1/ev(0)) = (t_pos, t_neg)
+            // t = 1/λ: smallest t_pos = 1/largest λ; t_neg closest to 0 = 1/most negative λ
+            // Eigenvalues are sorted increasing, so:
+            //   eigenvals(0) = most negative, eigenvals(n-1) = most positive
+            NT lambda_most_neg = eigenvals(0);
+            NT lambda_most_pos = eigenvals(n - 1);
 
-        Spectra::SymEigsSolver<NT, Spectra::LARGEST_ALGE, EigenDenseMatrix<NT> > eigs(&_M, 1, ncv);
-        // compute
-        eigs.init();
-        eigs.compute(50000);
-        if(eigs.info() == Spectra::SUCCESSFUL) {
-            return eigs.eigenvalues()(0);
+            NT t_pos = (lambda_most_pos > tolerance)  ? NT(1) / lambda_most_pos : LARGE_VAL();
+            NT t_neg = (lambda_most_neg < -tolerance) ? NT(1) / lambda_most_neg : -LARGE_VAL();
+            return {t_pos, t_neg};
+        } catch (...) {
+            return {LARGE_VAL(), -LARGE_VAL()};
         }
-        else {
-            std::cout << "Spectra failed\n";
-            return NT(0);
-        }
-#else
-        Eigen::SelfAdjointEigenSolver<MT> solver;
-        solver.compute(M, Eigen::EigenvaluesOnly);
-//        typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
-//        NT max = eivals(0).real();
-//
-//        for (int i = 1; i < eivals.rows(); i++)
-//            if (eivals(i).real() > max)
-//                max = eivals(i).real();
-
-        return solver.eigenvalues().maxCoeff();
-#endif
     }
 
-    /// Find the minimum positive and maximum negative eigenvalues of the generalized eigenvalue
-    /// problem A + lB, where A, B symmetric and A negative definite.
-    /// \param[in] A Input matrix
-    /// \param[in] B Input matrix
-    /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NTpair symGeneralizedProblem(MT const & A, MT const & B) const {
+    /// Find minimum positive t such that (A + t*B)v = 0 for some v ≠ 0
+    /// Solves the generalized eigenvalue problem using Eigen's self-adjoint solver.
+    /// Requires one of A or -A to be positive definite.
+    /// \param[in] A Constant coefficient matrix (typically lmi(p) — positive semidefinite)
+    /// \param[in] B Linear coefficient matrix (typically directional derivative)
+    /// \param[out] eigvec Eigenvector corresponding to minimum positive t
+    /// \return Minimum positive t, or infinity if none exists
+    NT minPosLinearEigenvalue(const MT& A, const MT& B, VT& eigvec) const {
+        const int n = A.rows();
+        if (n == 0) return LARGE_VAL();
 
-        int matrixDim = A.rows();
+        try {
+            // Test if A is positive definite via Cholesky
+            Eigen::LLT<MT> llt_A;
+            llt_A.compute(A);
+            const bool A_is_pd = (llt_A.info() == Eigen::Success);
 
-        // Spectra solves Xv=lYv, where Y positive definite
-        // Set X = B, Y=-A. Then, the eigenvalues we want are the minimum negative
-        // and maximum positive eigenvalues of Xv=lYv.
+            if (A_is_pd) {
+                // Use solver(-B, A): solves (-B)v = λ*A*v → t = 1/λ
+                MT neg_B = -B;
+                Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(neg_B, A);
+                if (ges.info() != Eigen::Success) return LARGE_VAL();
 
-        // Construct matrix operation object using the wrapper classes provided by Spectra
-        Spectra::DenseSymMatProd<NT> op(B);
-        Spectra::DenseCholesky<NT> Bop(-A);
-
-        // Construct generalized eigen solver object
-        // requesting the minmum negative and largest positive eigenvalues
-        Spectra::SymGEigsSolver<NT, Spectra::BOTH_ENDS, Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-                geigs(&op, &Bop, 2, 5 < matrixDim ? 5 : matrixDim);
-
-        // Initialize and compute
-        geigs.init();
-        int nconv = geigs.compute();
-
-        // Retrieve results
-        if (geigs.info() != Spectra::SUCCESSFUL)
-            return {NT(0), NT(0)};
-
-        Eigen::VectorXd evalues;
-        double lambdaMinPositive, lambdaMaxNegative;
-
-        evalues = geigs.eigenvalues();
-
-        // get the eigenvalues of the original problem
-        lambdaMinPositive = 1 / evalues(0);
-        lambdaMaxNegative = 1 / evalues(1);
-
-        return {lambdaMinPositive, lambdaMaxNegative};
-    }
-
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) {
-        int matrixDim = A.rows();
-        double lambdaMinPositive;
-
-        Spectra::DenseSymMatProd<NT> op(B);
-        Spectra::DenseCholesky<NT> Bop(-A);
-
-        // Construct generalized eigen solver object, computing the minimum positive eigenvalue by computing the largest eigenvalue of the inverse Generalized Eigenvalue Problem
-	// An empirical value of ncv that gives a better performance
-	// TODO: tune this implementation by tuning the parameters like ncv
-        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-            geigs(&op, &Bop, 1, ncv);
-
-        // Initialize and compute
-        geigs.init();
-        int nconv = geigs.compute();
-
-        VT evalues;
-        if (geigs.info() == Spectra::SUCCESSFUL) {
-            evalues = geigs.eigenvalues();
-            eigvec = geigs.eigenvectors().col(0);
-        }
-
-        lambdaMinPositive = 1 / evalues(0);
-
-        return lambdaMinPositive;
-    }
-
-    /// Finds the minimum positive real eigenvalue of the generalized eigenvalue problem A + lB and
-    /// the corresponding eigenvector.
-    /// If the macro EIGEN_EIGENVALUES_SOLVER is defined, the Generalized Solver of Eigen is used.
-    /// Otherwise, we transform the generalized to a standard eigenvalue problem and use Spectra.
-    /// Warning: With Spectra we might get a value smaller than the minimum positive real eigenvalue (the real part
-    /// of a complex eigenvalue).
-    /// No restriction on the matrices!
-    /// \param[in] A Input matrix
-    /// \param[in] B Input matrix
-    /// \param[out] eigenvector The eigenvector corresponding to the minimum positive eigenvalue
-    /// \return The minimum positive eigenvalue
-    NT minPosGeneralizedEigenvalue(MT const & A, MT const & B, CVT& eigenvector) {
-        NT lambdaMinPositive = std::numeric_limits<NT>::max();
-
-#if defined(EIGEN_EIGENVALUES_SOLVER)
-        // use the Generalized eigenvalue solver of Eigen
-
-        // compute generalized eigenvalues with Eigen solver
-        Eigen::GeneralizedEigenSolver<MT> ges(A, -B);
-
-        // retrieve minimum positive eigenvalue
-        typename Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType alphas = ges.alphas();
-        VT betas = ges.betas();
-        int index = 0;
-
-        for (int i = 0; i < alphas.rows(); i++) {
-
-            if (betas(i) == 0 || alphas(i).imag() != 0)
-                continue;
-
-            double lambda = alphas(i).real() / betas(i);
-            if (lambda > 0 && lambda < lambdaMinPositive) {
-                lambdaMinPositive = lambda;
-                index = i;
+                auto eigenvals = ges.eigenvalues();
+                // Eigenvalues sorted increasing; find largest positive λ
+                for (int i = n - 1; i >= 0; --i) {
+                    NT lambda = eigenvals(i);
+                    if (lambda > eps() * NT(10)) {
+                        eigvec = ges.eigenvectors().col(i);
+                        return NT(1) / lambda;
+                    }
+                }
             }
-        }
 
-        // retrieve corresponding eigenvector
-        eigenvector = ges.eigenvectors().col(index);
-#elif defined(SPECTRA_EIGENVALUES_SOLVER)
-        // Transform the problem to a standard eigenvalue problem and use the general eigenvalue solver of Spectra
+            // Test if B is positive definite via Cholesky
+            Eigen::LLT<MT> llt_B;
+            llt_B.compute(B);
+            const bool B_is_pd = (llt_B.info() == Eigen::Success);
 
-        // This makes the transformation to standard eigenvalue problem. See class for more info.
-        // We have the generalized problem  A + lB, or Av = -lBv
-        // This class computes the matrix product vector Mv, where M = -B * A^[-1]
-        MT _B = -1 * B; // TODO avoid this allocation
-        DenseProductMatrix<NT> M(&_B, &A);
+            if (B_is_pd) {
+                // Use solver(-A, B): solves (-A)v = λ*B*v → t = λ
+                MT neg_A = -A;
+                Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(neg_A, B);
+                if (ges.info() != Eigen::Success) return LARGE_VAL();
 
-        // This parameter is for Spectra. It must be larger than #(requested eigenvalues) + 2
-        // and smaller than the size of matrix;
-        int ncv = 3;
-
-        // Prepare to solve Mx = (1/l)x
-        // we want the smallest positive eigenvalue in the original problem,
-        // so in this the largest positive eigenvalue;
-        Spectra::GenEigsSolver<NT, Spectra::LARGEST_REAL, DenseProductMatrix<NT> > eigs(&M, 1, ncv);
-
-        // compute
-        eigs.init();
-        eigs.compute();
-
-        //retrieve result and invert to get required eigenvalue of the original problem
-        if (eigs.info() != Spectra::SUCCESSFUL) {
-            eigenvector.setZero(A.rows());
-            return NT(0);
-        }
-
-        lambdaMinPositive = 1/((eigs.eigenvalues())(0).real());
-
-        // retrieve corresponding eigenvector
-        int matrixDim = A.rows();
-        eigenvector.resize(matrixDim);
-        for (int i = 0; i < matrixDim; i++)
-            eigenvector(i) =  (eigs.eigenvectors()).col(0)(i);
-
-#elif defined(ARPACK_EIGENVALUES_SOLVER)
-        // Transform the problem to a standard eigenvalue problem and use the general eigenvalue solver of ARPACK++
-
-        // This makes the transformation to standard eigenvalue problem. See class for more info.
-        // We have the generalized problem  A + lB, or Av = -lBv
-        // This class computes the matrix product vector Mv, where M = -B * A^[-1]
-        MT _B = -1 * B; // TODO avoid this allocation
-        DenseProductMatrix<NT> M(&_B, &A);
-
-        // Creating an eigenvalue problem and defining what we need:
-        // the  eigenvector of A with largest real.
-        ARNonSymStdEig<NT, DenseProductMatrix<NT> >
-
-        dprob(A.cols(), 1, &M, &DenseProductMatrix<NT>::MultMv, std::string ("LR"), 8<A.rows() ? 8 : A.rows(), 0.000);//, 100*3);
-
-        // compute
-        if (dprob.FindEigenvectors() == 0) {
-            std::cout << "Failed\n";
-            // if failed with default (and fast) parameters, try with stable (and slow)
-            dprob.ChangeNcv(A.cols()/10);
-            if (dprob.FindEigenvectors() == 0) {
-                std::cout << "\tFailed Again\n";
-                return NT(0);
+                auto eigenvals = ges.eigenvalues();
+                // Eigenvalues sorted increasing; find smallest positive λ (which is t)
+                for (int i = 0; i < n; ++i) {
+                    NT lambda = eigenvals(i);
+                    if (lambda > eps() * NT(10)) {
+                        eigvec = ges.eigenvectors().col(i);
+                        return lambda;
+                    }
+                }
             }
-        }
 
+            // Fallback: use GeneralizedEigenSolver which handles non-PD matrices
+            Eigen::GeneralizedEigenSolver<MT> ges(A, B);
+            if (ges.info() != Eigen::Success) return LARGE_VAL();
 
-        // allocate memory for the eigenvector here
-        eigenvector.setZero(A.rows());
+            auto alphas = ges.alphas();
+            auto betas = ges.betas();
+            NT min_pos_t = LARGE_VAL();
+            int best_idx = -1;
 
-        if (!dprob.EigenvaluesFound()) {
-            // if failed to find eigenvalues
-            return NT(0);
-        }
+            for (int i = 0; i < n; ++i) {
+                std::complex<NT> lambda = alphas(i) / betas(i);
+                if (std::abs(lambda.imag()) > eps() * NT(10)) continue;
+                NT t = -lambda.real();  // (A + t*B)v = 0 → t = -λ for Av = λ*Bv
+                if (t > eps() * NT(10) && t < min_pos_t) {
+                    min_pos_t = t;
+                    best_idx = i;
+                }
+            }
 
-        // retrieve eigenvalue of the original system
-        lambdaMinPositive = 1/dprob.EigenvalueReal(0);
+            if (best_idx >= 0) {
+                eigvec = ges.eigenvectors().col(best_idx).real();
+                return min_pos_t;
+            }
+        } catch (...) {}
 
-        eigenvector.setZero(A.rows());
-        if (dprob.EigenvectorsFound()) {
-            //retrieve corresponding eigenvector
-            for (int i=0 ;i<A.rows() ; i++)
-                eigenvector(i) = dprob.EigenvectorReal(0, i);
-        }
-
-
-#endif
-//        std::cout << lambdaMinPositive << " " << eigenvector.transpose() << "\n";fflush(stdout);
-        return lambdaMinPositive;
+        return LARGE_VAL();
     }
 
-    /// Find the minimum positive and maximum negative eigenvalues of the generalized eigenvalue
-    /// problem A + lB, where A, B symmetric and A negative definite.
-    /// \param[in] A Input matrix
-    /// \param[in] B Input matrix
-    /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const {
-        int matrixDim = A.rows();
-        double lambdaMinPositive;
+    /// Variant of minPosLinearEigenvalue using the symmetric generalized approach
+    /// Solves (A + t*B)v = 0 for the smallest positive t
+    /// Uses solver(B, A) → Bv = λAv → Av + (1/λ)Bv = 0 → t = 1/λ (largest λ)
+    /// The caller typically passes A = -precomputedValues.A, B = precomputedValues.B
+    /// so the internal call is ges(B, -precomputedValues.A).
+    /// \param[in] A Coefficient matrix (as-is from caller, no sign change)
+    /// \param[in] B Coefficient matrix
+    /// \param[out] eigvec Eigenvector for the minimum positive t
+    /// \return Minimum positive t, or infinity if none exists
+    NT minPosLinearEigenvalue_EigenSymSolver(const MT& A, const MT& B, VT& eigvec) const {
+        const int n = A.rows();
+        if (n == 0) return LARGE_VAL();
 
-        Spectra::DenseSymMatProd<NT> op(B);
-        Spectra::DenseCholesky<NT> Bop(-A);
+        try {
+            // ges(B, A): matches original code's ges(B_param, A_param)
+            Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B, A);
+            if (ges.info() != Eigen::Success) return LARGE_VAL();
 
-        // Construct generalized eigen solver object, requesting the largest generalized eigenvalue
-	// an empirical value of ncv that gives a better performance
-	// TODO: tune this implementation by tuning the parameters like ncv
-        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-            geigs(&op, &Bop, 1, ncv);
+            auto eigenvals = ges.eigenvalues();
+            // Eigenvalues sorted increasing; find largest positive λ → smallest t = 1/λ
+            for (int i = n - 1; i >= 0; --i) {
+                NT lambda = eigenvals(i);
+                if (lambda > eps() * NT(10)) {
+                    eigvec = ges.eigenvectors().col(i);
+                    return NT(1) / lambda;
+                }
+            }
 
-        // Initialize and compute
-        geigs.init();
-        int nconv = geigs.compute();
+            // Fallback: try GeneralizedEigenSolver
+            Eigen::GeneralizedEigenSolver<MT> ges2(A, B);
+            if (ges2.info() != Eigen::Success) return LARGE_VAL();
 
-        // Retrieve results
-        VT evalues;
+            auto alphas = ges2.alphas();
+            auto betas = ges2.betas();
+            NT min_pos_t = LARGE_VAL();
+            int best_idx = -1;
 
-        if (geigs.info() == Spectra::SUCCESSFUL) {
-            evalues = geigs.eigenvalues();
-            eigvec = geigs.eigenvectors().col(0);
-        }
+            for (int i = 0; i < n; ++i) {
+                std::complex<NT> lambda = alphas(i) / betas(i);
+                if (std::abs(lambda.imag()) > eps() * NT(10)) continue;
+                NT t = -lambda.real();  // (A + t*B)v = 0 → t = -λ for Av = λBv
+                if (t > eps() * NT(10) && t < min_pos_t) {
+                    min_pos_t = t;
+                    best_idx = i;
+                }
+            }
 
-        lambdaMinPositive = 1 / evalues(0);
+            if (best_idx >= 0) {
+                eigvec = ges2.eigenvectors().col(best_idx).real();
+                return min_pos_t;
+            }
+        } catch (...) {}
 
-        return lambdaMinPositive;
+        return LARGE_VAL();
     }
 
-    /// Transform the quadratic eigenvalue problem \[At^2 + Bt + c\] to
-    /// the generalized eigenvalue problem X+lY.
-    /// If the updateOnly flag is false, compute matrices X,Y from scratch;
-    /// otherwise update them.
-    /// \param[in] A
-    /// \param[in] B
-    /// \param[in] C
-    /// \param[in, out] X
-    /// \param[in, out] Y
-    /// \param[in, out] updateOnly True if X,Y were previously computed and only B,C changed
-    void linearization(const MT &A, const MT &B, const MT &C, MT &X, MT &Y, bool &updateOnly) {
-        unsigned int matrixDim = A.rows();
-
-        // check if the matrices X,Y are computed.
-        //if yes, update them; otherwise compute them from scratch
-        if (!updateOnly) {
-            X.resize(2 * matrixDim, 2 * matrixDim);
-            Y.resize(2 * matrixDim, 2 * matrixDim);
-
-            Y.block(matrixDim, matrixDim, matrixDim, matrixDim) = -1 * C;
-            Y.block(0, matrixDim, matrixDim, matrixDim) = MT::Zero(matrixDim, matrixDim);
-            Y.block(matrixDim, 0, matrixDim, matrixDim) = MT::Zero(matrixDim, matrixDim);
-            Y.block(0, 0, matrixDim, matrixDim) = A;
-
-            X.block(0, matrixDim, matrixDim, matrixDim) = C;
-            X.block(0, 0, matrixDim, matrixDim) = B;
-            X.block(matrixDim, 0, matrixDim, matrixDim) = C;
-            X.block(matrixDim, matrixDim, matrixDim, matrixDim) = MT::Zero(matrixDim, matrixDim);
-        } else {
-            Y.block(matrixDim, matrixDim, matrixDim, matrixDim) = -1 * C;
-
-            X.block(0, matrixDim, matrixDim, matrixDim) = C;
-            X.block(0, 0, matrixDim, matrixDim) = B;
-            X.block(matrixDim, 0, matrixDim, matrixDim) = C;
-        }
-    }
-
-    /// Find the minimum positive real eigenvalue of the quadratic eigenvalue problem \[At^2 + Bt + c\].
-    /// First transform it to the generalized eigenvalue problem X+lY.
-    /// If the updateOnly flag is false, compute matrices X,Y from scratch;
-    /// otherwise only update them.
-    /// \param[in] A Input matrix
-    /// \param[in] B Input matrix
-    /// \param[in] C Input matrix
-    /// \param[in, out] X
-    /// \param[in, out] Y
-    /// \param[out] eigenvector The eigenvector corresponding to the minimum positive eigenvalue
-    /// \param[in, out] updateOnly True if X,Y were previously computed and only B,C changed
-    /// \return Minimum positive eigenvalue
-    NT minPosQuadraticEigenvalue(MT const & A, MT const &B, MT const &C, MT &X, MT &Y, VT &eigenvector, bool &updateOnly) {
-        // perform linearization and create generalized eigenvalue problem X+lY
-        linearization(A, B, C, X, Y, updateOnly);
-
-        // solve generalized problem
-        CVT eivector;
-        NT lambdaMinPositive = minPosGeneralizedEigenvalue(X, Y, eivector);
-
-        if (lambdaMinPositive == 0)
-            return 0;
-
-        int matrixDim = A.rows();
-
-        // the eivector has dimension 2*matrixDim
-        // while the eigenvector of the original problem has dimension matrixDim
-        // retrieve the eigenvector by keeping only #matrixDim coordinates.
-        eigenvector.resize(matrixDim);
-
-#if defined(EIGEN_EIGENVALUES_SOLVER) || defined (SPECTRA_EIGENVALUES_SOLVER)
-        for (int i = 0; i < matrixDim; i++)
-            eigenvector(i) =  eivector(matrixDim + i).real();
-#elif defined(ARPACK_EIGENVALUES_SOLVER)
-        for (int i = 0; i < matrixDim; i++)
-            eigenvector(i) =  eivector(matrixDim + i);
-#endif
-
-        return lambdaMinPositive;
-    }
-
-    // Using LDLT decomposition to check membership
-    // Faster than computing the largest eigenvalue with Spectra
-    // more numerically stable for singular matrices
-    bool isPositiveSemidefinite(MT const &A) const {
+    /// Check if symmetric matrix A is positive semidefinite
+    /// Uses LDLT decomposition which handles semidefinite matrices gracefully
+    /// \param[in] A Symmetric matrix
+    /// \return true if A is positive semidefinite, false otherwise
+    bool isPositiveSemidefinite(const MT& A) const {
         Eigen::LDLT<MT> A_ldlt(A);
         if (A_ldlt.info() != Eigen::NumericalIssue && A_ldlt.isPositive())
             return true;
         return false;
     }
 
-    /// Check if a matrix is indeed a correlation matrix
-    /// return true if input matrix is found to be a correlation matrix
-    /// |param[in] matrix
-    bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8){
-    
-        //check if all the diagonal elements are ones
-        for (int i=0 ; i<matrix.rows() ; i++){
-   	    if (std::abs(matrix(i, i)-1.0) > tol){
-   	        return false;
-   	    }
+    /// Check if a matrix is a correlation matrix
+    /// Returns true if all diagonal elements are 1 and the matrix is PSD
+    /// \param[in] matrix Input matrix
+    /// \param[in] tol Tolerance for checking unit diagonal
+    /// \return true if matrix is a valid correlation matrix
+    bool is_correlation_matrix(const MT& matrix, const double tol = 1e-8) {
+        // Check if all diagonal elements are ones
+        for (int i = 0; i < matrix.rows(); i++) {
+            if (std::abs(matrix(i, i) - 1.0) > tol) {
+                return false;
+            }
         }
-    
-        //check if the matrix is positive definite
+        // Check positive semidefiniteness
         if (isPositiveSemidefinite(matrix)) return true;
-    
         return false;
     }
 
-    /// Minimum positive eigenvalue of the generalized eigenvalue problem A - lB
-    /// Use Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A) (faster)
-    /// \param[in] A: symmetric positive definite matrix
-    /// \param[in] B: symmetric matrix
-    /// \return The minimum positive eigenvalue and the corresponding eigenvector
-    NT minPosLinearEigenvalue_EigenSymSolver(MT const & A, MT const & B, VT &eigvec) const {
-
-#if defined(SPECTRA_EIGENVALUES_SOLVER)
-	int matrixDim = A.rows();
-        NT lambdaMinPositive;
-
-        Spectra::DenseSymMatProd<NT> op(B);
-        Spectra::DenseCholesky<NT> Bop(A);
-
-        //construct generalized eigen solver object, requesting the smallest eigenvalue
-        int ncv = std::min(std::max(10, matrixDim/20), matrixDim);
-        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY>
-        	geigs(&op, &Bop, 1, ncv);
-
-    	//initialize and compute
-    	geigs.init();
-    	int nconv = geigs.compute();
-
-    	//retrieve results
-    	VT evalues;
-
-    	if(geigs.info() == Spectra::SUCCESSFUL){
-   	    evalues = geigs.eigenvalues();
-   	    eigvec = geigs.eigenvectors().col(0);
-    	}
-
-    	lambdaMinPositive = NT(1)/evalues(0);
-
-#elif
-        NT lambdaMinPositive = NT(0);
-        Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B,A);
-        lambdaMinPositive = 1/ges.eigenvalues().reverse()[0];
-        eigvec = ges.eigenvectors().reverse().col(0).reverse();
-#endif
-        return lambdaMinPositive;
+    /// Check if symmetric matrix M is negative definite
+    /// and return an estimate of the largest eigenvalue (most negative)
+    /// \param[in] M Symmetric matrix
+    /// \return Estimated largest eigenvalue if M is negative definite, infinity otherwise
+    static NT findSymEigenvalue(const MT& M) {
+        const int n = M.rows();
+        
+        // Early exit: check diagonal
+        for (int i = 0; i < n; ++i) {
+            if (M.coeff(i, i) >= NT(0)) {
+                // Return -1 to indicate not negative definite
+                return -1;
+            }
+        }
+        
+        // Try Cholesky first (faster, no pivoting)
+        Eigen::LLT<MT> llt;
+        llt.compute(-M);
+        if (llt.info() == Eigen::Success) {
+            // Successfully factored, -M is PD, so M is ND
+            // Get diagonal elements from L: L is lower triangular
+            // For LLT: -M = L*L^T, diagonal of D would be L.diagonal()^2
+            Eigen::VectorXd diag = llt.matrixLLT().diagonal();
+            // Return min of squared diagonal (approximates eigenvalue bound)
+            return diag.array().square().minCoeff();
+        }
+        
+        // Fallback to LDLT (handles indefinite/ill-conditioned)
+        Eigen::LDLT<MT> ldlt;
+        ldlt.compute(-M);
+        if (ldlt.info() != Eigen::Success) {
+            return std::numeric_limits<NT>::infinity();
+        }
+        return ldlt.vectorD().minCoeff();
     }
 };
 
-#endif //VOLESTI_EIGENVALUESPROBLEMS_H
+#endif // VOLESTI_EIGENVALUESPROBLEMS_H

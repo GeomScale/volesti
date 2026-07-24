@@ -3,9 +3,11 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2020 Apostolos Chalkis
 
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
+
 
 #ifndef VOLESTI_LMI_H
 #define VOLESTI_LMI_H
@@ -226,13 +228,18 @@ class LMI {
         }
     }
 
-    /// check if the matrix is negative semidefinite
-    /// \param matrix a matrix
-    /// \return Pointer to A_i
+    // / check if the matrix is negative semidefinite
+    // / \param matrix a matrix
+    // / \return Pointer to A_i
     bool isNegativeSemidefinite(MT const & matrix ) const {
+        const NT tol = NT(1e-10) * matrix.norm();
+
         EigenvaluesProblems<NT, MT, VT> eigs;
-        NT eival = eigs.findSymEigenvalue(matrix);
-        return eival <= 0;
+        NT eival = eigs.findSymEigenvalue(matrix); 
+        
+        // checks if -matrix is positive definite
+        return eival >= tol;
+
     }
 
     /// evaluate LMI(pos) and check if its negative semidefinite

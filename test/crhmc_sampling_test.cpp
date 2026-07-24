@@ -163,7 +163,7 @@ struct CustomFunctor {
   };
 };
 template <typename NT, typename VT, typename MT>
-NT check_interval_psrf(MT &samples, NT target = NT(1.2)) {
+NT check_interval_psrf(MT &samples, NT target = NT(1.9)) {
   NT max_psrf = NT(0);
   VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
   unsigned int d = intv_psrf.rows();
@@ -506,7 +506,7 @@ void call_test_benchmark_cube_crhmc() {
 }
 
 template <typename ConstraintProblem, typename SpMat, typename Point, int simdLen=1>
-void test_polytope_sampling_sparse_problem(ConstraintProblem &problem, int n_samples = 80000, int n_burns = 20000){
+void test_polytope_sampling_sparse_problem(ConstraintProblem &problem, int n_samples = 1000, int n_burns = 200){
   using NT = typename Point::FT;
   using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
   using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;

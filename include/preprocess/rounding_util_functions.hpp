@@ -3,7 +3,8 @@
 // Copyright (c) 2012-2024 Vissarion Fisikopoulos
 // Copyright (c) 2018-2024 Apostolos Chalkis
 
-//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -13,9 +14,9 @@
 
 #include <memory>
 
-#include "Spectra/include/Spectra/SymEigsSolver.h"
-#include "Spectra/include/Spectra/MatOp/DenseSymMatProd.h"
-#include "Spectra/include/Spectra/MatOp/SparseSymMatProd.h"
+#include <Spectra/SymEigsSolver.h>
+#include <Spectra/MatOp/DenseSymMatProd.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
 
 
 template <typename NT>
@@ -120,7 +121,7 @@ inline static VT solve_vec(std::unique_ptr<Eigen_lltMT> const& llt,
     {
         llt->compute(H);
         return llt->solve(b);
-    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)
     {
         llt->factorize(H);
         return llt->solve(b);
@@ -236,24 +237,14 @@ inline static auto get_eigs_solver(std::unique_ptr<SpectraMatProdNT> const& op, 
     using SparseMatProd = Spectra::SparseSymMatProd<NT>;
     if constexpr (std::is_same<SpectraMatProdNT, DenseMatProd>::value)
     {
-        using SymDenseEigsSolver = Spectra::SymEigsSolver
-          <
-            NT, 
-            Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-            DenseMatProd
-          >;
+        using SymDenseEigsSolver = Spectra::SymEigsSolver<DenseMatProd>;
         // The value of ncv is chosen empirically
-        return std::make_unique<SymDenseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
+        return std::make_unique<SymDenseEigsSolver>(*op, 2, std::min(std::max(10, n/5), n));
     } else if constexpr (std::is_same<SpectraMatProdNT, SparseMatProd>::value)  
     {
-        using SymSparseEigsSolver = Spectra::SymEigsSolver
-          <
-            NT, 
-            Spectra::SELECT_EIGENVALUE::BOTH_ENDS, 
-            SparseMatProd
-          >;
+          using SymSparseEigsSolver = Spectra::SymEigsSolver<SparseMatProd>;
         // The value of ncv is chosen empirically
-        return std::make_unique<SymSparseEigsSolver>(op.get(), 2, std::min(std::max(10, n/5), n));
+        return std::make_unique<SymSparseEigsSolver>(*op, 2, std::min(std::max(10, n/5), n));
     } else 
     {
         static_assert(AssertFalseType<SpectraMatProdNT>::value,

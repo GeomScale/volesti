@@ -6,6 +6,7 @@
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 //Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
+//Contributed and/or modified by Korakitis Angelos, as part of Google Summer of Code 2025 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -131,8 +132,8 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
             auto op = get_mat_prod_op<NT>(E2);
             auto eigs = get_eigs_solver<NT>(op, n);
             eigs->init();
-            int nconv = eigs->compute();
-            if (eigs->info() == Spectra::COMPUTATION_INFO::SUCCESSFUL) {
+            int nconv = eigs->compute(Spectra::SortRule::BothEnds);
+            if (eigs->info() == Spectra::CompInfo::Successful) {
                 Rel = 1.0 / eigs->eigenvalues().coeff(1);
                 rel = 1.0 / eigs->eigenvalues().coeff(0);
             } else {
