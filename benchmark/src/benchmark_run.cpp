@@ -10,11 +10,11 @@
 #include "../include/walk_result.hpp"
 #include "../include/walk_registry.hpp"
 #include "../include/menu.hpp"
+#include "../include/rounding.hpp"
 
 #include "../include/polytope_generation.hpp"
 #include "known_polytope_generators.h"
 #include "order_polytope_generator.h"
-#include "inscribed_ellipsoid_rounding.hpp"
 
 #include "benchmark_run.hpp"
 
@@ -147,40 +147,14 @@ int run_benchmark(int argc, char** argv) {
 
         // ****ROUNDING***** 
         if (config.rounding) {
-            cout << "[ROUNDING] Rounding is enabled. Applying " << config.rounding_method << " rounding...\n";
-            
-            if (config.rounding_method == "max_ellipsoid") {
-                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT>(Polytope, center);
-                T = std::get<0>(rounding_result);
-                shift = std::get<1>(rounding_result);
-                round_val = std::get<2>(rounding_result);
-            } 
-            else if (config.rounding_method == "log_barrier") {
-                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT, decltype(Polytope), decltype(center), 2>(Polytope, center);
-                T = std::get<0>(rounding_result);
-                shift = std::get<1>(rounding_result);
-                round_val = std::get<2>(rounding_result);
-            } 
-            else if (config.rounding_method == "vaidya_barrier") {
-                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT, decltype(Polytope), decltype(center), 3>(Polytope, center);
-                T = std::get<0>(rounding_result);
-                shift = std::get<1>(rounding_result);
-                round_val = std::get<2>(rounding_result);
-            } 
-            else if (config.rounding_method == "volumetric_barrier") {
-                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT, decltype(Polytope), decltype(center), 4>(Polytope, center);
-                T = std::get<0>(rounding_result);
-                shift = std::get<1>(rounding_result);
-                round_val = std::get<2>(rounding_result);
-            } 
-            else {
-                throw std::runtime_error("Unknown rounding method: " + config.rounding_method);
-            }
-            
-            // Since rounding shifts the polytope to the origin we will use 0,0,0,0,0 ... as center.
-            center = Point(VT::Zero(Polytope.dimension()));
-            
-            cout << "[ROUNDING] Rounding complete. Round value: " << round_val << "\n\n";
+            apply_polytope_rounding<MT, VT, NT>(
+                config.rounding_method, 
+                Polytope, 
+                center, 
+                T, 
+                shift, 
+                round_val
+            );
         }
         // --------------------------
 

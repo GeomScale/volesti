@@ -13,7 +13,7 @@
         "rounding": true,
         "rounding_method": "max_ellipsoid",
         "auto_walk": false,
-        "show_menu": true
+        "show_menu": false
     },
 "walks": {
         "BallWalk":                 { "enabled": true, "samples": 20000, "walk_len_multiplier": 2, "walk_len_base": 0 },
