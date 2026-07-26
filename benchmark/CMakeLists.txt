@@ -40,7 +40,7 @@ include_directories(../include/preprocess)
 
 set(SOURCES
     src/benchmark_main.cpp
-    src/benchmark_run
+    src/benchmark_run.cpp
     src/walk_parameters.cpp
     src/benchmark_utils.cpp
     src/walk_result.cpp

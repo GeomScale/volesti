@@ -34,6 +34,7 @@ BenchmarkConfig load_benchmark_config(const std::string& filepath) {
         config.use_dynamic_batch = pt.get<bool>("global_settings.dynamic_batch_size", true);
         config.write_to_file     = pt.get<bool>("global_settings.write_to_file", false);
         config.rounding          = pt.get<bool>("global_settings.rounding", false);
+        config.rounding_method   = pt.get<std::string>("global_settings.rounding_method", "max_ellipsoid");
         config.auto_walk         = pt.get<bool>("global_settings.auto_walk", false);
         config.show_menu         = pt.get<bool>("global_settings.show_menu", false);
 

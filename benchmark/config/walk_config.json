@@ -10,7 +10,8 @@
         "custom_b_file": "Cube_50_b.csv",
         "dynamic_batch_size": true,
         "write_to_file": true,
-        "rounding": false,
+        "rounding": true,
+        "rounding_method": "max_ellipsoid",
         "auto_walk": false,
         "show_menu": true
     },

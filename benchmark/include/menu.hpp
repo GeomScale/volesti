@@ -196,9 +196,36 @@ inline void setup_benchmark_options(BenchmarkConfig& config, std::string& walk_c
 
     // 8. Rounding
     std::cout << "\n";
-    int round_choice = get_valid_int("Enable rounding?\n1. Yes\n2. No\nChoice (1-2): ", 1, 2);
-    config.rounding = (round_choice == 1);
+    std::cout << "Select a rounding method:\n";
+    std::cout << "1. None (Disabled)\n";
+    std::cout << "2. Max Ellipsoid\n";
+    std::cout << "3. Log Barrier\n";
+    std::cout << "4. Vaidya Barrier\n";
+    std::cout << "5. Volumetric Barrier\n";
+    int r_choice = get_valid_int("Choice (1-5): ", 1, 5);
 
+    switch (r_choice) {
+        case 1: 
+            config.rounding = false; 
+            config.rounding_method = "none";
+            break;
+        case 2: 
+            config.rounding = true; 
+            config.rounding_method = "max_ellipsoid"; 
+            break;
+        case 3: 
+            config.rounding = true; 
+            config.rounding_method = "log_barrier"; 
+            break;
+        case 4: 
+            config.rounding = true; 
+            config.rounding_method = "vaidya_barrier"; 
+            break;
+        case 5: 
+            config.rounding = true; 
+            config.rounding_method = "volumetric_barrier"; 
+            break;
+    }
     // 9. Method Choice
     std::cout << "\n";
     std::string strategy_prompt = "Select a Walk Method Strategy:\n"

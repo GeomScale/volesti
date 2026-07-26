@@ -147,17 +147,35 @@ int run_benchmark(int argc, char** argv) {
 
         // ****ROUNDING***** 
         if (config.rounding) {
-            cout << "[ROUNDING] Rounding is enabled. Applying max inscribed ellipsoid rounding...\n";
+            cout << "[ROUNDING] Rounding is enabled. Applying " << config.rounding_method << " rounding...\n";
             
-            // Pass the pre-computed center into the rounding function
-            // Use john ellispoid
-            // Polytope is passed by reference so we shouldnt need to define a new one.
-            auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT>(Polytope, center);
-            
-            // Unpack the transformation data
-            T = std::get<0>(rounding_result);
-            shift = std::get<1>(rounding_result);
-            round_val = std::get<2>(rounding_result);
+            if (config.rounding_method == "max_ellipsoid") {
+                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT>(Polytope, center);
+                T = std::get<0>(rounding_result);
+                shift = std::get<1>(rounding_result);
+                round_val = std::get<2>(rounding_result);
+            } 
+            else if (config.rounding_method == "log_barrier") {
+                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT, decltype(Polytope), decltype(center), 2>(Polytope, center);
+                T = std::get<0>(rounding_result);
+                shift = std::get<1>(rounding_result);
+                round_val = std::get<2>(rounding_result);
+            } 
+            else if (config.rounding_method == "vaidya_barrier") {
+                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT, decltype(Polytope), decltype(center), 3>(Polytope, center);
+                T = std::get<0>(rounding_result);
+                shift = std::get<1>(rounding_result);
+                round_val = std::get<2>(rounding_result);
+            } 
+            else if (config.rounding_method == "volumetric_barrier") {
+                auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT, decltype(Polytope), decltype(center), 4>(Polytope, center);
+                T = std::get<0>(rounding_result);
+                shift = std::get<1>(rounding_result);
+                round_val = std::get<2>(rounding_result);
+            } 
+            else {
+                throw std::runtime_error("Unknown rounding method: " + config.rounding_method);
+            }
             
             // Since rounding shifts the polytope to the origin we will use 0,0,0,0,0 ... as center.
             center = Point(VT::Zero(Polytope.dimension()));

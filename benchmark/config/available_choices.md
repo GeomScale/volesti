@@ -41,8 +41,26 @@ Set this to true in order to create txt files holding all the generated samples.
 
 ## Rounding
 
-If this is set to true, the code will firrst call a rounding function on the input polytope, the john position.
+If this is set to true, the code will first call a rounding function on the input polytope.
 The sampling will take place on the rounded polytope before the sample are reverted back to the original and returned.
+
+## Rounding_method
+
+Selects the rounding method. Available choices are:
+
+- max_ellipsoid
+- log_barrier
+- vaidya_barrier
+- volumetric_barrier
+
+## Auto walk
+
+If set to true, the code will decide what algorithm to use based on the input polytope.
+Right now it decides only based on dimension, but will be updated in the future.
+
+## Show menu
+
+If set to true, a menu will show up when you run the code.
 
 ## Walks
 

@@ -33,6 +33,7 @@ struct BenchmarkConfig {
     bool use_dynamic_batch;
     bool write_to_file;
     bool rounding;
+    std::string rounding_method;
     bool auto_walk;
     bool show_menu;
 
