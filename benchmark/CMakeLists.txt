@@ -40,10 +40,11 @@ include_directories(../include/preprocess)
 
 set(SOURCES
     src/benchmark_main.cpp
+    src/benchmark_run
     src/walk_parameters.cpp
     src/benchmark_utils.cpp
     src/walk_result.cpp
-    src/walk_registry.cpp
+    src/walk_registry.cpp    
 )
 
 add_executable(benchmark_run ${SOURCES})

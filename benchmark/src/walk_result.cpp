@@ -14,7 +14,8 @@ WalkStatistics process_and_print_results(
     double total_generation_time,
     unsigned int precalculated_ess,
     double total_ess_time,
-    unsigned int walk_len) 
+    unsigned int walk_len,
+    const std::string& polytope_name) 
 {
     // Calculate mixing ratio (Total Steps / ESS)
     double mixing_ratio = 0.0;
@@ -79,11 +80,12 @@ WalkStatistics process_and_print_results(
     if (outfile.is_open()) {
         // If this is the very first time creating the file, write the header row
         if (!file_exists) {
-            outfile << "Dimension,Method,Time_Sec,Points,ESS,Mixing_Ratio,Max_PSRF,KS_Stat,KS_P_Value\n";
+            outfile << "Polytope,Dimension,Method,Time_Sec,Points,ESS,Mixing_Ratio,Max_PSRF,KS_Stat,KS_P_Value\n";
         }
 
         // Write the data row
-        outfile << polytope.dimension() << ", " 
+        outfile << polytope_name << ", "
+                << polytope.dimension() << ", " 
                 << walk_name << ", "
                 << std::fixed << std::setprecision(4) << total_generation_time << ", "
                 << samples.size() << ", "
