@@ -58,9 +58,13 @@ Selects the rounding method. Available choices are:
 If set to true, the code will decide what algorithm to use based on the input polytope.
 Right now it decides only based on dimension, but will be updated in the future.
 
+## Show console logs
+
+Keep your console clean by removing most of the cosnole messages. You will still see the progress bar and final a few mesages.
+
 ## Show menu
 
-If set to true, a menu will show up when you run the code.
+If set to true, a menu will show up when you run the code. The menu will ask you to choose all the parameters you want for your experiment or show extended help. Useful for new users.
 
 ## Walks
 

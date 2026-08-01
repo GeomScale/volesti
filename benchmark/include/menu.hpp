@@ -7,6 +7,7 @@
 #include <cstdlib> 
 #include <sstream>
 #include <algorithm>
+#include <cstdlib> 
 #include "walk_parameters.hpp"
 
 // Helper function to safely get an integer or quit via 'q'/'Q' from ANY prompt
@@ -105,15 +106,148 @@ inline std::vector<unsigned int> get_valid_dimension_list(const std::string& pro
 }
 
 inline void show_help() {
-    std::cout << "\n" << std::string(40, '-') << "\n";
-    std::cout << "                   HELP                   \n";
-    std::cout << std::string(40, '-') << "\n";
-    std::cout << "This benchmark tool tests different random \n";
-    std::cout << "walks on various polytopes. You can use the\n";
-    std::cout << "JSON file to set defaults, or this menu to \n";
-    std::cout << "override them interactively.\n";
-    std::cout << "Type 'q' at any prompt to exit at any time.\n";
-    std::cout << std::string(40, '-') << "\n\n";
+    int choice = -1; 
+
+    while (true) {
+        // Clear the console screen (cross-platform compatible)
+#if defined(_WIN32)
+        int ret = std::system("cls");
+#else
+        int ret = std::system("clear");
+#endif
+        (void)ret; // Silence the "ignoring return value" warning
+
+        // Print the fixed menu at the top
+        std::cout << "\n" << std::string(60, '-') << "\n";
+        std::cout << "*************************** HELP ***************************\n";
+        std::cout << std::string(60, '-') << "\n";
+        std::cout << "Select a topic to learn more about:\n";
+        std::cout << "  1. What is an MCMC method?\n";
+        std::cout << "  2. What is ESS (Effective Sample Size)?\n";
+        std::cout << "  3. What is PSRF?\n";
+        std::cout << "  4. What is the KS test?\n";
+        std::cout << "  5. Polytope Rounding\n";
+        std::cout << "  6. Geometric Methods (Ball, Billiards, Hit-and-Run)\n";
+        std::cout << "  7. Barrier Methods (Dikin, John, Vaidya, CRHMC)\n";
+        std::cout << "  8. Boundary & Other Methods (Shake & Bake)\n";
+        std::cout << "  0. Return to Main Menu\n";
+
+        std::cout << "\n" << std::string(60, '=') << "\n";
+
+        // Display the selected information block
+        if (choice == -1) {
+            std::cout << "Please select an option from the menu above.\n";
+        } else {
+            switch (choice) {
+                case 1:
+                    std::cout << R"(--- Markov Chain Monte Carlo (MCMC) ---
+MCMC is a class of algorithms used to sample from a probability 
+distribution. Because high-dimensional polytopes are difficult 
+to sample from directly, MCMC constructs a random walk (a 
+Markov chain) where each step depends only on the previous one. 
+Over time, the steps of this walk distribute themselves 
+according to the target distribution (usually uniform for 
+polytopes).)" << '\n';
+                    break;
+                case 2:
+                    std::cout << R"(--- Effective Sample Size (ESS) ---
+Since MCMC samples are generated via a random walk, consecutive 
+samples are correlated (they are near each other in space). 
+ESS calculates how many statistically independent samples your 
+autocorrelated chain is equivalent to. 
+
+For example, 10,000 raw samples might only yield an ESS of 500, 
+meaning the walk is moving slowly through the space. A higher 
+ESS indicates better mixing and a more efficient algorithm.)" << '\n';
+                    break;
+                case 3:
+                    std::cout << R"(--- Potential Scale Reduction Factor (PSRF) ---
+Also known as the Gelman-Rubin diagnostic. It is used to evaluate 
+if your MCMC walk has converged to the target distribution. 
+
+It compares the variance between multiple independent random 
+walks to the variance within those individual walks. A PSRF 
+value close to 1.0 (typically < 1.1) suggests that the chains 
+have converged and are exploring the same space properly.)" << '\n';
+                    break;
+                case 4:
+                    std::cout << R"(--- Kolmogorov-Smirnov (KS) Test ---
+The KS test is a statistical test used to compare a sample 
+distribution with a reference probability distribution, or to 
+compare two sample distributions. 
+
+In this benchmark, it is often used to check the 1-dimensional 
+marginals of the sampled points to see if they match the 
+theoretically expected uniform distribution of the polytope, 
+verifying the correctness of the walk.)" << '\n';
+                    break;
+                case 5:
+                    std::cout << R"(--- Polytope Rounding ---
+Polytopes can be highly skewed, elongated, or "skinny". Random 
+walks struggle in skinny spaces because they easily get stuck 
+bouncing off the walls, leading to high autocorrelation.
+
+Rounding computes an ellipsoid (e.g., Maximum Volume Inscribed 
+Ellipsoid) that fits inside the polytope, and uses it to apply 
+a linear transformation. This transformation makes the polytope 
+look more like a sphere (isotropic). The random walk runs much 
+faster in this rounded space, and the generated samples are then 
+transformed back to the original space.)" << '\n';
+                    break;
+                case 6:
+                    std::cout << R"(--- Geometric Methods ---
+These methods rely purely on the geometric properties of the space:
+- Hit-and-Run: Picks a random direction, computes the line segment 
+  inside the polytope along that direction, and jumps to a uniform 
+  random point on that segment.
+- Ball Walk: Proposes a point uniformly within a small ball around 
+  the current point. Rejects the step if it falls outside the polytope.
+- Billiards: Simulates particle trajectories bouncing off the 
+  polytope's inner boundaries, like a billiard ball.)" << '\n';
+                    break;
+                case 7:
+                    std::cout << R"(--- Barrier Methods ---
+These methods utilize barrier functions (often borrowed from 
+Interior Point methods in optimization) to keep the walk away from 
+the boundaries:
+- Dikin Walk: Uses the log-barrier Hessian to define an ellipsoid 
+  around the current point that is guaranteed to be inside the 
+  polytope, proposing the next step from within this ellipsoid.
+- Vaidya / John Walks: Use more complex barrier functions 
+  (Vaidya's barrier or John's ellipsoid) to take larger steps 
+  without hitting the boundary.
+- CRHMC: Simulates a particle moving inside the polytope under 
+  the Hamiltonian laws of motion, where the boundaries act as 
+  immovable walls.)" << '\n';
+                    break;
+                case 8:
+                    std::cout << R"(--- Boundary & Other Methods ---
+While standard methods sample the interior volume of the polytope, 
+some tasks require sampling exactly from the surface (the facets).
+
+- Shake & Bake: An algorithm specifically designed to generate 
+  points uniformly distributed on the boundary of a polytope. It 
+  "shakes" to find a direction and "bakes" by moving along the 
+  boundary facets.)" << '\n';
+                    break;
+            }
+        }
+        std::cout << std::string(60, '=') << "\n";
+
+        // Prompt the user for the next action
+        choice = get_valid_int("Enter your choice (0-8): ", 0, 8);
+
+        if (choice == 0) {
+            // Clear the screen one last time before returning to the main menu
+#if defined(_WIN32)
+            int final_ret = std::system("cls");
+#else
+            int final_ret = std::system("clear");
+#endif
+            (void)final_ret; // Silence the warning
+            return;
+        }
+    }
 }
 
 // Handles the setup flow when the user chooses Option 1

@@ -34,5 +34,6 @@ WalkStatistics process_and_print_results(
     unsigned int precalculated_ess,
     double total_ess_time,
     unsigned int walk_len,
-    const std::string& polytope_name
+    const std::string& polytope_name,
+    bool show_console_logs
 );

@@ -15,9 +15,12 @@ void apply_polytope_rounding(const std::string& method,
                              PointType& center, 
                              MT& T, 
                              VT& shift, 
-                             NT& round_val) {
+                             NT& round_val,
+                             bool show_console_logs) {
     
-    std::cout << "[ROUNDING] Rounding is enabled. Applying " << method << " rounding...\n";
+    if (show_console_logs) {
+        std::cout << "[ROUNDING] Rounding is enabled. Applying " << method << " rounding...\n";
+    }
 
     if (method == "max_ellipsoid") {
         auto rounding_result = inscribed_ellipsoid_rounding<MT, VT, NT>(Polytope, center);
@@ -50,7 +53,9 @@ void apply_polytope_rounding(const std::string& method,
     // Since rounding shifts the polytope to the origin we will use a zero vector as the center.
     center = PointType(VT::Zero(Polytope.dimension()));
     
-    std::cout << "[ROUNDING] Rounding complete. Round value: " << round_val << "\n\n";
+    if (show_console_logs) {
+        std::cout << "[ROUNDING] Rounding complete. Round value: " << round_val << "\n\n";
+    }
 }
 
 #endif // ROUNDING_HELPER_HPP

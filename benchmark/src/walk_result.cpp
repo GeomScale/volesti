@@ -15,7 +15,8 @@ WalkStatistics process_and_print_results(
     unsigned int precalculated_ess,
     double total_ess_time,
     unsigned int walk_len,
-    const std::string& polytope_name) 
+    const std::string& polytope_name,
+    bool show_console_logs) 
 {
     // Calculate mixing ratio (Total Steps / ESS)
     double mixing_ratio = 0.0;
@@ -39,18 +40,22 @@ WalkStatistics process_and_print_results(
 
     std::cout << std::fixed << std::setprecision(4);
 
+    if (show_console_logs) {
     // ESS and mixing rate
-    std::cout << "[" << walk_name << "] Final ESS: " << stats.final_ess << "\n";
-    std::cout << "[" << walk_name << "] Mixing Ratio (Steps/ESS): " << stats.mixing_ratio << "\n";
+        std::cout << "[" << walk_name << "] Final ESS: " << stats.final_ess << "\n";
+        std::cout << "[" << walk_name << "] Mixing Ratio (Steps/ESS): " << stats.mixing_ratio << "\n";
 
-    // Time
-    std::cout << "[" << walk_name << "] Total Algorithm Time: " << stats.total_time << " seconds\n";
-    std::cout << "[" << walk_name << "] Total ESS Time: " << stats.ess_time << " seconds\n";
-
+        // Time
+        std::cout << "[" << walk_name << "] Total Algorithm Time: " << stats.total_time << " seconds\n";
+        std::cout << "[" << walk_name << "] Total ESS Time: " << stats.ess_time << " seconds\n";
+    }
     // PSRF 
-    stats.max_psrf = compute_psrf<NT, VT, MT>(samples);
-    std::cout << "[" << walk_name << "] Max PSRF: " << stats.max_psrf << "\n";
 
+    stats.max_psrf = compute_psrf<NT, VT, MT>(samples);
+
+    if (show_console_logs) {
+        std::cout << "[" << walk_name << "] Max PSRF: " << stats.max_psrf << "\n";
+    }
 
     // Condition for KS Test
     // Check if "Gaussian" is in the walk name because KS test is only for uniform
@@ -61,10 +66,14 @@ WalkStatistics process_and_print_results(
         stats.ks_statistic = ks_results.ks_stat;
         stats.ks_p_value = ks_results.p_val;
 
-        std::cout << "[" << walk_name << "] KS Statistic: " << stats.ks_statistic << "\n";
-        std::cout << "[" << walk_name << "] P-Value:      " << stats.ks_p_value << "\n";
+        if (show_console_logs) {
+            std::cout << "[" << walk_name << "] KS Statistic: " << stats.ks_statistic << "\n";
+            std::cout << "[" << walk_name << "] P-Value:      " << stats.ks_p_value << "\n";
+        }
     } else {
-        std::cout << "[" << walk_name << "] KS Test:      Skipped (Gaussian Distribution)\n";
+        if (show_console_logs) {
+            std::cout << "[" << walk_name << "] KS Test:      Skipped (Gaussian Distribution)\n";
+        }
     }
     std::cout << "--------------------------------------------------\n";
 

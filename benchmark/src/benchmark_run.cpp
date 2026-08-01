@@ -119,20 +119,20 @@ int run_benchmark(int argc, char** argv) {
         config.dimension = Polytope_simple.dimension();
         dimension = config.dimension; 
 
-        // Print basic info
-        cout << "Target ESS: " << config.target_ESS << "\n";
-        cout << "Dimension: " << dimension << "\n";
-        cout << "Polytope: " << config.polytope_choice << "\n";
-
         double angle = config.angle; 
-        cout << "Rotation angle is: " << angle << "\n";
-        cout << "Dynamic batch size is on: " << config.use_dynamic_batch << "\n";
-        cout << "Rounding is on: " << config.rounding << "\n";
-        cout << "Auto-walk is on: " << (config.auto_walk ? "true" : "false") << "\n";
 
-        cout << "\n" << string(40, '=') << "\n";
-        cout << "*** Running for dimension " << dimension << " ***\n";
-        
+        // Print basic info
+        if (config.show_console_logs) {
+            cout << "Target ESS: " << config.target_ESS << "\n";
+            cout << "Dimension: " << dimension << "\n";
+            cout << "Polytope: " << config.polytope_choice << "\n";
+            cout << "Rotation angle is: " << angle << "\n";
+            cout << "Dynamic batch size is on: " << config.use_dynamic_batch << "\n";
+            cout << "Rounding is on: " << config.rounding << "\n";
+            cout << "Auto-walk is on: " << (config.auto_walk ? "true" : "false") << "\n";
+            cout << "\n" << string(40, '=') << "\n";
+            cout << "*** Running for dimension " << dimension << " ***\n";
+        }
         // We need this copy to pass the original polytope to the metrics if roundeing was on.
         HPOLYTOPE Polytope_rotated = rotate_all_dims(Polytope_simple, angle);
         HPOLYTOPE Polytope = Polytope_rotated;
@@ -153,7 +153,8 @@ int run_benchmark(int argc, char** argv) {
                 center, 
                 T, 
                 shift, 
-                round_val
+                round_val,
+                config.show_console_logs
             );
         }
         // --------------------------
@@ -196,12 +197,15 @@ int run_benchmark(int argc, char** argv) {
                                                std::to_string(dimension) + "_" + 
                                                method_name + "_samples.txt";
                         
+                        if (config.show_console_logs) {                       
                         std::cout << "[" << method_name << "] Saving " << result.samples.size() 
                                 << " points to " << filename << "...\n";
+                        }
                                 
                         write_to_file(filename, result.samples);
-                        
-                        std::cout << "[" << method_name << "] File saved successfully.\n";
+                        if (config.show_console_logs) {
+                            std::cout << "[" << method_name << "] File saved successfully.\n";
+                        }
                     }
 
                     // Process results
@@ -213,7 +217,8 @@ int run_benchmark(int argc, char** argv) {
                         result.final_ess,
                         result.ess_time,
                         result.walk_len,
-                        config.polytope_choice        
+                        config.polytope_choice,
+                        config.show_console_logs        
                     );
                 } else {
                     cout << "!!! " << method_name << " failed to generate points.\n";
@@ -227,7 +232,9 @@ int run_benchmark(int argc, char** argv) {
         // Auto-walk handles the selection if enabled
         if (config.auto_walk) {
             string auto_selected_walk = determine_auto_walk(dimension);
-            cout << "\n[Auto-Walk] Dimension " << dimension << " overriding config to run: " << auto_selected_walk << "\n";
+            if (config.show_console_logs) {
+                cout << "\n[Auto-Walk] Dimension " << dimension << " overriding config to run: " << auto_selected_walk << "\n";
+            }
             run_method(auto_selected_walk);
         }
         // If the user picked "All", iterate through the JSON keys. Otherwise, just run the one they requested.

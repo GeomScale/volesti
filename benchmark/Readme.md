@@ -4,12 +4,18 @@ This project is a benchmarking suite for testing various random walk algorithms 
 
 ## Usage
 
-Create a build folder, and run Cmake and Make:
+Create a build folder, and run Cmake and Make. Make sure all the needed libraries are installed.
 
 ```bash
 mkdir build && cd build
 cmake ..
 make
+```
+
+Then, just run the executable:
+
+```bash
+./benchmark_run
 ```
 
 ## Command-Line Arguments

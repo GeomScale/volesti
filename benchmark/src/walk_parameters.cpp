@@ -36,6 +36,7 @@ BenchmarkConfig load_benchmark_config(const std::string& filepath) {
         config.rounding          = pt.get<bool>("global_settings.rounding", false);
         config.rounding_method   = pt.get<std::string>("global_settings.rounding_method", "max_ellipsoid");
         config.auto_walk         = pt.get<bool>("global_settings.auto_walk", false);
+        config.show_console_logs = pt.get<bool>("global_settings.show_console_logs", true);
         config.show_menu         = pt.get<bool>("global_settings.show_menu", false);
 
         // Iterate through the walks JSON object

@@ -35,6 +35,7 @@ struct BenchmarkConfig {
     bool rounding;
     std::string rounding_method;
     bool auto_walk;
+    bool show_console_logs;
     bool show_menu;
 
     std::map<std::string, WalkSettings> walk_settings;
