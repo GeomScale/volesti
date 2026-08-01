@@ -11,9 +11,7 @@
 #include <algorithm>
 #include <iostream>
 
-// -----------------------------------------------------------------------------
 // Kolmogorov distribution: P(K > z)
-// -----------------------------------------------------------------------------
 inline double kolmogorov_prob(double z) {
     if (z <= 0.0) return 1.0; 
     double sum = 0.0;
@@ -25,9 +23,7 @@ inline double kolmogorov_prob(double z) {
     return std::max(0.0, std::min(1.0, 2.0 * sum));
 }
 
-// -----------------------------------------------------------------------------
 // Global uniformity test
-// -----------------------------------------------------------------------------
 template<typename Polytope>
 std::tuple<double, double, std::vector<double>, std::vector<double>>
 global_scaling_test(const Polytope& P,
@@ -39,7 +35,7 @@ global_scaling_test(const Polytope& P,
     const int dim    = P.dimension();
     const int n_total = static_cast<int>(samples.cols());
 
-    // Setup Center & Constraints
+    // Setup center and constraints
     VT center = samples.rowwise().mean();
     const auto A = P.get_mat();   
     const auto b = P.get_vec();   
@@ -48,8 +44,6 @@ global_scaling_test(const Polytope& P,
     if (b_shifted.minCoeff() < 1e-12) {
         std::cerr << "[GlobalKS] Warning: Empirical center is on boundary/outside.\n";
     }
-
-    // Compute Radii for all samples (quite cheap, O(m*N))
     std::vector<double> rvals_all;
     rvals_all.reserve(n_total);
 
@@ -109,8 +103,7 @@ global_scaling_test(const Polytope& P,
     double lambda = (sqrt_n + 0.12 + 0.11 / sqrt_n) * ks_stat;
     double p_value = kolmogorov_prob(lambda);
 
-    // Shell Diagnostics (using all samples for smoother visualization)
-    // We use rvals_all for this because visualization benefits from more data
+    // Shell diagnostics
     std::vector<double> exp_coverage(10), obs_coverage(10, 0.0);
     std::vector<double> r_thresholds(10);
     std::vector<int>    shell_counts(10, 0);

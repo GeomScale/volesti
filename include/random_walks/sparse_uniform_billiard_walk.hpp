@@ -76,8 +76,6 @@ struct Walk
         bool converged = std::get<2>(result);
 
         if (!converged) {
-             // Fallback: If analytic center fails, use local Hessian at 'p'
-             // (This ensures code doesn't crash on tough polytopes)
              VT p_coeffs = p.getCoefficients();
              VT slack = b_dense - A_dense * p_coeffs;
              MT S_inv_sq = MT::Zero(P.num_of_hyperplanes(), P.num_of_hyperplanes());
