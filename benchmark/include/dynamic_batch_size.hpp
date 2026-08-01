@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-
 // Checks if a number is "7-smooth" (only divisible by 2, 3, 5, or 7)
 inline bool is_fft_friendly(unsigned int n) {
     if (n == 0) return false;
@@ -22,7 +21,6 @@ inline unsigned int get_next_fft_friendly_size(unsigned int target) {
     return n;
 }
 
-
 // Calculates the optimal next batch size based on the current ESS
 inline unsigned int compute_next_batch_size(
     unsigned int target_ESS, 
@@ -30,7 +28,9 @@ inline unsigned int compute_next_batch_size(
     unsigned int previous_ESS, 
     size_t total_samples, 
     unsigned int current_batch_size,
-    unsigned int dimension)
+    unsigned int dimension,
+    double remaining_time_sec,
+    double samples_per_sec)
 {
     unsigned int base_cap = std::max(500000u, target_ESS * 10); 
     unsigned int penalty = 1000 * dimension;
@@ -39,7 +39,7 @@ inline unsigned int compute_next_batch_size(
 
     double ess_per_sample = static_cast<double>(current_ESS) / static_cast<double>(total_samples);
 
-    // ***The next lines attempt to catch a stuck sampler by checking the ESS efficiency between batches***
+    // The next lines attempt to catch a stuck sampler by checking the ESS efficiency between batches
     // calculate how efficiently this specific batch generated ESS
     unsigned int ess_gained = (current_ESS > previous_ESS) ? (current_ESS - previous_ESS) : 0;
     double marginal_ess_per_sample = static_cast<double>(ess_gained) / static_cast<double>(current_batch_size);
@@ -57,16 +57,16 @@ inline unsigned int compute_next_batch_size(
             std::cerr << " | [WARNING] Terrible mixing detected. Sampler may be stuck in a corner." << std::flush;
         }
     }
-    //**************end of stuck checks*******************
 
     unsigned int next_batch_size = 0;
-    
+    unsigned int min_viable_batch = 2500u; 
+
     // The main idea is to ask for samples based on how many samples we need for 1 ESS.
     if (ess_per_sample > 1e-6) {
         unsigned int remaining_ESS = target_ESS - current_ESS;
 
         // we always ask for enough points to generate at least ~15 ESS.
-        unsigned int min_viable_batch = static_cast<unsigned int>(15.0 / ess_per_sample);
+        min_viable_batch = static_cast<unsigned int>(15.0 / ess_per_sample);
 
         // Keep an absolute minimum, but never let the minimum exceed the calculated maximum
         min_viable_batch = std::max(min_viable_batch, 2500u);
@@ -93,21 +93,22 @@ inline unsigned int compute_next_batch_size(
         next_batch_size = std::min(next_batch_size, safe_stuck_cap);
     }
     
-    // Final safety catch
-    //return std::min(next_batch_size, MAX_BATCH_SIZE);
+    if (remaining_time_sec > 0 && samples_per_sec > 0) {
+        unsigned int time_budget_batch = static_cast<unsigned int>(remaining_time_sec * samples_per_sec * 1.2);
+        next_batch_size = std::min(next_batch_size, std::max(time_budget_batch, min_viable_batch));
+    }
 
-    // *****Calculate the raw batch size bounded by our maximums******
+    // Calculate the raw batch size bounded by our maximums
     unsigned int raw_next_batch = std::min(next_batch_size, MAX_BATCH_SIZE);
     
     if (raw_next_batch == 0) return 0;
 
-    // --- NEW: FFT-Friendly Padding ---
-    // We calculate what the absolute TOTAL number of samples will be after this batch
+    // We calculate what the absolute total number of samples will be after this batch
     unsigned int target_total_samples = total_samples + raw_next_batch;
     
     // We bump the total up slightly (usually < 100 points) to the next Smooth Number
     unsigned int optimal_total_samples = get_next_fft_friendly_size(target_total_samples);
     
-    // *****Return the adjusted batch size*****
+    // Return the adjusted batch size
     return optimal_total_samples - total_samples;
 }

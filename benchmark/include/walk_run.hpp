@@ -53,7 +53,7 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
     global_timer.start();
 
     // Main while loop. We sample intil we hit target ESS.
-    while (current_ESS < config.target_ESS) {
+    while (current_ESS < config.target_ESS && global_timer.get_total_time() < config.time_limit_sec) {
         
         std::vector<Point> batchPoints;
 
@@ -171,15 +171,27 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                 break;
             }
 
+            if (global_timer.get_total_time() > config.time_limit_sec) {
+                std::cout << "\n[" << walk_name << "] Time limit exceeded. Stopping.\n";
+                break;
+            }
+
             // THE DYNAMIC BATCH SIZE 
             if (config.use_dynamic_batch) {
+                double remaining_time_sec = config.time_limit_sec - global_timer.get_total_time();
+                double current_samples_per_sec = (elapsed_walk_time > 0.01) 
+                    ? static_cast<double>(allSamples.size()) / elapsed_walk_time 
+                    : 0.0;
+
                 batch_size = compute_next_batch_size(
                     config.target_ESS, 
                     current_ESS, 
                     previous_ESS,    
                     allSamples.size(), 
                     batch_size,
-                    config.dimension
+                    config.dimension,
+                    remaining_time_sec,
+                    current_samples_per_sec
                 );
             }
 
