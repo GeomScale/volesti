@@ -122,7 +122,6 @@ WalkResult sample_using_walk(HPOLYTOPE& Polytope,
                         << "] Generating massive batch of " << batch_size 
                         << " points (Tuning physics engine)..." << std::flush;
 
-                // If you want an ETA output printed here, you can do:
                 if (estimated_remaining_seconds >= 0.0) {
                     std::cout << " (ETA: " << static_cast<int>(estimated_remaining_seconds) << "s remaining)..." << std::flush;
                 }       
