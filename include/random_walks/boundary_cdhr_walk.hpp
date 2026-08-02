@@ -62,6 +62,8 @@ struct BCDHRWalk
             p2.set_coord(_rand_coord, _p_prev[_rand_coord] + bpair.second);
         }
 
+        const Point& getCurrentPoint() const noexcept { return _p; }
+
     private :
 
         template <typename GenericBody>
