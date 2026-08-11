@@ -131,6 +131,9 @@ GetQD()
 include("../external/cmake-files/SuiteSparse.cmake")
 GetSuiteSparse()
 
+include("../external/cmake-files/HiGHS.cmake")
+GetHighs()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -413,7 +416,31 @@ add_test(NAME full_dimensional_polytope_orthogonality
 add_test(NAME full_dimensional_polytope_infeasible
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_infeasible)
 
-          
+add_executable(test_highs test_highs.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_small_lp COMMAND test_highs -tc=test_small_lp)          
+add_test(NAME test_infeasible_lp COMMAND test_highs -tc=test_infeasible_lp)  
+add_test(NAME test_unbounded_lp COMMAND test_highs -tc=test_unbounded_lp)  
+add_test(NAME test_max_inner_ball_lp COMMAND test_highs -tc=max_inner_ball_lp)  
+
+add_executable(test_metabolic_polytope metabolic/test_metabolic_polytope.cpp $<TARGET_OBJECTS:test_main>)
+target_include_directories(test_metabolic_polytope PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_construction COMMAND test_metabolic_polytope -tc=test_construction)                    
+target_compile_definitions(test_metabolic_polytope PRIVATE BIGG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/bigg")
+
+add_executable(test_simplification metabolic/test_simplification.cpp $<TARGET_OBJECTS:test_main>)
+target_include_directories(test_simplification PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_no_change COMMAND test_simplification -tc=test_no_change)                    
+add_test(NAME test_no_dimension_fixing COMMAND test_simplification -tc=test_no_dimension_fixing)     
+add_test(NAME test_dimension_fixing COMMAND test_simplification -tc=test_dimension_fixing)
+
+add_executable(test_transformation metabolic/test_transformation.cpp $<TARGET_OBJECTS:test_main>)
+target_include_directories(test_transformation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_cube_transformation COMMAND test_transformation -tc=test_cube_transformation)                    
+add_test(NAME test_simplex_transformation COMMAND test_transformation -tc=test_simplex_transformation)    
+
+add_executable(benchmark_simplification metabolic/benchmark_simplification.cpp)
+target_include_directories(benchmark_simplification PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(benchmark_simplification PRIVATE BIGG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/bigg")
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
@@ -461,3 +488,8 @@ TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 TARGET_LINK_LIBRARIES(full_dimensional_polytope_test lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(test_highs highs::highs coverage_config)
+TARGET_LINK_LIBRARIES(test_metabolic_polytope highs::highs coverage_config)
+TARGET_LINK_LIBRARIES(test_simplification highs::highs coverage_config)
+TARGET_LINK_LIBRARIES(test_transformation highs::highs lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(benchmark_simplification highs::highs coverage_config)

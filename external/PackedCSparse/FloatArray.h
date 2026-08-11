@@ -8,8 +8,8 @@
 //(https://github.com/ConstrainedSampler/PolytopeSamplerMatlab/blob/master/code/solver/PackedCSparse/PackedChol.h) by Ioannis Iakovidis
 
 #pragma once
-#if defined(__x86_64__) || defined(__i386__)
-    #include <immintrin.h>
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+#include <immintrin.h>
 #endif
 #include <random>
 #include <type_traits>
@@ -228,7 +228,7 @@ namespace PackedCSparse {
 		using funcImpl = typename std::conditional<k == 1, BaseScalarImpl<T>, BaseImpl<T, k>>::type;
 	};
 
-    #ifdef __AVX2__
+    #if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86))
         #include "FloatArrayAVX2.h"
     #else
     template <size_t k>

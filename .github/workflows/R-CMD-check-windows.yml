@@ -24,12 +24,14 @@ jobs:
           - {os: windows-latest, r: 'release'}
 
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      _R_CHECK_FORCE_SUGGESTS_: false
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -38,24 +40,35 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: Install dependencies
-        run: Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat', 'downloader', 'xfun'))"
+        run: Rscript -e "install.packages(c('rcmdcheck', 'Rcpp', 'RcppEigen', 'BH', 'testthat'), dependencies = TRUE, repos = 'https://cloud.r-project.org')"
 
       - name: Checkout Rvolesti repository
-        run: git clone https://github.com/GeomScale/Rvolesti.git;
+        run: git clone https://github.com/GeomScale/Rvolesti.git
 
       - name: Upgrade with current develop of volesti
-        run: cp -r -fo include Rvolesti/src/volesti;
-             cp -r -fo external Rvolesti/src;
+        shell: bash
+        run: |
+          mkdir -p Rvolesti/src/volesti
+          cp -rf include Rvolesti/src/volesti/
+          cp -rf external/arpack++ Rvolesti/src/external/
+          cp -rf external/ChebTools Rvolesti/src/external/
+          cp -rf external/cmake-files Rvolesti/src/external/
+          cp -rf external/minimum_ellipsoid Rvolesti/src/external/
+          cp -rf external/PackedCSparse Rvolesti/src/external/
+          cp -rf external/Padua Rvolesti/src/external/
+          # Suppress lusol.h alloc-size warning from vendored lp_solve on Windows
+          sed -i 's|CFLAGS="$(CFLAGS)"|CFLAGS="$(CFLAGS) -Wno-alloc-size-larger-than"|' Rvolesti/src/Makevars.win
 
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-        run: cd Rvolesti/;
-             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'warning', check_dir = 'check')"
+        run: |
+          cd Rvolesti/
+          Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'warning', check_dir = 'check')"
 
       - name: Upload check results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
-          path: check
+          path: Rvolesti/check

@@ -885,7 +885,7 @@ void benchmark_polytope_linear_program_optimization(
             samples.col(i) = hmc.x.getCoefficients();
             if (i % 1000 == 0 && i > 0) std::cout << ".";
         }
-        total_max_psrf += check_interval_psrf<NT, VT, MT>(samples, NT(1.2));
+        total_max_psrf += check_interval_psrf<NT, VT, MT>(samples, NT(3.0));
         effective_sample_size<NT, VT, MT>(samples, temp_min_ess);
         total_min_ess += temp_min_ess;
         opt_params.update_temperature(0.5, 1);

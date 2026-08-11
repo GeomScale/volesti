@@ -14,9 +14,9 @@
 
 #include <memory>
 
-#include "Spectra/SymEigsSolver.h"
-#include "Spectra/MatOp/DenseSymMatProd.h"
-#include "Spectra/MatOp/SparseSymMatProd.h"
+#include <Spectra/SymEigsSolver.h>
+#include <Spectra/MatOp/DenseSymMatProd.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
 
 
 template <typename NT>
@@ -121,7 +121,7 @@ inline static VT solve_vec(std::unique_ptr<Eigen_lltMT> const& llt,
     {
         llt->compute(H);
         return llt->solve(b);
-    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)  
+    } else if constexpr (std::is_base_of<Eigen::SparseMatrixBase<MT>, MT >::value)
     {
         llt->factorize(H);
         return llt->solve(b);
