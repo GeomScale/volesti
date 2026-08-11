@@ -1,4 +1,6 @@
 test/build
+test/bigg/*.json
+!test/bigg/e_coli_core.json
 external/_deps
 examples/build
 .vscode
