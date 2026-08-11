@@ -134,6 +134,9 @@ GetSuiteSparse()
 include("../external/cmake-files/HiGHS.cmake")
 GetHighs()
 
+include("../external/cmake-files/JSON.cmake")
+GetJSON()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -489,7 +492,7 @@ find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 TARGET_LINK_LIBRARIES(full_dimensional_polytope_test lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_highs highs::highs coverage_config)
-TARGET_LINK_LIBRARIES(test_metabolic_polytope highs::highs coverage_config)
+TARGET_LINK_LIBRARIES(test_metabolic_polytope highs::highs nlohmann_json::nlohmann_json coverage_config)
 TARGET_LINK_LIBRARIES(test_simplification highs::highs coverage_config)
 TARGET_LINK_LIBRARIES(test_transformation highs::highs lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(benchmark_simplification highs::highs coverage_config)
+TARGET_LINK_LIBRARIES(benchmark_simplification highs::highs nlohmann_json::nlohmann_json coverage_config)

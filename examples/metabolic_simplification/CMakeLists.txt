@@ -38,6 +38,9 @@ GetLPSolve()
 include("../../external/cmake-files/SuiteSparse.cmake")
 GetSuiteSparse()
 
+include("../../external/cmake-files/JSON.cmake")
+GetJSON()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 include_directories (BEFORE ../../external)
@@ -62,4 +65,4 @@ add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 add_executable(metabolic_simplification metabolic_simplification.cpp)
-TARGET_LINK_LIBRARIES(metabolic_simplification highs::highs lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK})
+TARGET_LINK_LIBRARIES(metabolic_simplification highs::highs lp_solve nlohmann_json::nlohmann_json ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK})
