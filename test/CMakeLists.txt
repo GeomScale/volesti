@@ -219,6 +219,7 @@ add_test(NAME test_bcdhr COMMAND sampling_test -tc=bcdhr)
 add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
 add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
 add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
+add_test(NAME test_ghmc_mmcs_interface COMMAND sampling_test -tc=ghmc_mmcs_interface)
 add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
 add_test(NAME test_sparse COMMAND sampling_test -tc=sparse)
 

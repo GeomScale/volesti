@@ -25,6 +25,7 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "generators/known_polytope_generators.h"
 #include "sampling/sampling.hpp"
+#include "sampling/mmcs.hpp"
 
 #include "diagnostics/univariate_psrf.hpp"
 
@@ -304,6 +305,42 @@ void call_test_ghmc(){
     CHECK(score.maxCoeff() < 2.2);
 }
 
+template <typename NT>
+void call_test_ghmc_mmcs_interface()
+{
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+    typedef GaussianHamiltonianMonteCarloExactWalk WalkTypePolicy;
+    typedef typename WalkTypePolicy::template Walk<Hpolytope, RNGType> Walk;
+
+    unsigned int d = 3;
+    std::cout << "--- Testing Gaussian exact HMC MMCS interface for H-cube3" << std::endl;
+    Hpolytope P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    RNGType rng(d);
+    Point p = P.InnerBall().first;
+    WalkTypePolicy WalkType;
+    Walk walk(P, p, rng, WalkType.param);
+
+    walk.parameters_burnin(P, p, 5, 3, rng);
+    Point q(d);
+    walk.get_starting_point(P, p, q, 3, rng);
+    walk.apply(P, q, 1, rng);
+    CHECK(q.getCoefficients().allFinite());
+    CHECK(P.is_in(q, NT(1e-6)) < 0);
+
+    unsigned int Neff_sampled = 0, total_samples = 0;
+    MT TotalRandPoints;
+    perform_mmcs_step(P, rng, 1u, 1u, 20u, 20u, Neff_sampled, total_samples,
+                      20u, TotalRandPoints, p, 1u, false, WalkType);
+    CHECK(total_samples >= 20u);
+    CHECK(TotalRandPoints.allFinite());
+}
+
 template <typename NT, typename WalkType = GaussianAcceleratedBilliardWalk>
 void call_test_gabw(){
     typedef Cartesian<NT>    Kernel;
@@ -491,6 +528,10 @@ TEST_CASE("gbaw") {
 
 TEST_CASE("ghmc") {
     call_test_ghmc<double>();
+}
+
+TEST_CASE("ghmc_mmcs_interface") {
+    call_test_ghmc_mmcs_interface<double>();
 }
 
 TEST_CASE("gabw") {

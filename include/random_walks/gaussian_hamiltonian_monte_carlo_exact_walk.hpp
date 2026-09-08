@@ -16,28 +16,30 @@
 
 struct GaussianHamiltonianMonteCarloExactWalk
 {
-    GaussianHamiltonianMonteCarloExactWalk(double L, unsigned int _rho)
-            :   param(L, true, _rho, true)
+    GaussianHamiltonianMonteCarloExactWalk(double L, unsigned int _rho, double a = 1.0)
+            :   param(L, true, _rho, true, a)
     {}
 
     GaussianHamiltonianMonteCarloExactWalk(double L)
-            :   param(L, true, 0, false)
+            :   param(L, true, 0, false, 1.0)
     {}
 
     GaussianHamiltonianMonteCarloExactWalk()
-            :   param(0, false, 0, false)
+            :   param(0, false, 0, false, 1.0)
     {}
 
 
     struct parameters
     {
-        parameters(double L, bool set, unsigned int _rho, bool _set_rho)
-                :   m_L(L), set_L(set), rho(_rho), set_rho(_set_rho)
+        parameters(double L, bool set, unsigned int _rho, bool _set_rho,
+                   double _a = 1.0)
+                :   m_L(L), set_L(set), rho(_rho), set_rho(_set_rho), a(_a)
         {}
         double m_L;
         bool set_L;
         unsigned int rho;
         bool set_rho;
+        double a;
     };
 
     parameters param;
@@ -60,9 +62,9 @@ struct Walk
     {
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-        _omega = std::sqrt(NT(2) * a_i);
+        set_omega(a_i);
         _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
-        initialize(P, p, a_i, rng);
+        initialize(P, p, rng);
     }
 
     template <typename GenericPolytope>
@@ -72,9 +74,21 @@ struct Walk
         _Len = params.set_L ? params.m_L
                           : compute_diameter<GenericPolytope>
                             ::template compute<NT>(P);
-        _omega = std::sqrt(NT(2) * a_i);
-        _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
-        initialize(P, p, a_i, rng);
+        set_omega(a_i);
+        _rho = params.set_rho ? params.rho : 100 * P.dimension(); // upper bound for the number of reflections (experimental)
+        initialize(P, p, rng);
+    }
+
+    template <typename GenericPolytope>
+    Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng,
+         parameters const& params)
+    {
+        _Len = params.set_L ? params.m_L
+                          : compute_diameter<GenericPolytope>
+                            ::template compute<NT>(P);
+        set_omega(static_cast<NT>(params.a));
+        _rho = params.set_rho ? params.rho : 100 * P.dimension(); // upper bound for the number of reflections (experimental)
+        initialize(P, p, rng);
     }
 
     template
@@ -83,7 +97,6 @@ struct Walk
     >
     inline void apply(GenericPolytope const& P,
                       Point& p,
-                      NT const& a_i,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
@@ -118,6 +131,20 @@ struct Walk
             }
         }
         p = _p;
+    }
+
+    template
+    <
+        typename GenericPolytope
+    >
+    inline void apply(GenericPolytope const& P,
+                      Point& p,
+                      NT const& a_i,
+                      unsigned int const& walk_length,
+                      RandomNumberGenerator &rng)
+    {
+        set_omega(a_i);
+        apply(P, p, walk_length, rng);
     }
 
 
@@ -192,13 +219,18 @@ struct Walk
 
 private :
 
+    inline void set_omega(NT const& a_i)
+    {
+        NT aa = (a_i > NT(0)) ? a_i : NT(1);
+        _omega = std::sqrt(NT(2) * aa);
+    }
+
     template
     <
         typename GenericPolytope
     >
     inline void initialize(GenericPolytope const& P,
                            Point const& p,
-                           NT const& a_i,
                            RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
