@@ -59,8 +59,6 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
 
     NT const reg_lim = std::pow(10.0, -10.0), tau0 = 0.75, minmu = std::pow(10.0, -8.0);
 
-    NT *vec_iter1, *vec_iter2, *vec_iter3;
-
     VT x = VT::Zero(n), y = VT::Ones(m), bmAx = VT::Ones(m),
        h(m), z(m), yz(m), yh(m), R1(n), R2(m), R3(m), y2h(m), y2h_z(m), h_z(m),
        R3Dy(m), R23(m), dx(n), Adx(m), dyDy(m), dy(m), dz(m);
@@ -92,15 +90,7 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
             NT t = bmAx.cwiseProduct(h.cwiseInverse()).minCoeff();
             y *= (1.0 / (t * t));
             h *= t;
-            vec_iter1 = bmAx.data();
-            vec_iter2 = h.data();
-            vec_iter3 = z.data();
-            for (int j = 0; j < m; ++j) {
-                *vec_iter3 = std::max(0.1, (*vec_iter1 - (*vec_iter2)));
-                vec_iter1++;
-                vec_iter2++;
-                vec_iter3++;
-            }
+            z = (bmAx - h).cwiseMax(NT(0.1));
             Q *= (t * t);
             Y = Y * (1.0 / (t * t));
         }
@@ -177,15 +167,7 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
         y2h = 2.0 * yh;
         update_Diag_A<NT>(YA, Y, A); // YA = Y * A;
 
-        vec_iter1 = y2h.data();
-        vec_iter2 = z.data();
-        vec_iter3 = y2h_z.data();
-        for (int j = 0; j < m; ++j) {
-            *vec_iter3 = std::max(reg, (*vec_iter1) * (*vec_iter2));
-            vec_iter1++;
-            vec_iter2++;
-            vec_iter3++;
-        }
+        y2h_z = y2h.cwiseProduct(z).cwiseMax(reg);
 
         G.diagonal() += y2h_z;
         h_z = h + z;
@@ -194,19 +176,13 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
 
         ATP.noalias() = MT_dense(y2h.asDiagonal()*T - YA).transpose();
 
-        vec_iter1 = R3.data();
-        vec_iter2 = y.data();
-        vec_iter3 = R3Dy.data();
-        for (int j = 0; j < m; ++j) {
-            *vec_iter3 = (*vec_iter1) / (*vec_iter2);
-            vec_iter1++;
-            vec_iter2++;
-            vec_iter3++;
-        }
+        R3Dy = R3.cwiseQuotient(y);
 
         R23 = R2 - R3Dy;
         ATP_A.noalias() = ATP * A;
-        ATP_A.diagonal() += ones_m * reg;
+        // ATP_A is n x n, so the regularizer is added straight to its diagonal
+        // (the old 'ones_m * reg' right hand side had length m != n)
+        ATP_A.diagonal().array() += reg;
         dx = ATP_A.lu().solve(R1 + ATP * R23); // predictor step
 
         // corrector and combined step & length
@@ -216,26 +192,12 @@ std::tuple<MT_dense, VT, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
         dy = y.cwiseProduct(dyDy);
         dz = R3Dy - z.cwiseProduct(dyDy);
 
-        vec_iter1 = Adx.data();
-        vec_iter2 = bmAx.data();
-        ax = -0.5;
-        for (int j = 0; j < m; ++j) {
-            ax = std::min(ax, - (*vec_iter1) / (*vec_iter2));
-            vec_iter1++;
-            vec_iter2++;
-        }
+        ax = std::min(NT(-0.5), (-Adx).cwiseQuotient(bmAx).minCoeff());
 
         ax = -1.0 / ax;
         ay = -1.0 / std::min(dyDy.minCoeff(), -0.5);
 
-        vec_iter1 = dz.data();
-        vec_iter2 = z.data();
-        az = -0.5;
-        for (int j = 0; j < m; ++j) {
-            az = std::min(az, (*vec_iter1) / (*vec_iter2));
-            vec_iter1++;
-            vec_iter2++;
-        }
+        az = std::min(NT(-0.5), dz.cwiseQuotient(z).minCoeff());
 
         az = -1.0 / az;
         tau = std::max(tau0, 1.0 - res);

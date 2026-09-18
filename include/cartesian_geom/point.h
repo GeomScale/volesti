@@ -108,6 +108,19 @@ public:
         return coeffs.data();
     }
 
+    // STL-style iterators over the coordinates of the point
+    auto begin() { return coeffs.begin(); }
+
+    auto end() { return coeffs.end(); }
+
+    auto begin() const { return coeffs.cbegin(); }
+
+    auto end() const { return coeffs.cend(); }
+
+    auto cbegin() const { return coeffs.cbegin(); }
+
+    auto cend() const { return coeffs.cend(); }
+
     FT sum() const {
         return coeffs.sum();
     }
