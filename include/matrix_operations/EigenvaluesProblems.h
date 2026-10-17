@@ -15,6 +15,9 @@
 // Spectra library for eigenvalue problems
 #include <Spectra/GenEigsSolver.h>
 #include <Spectra/MatOp/DenseGenMatProd.h>
+#include <Spectra/SymGEigsSolver.h>
+#include <Spectra/MatOp/DenseSymMatProd.h>
+#include <Spectra/MatOp/DenseCholesky.h>
 
 /// Solver for various eigenvalue problems arising in convex optimization
 /// Provides methods for quadratic eigenvalue problems (QEP), generalized eigenvalue
@@ -263,7 +266,32 @@ public:
             const bool A_is_pd = (llt_A.info() == Eigen::Success);
 
             if (A_is_pd) {
-                // Use solver(-B, A): solves (-B)v = λ*A*v → t = 1/λ
+                // Try Spectra Generalized Symmetric Eigenvalue Solver first for performance
+                try {
+                    MT neg_B = -B;
+                    Spectra::DenseSymMatProd<NT> op(neg_B);
+                    Spectra::DenseCholesky<NT> Bop(A);
+
+                    const int nev = 1;
+                    const int ncv = std::min(std::max(10, n / 5), n);
+
+                    Spectra::SymGEigsSolver<Spectra::DenseSymMatProd<NT>,
+                                            Spectra::DenseCholesky<NT>,
+                                            Spectra::GEigsMode::Cholesky> geigs(op, Bop, nev, ncv);
+
+                    geigs.init();
+                    int nconv = geigs.compute(Spectra::SortRule::LargestAlge, 1000, eps() * NT(10));
+
+                    if (nconv > 0 && geigs.info() == Spectra::CompInfo::Successful) {
+                        NT lambda = geigs.eigenvalues()(0);
+                        if (lambda > eps() * NT(10)) {
+                            eigvec = geigs.eigenvectors().col(0);
+                            return NT(1) / lambda;
+                        }
+                    }
+                } catch (...) {}
+
+                // Fallback to dense Eigen GeneralizedSelfAdjointEigenSolver
                 MT neg_B = -B;
                 Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(neg_B, A);
                 if (ges.info() != Eigen::Success) return LARGE_VAL();
@@ -285,7 +313,32 @@ public:
             const bool B_is_pd = (llt_B.info() == Eigen::Success);
 
             if (B_is_pd) {
-                // Use solver(-A, B): solves (-A)v = λ*B*v → t = λ
+                // Try Spectra Generalized Symmetric Eigenvalue Solver first for performance
+                try {
+                    MT neg_A = -A;
+                    Spectra::DenseSymMatProd<NT> op(neg_A);
+                    Spectra::DenseCholesky<NT> Bop(B);
+
+                    const int nev = 1;
+                    const int ncv = std::min(std::max(10, n / 5), n);
+
+                    Spectra::SymGEigsSolver<Spectra::DenseSymMatProd<NT>,
+                                            Spectra::DenseCholesky<NT>,
+                                            Spectra::GEigsMode::Cholesky> geigs(op, Bop, nev, ncv);
+
+                    geigs.init();
+                    int nconv = geigs.compute(Spectra::SortRule::SmallestAlge, 1000, eps() * NT(10));
+
+                    if (nconv > 0 && geigs.info() == Spectra::CompInfo::Successful) {
+                        NT lambda = geigs.eigenvalues()(0);
+                        if (lambda > eps() * NT(10)) {
+                            eigvec = geigs.eigenvectors().col(0);
+                            return lambda;
+                        }
+                    }
+                } catch (...) {}
+
+                // Fallback to dense Eigen GeneralizedSelfAdjointEigenSolver
                 MT neg_A = -A;
                 Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(neg_A, B);
                 if (ges.info() != Eigen::Success) return LARGE_VAL();
@@ -343,7 +396,34 @@ public:
         if (n == 0) return LARGE_VAL();
 
         try {
-            // ges(B, A): matches original code's ges(B_param, A_param)
+            // Try Spectra Generalized Symmetric Eigenvalue Solver first for performance
+            try {
+                Eigen::LLT<MT> llt_A(A);
+                if (llt_A.info() == Eigen::Success) {
+                    Spectra::DenseSymMatProd<NT> op(B);
+                    Spectra::DenseCholesky<NT> Bop(A);
+
+                    const int nev = 1;
+                    const int ncv = std::min(std::max(10, n / 5), n);
+
+                    Spectra::SymGEigsSolver<Spectra::DenseSymMatProd<NT>,
+                                            Spectra::DenseCholesky<NT>,
+                                            Spectra::GEigsMode::Cholesky> geigs(op, Bop, nev, ncv);
+
+                    geigs.init();
+                    int nconv = geigs.compute(Spectra::SortRule::LargestAlge, 1000, eps() * NT(10));
+
+                    if (nconv > 0 && geigs.info() == Spectra::CompInfo::Successful) {
+                        NT lambda = geigs.eigenvalues()(0);
+                        if (lambda > eps() * NT(10)) {
+                            eigvec = geigs.eigenvectors().col(0);
+                            return NT(1) / lambda;
+                        }
+                    }
+                }
+            } catch (...) {}
+
+            // Fallback: ges(B, A): matches original code's ges(B_param, A_param)
             Eigen::GeneralizedSelfAdjointEigenSolver<MT> ges(B, A);
             if (ges.info() != Eigen::Success) return LARGE_VAL();
 
