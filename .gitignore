@@ -11,3 +11,11 @@ build/
 .DS_Store
 .cache
 shell.nix
+# example build output
+examples/*/bin/
+examples/*/lib/
+examples/*/CPackConfig.cmake
+examples/*/CPackSourceConfig.cmake
+*.dylib
+*.so
+*.so.*

@@ -13,7 +13,7 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#ifndef DISABLE_LPSOLVE
+#ifndef DISABLE_HIGHS
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
     #include "convex_bodies/zpolytope.h"
