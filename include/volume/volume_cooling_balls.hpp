@@ -15,7 +15,7 @@
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
-#ifndef DISABLE_LPSOLVE
+#ifndef DISABLE_HIGHS
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
