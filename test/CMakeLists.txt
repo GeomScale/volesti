@@ -268,6 +268,21 @@ add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=
 add_test(NAME volume_sob_hpolytope_cube_overflow COMMAND volume_sob_hpolytope -tc=cube_overflow)
 set_property(TEST volume_sob_hpolytope_cube_overflow PROPERTY TIMEOUT 1)
 
+add_executable (hpolytope_edge_cases_test hpolytope_edge_cases_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME hpolytope_edge_cases_zero_rows COMMAND hpolytope_edge_cases_test -tc=zero_rows)
+add_test(NAME hpolytope_edge_cases_inner_ball_failure COMMAND hpolytope_edge_cases_test -tc=inner_ball_failure)
+add_test(NAME hpolytope_edge_cases_set_interior_point COMMAND hpolytope_edge_cases_test -tc=set_interior_point)
+add_test(NAME hpolytope_edge_cases_sob_small_radius COMMAND hpolytope_edge_cases_test -tc=sob_small_radius)
+
+# Same tests without lp_solve: the inner-ball failure path differs (the
+# Octave binding builds this way)
+add_executable (hpolytope_edge_cases_test_no_lpsolve hpolytope_edge_cases_test.cpp $<TARGET_OBJECTS:test_main>)
+target_compile_definitions(hpolytope_edge_cases_test_no_lpsolve PRIVATE DISABLE_LPSOLVE)
+add_test(NAME hpolytope_edge_cases_no_lpsolve_zero_rows COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=zero_rows)
+add_test(NAME hpolytope_edge_cases_no_lpsolve_inner_ball_failure COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=inner_ball_failure)
+add_test(NAME hpolytope_edge_cases_no_lpsolve_set_interior_point COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=set_interior_point)
+add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_small_radius COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_small_radius)
+
 add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
 add_test(NAME volume_sob_vpolytope_cross COMMAND volume_sob_vpolytope -tc=cross)
@@ -458,6 +473,8 @@ TARGET_LINK_LIBRARIES(crhmc_sampling_test lp_solve ${IFOPT} ${IFOPT_IPOPT} ${PTH
 TARGET_LINK_LIBRARIES(order_polytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(hpolytope_edge_cases_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(hpolytope_edge_cases_test_no_lpsolve ${MKL_LINK} coverage_config)
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 TARGET_LINK_LIBRARIES(full_dimensional_polytope_test lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
