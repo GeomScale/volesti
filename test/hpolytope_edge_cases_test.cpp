@@ -18,6 +18,8 @@
 #include "convex_bodies/hpolytope.h"
 #include "random_walks/random_walks.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
 
 typedef double NT;
 typedef Cartesian<NT> Kernel;
@@ -115,16 +117,34 @@ void call_test_sob_small_radius()
     CHECK(std::abs(volume - exact) / exact < 0.1);
 }
 
+// An empty polytope: x <= 1 and x >= 2
+Hpolytope empty_box2()
+{
+    MT A(4, 2);
+    A << 1, 0, 0, 1, -1, 0, 0, -1;
+    VT b(4);
+    b << 1, 1, -2, 1;
+    return Hpolytope(2, A, b);
+}
+
 void call_test_sob_inner_ball_failure()
 {
     // An empty polytope has no inner ball: SoB throws instead of returning -1
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-    MT A(4, 2);
-    A << 1, 0, 0, 1, -1, 0, 0, -1;
-    VT b(4);
-    b << 1, 1, -2, 1;   // x <= 1 and x >= 2
-    Hpolytope P(2, A, b);
+    Hpolytope P = empty_box2();
     CHECK_THROWS_AS((volume_sequence_of_balls<CDHRWalk, RNGType>(P, 0.1, 1)),
+                    std::runtime_error);
+}
+
+void call_test_cb_cg_inner_ball_failure()
+{
+    // ... and so do CB and CG
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+    Hpolytope P = empty_box2();
+    CHECK_THROWS_AS((volume_cooling_balls<CDHRWalk, RNGType>(P, 0.1, 1)),
+                    std::runtime_error);
+    Hpolytope Q = empty_box2();
+    CHECK_THROWS_AS((volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(Q, 0.1, 1)),
                     std::runtime_error);
 }
 
@@ -149,4 +169,8 @@ TEST_CASE("sob_small_radius") {
 
 TEST_CASE("sob_inner_ball_failure") {
     call_test_sob_inner_ball_failure();
+}
+
+TEST_CASE("cb_cg_inner_ball_failure") {
+    call_test_cb_cg_inner_ball_failure();
 }
