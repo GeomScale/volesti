@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_BOUNDARY_RDHR_WALK_HPP
 #define RANDOM_WALKS_BOUNDARY_RDHR_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "sampling/sphere.hpp"
 
 // Random directions hit-and-run walk with uniform target distribution
@@ -44,6 +46,7 @@ struct BRDHRWalk
         {
             for (auto j=0u; j<walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 Point v = GetDirection<Point>::apply(P.dimension(), rng);
                 std::pair<NT, NT> bpair = P.line_intersect(_p, v, _lamdas, _Av,
                                                            _lambda);

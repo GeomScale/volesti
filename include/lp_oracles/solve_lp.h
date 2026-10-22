@@ -42,7 +42,7 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
     int *colno = NULL;
 
     REAL *row = NULL;
-    std::pair<Point,NT> exception_pair(Point(1),-1.0);
+    std::pair<Point,NT> exception_pair(Point(d),-1.0);
 
     try
     {

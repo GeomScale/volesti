@@ -14,6 +14,8 @@
 #include <vector>
 #include <list>
 #include <math.h>
+#include <cmath>
+#include <stdexcept>
 #include <chrono>
 
 #include "cartesian_geom/cartesian_kernel.h"
@@ -72,7 +74,9 @@ double volume_sequence_of_balls(Polytope& Pin,
 
     //Compute the Chebychev ball (largest inscribed ball) with center and radius
     auto InnerBall = P.ComputeInnerBall();
-    if (InnerBall.second < 0.0) return -1.0;
+    if (InnerBall.second < 0.0) {
+        throw std::runtime_error("volume_sequence_of_balls: failed to compute an inner ball");
+    }
 
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
@@ -133,7 +137,9 @@ double volume_sequence_of_balls(Polytope& Pin,
 
         //
         // b. Number of balls
-        int nb1 = n * (std::log(radius)/std::log(2.0));
+        // floor, not truncation: for radius < 1 truncation rounds up, and when
+        // it reaches nb2 the sequence is the inner ball alone
+        int nb1 = std::floor(n * (std::log(radius)/std::log(2.0)));
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
 
         std::vector<Ball> balls;
@@ -149,7 +155,9 @@ double volume_sequence_of_balls(Polytope& Pin,
                 balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
             }
         }
-        assert(!balls.empty());
+        if (balls.empty()) {
+            throw std::runtime_error("volume_sequence_of_balls: empty sequence of balls");
+        }
 
         // Estimate Vol(P)
         typename std::vector<Ball>::iterator bit2=balls.end();

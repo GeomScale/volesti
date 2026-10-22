@@ -22,6 +22,8 @@ This is Running variant of Shake And Bake class of boundary sampling algorithms.
 #ifndef RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 #define RANDOM_WALKS_SHAKE_AND_BAKE_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <cmath>
@@ -73,6 +75,7 @@ struct ShakeAndBakeWalk
 
             for (unsigned step = 0; step < walk_len; ++step)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 Point v = SBDirection<Point>::apply(P.dimension(),_A_row_k, rng);
 
                 int facet_new;

@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "sampling/sphere.hpp"
 
 
@@ -95,6 +97,7 @@ struct Walk
 
         for (auto j=0u; j<walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng, false);
             Point p0 = _p;

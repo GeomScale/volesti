@@ -16,6 +16,8 @@
 #define HPOLYTOPE_H
 
 #include <limits>
+#include <stdexcept>
+#include <vector>
 #include <iostream>
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
@@ -118,21 +120,24 @@ public:
 
     void set_interior_point(Point const& r)
     {
-        _inner_ball.first = r;
-        if(!is_in(r)) {
-            std::cerr << "point outside of polytope was set as interior point" << std::endl;
-            has_ball = false;
-            return;
+        if (r.dimension() != _d) {
+            throw std::invalid_argument("interior point has wrong dimension");
         }
-        if(is_normalized()) {
-            _inner_ball.second = (b - A * r.getCoefficients()).minCoeff();
-        } else {
-            _inner_ball.second = std::numeric_limits<NT>::max();
-            for(int i = 0; i < num_of_hyperplanes(); ++i) {
-                NT dist = (b(i) - A.row(i).dot(r.getCoefficients()) ) / A.row(i).norm();
-                if(dist < _inner_ball.second) {
-                    _inner_ball.second = dist;
-                }
+        if (is_inner_point_nan_inf(r.getCoefficients())) {
+            throw std::invalid_argument("interior point contains NaN or Inf");
+        }
+        if (!is_strictly_in(r)) {
+            throw std::invalid_argument("interior point is not strictly inside the polytope");
+        }
+        _inner_ball.first = r;
+        // radius = distance to the nearest facet (zero rows are not facets)
+        _inner_ball.second = std::numeric_limits<NT>::max();
+        for(int i = 0; i < num_of_hyperplanes(); ++i) {
+            NT row_norm = A.row(i).norm();
+            if (row_norm == NT(0)) continue;
+            NT dist = (b(i) - A.row(i).dot(r.getCoefficients()) ) / row_norm;
+            if(dist < _inner_ball.second) {
+                _inner_ball.second = dist;
             }
         }
         has_ball = true;
@@ -141,6 +146,7 @@ public:
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //First try using max_inscribed_ball
     //Use LpSolve library if it fails
+    //On failure the returned radius is negative (callers check second < 0)
     std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
@@ -148,7 +154,34 @@ public:
             
             has_ball = true;
             NT const tol = 1e-08;
-            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 5000, tol);
+
+            // A zero row 0 <= b_i is not a facet: with b_i < 0 the polytope is
+            // empty, otherwise it must not enter max_inscribed_ball, which
+            // assumes unit rows and would read it as radius <= b_i
+            std::vector<int> facets;
+            for (int i = 0; i < num_of_hyperplanes(); ++i) {
+                if (A.row(i).norm() != NT(0)) {
+                    facets.push_back(i);
+                } else if (b(i) < NT(0)) {
+                    _inner_ball = std::pair<Point, NT>(Point(_d), NT(-1));
+                    return _inner_ball;
+                }
+            }
+            std::tuple<VT, NT, bool> inner_ball;
+            if (facets.size() == std::size_t(num_of_hyperplanes())) {
+                inner_ball = max_inscribed_ball(A, b, 5000, tol);
+            } else {
+                std::vector<Eigen::Triplet<NT>> select;
+                VT b_facets(facets.size());
+                for (std::size_t j = 0; j < facets.size(); ++j) {
+                    select.emplace_back(j, facets[j], NT(1));
+                    b_facets(j) = b(facets[j]);
+                }
+                Eigen::SparseMatrix<NT> S(facets.size(), num_of_hyperplanes());
+                S.setFromTriplets(select.begin(), select.end());
+                MT A_facets = S * A;
+                inner_ball = max_inscribed_ball(A_facets, b_facets, 5000, tol);
+            }
 
             // check if the solution is feasible
             if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < tol/2.0 ||
@@ -159,8 +192,8 @@ public:
                 #ifndef DISABLE_LPSOLVE
                     _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
                 #else
-                    std::cerr << "lpsolve is disabled, unable to compute inner ball";
-                    has_ball = false;
+                    std::cerr << "lpsolve is disabled, unable to compute inner ball" << std::endl;
+                    _inner_ball = std::pair<Point, NT>(Point(_d), NT(-1));
                 #endif
             } else {
                 _inner_ball.first = Point(std::get<0>(inner_ball));
@@ -324,6 +357,20 @@ public:
 
 
     //Check if Point p is in H-polytope P:= Ax<=b
+    // true if every facet inequality holds strictly (zero rows only need
+    // 0 <= b_i)
+    bool is_strictly_in(Point const& p) const
+    {
+        VT slack = b - A * p.getCoefficients();
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            bool zero_row = (A.row(i).norm() == NT(0));
+            if (zero_row ? slack(i) < NT(0) : !(slack(i) > NT(0))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     int is_in(Point const& p, NT tol=NT(0)) const
     {
         int m = A.rows();
