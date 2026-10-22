@@ -1058,14 +1058,18 @@ public:
     }
 
 
-    // return for each facet the distance from the origin
+    // return for each facet the distance from the origin; a zero row is not
+    // a facet, its distance is infinite (b(i) / 0 would be NaN for b(i) = 0)
     std::vector<NT> get_dists(NT const& radius) const
     {
         unsigned int i=0;
         std::vector <NT> dists(num_of_hyperplanes(), NT(0));
         typename std::vector<NT>::iterator disit = dists.begin();
-        for ( ; disit!=dists.end(); disit++, i++)
-            *disit = b(i) / A.row(i).norm();
+        for ( ; disit!=dists.end(); disit++, i++) {
+            NT row_norm = A.row(i).norm();
+            *disit = (row_norm == NT(0)) ? std::numeric_limits<NT>::infinity()
+                                         : b(i) / row_norm;
+        }
 
         return dists;
     }

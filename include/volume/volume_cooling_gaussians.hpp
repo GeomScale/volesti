@@ -25,6 +25,7 @@
 #include "random_walks/gaussian_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
+#include "volume/sampling_policies.hpp"
 
 
 /////////////////// Helpers for random walks

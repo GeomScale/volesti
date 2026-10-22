@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
 
+#include "random_walks/compute_diameter.hpp"
+
 #include "misc/interrupt.hpp"
 
 #include "sampling/sphere.hpp"
