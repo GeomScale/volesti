@@ -200,6 +200,9 @@ add_executable (benchmarks_sob benchmarks_sob.cpp)
 add_executable (benchmarks_cg benchmarks_cg.cpp)
 add_executable (benchmarks_cb benchmarks_cb.cpp)
 
+add_executable(test_matrix_market_reader test_matrix_market_reader.cpp)
+target_link_libraries(test_matrix_market_reader lp_solve)
+
 add_library(test_main OBJECT test_main.cpp)
 
 add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
