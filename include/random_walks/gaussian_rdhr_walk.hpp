@@ -10,6 +10,8 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_RDHR_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_RDHR_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "random_walks/gaussian_helpers.hpp"
 #include "generators/boost_random_number_generator.hpp"
 
@@ -99,6 +101,7 @@ struct Walk
     {
         for (auto j = 0u; j < walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             Point v = GetDirection<Point>::apply(p.dimension(), rng);
             std::pair <NT, NT> dbpair = P.line_intersect(p, v);
 

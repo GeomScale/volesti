@@ -10,6 +10,8 @@
 #ifndef RANDOM_WALKS_UNIFORM_BALL_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_BALL_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "generators/boost_random_number_generator.hpp"
 
 // Ball walk with uniform target distribution
@@ -75,6 +77,7 @@ struct BallWalk
         {
             for (auto j = 0u; j < walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 Point y = GetPointInDsphere<Point>::apply(P.dimension(),
                                                           _delta,
                                                           rng);

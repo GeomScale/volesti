@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 #define RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #define INSIDE_BODY_TOLLERANCE 1e-10
 
 #include "sampling/sphere.hpp"
@@ -96,6 +98,7 @@ struct Walk
 
         for (auto j=0u; j<walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             do {
                 _p = p0;
                 failures++;

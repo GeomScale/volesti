@@ -10,6 +10,8 @@
 #ifndef RANDOM_WALKS_UNIFORM_CDHR_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_CDHR_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "sampling/sphere.hpp"
 
 // coordinate directions hit-and-run walk with uniform target distribution
@@ -53,6 +55,7 @@ struct Walk
     {
         for (auto j=0u; j<walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             auto rand_coord_prev = _rand_coord;
             _rand_coord = rng.sample_uidist();
             NT kapa = rng.sample_urdist();

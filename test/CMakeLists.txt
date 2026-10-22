@@ -285,6 +285,10 @@ add_test(NAME hpolytope_edge_cases_no_lpsolve_set_interior_point COMMAND hpolyto
 add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_small_radius COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_small_radius)
 add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_inner_ball_failure COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_inner_ball_failure)
 
+add_executable (interrupt_hook_test interrupt_hook_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME interrupt_hook_called_once_per_step COMMAND interrupt_hook_test -tc=hook_called_once_per_step)
+add_test(NAME interrupt_hook_interrupt COMMAND interrupt_hook_test -tc=interrupt)
+
 add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
 add_test(NAME volume_sob_vpolytope_cross COMMAND volume_sob_vpolytope -tc=cross)
@@ -477,6 +481,7 @@ TARGET_LINK_LIBRARIES(matrix_sampling_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(hpolytope_edge_cases_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(hpolytope_edge_cases_test_no_lpsolve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(interrupt_hook_test lp_solve ${MKL_LINK} coverage_config)
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 TARGET_LINK_LIBRARIES(full_dimensional_polytope_test lp_solve ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)

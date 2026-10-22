@@ -11,6 +11,8 @@
 #ifndef RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include <Eigen/Eigen>
 
 #include "convex_bodies/ball.h"
@@ -99,6 +101,7 @@ struct Walk
 
         for (auto j=0u; j<walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng);
 
