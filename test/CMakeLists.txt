@@ -273,6 +273,7 @@ add_test(NAME hpolytope_edge_cases_zero_rows COMMAND hpolytope_edge_cases_test -
 add_test(NAME hpolytope_edge_cases_inner_ball_failure COMMAND hpolytope_edge_cases_test -tc=inner_ball_failure)
 add_test(NAME hpolytope_edge_cases_set_interior_point COMMAND hpolytope_edge_cases_test -tc=set_interior_point)
 add_test(NAME hpolytope_edge_cases_sob_small_radius COMMAND hpolytope_edge_cases_test -tc=sob_small_radius)
+add_test(NAME hpolytope_edge_cases_sob_inner_ball_failure COMMAND hpolytope_edge_cases_test -tc=sob_inner_ball_failure)
 
 # Same tests without lp_solve: the inner-ball failure path differs (the
 # Octave binding builds this way)
@@ -282,6 +283,7 @@ add_test(NAME hpolytope_edge_cases_no_lpsolve_zero_rows COMMAND hpolytope_edge_c
 add_test(NAME hpolytope_edge_cases_no_lpsolve_inner_ball_failure COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=inner_ball_failure)
 add_test(NAME hpolytope_edge_cases_no_lpsolve_set_interior_point COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=set_interior_point)
 add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_small_radius COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_small_radius)
+add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_inner_ball_failure COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_inner_ball_failure)
 
 add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)

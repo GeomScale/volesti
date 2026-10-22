@@ -115,6 +115,19 @@ void call_test_sob_small_radius()
     CHECK(std::abs(volume - exact) / exact < 0.1);
 }
 
+void call_test_sob_inner_ball_failure()
+{
+    // An empty polytope has no inner ball: SoB throws instead of returning -1
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+    MT A(4, 2);
+    A << 1, 0, 0, 1, -1, 0, 0, -1;
+    VT b(4);
+    b << 1, 1, -2, 1;   // x <= 1 and x >= 2
+    Hpolytope P(2, A, b);
+    CHECK_THROWS_AS((volume_sequence_of_balls<CDHRWalk, RNGType>(P, 0.1, 1)),
+                    std::runtime_error);
+}
+
 TEST_CASE("zero_rows") {
     call_test_zero_rows<Hpolytope>();
     call_test_zero_rows<SparseHpolytope>();
@@ -132,4 +145,8 @@ TEST_CASE("set_interior_point") {
 
 TEST_CASE("sob_small_radius") {
     call_test_sob_small_radius();
+}
+
+TEST_CASE("sob_inner_ball_failure") {
+    call_test_sob_inner_ball_failure();
 }

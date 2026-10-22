@@ -74,7 +74,9 @@ double volume_sequence_of_balls(Polytope& Pin,
 
     //Compute the Chebychev ball (largest inscribed ball) with center and radius
     auto InnerBall = P.ComputeInnerBall();
-    if (InnerBall.second < 0.0) return -1.0;
+    if (InnerBall.second < 0.0) {
+        throw std::runtime_error("volume_sequence_of_balls: failed to compute an inner ball");
+    }
 
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
