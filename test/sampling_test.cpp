@@ -260,6 +260,53 @@ void call_test_grdhr(){
     CHECK(score.maxCoeff() < 1.1);
 }
 
+// Every chord of a polytope far from the mode lies in the tail of the gaussian,
+// where drawing from the 1-dimensional gaussian until it hits the chord used to
+// practically never finish
+template <typename NT, typename WalkType>
+void call_test_gaussian_far_from_mode(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+
+    unsigned int d = 4, walkL = 10, numpoints = 10000, nburns = 0;
+    NT a = 0.5; // the standard gaussian
+
+    std::cout << "--- Testing gaussian sampling from the H-cube [9, 11]^4" << std::endl;
+    Hpolytope P = generate_cube<Hpolytope>(d, false);
+    P.shift(VT::Constant(d, NT(-10)));
+    P.ComputeInnerBall();
+    Point StartingPoint(d, std::vector<NT>(d, NT(10)));
+    RNGType rng(d);
+    std::list<Point> randPoints;
+
+    gaussian_sampling<WalkType>(randPoints, P, rng, walkL, numpoints, a,
+                                StartingPoint, nburns);
+
+    MT samples(d, numpoints);
+    unsigned int jj = 0, outside = 0;
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+    {
+        if (P.is_in(*rpit, NT(1e-10)) == 0) outside++;
+        samples.col(jj) = (*rpit).getCoefficients();
+    }
+    CHECK(outside == 0);
+
+    // the coordinates are independent, each one is the standard gaussian
+    // truncated to [9, 11] with mean (phi(9) - phi(11)) / (Phi(11) - Phi(9))
+    NT expected_mean = 9.108523101649192;
+    VT mean = samples.rowwise().mean();
+    std::cout << "max error of the mean = " << (mean.array() - expected_mean).abs().maxCoeff() << std::endl;
+    CHECK((mean.array() - expected_mean).abs().maxCoeff() < 0.01);
+
+    VT score = univariate_psrf<NT, VT>(samples);
+    std::cout << "psrf = " << score.maxCoeff() << std::endl;
+    CHECK(score.maxCoeff() < 1.1);
+}
+
 template <typename NT, typename WalkType = GaussianBallWalk>
 void call_test_gbaw(){
     typedef Cartesian<NT>    Kernel;
@@ -483,6 +530,11 @@ TEST_CASE("bcdhr") {
 
 TEST_CASE("grdhr") {
     call_test_grdhr<double>();
+}
+
+TEST_CASE("gaussian_far_from_mode") {
+    call_test_gaussian_far_from_mode<double, GaussianCDHRWalk>();
+    call_test_gaussian_far_from_mode<double, GaussianRDHRWalk>();
 }
 
 TEST_CASE("gbaw") {
