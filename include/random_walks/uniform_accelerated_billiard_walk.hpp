@@ -12,6 +12,7 @@
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
 #include "misc/interrupt.hpp"
+#include "random_walks/compute_diameter.hpp"
 
 #include "sampling/sphere.hpp"
 #include <Eigen/Eigen>

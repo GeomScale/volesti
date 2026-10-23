@@ -11,6 +11,7 @@
 #define RANDOM_WALKS_GAUSSIAN_RDHR_WALK_HPP
 
 #include "misc/interrupt.hpp"
+#include "sampling/sphere.hpp"
 
 #include "random_walks/gaussian_helpers.hpp"
 #include "generators/boost_random_number_generator.hpp"

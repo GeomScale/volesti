@@ -11,6 +11,7 @@
 #define RANDOM_WALKS_UNIFORM_BALL_WALK_HPP
 
 #include "misc/interrupt.hpp"
+#include "sampling/sphere.hpp"
 
 #include "generators/boost_random_number_generator.hpp"
 

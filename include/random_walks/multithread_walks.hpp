@@ -12,6 +12,8 @@
 #ifndef RANDOM_WALKS_MULTITHREAD_WALKS_HPP
 #define RANDOM_WALKS_MULTITHREAD_WALKS_HPP
 
+#include "random_walks/compute_diameter.hpp"
+
 #include "sampling/sphere.hpp"
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"

@@ -148,6 +148,24 @@ void call_test_cb_cg_inner_ball_failure()
                     std::runtime_error);
 }
 
+void call_test_cg_zero_row()
+{
+    // A zero row 0 <= 0 is not a facet: its distance in get_dists is
+    // infinite, not 0/0 = NaN, which made CG pick a wrong first Gaussian
+    // (13.6 instead of 8 for this cube)
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+    MT A = MT::Zero(7, 3);
+    A << MT::Identity(3, 3), -MT::Identity(3, 3), MT::Zero(1, 3);
+    VT b(7);
+    b << 1, 1, 1, 1, 1, 1, 0;
+    Hpolytope P(3, A, b);
+    std::vector<NT> dists = P.get_dists(1.0);
+    CHECK(std::isinf(dists[6]));
+    NT volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(P, 0.1, 1);
+    std::cout << "Computed volume " << volume << ", exact 8" << std::endl;
+    CHECK(std::abs(volume - 8) / 8 < 0.2);
+}
+
 TEST_CASE("zero_rows") {
     call_test_zero_rows<Hpolytope>();
     call_test_zero_rows<SparseHpolytope>();
@@ -173,4 +191,8 @@ TEST_CASE("sob_inner_ball_failure") {
 
 TEST_CASE("cb_cg_inner_ball_failure") {
     call_test_cb_cg_inner_ball_failure();
+}
+
+TEST_CASE("cg_zero_row") {
+    call_test_cg_zero_row();
 }

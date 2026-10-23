@@ -275,6 +275,7 @@ add_test(NAME hpolytope_edge_cases_set_interior_point COMMAND hpolytope_edge_cas
 add_test(NAME hpolytope_edge_cases_sob_small_radius COMMAND hpolytope_edge_cases_test -tc=sob_small_radius)
 add_test(NAME hpolytope_edge_cases_sob_inner_ball_failure COMMAND hpolytope_edge_cases_test -tc=sob_inner_ball_failure)
 add_test(NAME hpolytope_edge_cases_cb_cg_inner_ball_failure COMMAND hpolytope_edge_cases_test -tc=cb_cg_inner_ball_failure)
+add_test(NAME hpolytope_edge_cases_cg_zero_row COMMAND hpolytope_edge_cases_test -tc=cg_zero_row)
 
 # Same tests without lp_solve: the inner-ball failure path differs (the
 # Octave binding builds this way)
@@ -286,6 +287,11 @@ add_test(NAME hpolytope_edge_cases_no_lpsolve_set_interior_point COMMAND hpolyto
 add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_small_radius COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_small_radius)
 add_test(NAME hpolytope_edge_cases_no_lpsolve_sob_inner_ball_failure COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=sob_inner_ball_failure)
 add_test(NAME hpolytope_edge_cases_no_lpsolve_cb_cg_inner_ball_failure COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=cb_cg_inner_ball_failure)
+add_test(NAME hpolytope_edge_cases_no_lpsolve_cg_zero_row COMMAND hpolytope_edge_cases_test_no_lpsolve -tc=cg_zero_row)
+
+add_executable (standalone_headers_test standalone_headers_test.cpp $<TARGET_OBJECTS:test_main>)
+target_compile_definitions(standalone_headers_test PRIVATE DISABLE_LPSOLVE)
+add_test(NAME standalone_headers_accelerated_billiard COMMAND standalone_headers_test -tc=accelerated_billiard)
 
 add_executable (crhmc_volume_edge_cases_test crhmc_volume_edge_cases_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME crhmc_volume_edge_cases_inner_ball_failure COMMAND crhmc_volume_edge_cases_test -tc=crhmc_inner_ball_failure)
@@ -487,6 +493,7 @@ TARGET_LINK_LIBRARIES(test_internal_points lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(hpolytope_edge_cases_test lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(hpolytope_edge_cases_test_no_lpsolve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(interrupt_hook_test lp_solve ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(standalone_headers_test ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(crhmc_volume_edge_cases_test lp_solve ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} QD_LIB coverage_config)
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
