@@ -60,6 +60,8 @@ struct BRDHRWalk
             }
         }
 
+        const Point& getCurrentPoint() const noexcept { return _p; }
+
     private :
 
         template <typename GenericBody>
