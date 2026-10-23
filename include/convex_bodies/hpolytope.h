@@ -374,14 +374,12 @@ public:
     int is_in(Point const& p, NT tol=NT(0)) const
     {
         int m = A.rows();
-        const NT* b_data = b.data();
+        auto b_it = b.cbegin();
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++, b_it++) {
             //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
+            if (*b_it - A.row(i) * p.getCoefficients() < NT(-tol))
                 return 0;
-
-            b_data++;
         }
         return -1;
     }
@@ -403,22 +401,19 @@ public:
         sum_nom.noalias() = b - A * r.getCoefficients();
         sum_denom.noalias() = A * v.getCoefficients();
 
-        NT* sum_nom_data = sum_nom.data();
-        NT* sum_denom_data = sum_denom.data();
+        auto sum_nom_it = sum_nom.cbegin();
+        auto sum_denom_it = sum_denom.cbegin();
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++, sum_nom_it++, sum_denom_it++) {
 
-            if (*sum_denom_data == NT(0)) {
+            if (*sum_denom_it == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = *sum_nom_data / *sum_denom_data;
+                lamda = *sum_nom_it / *sum_denom_it;
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
-
-            sum_nom_data++;
-            sum_denom_data++;
         }
         return std::make_pair(min_plus, max_minus);
     }
@@ -442,23 +437,20 @@ public:
         Av.noalias() = A * v.getCoefficients();;
 
 
-        NT* Av_data = Av.data();
-        NT* sum_nom_data = sum_nom.data();
+        auto Av_it = Av.cbegin();
+        auto sum_nom_it = sum_nom.cbegin();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
+        for (int i = 0; i < m; i++, Av_it++, sum_nom_it++) {
+            if (*Av_it == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = *sum_nom_data / *Av_data;
+                lamda = *sum_nom_it / *Av_it;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
                 }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
-
-            Av_data++;
-            sum_nom_data++;
         }
         if (pos) return std::make_pair(min_plus, facet);
         return std::make_pair(min_plus, max_minus);
@@ -485,22 +477,20 @@ public:
         sum_nom = b - Ar;
         Av.noalias() = A * v.getCoefficients();
 
-        NT* sum_nom_data = sum_nom.data();
-        NT* Av_data = Av.data();
+        auto sum_nom_it = sum_nom.cbegin();
+        auto Av_it = Av.cbegin();
 
-        for (int i = 0; i < m; i++) {
-            if (*Av_data == NT(0)) {
+        for (int i = 0; i < m; i++, Av_it++, sum_nom_it++) {
+            if (*Av_it == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = *sum_nom_data / *Av_data;
+                lamda = *sum_nom_it / *Av_it;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
                 }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
-            Av_data++;
-            sum_nom_data++;
         }
         if (pos) return std::make_pair(min_plus, facet);
         return std::make_pair(min_plus, max_minus);
@@ -552,21 +542,21 @@ public:
         sum_nom.noalias() = b - Ar;
         Av.noalias() = A * v.getCoefficients();
 
-        NT* Av_data = Av.data();
-        NT* sum_nom_data = sum_nom.data();
+        auto Av_it = Av.cbegin();
+        auto sum_nom_it = sum_nom.cbegin();
 
-        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data)
+        for (int i = 0; i < m; ++i, ++Av_it, ++sum_nom_it)
         {
             // this condition will evaluate differently for billiard SB / accelerated billiard
-            // Billiard SB: sum_nom_data is close to 0 => skipping the facet
-            // Accelerated Billiard: sum_nom_data far from 0 => not skipping the facet 
-            if (i == params.facet_prev && std::abs(*sum_nom_data) <= NT(1e-12)) continue;
+            // Billiard SB: *sum_nom_it is close to 0 => skipping the facet
+            // Accelerated Billiard: *sum_nom_it far from 0 => not skipping the facet 
+            if (i == params.facet_prev && std::abs(*sum_nom_it) <= NT(1e-12)) continue;
 
-            NT lambda = *sum_nom_data / *Av_data;
+            NT lambda = *sum_nom_it / *Av_it;
             if (lambda > 0 && lambda < min_plus) {
                 min_plus= lambda;
                 facet = i;
-                params.inner_vi_ak = *Av_data;
+                params.inner_vi_ak = *Av_it;
             }
         }
 
@@ -604,18 +594,18 @@ public:
         }
         sum_nom.noalias() = b - Ar;
 
-        NT* sum_nom_data = sum_nom.data();
-        NT* Av_data = Av.data();
+        auto sum_nom_it = sum_nom.cbegin();
+        auto Av_it = Av.cbegin();
 
-        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data){
+        for (int i = 0; i < m; ++i, ++Av_it, ++sum_nom_it){
             if (i == skip) continue;    
-            if (*Av_data == NT(0)) continue;
+            if (*Av_it == NT(0)) continue;
 
-            lamda = *sum_nom_data / *Av_data;
+            lamda = *sum_nom_it / *Av_it;
             if (lamda < min_plus && lamda > 0) {
                 min_plus = lamda;
                 facet = i;
-                params.inner_vi_ak = *Av_data;
+                params.inner_vi_ak = *Av_it;
             }
         }
         params.facet_prev = facet;
@@ -634,7 +624,7 @@ public:
                                                      update_parameters& params) const
     {
         NT inner_prev = params.inner_vi_ak;
-        NT* Av_data = Av.data();
+        auto Av_it = Av.begin();
 
         // Updating Av due to the change in direction caused by the previous reflection
         // Av += (-2.0 * inner_prev) * AA.col(params.facet_prev)
@@ -650,7 +640,7 @@ public:
             // (val(row) - params.moved_dist) * Av(row) = b(row) - Ar(row)
             // b(row) - Ar(row) = (val(row) - params.moved_dist) * Av(row)
 
-            *(Av_data + it.row()) += (-2.0 * inner_prev) * it.value();
+            *(Av_it + it.row()) += (-2.0 * inner_prev) * it.value();
 
             // After updating Av(row)
             // b(row) - Ar(row) = (old_val(row) - params.moved_dist) * old_Av(row) 
@@ -663,10 +653,10 @@ public:
 
             // new_val(row) = old_val(row) + (old_val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / new_Av(row)
 
-            // val(row) += (val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
+            // val(row) += (val(row) - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_it + it.row());
 
             NT val = distances_set.get_val(it.row());
-            val += (val - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_data + it.row());
+            val += (val - params.moved_dist) * 2.0 * inner_prev * it.value() / *(Av_it + it.row());
             distances_set.change_val(it.row(), val, params.moved_dist);
         }
 
@@ -676,7 +666,7 @@ public:
         // Subtract params.moved_dist to obtain the actual distance to the facet
         ans.first -= params.moved_dist;
 
-        params.inner_vi_ak = *(Av_data + ans.second);
+        params.inner_vi_ak = *(Av_it + ans.second);
         params.facet_prev = ans.second;
 
         return ans;
@@ -703,17 +693,17 @@ public:
         sum_nom.noalias() = b - Ar;
         Av.noalias() = A * v.getCoefficients();
 
-        NT* sum_nom_data = sum_nom.data();
-        NT* Av_data = Av.data();
+        auto sum_nom_it = sum_nom.cbegin();
+        auto Av_it = Av.cbegin();
 
-        for (int i = 0; i < m; ++i, ++Av_data, ++sum_nom_data) {
+        for (int i = 0; i < m; ++i, ++Av_it, ++sum_nom_it) {
             if (i == skip) continue;
-            if (*Av_data == NT(0)) continue;
-            lamda = *sum_nom_data / *Av_data;
+            if (*Av_it == NT(0)) continue;
+            lamda = *sum_nom_it / *Av_it;
             if (lamda < min_plus && lamda > 0) {
                 min_plus = lamda;
                 facet = i;
-                params.inner_vi_ak = *Av_data;
+                params.inner_vi_ak = *Av_it;
             }
         }
         params.facet_prev = facet;
@@ -806,22 +796,20 @@ public:
         sum_denom = A.col(rand_coord);
         lamdas.noalias() = b - A * r.getCoefficients();
 
-        NT* lamda_data = lamdas.data();
-        NT* sum_denom_data = sum_denom.data();
+        auto lamda_it = lamdas.cbegin();
+        auto sum_denom_it = sum_denom.cbegin();
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++, lamda_it++, sum_denom_it++) {
 
-            if (*sum_denom_data == NT(0)) {
+            if (*sum_denom_it == NT(0)) {
                 //std::cout<<"div0"<<sum_denom<<std::endl;
                 ;
             } else {
-                lamda = *lamda_data * (1 / *sum_denom_data);
+                lamda = *lamda_it * (1 / *sum_denom_it);
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
             }
-            lamda_data++;
-            sum_denom_data++;
         }
         return std::make_pair(min_plus, max_minus);
     }
@@ -842,21 +830,20 @@ public:
 
         lamdas.noalias() += (DenseMT)(A.col(rand_coord_prev)
                          * (r_prev[rand_coord_prev] - r[rand_coord_prev]));
-        NT* data = lamdas.data();
+        auto lamda_it = lamdas.cbegin();
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++, lamda_it++) {
             NT a = A.coeff(i, rand_coord);
 
             if (a == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = *data / a;
+                lamda = *lamda_it / a;
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
             }
-            data++;
         }
         return std::make_pair(min_plus, max_minus);
     }
@@ -884,14 +871,14 @@ public:
         sum_nom = Ar - b;
         Av.noalias() = A * v.getCoefficients();;
 
-        NT* Av_data = Av.data();
-        NT* sum_nom_data = sum_nom.data();
-        NT* Ac_data = Ac.data();
+        auto Av_it = Av.cbegin();
+        auto sum_nom_it = sum_nom.cbegin();
+        auto Ac_it = Ac.cbegin();
 
-        for (int i = 0; i < m; i++)
+        for (int i = 0; i < m; i++, Av_it++, sum_nom_it++, Ac_it++)
         {
-            alpha = -((*Ac_data) / (2.0 * T));
-            if (solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2))
+            alpha = -((*Ac_it) / (2.0 * T));
+            if (solve_quadratic_polynomial(alpha, (*Av_it), (*sum_nom_it), lamda1, lamda2))
             {
                 lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
                 if (lamda < min_plus && lamda > 0)
@@ -900,9 +887,6 @@ public:
                     facet = i;
                 }
             }
-            Av_data++;
-            sum_nom_data++;
-            Ac_data++;
         }
         facet_prev = facet;
         return std::make_pair(min_plus, facet);
@@ -984,27 +968,27 @@ public:
         sum_nom.noalias() = A * r.getCoefficients();
         sum_denom.noalias() = A * v.getCoefficients();
 
-        NT* sum_nom_data = sum_nom.data();
-        NT* sum_denom_data = sum_denom.data();
-        const NT* b_data = b.data();
+        auto sum_nom_it = sum_nom.cbegin();
+        auto sum_denom_it = sum_denom.cbegin();
+        auto b_it = b.cbegin();
 
         const NT omega_sqr = omega * omega;
         const NT pi_2_omega = pi_2 / omega;
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++, sum_nom_it++, sum_denom_it++, b_it++) {
 
-            NT C = std::sqrt((*sum_nom_data) * (*sum_nom_data) + ((*sum_denom_data) * (*sum_denom_data))
+            NT C = std::sqrt((*sum_nom_it) * (*sum_nom_it) + ((*sum_denom_it) * (*sum_denom_it))
               / omega_sqr);
-            NT Phi = std::atan((-(*sum_denom_data)) / ((*sum_nom_data) * omega));
+            NT Phi = std::atan((-(*sum_denom_it)) / ((*sum_nom_it) * omega));
 
-            if ((*sum_denom_data) < 0.0 && Phi < 0.0) {
+            if ((*sum_denom_it) < 0.0 && Phi < 0.0) {
                 Phi += M_PI;
-            } else if ((*sum_denom_data) > 0.0 && Phi > 0.0) {
+            } else if ((*sum_denom_it) > 0.0 && Phi > 0.0) {
                 Phi -= M_PI;
             }
 
-            if (C > (*b_data)) {
-                NT acos_b = std::acos((*b_data) / C);
+            if (C > (*b_it)) {
+                NT acos_b = std::acos((*b_it) / C);
                 NT t1 = (acos_b - Phi) / omega;
                 if (facet_prev == i && std::abs(t1) < 1e-10){
                     t1 = pi_2_omega;
@@ -1025,10 +1009,6 @@ public:
                     t = tmin;
                 }
             }
-
-            sum_nom_data++;
-            sum_denom_data++;
-            b_data++;
         }
         facet_prev = facet;
         return std::make_pair(t, facet);
@@ -1156,11 +1136,11 @@ public:
     template <typename update_parameters>
     auto compute_reflection_abw_sparse(Point &v, Point &p, update_parameters const& params) const
     {
-        NT* v_data = v.pointerToData();
-        NT* p_data = p.pointerToData();
+        auto v_it = v.begin();
+        auto p_it = p.begin();
         for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
-            *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
-            *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
+            *(v_it + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+            *(p_it + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
         }
     }
 
@@ -1182,17 +1162,17 @@ public:
                     new_vEv = vEv - (4.0 * params.inner_vi_ak) * (AE.row(params.facet_prev).dot(x) - params.inner_vi_ak * AEA(params.facet_prev));
                 } else {
                     new_vEv = vEv + 4.0 * params.inner_vi_ak * params.inner_vi_ak * AEA(params.facet_prev);
-                    NT* v_data = v.pointerToData();
+                    auto v_it = v.cbegin();
                     for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(AE, params.facet_prev); it; ++it) {
-                        new_vEv -= 4.0 * params.inner_vi_ak * it.value() * *(v_data + it.col());
+                        new_vEv -= 4.0 * params.inner_vi_ak * it.value() * *(v_it + it.col());
                     }
                 }
 
-                NT* v_data = v.pointerToData();
-                NT* p_data = p.pointerToData();
+                auto v_it = v.begin();
+                auto p_it = p.begin();
                 for(Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, params.facet_prev); it; ++it) {
-                    *(v_data + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
-                    *(p_data + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
+                    *(v_it + it.col()) += (-2.0 * params.inner_vi_ak) * it.value();
+                    *(p_it + it.col()) -= (-2.0 * params.inner_vi_ak * params.moved_dist) * it.value();
                 }
             }
             NT coeff = std::sqrt(vEv / new_vEv);
