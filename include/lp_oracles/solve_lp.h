@@ -26,10 +26,18 @@
 
 #include <stdio.h>
 #include <cmath>
+#include <memory>
+#include <vector>
 #include <exception>
 #undef Realloc
 #undef Free
 #include "lp_lib.h"
+
+// Releases an lp_solve model; used with std::unique_ptr so that the model is
+// deleted on every exit path of the functions below.
+struct LpSolveDeleter {
+    void operator()(lprec *lp) const { delete_lp(lp); }
+};
 
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
@@ -39,9 +47,6 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
     lprec *lp;
     int d = A.cols();
     int Ncol=d+1, j, m=A.rows(), i;
-    int *colno = NULL;
-
-    REAL *row = NULL;
     std::pair<Point,NT> exception_pair(Point(d),-1.0);
 
     try
@@ -56,21 +61,15 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
         return exception_pair;
     }
     
+    std::unique_ptr<lprec, LpSolveDeleter> lp_owner(lp);
+
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
     /* create space large enough for one row */
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
-        #ifdef VOLESTI_DEBUG
-        std::cout<<"Linear Program for chebychev center failed "<<e.what()<<std::endl;
-        #endif
-        return exception_pair;
-    }
+    std::vector<int> colno_buf(Ncol);
+    std::vector<REAL> row_buf(Ncol);
+    int *colno = colno_buf.data();
+    REAL *row = row_buf.data();
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
@@ -151,7 +150,6 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
     Point xc( d , temp_p.begin() , temp_p.end() );
     NT r = NT(get_objective(lp));
     res = std::pair<Point,NT> (xc,r);
-    delete_lp(lp);
 
     return res;
 }
@@ -167,8 +165,7 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
     unsigned int k = k1 + k2;
     VT cb(k1);
     lprec *lp;
-    int Ncol=k, *colno = NULL, j, i;
-    REAL *row = NULL;
+    int Ncol=k, j, i;
     Point p(d);
 
     try
@@ -183,20 +180,14 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
         return false;
     }
 
+    std::unique_ptr<lprec, LpSolveDeleter> lp_owner(lp);
+
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
-#ifdef VOLESTI_DEBUG
-        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
-#endif
-        return false;
-    }
+    std::vector<int> colno_buf(Ncol);
+    std::vector<REAL> row_buf(Ncol);
+    int *colno = colno_buf.data();
+    REAL *row = row_buf.data();
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
@@ -275,12 +266,10 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
 
     /* Now let lpsolve calculate a solution */
     if (solve(lp) != OPTIMAL){
-        delete_lp(lp);
         empty = true;
         return p;
     }
     get_variables(lp, row);
-    delete_lp(lp);
 
     for ( j=0; j<k1; ++j) {
         cb(j) = row[j];
