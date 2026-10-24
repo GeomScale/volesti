@@ -15,6 +15,8 @@
 #define HAMILTONIAN_MONTE_CARLO_WALK_HPP
 
 
+#include <memory>
+
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 #include "ode_solvers/ode_solvers.hpp"
@@ -60,8 +62,8 @@ struct HamiltonianMonteCarloWalk {
     // Hyperparameters of the sampler
     parameters<NT, NegativeGradientFunctor> &params;
 
-    // Numerical ODE solver
-    Solver *solver;
+    // Numerical ODE solver (owned by the walk)
+    std::unique_ptr<Solver> solver;
 
     // Dimension
     unsigned int dim;
@@ -110,7 +112,7 @@ struct HamiltonianMonteCarloWalk {
       accepted = false;
 
       // Initialize solver
-      solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
+      solver = std::make_unique<Solver>(0, params.eta, pts{x, x}, F, bounds{P, NULL});
 
     };
 
