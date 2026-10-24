@@ -15,6 +15,8 @@
 #ifndef LANGEVIN_WALK_HPP
 #define LANGEVIN_WALK_HPP
 
+#include <memory>
+
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 
@@ -64,8 +66,8 @@ struct UnderdampedLangevinWalk {
 
     parameters<NT, NegativeGradientFunctor> &params;
 
-    // Numerical ODE solver
-    Solver *solver;
+    // Numerical ODE solver (owned by the walk)
+    std::unique_ptr<Solver> solver;
 
     unsigned int dim;
 
@@ -96,7 +98,7 @@ struct UnderdampedLangevinWalk {
       dim = initial_x.dimension();
       v = Point(dim);
 
-      solver = new Solver(0, params.eta, pts{x, v}, F, bounds{P, NULL}, params.u);
+      solver = std::make_unique<Solver>(0, params.eta, pts{x, v}, F, bounds{P, NULL}, params.u);
 
     };
 
