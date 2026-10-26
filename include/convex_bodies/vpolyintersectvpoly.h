@@ -133,7 +133,7 @@ public:
         rng.set_seed(seed);
         auto res = point_in_intersection<VT>(P1.get_mat(), P2.get_mat(),
                                              GetDirection<Point>::apply(k, rng));
-        return !res.value.second;
+        return res.solved && !res.value.second;
     }
 
     std::pair<Point,NT> ComputeInnerBall() {

@@ -162,11 +162,13 @@ public:
                     if (ball.solved) {
                         _inner_ball = ball.value;
                     } else {
+                        _inner_ball = std::pair<Point, NT>(Point(1), NT(-1));
                         std::cerr << "Failed to compute the chebychev ball" << std::endl;
                         has_ball = false;
                     }
                 #else
-                    std::cerr << "HiGHS is disabled, unable to compute inner ball";
+                    _inner_ball = std::pair<Point, NT>(Point(1), NT(-1));
+                    std::cerr << "HiGHS is disabled, unable to compute inner ball" << std::endl;
                     has_ball = false;
                 #endif
             } else {

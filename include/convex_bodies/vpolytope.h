@@ -597,7 +597,7 @@ public:
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
-            if (*(conv_comb + j) > 0.0) {
+            if (*(conv_comb + j) > 0.0 && count < (int)_d) {
                 Fmat2.row(count) = V.row(j);
                 count++;
             } else {
@@ -620,7 +620,7 @@ public:
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
-            if (*(conv_comb + j) > 0.0) {
+            if (*(conv_comb + j) > 0.0 && count < (int)_d) {
                 Fmat2.row(count) = V.row(j);
                 count++;
             } else {

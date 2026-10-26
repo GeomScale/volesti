@@ -158,7 +158,7 @@ LPOracleResult<NT> intersect_line_Vpoly(MT const& V, Point const& p, Point const
 
     const auto& sol = highs.getSolution().col_value;
     for (unsigned i = 0; i < m; ++i) {
-        conv_comb[i] = sol[i];
+        conv_comb[i] = (std::abs(sol[i]) < LPOracleZeroTol) ? 0.0 : sol[i];
     }
 
     return {NT(-highs.getObjectiveValue()), true};

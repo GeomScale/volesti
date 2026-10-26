@@ -417,7 +417,7 @@ add_executable(test_highs test_highs.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_small_lp COMMAND test_highs -tc=test_small_lp)          
 add_test(NAME test_infeasible_lp COMMAND test_highs -tc=test_infeasible_lp)  
 add_test(NAME test_unbounded_lp COMMAND test_highs -tc=test_unbounded_lp)  
-add_test(NAME test_max_inner_ball_lp COMMAND test_highs -tc=max_inner_ball_lp)  
+add_test(NAME test_max_inner_ball_lp COMMAND test_highs -tc=test_max_inner_ball_lp)  
    
 add_executable(test_solve_lp lp_oracles/test_solve_lp.cpp $<TARGET_OBJECTS:test_main>)
 target_include_directories(test_solve_lp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -426,13 +426,13 @@ add_test(NAME test_intersection COMMAND test_solve_lp -tc=test_intersection)
 
 add_executable(test_vpolyoracles lp_oracles/test_vpolyoracles.cpp $<TARGET_OBJECTS:test_main>)
 target_include_directories(test_vpolyoracles PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-add_test(NAME test_v_membership COMMAND test_vpolyoracles -tc=test_v_membership)
-add_test(NAME test_v_line_intersection COMMAND test_vpolyoracles -tc=test_v_line_intersection)
+add_test(NAME test_v_membership COMMAND test_vpolyoracles -tc=test_membership)
+add_test(NAME test_v_line_intersection COMMAND test_vpolyoracles -tc=test_line_intersection)
 
 add_executable(test_zpolyoracles lp_oracles/test_zpolyoracles.cpp $<TARGET_OBJECTS:test_main>)
 target_include_directories(test_zpolyoracles PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-add_test(NAME test_z_membership COMMAND test_zpolyoracles -tc=test_z_membership)
-add_test(NAME test_z_line_intersection COMMAND test_zpolyoracles -tc=testz_line_intersection)
+add_test(NAME test_z_membership COMMAND test_zpolyoracles -tc=test_membership)
+add_test(NAME test_z_line_intersection COMMAND test_zpolyoracles -tc=test_line_intersection)
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 

@@ -22,6 +22,9 @@
 // other than simplex.
 using LPOracleOptions = std::function<void(Highs&)>;
 
+// LP solution values with magnitude below this are treated as zeros.
+constexpr double LPOracleZeroTol = 1e-9;
+
 // Configures highs for the lp oracles.
 inline void lp_oracles_configure_highs(Highs & highs, LPOracleOptions const& opts = nullptr) {
     if (opts) {
