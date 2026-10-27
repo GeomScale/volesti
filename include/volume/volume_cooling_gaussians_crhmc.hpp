@@ -18,6 +18,7 @@
 
 //#define VOLESTI_DEBUG
 
+#include <stdexcept>
 #include "volume/volume_cooling_gaussians.hpp"
 #include "preprocess/crhmc/crhmc_problem.h"
 
@@ -301,7 +302,9 @@ double volume_cooling_gaussians(Polytope& Pin,
 
     // Consider Chebychev center as an internal point
     auto InnerBall = P.ComputeInnerBall();
-    if (InnerBall.second < 0.0) return -1.0;
+    if (InnerBall.second < 0.0) {
+        throw std::runtime_error("volume_cooling_gaussians (CRHMC): failed to compute an inner ball");
+    }
 
     Point c = InnerBall.first;
     NT radius = InnerBall.second;

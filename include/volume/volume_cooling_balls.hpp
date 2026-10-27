@@ -10,6 +10,7 @@
 #ifndef VOLUME_COOLING_BALLS_HPP
 #define VOLUME_COOLING_BALLS_HPP
 
+#include <stdexcept>
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/special_functions/erf.hpp>
 
@@ -25,6 +26,7 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
+#include "volume/sampling_policies.hpp"
 
 
 ////////////////////////////////////
@@ -722,7 +724,9 @@ std::pair<double, double> volume_cooling_balls(Polytope& Pin,
     int N_times_nu = parameters.N * parameters.nu;
 
     auto InnerBall = P.ComputeInnerBall();
-    if (InnerBall.second < 0.0) return std::pair<NT, NT> (-1.0, 0.0);
+    if (InnerBall.second < 0.0) {
+        throw std::runtime_error("volume_cooling_balls: failed to compute an inner ball");
+    }
 
     NT radius = InnerBall.second;
     Point c = InnerBall.first;

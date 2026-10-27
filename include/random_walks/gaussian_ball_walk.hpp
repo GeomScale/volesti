@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_BALL_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_BALL_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "sampling/sphere.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 
@@ -77,6 +79,7 @@ struct Walk
     {
         for (auto j = 0u; j < walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             Point y = GetPointInDsphere<Point>::apply(P.dimension(),
                                                       _delta,
                                                       rng);

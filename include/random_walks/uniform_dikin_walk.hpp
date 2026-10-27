@@ -10,6 +10,8 @@
 #ifndef RANDOM_WALKS_DIKIN_WALK_HPP
 #define RANDOM_WALKS_DIKIN_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
@@ -85,6 +87,7 @@ struct DikinWalk
         {
             for (auto j=0u; j<walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 dikinw.doSample(_vec_point);
             }
             p.set_coeffs(_vec_point);

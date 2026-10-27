@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_BOUNDARY_CDHR_WALK_HPP
 #define RANDOM_WALKS_BOUNDARY_CDHR_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "sampling/sphere.hpp"
 
 // random directions hit-and-run walk with uniform target distribution
@@ -44,6 +46,7 @@ struct BCDHRWalk
             std::pair<NT, NT> bpair;
             for (auto j = 0u; j < walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 auto rand_coord_prev = _rand_coord;
                 _rand_coord = rng.sample_uidist();
                 NT kapa = rng.sample_urdist();

@@ -11,6 +11,9 @@
 #ifndef RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
+#include "misc/interrupt.hpp"
+#include "random_walks/compute_diameter.hpp"
+
 #include "sampling/sphere.hpp"
 #include <Eigen/Eigen>
 #include "random_walks/accelerated_billiard_walk_utils.hpp"
@@ -128,6 +131,7 @@ struct AcceleratedBilliardWalk
 
             for (auto j=0u; j<walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 T = -std::log(rng.sample_urdist()) * _L;
                 _v = GetDirection<Point>::apply(n, rng);
                 Point p0 = _p;

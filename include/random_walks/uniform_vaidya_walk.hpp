@@ -10,6 +10,8 @@
 #ifndef RANDOM_WALKS_VAIDYA_WALK_HPP
 #define RANDOM_WALKS_VAIDYA_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 
 #include "ellipsoid_walks/vaidya_walker.h"
 
@@ -78,6 +80,7 @@ struct VaidyaWalk
         {
             for (auto j=0u; j<walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 vaidyaw.doSample(_vec_point);
             }
             p.set_coeffs(_vec_point);

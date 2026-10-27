@@ -8,6 +8,8 @@
 #ifndef RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_PARALLEL_HPP
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_PARALLEL_HPP
 
+#include "random_walks/compute_diameter.hpp"
+
 #include "sampling/sphere.hpp"
 
 

@@ -11,6 +11,8 @@
 #ifndef RANDOM_WALKS_SPARSE_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_SPARSE_BILLIARD_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include <Eigen/Eigen>
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
@@ -89,6 +91,7 @@ struct Walk
         
         for (auto j = 0u; j < walk_length; ++j)
         {
+            VOLESTI_CHECK_INTERRUPT();
             NT T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng);
 
