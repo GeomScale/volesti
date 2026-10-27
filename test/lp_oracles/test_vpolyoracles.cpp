@@ -91,7 +91,7 @@ TEST_CASE("test_membership") {
     test_membership();
 }
 
-TEST_CASE("line_intersection") {
+TEST_CASE("test_line_intersection") {
     test_line_intersection_vpoly();
     test_line_intersection_zpoly();
 }

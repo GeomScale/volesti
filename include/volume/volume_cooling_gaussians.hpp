@@ -12,6 +12,7 @@
 
 //#define VOLESTI_DEBUG
 
+#include <stdexcept>
 #include <iterator>
 #include <vector>
 #include <list>
@@ -24,6 +25,7 @@
 #include "random_walks/gaussian_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/math_helpers.hpp"
+#include "volume/sampling_policies.hpp"
 
 
 /////////////////// Helpers for random walks
@@ -315,7 +317,9 @@ double volume_cooling_gaussians(Polytope& Pin,
 
     // Consider Chebychev center as an internal point
     auto InnerBall = P.ComputeInnerBall();
-    if (InnerBall.second < 0.0) return -1.0;
+    if (InnerBall.second < 0.0) {
+        throw std::runtime_error("volume_cooling_gaussians: failed to compute an inner ball");
+    }
 
     Point c = InnerBall.first;
     NT radius = InnerBall.second;

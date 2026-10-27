@@ -1,6 +1,4 @@
 test/build
-test/bigg/*.json
-!test/bigg/e_coli_core.json
 external/_deps
 examples/build
 .vscode
@@ -13,22 +11,14 @@ build/
 .DS_Store
 .cache
 shell.nix
-# build output
-build/
-examples/*/bin/
-examples/*/lib/
-examples/*/CPackConfig.cmake
-examples/*/CPackSourceConfig.cmake
-*.so
-*.so.*
 
-# generated exports
-simplified_bigg/
-out.json
-
-# model data
+# simplification benchmark data and exports
+test/bigg/*.json
+!test/bigg/e_coli_core.json
 test/bigg4/
 test/biggalt/
+simplified_bigg/
+out.json
 
 # python
 __pycache__/

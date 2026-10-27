@@ -11,10 +11,6 @@ cd build
 cmake ..
 make -j$(nproc)
 ```  
-Alternatively, a local installation of lp_solve can be specified explicitly:
-```bash
-cmake .. -DLP_SOLVE=/path/to/liblpsolve55.so
-```
 
 ## Running
 

@@ -8,6 +8,8 @@
 #ifndef VOLESTI_BOLTZMANN_HMC_WALK_HPP
 #define VOLESTI_BOLTZMANN_HMC_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include "generators/boost_random_number_generator.hpp"
 #include "../sampling/sphere.hpp"
 #include <algorithm>
@@ -174,6 +176,7 @@ public:
             for (unsigned int i = 1; i <= pointsNum; ++i) {
                 // Burn #walk_length points to get one sample
                 for (unsigned int j = 0; j < settings.walk_length; ++j) {
+                    VOLESTI_CHECK_INTERRUPT();
                     getNextPoint<Point>(convexbody, p);
                 }
                 // Add the sample to the return list

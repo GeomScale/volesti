@@ -77,8 +77,7 @@ LPOracleResult<bool> memLP_Zonotope(const MT& V, const Point& q,
 
 // Computes the intersection of the ray p + l v with a Z-Polytope.
 //
-// The function makes two calls to intersect_line_Vpoly in its zonotope mode,
-// which builds the same model.
+// The model is built once and solved twice, see intersect_double_line.
 // @tparam NT the number type
 // @tparam MT the matrix type of V
 // @tparam Point the point type
@@ -91,9 +90,6 @@ template <typename NT, typename MT, typename Point>
 LPOracleResult<std::pair<NT, NT>> intersect_line_zono(MT const& V, Point const& p, Point const& v,
                                                       LPOracleOptions const& opts = nullptr)
 {
-    std::vector<double> conv_comb(V.rows());
-    auto l1 = intersect_line_Vpoly<NT>(V, p, v, conv_comb.data(), false, true, opts);
-    auto l2 = intersect_line_Vpoly<NT>(V, p, v, conv_comb.data(), true, true, opts);
-    return {{l1.value, l2.value}, l1.solved && l2.solved};
+    return intersect_double_line<NT>(V, p, v, true, opts);
 }
 #endif

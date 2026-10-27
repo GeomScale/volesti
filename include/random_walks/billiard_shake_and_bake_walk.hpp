@@ -23,6 +23,8 @@ Available at: https://doi.org/10.1016/0166-218X(91)90006-7
 #ifndef RANDOM_WALKS_BILLIARD_SHAKE_AND_BAKE_WALK_HPP
 #define RANDOM_WALKS_BILLIARD_SHAKE_AND_BAKE_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include <Eigen/Eigen>
 #include <cmath>
 #include <limits>
@@ -106,6 +108,7 @@ struct BilliardShakeAndBakeWalk
 
             for (unsigned int step = 0; step < walk_len; ++step)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 _params.moved_dist = 0.0;
                 unsigned int r;
                 if (mode == ReflectionMode::Uniform)

@@ -13,6 +13,8 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_ACCELERATED_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_ACCELERATED_BILLIARD_WALK_HPP
 
+#include "misc/interrupt.hpp"
+
 #include <Eigen/Eigen>
 #include <cmath>
 #include "convex_bodies/orderpolytope.h"
@@ -168,6 +170,7 @@ struct GaussianAcceleratedBilliardWalk
 
             for (auto j=0u; j<walk_length; ++j)
             {
+                VOLESTI_CHECK_INTERRUPT();
                 T = -std::log(rng.sample_urdist()) * _L;
 
                 _v = GetDirection<Point>::apply(n, rng, false);
