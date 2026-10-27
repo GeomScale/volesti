@@ -13,6 +13,7 @@
 
 #include <ctime>
 #include <algorithm>
+#include <string>
 #include "convex_bodies/constrained_polytope.hpp"
 #include "preprocess/constrained_polytope/reduce_polytope.hpp"
 #include "preprocess/constrained_polytope/interior_point.hpp"
@@ -57,6 +58,19 @@ enum class SimplifierStatus {
     NO_INTERIOR_POINT,
     CLARKSON_FAILED
 };
+
+// Returns the name of a simplifier status.
+inline std::string status_to_string(SimplifierStatus s) {
+    switch (s) {
+        case SimplifierStatus::OK: return "OK";
+        case SimplifierStatus::PRESOLVE_FAILED: return "PRESOLVE_FAILED";
+        case SimplifierStatus::REMOVE_DEPENDENT_ROWS_FAILED: return "REMOVE_DEPENDENT_ROWS_FAILED";
+        case SimplifierStatus::INFEASIBLE: return "INFEASIBLE";
+        case SimplifierStatus::NO_INTERIOR_POINT: return "NO_INTERIOR_POINT";
+        case SimplifierStatus::CLARKSON_FAILED: return "CLARKSON_FAILED";
+    }
+    return "UNKNOWN";
+}
 
 // The cpu time of every stage in seconds.
 struct SimplifierTimes {

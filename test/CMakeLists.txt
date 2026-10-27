@@ -131,9 +131,6 @@ GetSuiteSparse()
 include("../external/cmake-files/HiGHS.cmake")
 GetHighs()
 
-include("../external/cmake-files/JSON.cmake")
-GetJSON()
-
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -453,14 +450,6 @@ add_test(NAME test_small_lp COMMAND test_highs -tc=test_small_lp)
 add_test(NAME test_infeasible_lp COMMAND test_highs -tc=test_infeasible_lp)  
 add_test(NAME test_unbounded_lp COMMAND test_highs -tc=test_unbounded_lp)  
 add_test(NAME test_max_inner_ball_lp COMMAND test_highs -tc=test_max_inner_ball_lp)  
-
-add_executable(benchmark_simplification benchmark_simplification.cpp)
-target_include_directories(benchmark_simplification PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(benchmark_simplification PRIVATE BIGG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/bigg")
-
-add_executable(benchmark_simplification_netlib benchmark_simplification_netlib.cpp)
-target_include_directories(benchmark_simplification_netlib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(benchmark_simplification_netlib PRIVATE NETLIB_DIR="${CMAKE_CURRENT_SOURCE_DIR}/netlib_files")
    
 add_executable(test_solve_lp lp_oracles/test_solve_lp.cpp $<TARGET_OBJECTS:test_main>)
 target_include_directories(test_solve_lp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -529,8 +518,6 @@ find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 TARGET_LINK_LIBRARIES(full_dimensional_polytope_test highs::highs ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_highs highs::highs coverage_config)
-TARGET_LINK_LIBRARIES(benchmark_simplification highs::highs nlohmann_json::nlohmann_json QD_LIB ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
-TARGET_LINK_LIBRARIES(benchmark_simplification_netlib highs::highs nlohmann_json::nlohmann_json QD_LIB ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(test_solve_lp highs::highs coverage_config)
 TARGET_LINK_LIBRARIES(test_vpolyoracles highs::highs coverage_config)
 TARGET_LINK_LIBRARIES(test_zpolyoracles highs::highs coverage_config)

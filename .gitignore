@@ -12,15 +12,6 @@ build/
 .cache
 shell.nix
 
-# simplification benchmark data and exports
+# BiGG models: only the bundled example model is tracked
 test/bigg/*.json
 !test/bigg/e_coli_core.json
-test/bigg4/
-test/biggalt/
-simplified_bigg/
-out.json
-
-# python
-__pycache__/
-*.pyc
-.pytest_cache/

@@ -18,7 +18,6 @@
 #include "preprocess/constrained_polytope/bigg_parser.hpp"
 #include "preprocess/constrained_polytope/simplifier.hpp"
 #include "preprocess/constrained_polytope/transformation.hpp"
-#include "preprocess/constrained_polytope/simplification_exporter.hpp"
 
 typedef double NT;
 typedef Cartesian<NT> Kernel;
@@ -45,8 +44,6 @@ void print_statistics(std::string const& name,
                       double trans_t
                      )
 {
-    using namespace constrained_polytope_simplification_exporter_utils;
-    
     std::string const line(48, '=');
     Polytope const& Ps = res.polytope;
 
@@ -77,8 +74,8 @@ void print_statistics(std::string const& name,
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2 || argc > 3) {
-        std::cerr << "usage: " << argv[0] << " <model.json> [output.json]" << std::endl;
+    if (argc != 2) {
+        std::cerr << "usage: " << argv[0] << " <model.json>" << std::endl;
         return 1;
     }
 
@@ -89,8 +86,6 @@ int main(int argc, char* argv[])
     }
 
     std::string const name = input.stem().string();
-    std::filesystem::path const output = (argc == 3) ? std::filesystem::path(argv[2])
-                                                     : std::filesystem::path(name+"_clarkson.json");
 
     Polytope P = parse_from_json<Point>(input.string());
 
@@ -107,12 +102,12 @@ int main(int argc, char* argv[])
     auto [HP, shift, N] = transform(res.polytope);
     double const trans_t = double(std::clock()-c0)/CLOCKS_PER_SEC;
 
-    if (output.has_parent_path())
-        std::filesystem::create_directories(output.parent_path());
-
-    export_to_json(output.string(), name, P, res, HP, N, shift, trans_t);
     print_statistics(name, P, res, trans_t);
 
-    std::cout << "exported to " << output.string() << std::endl;
+    // The full dimensional polytope is {x : A x <= b}, mapped back by y = N x + shift
+    std::cout << "full dimensional polytope: dimension " << HP.dimension()
+              << ", " << HP.num_of_hyperplanes() << " facets"
+              << " (N is " << N.rows() << "x" << N.cols()
+              << ", shift has " << shift.size() << " entries)" << std::endl;
     return 0;
 }
