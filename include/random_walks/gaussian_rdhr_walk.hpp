@@ -32,14 +32,24 @@ void chord_random_point_generator_exp(Point &lower,
 {
     NT r, r_val, fn;
     Point bef = upper - lower;
-    // pick from 1-dimensional gaussian if enough weight is inside polytope P
-    if (a_i > EXP_CHORD_TOLERENCE && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i)))
+    Point a = -1.0 * lower;
+    Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
+    // z is the point of the chord's line closest to the mode, low_bd and up_bd
+    // are the signed distances of the chord's endpoints from z
+    Point z = (a.dot(b) * b) + lower;
+    NT low_bd = (lower[0] - z[0]) / b[0];
+    NT up_bd = (upper[0] - z[0]) / b[0];
+    // the chord lies on one side of z; if it is far from z, the draws from
+    // the 1-dimensional gaussian below would practically never hit it
+    if (a_i > EXP_CHORD_TOLERENCE && (low_bd >= 0 || up_bd <= 0))
     {
-        Point a = -1.0 * lower;
-        Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
-        Point z = (a.dot(b) * b) + lower;
-        NT low_bd = (lower[0] - z[0]) / b[0];
-        NT up_bd = (upper[0] - z[0]) / b[0];
+        r = chord_random_point_generator_exp_tail(low_bd, up_bd, a_i, rng);
+        p = (r * b) + z;
+    }
+    // pick from 1-dimensional gaussian if enough weight is inside polytope P
+    else if (a_i > EXP_CHORD_TOLERENCE &&
+             std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i)))
+    {
         while (true) {
             r = rng.sample_ndist();//rdist(rng2);
             r = r / std::sqrt(2.0 * a_i);
