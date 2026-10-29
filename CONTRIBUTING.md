@@ -45,11 +45,10 @@ Clone the repository,
 
 the last command should tell you that you are in `develop` branch.
 
-To compile the `C++` code you have to specify the path to external library `liblpsolve55.so/dll/dylib` (see [here](docs/getting_started/install.md) more detail), by running, in folder test:
+To compile the `C++` code, run the following from the repository root. The LP solver (HiGHS) is downloaded automatically by CMake, so no external library path is needed:
 
     mkdir -p test/build && cd test/build
-    cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ ..
-    # e.g. on linux: cmake -DLP_SOLVE=/usr/lib/lp_solve/liblpsolve55.so ..
+    cmake ..
     make
 
 You can check [here](/docs/getting_started/install.md) to see more installation guide.
