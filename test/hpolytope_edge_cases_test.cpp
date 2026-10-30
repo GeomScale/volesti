@@ -5,7 +5,7 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // Edge cases of H-polytope preprocessing and of the sequence-of-balls volume
-// algorithm. Built twice: with lp_solve and with DISABLE_LPSOLVE, since the
+// algorithm. Built twice: with HiGHS and with DISABLE_HIGHS, since the
 // inner-ball failure path differs between the two.
 
 #include "doctest.h"
@@ -76,7 +76,7 @@ void call_test_inner_ball_failure()
     auto ball = P.ComputeInnerBall();
     CHECK(ball.second < 0);
     CHECK(ball.first.dimension() == 2);
-    // The failure is cached, as on the lp_solve path
+    // The failure is cached, as on the HiGHS path
     CHECK(P.ComputeInnerBall().second < 0);
     // Flat polytope (x = 1): no inscribed ball of positive radius
     b << 1, 1, -1, 1;

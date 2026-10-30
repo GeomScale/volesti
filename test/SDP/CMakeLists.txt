@@ -122,7 +122,6 @@ include_directories(BEFORE ${Boost_INCLUDE_DIRS})
 include_directories(BEFORE
     ${PROJECT_TOP}/external
     ${PROJECT_TOP}/external/minimum_ellipsoid
-    ${PROJECT_TOP}/external/LPsolve_src/run_headers
     ${PROJECT_TOP}/external/boost
     ${PROJECT_TOP}/include
     ${PROJECT_TOP}/include/cartesian_geom

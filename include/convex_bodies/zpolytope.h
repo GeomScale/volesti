@@ -15,9 +15,10 @@
 #include <limits>
 
 #include <iostream>
+#include <vector>
 #include <Eigen/Eigen>
-#include "lp_oracles/vpolyoracles.h"
-#include "lp_oracles/zpolyoracles.h"
+#include "lp_oracles/vpolyoracles.hpp"
+#include "lp_oracles/zpolyoracles.hpp"
 
 /// This class describes a zonotope i.e. the Minkowski sum of a set of line segments
 /// \tparam Point Point type
@@ -38,11 +39,11 @@ private:
     NT                   maxNT = std::numeric_limits<NT>::max();
     NT                   minNT = std::numeric_limits<NT>::lowest();
 
-    REAL *conv_comb, *row_mem, *row;
-    int                  *colno, *colno_mem;
-    MT                   sigma;
-    MT                   Q0;
+    // Weights of the last line intersection.
+    mutable std::vector<double> conv_comb;
 
+    MT  sigma;
+    MT Q0;
 
 public:
 
@@ -50,11 +51,7 @@ public:
 
     Zonotope(const unsigned int &dim, const MT &_V, const VT &_b):
             _d{dim}, V{_V}, b{_b},
-            conv_comb{new REAL[V.rows() + 1]},
-            row_mem{new REAL[V.rows()]},
-            row{new REAL[V.rows() + 1]},
-            colno{new int[V.rows() + 1]},
-            colno_mem{new int[V.rows()]}
+            conv_comb(V.rows())
     {
         compute_eigenvectors(V.transpose());
     }
@@ -65,9 +62,9 @@ public:
         V = _V;
         b = _b;
 
-        conv_comb = new REAL[V.rows()+1];
-        row_mem = new REAL[V.rows()];
-        row = new REAL[V.rows() + 1];
+        conv_comb = new NT[V.rows()+1];
+        row_mem = new NT[V.rows()];
+        row = new NT[V.rows() + 1];
         colno = new int[V.rows() + 1];
         colno_mem = new int[V.rows()];
 
@@ -94,94 +91,11 @@ public:
             }
         }
 
-        conv_comb = new REAL[Pin.size()];
-        row_mem = new REAL[V.rows()];
-        row = new REAL[V.rows() + 1];
-        colno = new int[V.rows() + 1];
-        colno_mem = new int[V.rows()];
+        conv_comb.resize(V.rows());
 
         compute_eigenvectors(V.transpose());
     }
 
-    template <typename T>
-    void copy_array(T* source, T* result, size_t count)
-    {
-        T* tarray;
-        tarray = new T[count];
-        std::copy_n(source, count, tarray);
-        delete [] result;
-        result = tarray;
-    }
-
-    Zonotope& operator=(const Zonotope& other)
-    {
-        if (this != &other) { // protect against invalid self-assignment
-            _d = other._d;
-            V = other.V;
-            b = other.b;
-            T = other.T;
-
-            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
-            copy_array(other.row_mem, row_mem, V.rows());
-            copy_array(other.row, row, V.rows() + 1);
-            copy_array(other.colno, colno, V.rows() + 1);
-            copy_array(other.colno_mem, colno_mem, V.rows());
-        }
-        return *this;
-    }
-
-    Zonotope& operator=(Zonotope&& other)
-    {
-        if (this != &other) { // protect against invalid self-assignment
-            _d = other._d;
-            V = other.V;
-            b = other.b;
-            T = other.T;
-
-            conv_comb = other.conv_comb;  other.conv_comb = nullptr;
-            row_mem = other.row_mem;  other.row_mem = nullptr;
-            row = other.row; other.row = nullptr;
-            colno = other.colno; colno = nullptr;
-            colno_mem = other.colno_mem; colno_mem = nullptr;
-        }
-        return *this;
-    }
-
-
-    Zonotope(const Zonotope& other) :
-            _d{other._d}, V{other.V}, b{other.b}, T{other.T},
-            conv_comb{new REAL[V.rows() + 1]},
-            row_mem{new REAL[V.rows()]},
-            row{new REAL[V.rows() + 1]},
-            colno{new int[V.rows() + 1]},
-            colno_mem{new int[V.rows()]}
-    {
-        std::copy_n(other.conv_comb, V.rows() + 1, conv_comb);
-        std::copy_n(other.row_mem, V.rows(), row_mem);
-        std::copy_n(other.row, V.rows() + 1, row);
-        std::copy_n(other.colno, V.rows() + 1, colno);
-        std::copy_n(other.colno_mem, V.rows(), colno_mem);
-    }
-
-    Zonotope(Zonotope&& other) :
-            _d{other._d}, V{other.V}, b{other.b}, T{other.T},
-            conv_comb{nullptr}, row_mem{nullptr}, row{nullptr},
-            colno{nullptr}, colno_mem{nullptr}
-    {
-        conv_comb = other.conv_comb;  other.conv_comb = nullptr;
-        row_mem = other.row_mem;  other.row_mem = nullptr;
-        row = other.row; other.row = nullptr;
-        colno = other.colno; colno = nullptr;
-        colno_mem = other.colno_mem; colno_mem = nullptr;
-    }
-
-    ~Zonotope() {
-        delete [] conv_comb;
-        delete [] colno;
-        delete [] colno_mem;
-        delete [] row;
-        delete [] row_mem;
-    }
 
     void set_interior_point(Point const& r)
     {
@@ -358,7 +272,7 @@ public:
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point const& p, NT tol=NT(0)) const
     {
-        if(memLP_Zonotope(V, p, row_mem, colno_mem))
+        if(memLP_Zonotope(V, p).value)
         {
             return -1;
         }
@@ -377,8 +291,8 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb,
-                                                row, colno, false, true);
+            auto res = intersect_line_Vpoly<NT>(V, center, v, conv_comb.data(), false, true);
+            min_plus = res.solved ? res.value : NT(-1);
             if (min_plus < radius) radius = min_plus;
         }
 
@@ -391,7 +305,8 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
     {
-        return intersect_line_zono(V, r, v, conv_comb, colno);
+        auto res = intersect_line_zono<NT>(V, r, v);
+        return res.value;
     }
 
 
@@ -402,7 +317,8 @@ public:
                                     VT const& Ar,
                                     VT const& Av) const
     {
-        return intersect_line_zono(V, r, v, conv_comb, colno);
+        auto res = intersect_line_zono<NT>(V, r, v);
+        return res.value;
     }
 
     // compute intersection point of ray starting from r and pointing to v
@@ -413,7 +329,8 @@ public:
                                     VT const& Av,
                                     NT const& lambda_prev) const
     {
-        return intersect_line_zono(V, r, v, conv_comb, colno);
+        auto res = intersect_line_zono<NT>(V, r, v);
+        return res.value;
     }
 
     std::pair<NT, int> line_positive_intersect(Point const& r,
@@ -421,9 +338,8 @@ public:
                                                VT const& Ar,
                                                VT const& Av) const
     {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb,
-                                                        row, colno,
-                                                        false, true), 1);
+        auto res = intersect_line_Vpoly<NT>(V, r, v, conv_comb.data(), false, true);
+        return {res.solved ? res.value : NT(-1), 1};
     }
 
 
@@ -482,8 +398,8 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        return intersect_line_zono(V, r, v, conv_comb, colno);
-
+        auto res = intersect_line_zono<NT>(V, r, v);
+        return res.value;
     }
 
 
@@ -574,13 +490,13 @@ public:
 
         int count = 0;
         MT Fmat(_d-1,_d);
-        const NT e = 0.0000000001;
+        const double e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j)
         {
-            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) )
-                                           > e*std::abs(*(conv_comb + j))) &&
-                ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) )
-                                           > e*std::abs(*(conv_comb + j))))
+            if (((1.0 - conv_comb[j] ) > e || (1.0 - conv_comb[j] )
+                                           > e*std::abs(conv_comb[j])) &&
+                ((1.0 + conv_comb[j] ) > e || (1.0 + (conv_comb[j]) )
+                                           > e*std::abs(conv_comb[j])))
             {
                 Fmat.row(count) = V.row(j);
                 count++;
@@ -607,10 +523,10 @@ public:
 
         int count = 0;
         MT Fmat(_d-1,_d);
-        const NT e = 0.0000000001;
+        const double e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
-            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) &&
-                ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
+            if (((1.0 - conv_comb[j]) > e || (1.0 - conv_comb[j]) > e*std::abs(conv_comb[j])) &&
+                ((1.0 + conv_comb[j]) > e || (1.0 + conv_comb[j]) > e*std::abs(conv_comb[j]))) {
                 Fmat.row(count) = V.row(j);
                 count++;
             }

@@ -59,8 +59,8 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
@@ -110,7 +110,7 @@ add_executable(full_dimensional_example full_dimensional_example.cpp)
 
 # Link libraries (including SuiteSparse for the full_dimensional_polytope function)
 target_link_libraries(full_dimensional_example
-    lp_solve
+    highs::highs
     ${SUITESPARSE_LIBRARIES}
     ${LAPACK_LIBRARIES}
     ${BLAS_LIBRARIES}

@@ -14,7 +14,7 @@
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "convex_bodies/correlation_matrices/correlation_spectrahedron.hpp"
 #include "convex_bodies/correlation_matrices/correlation_spectrahedron_MT.hpp"
-#ifndef DISABLE_LPSOLVE
+#ifndef DISABLE_HIGHS
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
     #include "convex_bodies/zpolytope.h"
@@ -75,7 +75,7 @@ struct compute_diameter<CorrelationSpectrahedron_MT<Point>>
     }
 };
 
-#ifndef DISABLE_LPSOLVE
+#ifndef DISABLE_HIGHS
 template <typename Point>
 struct compute_diameter<VPolytope<Point>>
 {
