@@ -59,11 +59,8 @@ HighsLp line_intersection_lp(MT const& V, Point const& p, Point const& v, bool z
 
     for (unsigned j = 0; j < m; ++j) {
         for (unsigned i = 0; i < d; ++i) {
-            double const a = (double)V(j, i);
-            if (std::abs(a) >= LPOracleZeroTol) {
-                A.index_.push_back((HighsInt)i);
-                A.value_.push_back(a);
-            }
+            A.index_.push_back((HighsInt)i);
+            A.value_.push_back((double)V(j,i));
         }
         if (!zonotope) {
             A.index_.push_back((HighsInt)d);
@@ -73,11 +70,8 @@ HighsLp line_intersection_lp(MT const& V, Point const& p, Point const& v, bool z
     }
 
     for (unsigned i = 0; i < d; ++i) {
-        double const a = (double)v[i];
-        if (std::abs(a) >= LPOracleZeroTol) {
-            A.index_.push_back((HighsInt)i);
-            A.value_.push_back(a);
-        }
+        A.index_.push_back((HighsInt)i);
+        A.value_.push_back((double)v[i]);
     }
     A.start_.push_back((HighsInt)A.index_.size());
 

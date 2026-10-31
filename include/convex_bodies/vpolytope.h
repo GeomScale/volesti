@@ -301,6 +301,12 @@ public:
             v.set_to_origin();
             v.set_coord(i, 1.0);
             auto res = intersect_double_line_Vpoly<NT>(V, center, v);
+
+            if (!res.solved) {
+                _inner_ball = std::pair<Point, NT>(Point(_d), NT(-1));
+                return _inner_ball;
+            }
+
             min_plus = std::min(res.value.first, -1.0*res.value.second);
             if (min_plus < radius) radius = min_plus;
         }

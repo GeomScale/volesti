@@ -465,6 +465,7 @@ add_executable(test_zpolyoracles lp_oracles/test_zpolyoracles.cpp $<TARGET_OBJEC
 target_include_directories(test_zpolyoracles PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_z_membership COMMAND test_zpolyoracles -tc=test_membership)
 add_test(NAME test_z_line_intersection COMMAND test_zpolyoracles -tc=test_line_intersection)
+add_test(NAME test_z_float_zonotope COMMAND test_zpolyoracles -tc=test_float_zonotope)
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 

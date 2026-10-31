@@ -56,27 +56,6 @@ public:
         compute_eigenvectors(V.transpose());
     }
 
-    /*Zonotope(unsigned int const dim, MT const& _V, VT const& _b)
-    {
-        _d = dim;
-        V = _V;
-        b = _b;
-
-        conv_comb = new NT[V.rows()+1];
-        row_mem = new NT[V.rows()];
-        row = new NT[V.rows() + 1];
-        colno = new int[V.rows() + 1];
-        colno_mem = new int[V.rows()];
-
-        //conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        //colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        //row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-        //colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
-        //row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
-
-        compute_eigenvectors(V.transpose());
-    }*/
-
     Zonotope(std::vector<std::vector<NT> > const& Pin)
     {
         _d = Pin[0][1] - 1;
