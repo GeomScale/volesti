@@ -405,9 +405,9 @@ void crhmc_sampling(PointList &randPoints,
                   NT,
                   NegativeGradientFunctor
           > walk_params;
-  Point p = Point(problem.center);
+  Point p = Point(problem.center); 
   problem.options.simdLen=simdLen;
-  walk_params params(input.df, p.dimension(), problem.options);
+  walk_params params(input.df, p.dimension(), problem.options); 
 
   if (input.df.params.eta > 0) {
     params.eta = input.df.params.eta;
@@ -415,15 +415,15 @@ void crhmc_sampling(PointList &randPoints,
 
   PushBackWalkPolicy push_back_policy;
 
-  walk crhmc_walk = walk(problem, p, input.df, input.f, params);
+  walk crhmc_walk = walk(problem, p, input.df, input.f, params); 
 
   typedef CrhmcRandomPointGenerator<walk> RandomPointGenerator;
 
-  RandomPointGenerator::apply(problem, p, nburns, walk_len, randPoints,
+  RandomPointGenerator::apply(problem, p, nburns, walk_len, randPoints, 
                               push_back_policy, rng, F, f, params, crhmc_walk);
   //crhmc_walk.disable_adaptive();
   randPoints.clear();
-  RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints,
+  RandomPointGenerator::apply(problem, p, rnum, walk_len, randPoints, 
                               push_back_policy, rng, F, f, params, crhmc_walk, simdLen, raw_output);
 }
 #include "ode_solvers/ode_solvers.hpp"
@@ -437,7 +437,7 @@ template <
         typename CRHMCWalk,
         int simdLen=1
 >
-void execute_crhmc(Polytope &P, RNGType &rng, PointList &randPoints,
+void execute_crhmc(Polytope &P, RNGType &rng, PointList &randPoints, 
                   unsigned int const& walkL, unsigned int const& numpoints,
                   unsigned int const& nburns, NegativeGradientFunctor *F=NULL,
                   NegativeLogprobFunctor *f=NULL, HessianFunctor *h=NULL, bool raw_output= false){
@@ -471,7 +471,7 @@ crhmc_sampling <
   NegativeGradientFunctor,
   simdLen
   >
->(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, *h, simdLen, raw_output);
+>(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, *h, simdLen, raw_output); 
 }else{
   typedef  crhmc_input
         <
@@ -500,7 +500,7 @@ crhmc_sampling <
   NegativeGradientFunctor,
   simdLen
   >
->(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, zerof, simdLen, raw_output);
+>(randPoints, P, rng, walkL, numpoints, nburns, *F, *f, zerof, simdLen, raw_output); 
 }
 }
 template
