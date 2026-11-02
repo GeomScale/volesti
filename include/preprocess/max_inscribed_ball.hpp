@@ -35,12 +35,8 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
               VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
 {
     int m = A.rows(), n = A.cols();
-    NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(),
-       *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
-    for (int i = 0; i < m; ++i) {
-        *vec_iter1 = ((*vec_iter4) / (*vec_iter2) - (*vec_iter5)) / (*vec_iter3);
-        vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
-    }
+    // tmp = (r1 / y - r4) / s , elementwise
+    tmp.array() = (r1.array() / y.array() - r4.array()) / s.array();
 
     rhs.block(0,0,n,1).noalias() = r2 + A_trans * tmp;
     rhs(n) = r3 + tmp.sum();
@@ -50,13 +46,8 @@ void calcstep(MT const& A, MT const& A_trans, MT const& B,
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
     ds.noalias() = r1 - A*dx - VT::Ones(m) * dt;
-    vec_iter1 = dy.data(); vec_iter2 = r4.data(); vec_iter3 = y.data();
-    vec_iter4 = ds.data(); vec_iter5 = s.data();
-
-    for (int i = 0; i < m; ++i) {
-        *vec_iter1 = ((*vec_iter2) - (*vec_iter3) * (*vec_iter4)) / (*vec_iter5);
-        vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
-    }
+    // dy = (r4 - y * ds) / s , elementwise
+    dy.array() = (r4.array() - y.array() * ds.array()) / s.array();
 }
 
 // Using MT as to deal with both dense and sparse matrices
@@ -86,7 +77,6 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
        ratio, sigma, mu, t_prev = 1000.0 * t + 100.0;
     
     NT const tau0 = 0.995, power_num = 5.0 * std::pow(10.0, 15.0);
-    NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
 
     MT B, AtD(n, m), A_trans = A.transpose();
 
@@ -131,15 +121,7 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         }
 
         // Shur complement matrix
-        vec_iter1 = d.data();
-        vec_iter3 = s.data();
-        vec_iter2 = y.data();
-        for (int j = 0; j < m; ++j) {
-            *vec_iter1 = std::min(power_num, (*vec_iter2) / (*vec_iter3));
-            vec_iter1++;
-            vec_iter3++;
-            vec_iter2++;
-        }
+        d = y.cwiseQuotient(s).cwiseMin(power_num);
         update_A_Diag<NT>(AtD, A_trans, d.asDiagonal()); // AtD = A_trans*d.asDiagonal()
 
         AtDe.noalias() = AtD * e_m;
@@ -148,21 +130,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         // predictor step & length
         calcstep(A, A_trans, B, llt, s, y, r1, r2, r3, r4, dx, ds, dt, dy, tmp, rhs);
 
-        alphap = -1.0;
-        alphad = -1.0;
-        vec_iter1 = ds.data();
-        vec_iter2 = s.data();
-        vec_iter3 = dy.data();
-        vec_iter4 = y.data();
-
-        for (int j = 0; j < m; ++j) {
-            alphap = std::min(alphap, (*vec_iter1) / (*vec_iter2));
-            alphad = std::min(alphad, (*vec_iter3) / (*vec_iter4));
-            vec_iter1++;
-            vec_iter2++;
-            vec_iter3++;
-            vec_iter4++;
-        }
+        alphap = std::min(NT(-1.0), ds.cwiseQuotient(s).minCoeff());
+        alphad = std::min(NT(-1.0), dy.cwiseQuotient(y).minCoeff());
         alphap = -1.0 / alphap;
         alphad = -1.0 / alphad;
 
@@ -180,21 +149,8 @@ std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b,
         dt += dtc;
         dy += dyc;
 
-        alphap = -0.5;
-        alphad = -0.5;
-        vec_iter1 = ds.data();
-        vec_iter2 = s.data();
-        vec_iter3 = dy.data();
-        vec_iter4 = y.data();
-
-        for (int j = 0; j < m; ++j) {
-            alphap = std::min(alphap, (*vec_iter1) / (*vec_iter2));
-            alphad = std::min(alphad, (*vec_iter3) / (*vec_iter4));
-            vec_iter1++;
-            vec_iter2++;
-            vec_iter3++;
-            vec_iter4++;
-        }
+        alphap = std::min(NT(-0.5), ds.cwiseQuotient(s).minCoeff());
+        alphad = std::min(NT(-0.5), dy.cwiseQuotient(y).minCoeff());
         alphap = -1.0 / alphap;
         alphad = -1.0 / alphad;
 
