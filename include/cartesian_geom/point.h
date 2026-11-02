@@ -173,7 +173,7 @@ public:
         coeffs /= k;
     }
 
-    bool operator== (point& p) const
+    bool operator== (const point& p) const
     {
         int i=0;
         const Coeff & coeffs = p.getCoefficients();
@@ -190,7 +190,7 @@ public:
         return true;
     }
 
-    FT distance(point const & p) {
+    FT distance(point const & p) const {
         return (this->coeffs - p.coeffs).norm();
     }
 
