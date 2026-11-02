@@ -26,8 +26,14 @@ NT chord_random_point_generator_exp_coord(const NT &l,
                                           RandomNumberGenerator& rng)
 {
     NT r, r_val, fn, dis;
+    // the chord lies on one side of the mode; if it is far from the mode, the
+    // draws from the 1-dimensional gaussian below would practically never hit it
+    if (a_i > EXP_CHORD_TOLERENCE && (l >= 0 || u <= 0))
+    {
+        dis = chord_random_point_generator_exp_tail(l, u, a_i, rng);
+    }
     // pick from 1-dimensional gaussian if enough weight is inside polytope P
-    if (a_i > EXP_CHORD_TOLERENCE && u - l >= 2.0 / std::sqrt(2.0 * a_i))
+    else if (a_i > EXP_CHORD_TOLERENCE && u - l >= 2.0 / std::sqrt(2.0 * a_i))
     {
         while (true) {
             r = rng.sample_ndist();//rdist(rng2);

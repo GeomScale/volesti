@@ -52,4 +52,54 @@ NT get_max_coord(NT const& l, NT const& u, NT const& a_i)
     return std::max(std::exp(-a_i * l * l), std::exp(-a_i * u * u));
 }
 
+
+// Pick a point from the distribution exp(-a_i x^2) truncated to [l, u], where
+// the interval lies on one side of the mode, i.e. l >= 0 or u <= 0.
+// Rejection sampling from a translated exponential proposal for long intervals,
+// and from a bounding rectangle for short ones, keeps the acceptance probability
+// above a constant however far the interval is from the mode, see
+// C. P. Robert, "Simulation of truncated normal variables", Statistics and
+// Computing 5, 1995.
+template <typename NT, typename RandomNumberGenerator>
+NT chord_random_point_generator_exp_tail(NT const& l,
+                                         NT const& u,
+                                         NT const& a_i,
+                                         RandomNumberGenerator& rng)
+{
+    // reduce to the standard gaussian truncated to [lo, up] with 0 <= lo
+    const NT sd = 1.0 / std::sqrt(2.0 * a_i);
+    const NT sign = (l >= 0) ? NT(1) : NT(-1);
+    const NT lo = ((l >= 0) ? l : -u) / sd;
+    const NT up = ((l >= 0) ? u : -l) / sd;
+
+    // the optimal rate of the exponential proposal
+    const NT alpha = (lo + std::hypot(lo, NT(2))) / 2.0;
+    NT x;
+    if ((up - lo) * alpha >= 1.0)
+    {
+        while (true)
+        {
+            x = lo - std::log(1.0 - rng.sample_urdist()) / alpha;
+            if (x <= up &&
+                rng.sample_urdist() <= std::exp(-0.5 * (x - alpha) * (x - alpha)))
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        // the density is maximized at lo
+        while (true)
+        {
+            x = lo + (up - lo) * rng.sample_urdist();
+            if (rng.sample_urdist() <= std::exp(-0.5 * (x - lo) * (x + lo)))
+            {
+                break;
+            }
+        }
+    }
+    return sign * sd * x;
+}
+
 #endif // GAUSSIAN_HELPERS_HPP
