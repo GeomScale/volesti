@@ -14,6 +14,7 @@
 
 #include <limits>
 #include <iostream>
+#include <vector>
 #include <Eigen/Eigen>
 
 #include "lp_oracles/vpolyoracles.h"
@@ -37,21 +38,24 @@ private:
     VT                   b;  // vector b that contains first column of ine file
     std::pair<Point, NT> _inner_ball;
 
-    // TODO: Why don't we use std::vector<REAL>  and std::vector<int> for these pointers?
-    REAL *conv_comb, *conv_comb2, *conv_mem, *row;
-    int *colno, *colno_mem;
+    // Scratch buffers handed to the lp_solve based oracles. They are mutable
+    // because the const oracles (e.g. line_intersect) write into them. Being
+    // std::vectors, the implicitly generated copy/move operations and the
+    // destructor are correct (rule of zero).
+    mutable std::vector<REAL> conv_comb, conv_comb2, conv_mem, row;
+    mutable std::vector<int> colno, colno_mem;
 
 public:
     VPolytope() {}
 
     VPolytope(const unsigned int &dim, const MT &_V, const VT &_b):
             _d{dim}, V{_V}, b{_b},
-            conv_comb{new REAL[V.rows() + 1]},
-            conv_comb2{new REAL[V.rows() + 1]},
-            conv_mem{new REAL[V.rows()]},
-            row{new REAL[V.rows() + 1]},
-            colno{new int[V.rows() + 1]},
-            colno_mem{new int[V.rows()]}
+            conv_comb(V.rows() + 1),
+            conv_comb2(V.rows() + 1),
+            conv_mem(V.rows()),
+            row(V.rows() + 1),
+            colno(V.rows() + 1),
+            colno_mem(V.rows())
     {
     }
 
@@ -69,96 +73,12 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = new REAL[Pin.size()];
-        conv_comb2 = new REAL[Pin.size()];
-        conv_mem = new REAL[V.rows()];
-        row = new REAL[V.rows() + 1];
-        colno = new int[V.rows() + 1];
-        colno_mem = new int[V.rows()];
-    }
-
-    template <typename T>
-    void copy_array(T* source, T* result, size_t count)
-    {
-        T* tarray;
-        tarray = new T[count];
-        std::copy_n(source, count, tarray);
-        delete [] result;
-        result = tarray;
-    }
-
-    VPolytope& operator=(const VPolytope& other)
-    {
-        if (this != &other) { // protect against invalid self-assignment
-            _d = other._d;
-            V = other.V;
-            b = other.b;
-
-            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
-            copy_array(other.conv_comb2, conv_comb2, V.rows() + 1);
-            copy_array(other.conv_mem, conv_mem, V.rows());
-            copy_array(other.row, row, V.rows() + 1);
-            copy_array(other.colno, colno, V.rows() + 1);
-            copy_array(other.colno_mem, colno_mem, V.rows());
-        }
-        return *this;
-    }
-
-    VPolytope& operator=(VPolytope&& other)
-    {
-        if (this != &other) { // protect against invalid self-assignment
-            _d = other._d;
-            V = other.V;
-            b = other.b;
-
-            conv_comb = other.conv_comb;  other.conv_comb = nullptr;
-            conv_comb2 = other.conv_comb2;  other.conv_comb2 = nullptr;
-            conv_mem = other.conv_mem;  other.conv_mem = nullptr;
-            row = other.row; other.row = nullptr;
-            colno = other.colno; colno = nullptr;
-            colno_mem = other.colno_mem; colno_mem = nullptr;
-        }
-        return *this;
-    }
-
-
-    VPolytope(const VPolytope& other) :
-            _d{other._d}, V{other.V}, b{other.b},
-            conv_comb{new REAL[V.rows() + 1]},
-            conv_comb2{new REAL[V.rows() + 1]},
-            conv_mem{new REAL[V.rows()]},
-            row{new REAL[V.rows() + 1]},
-            colno{new int[V.rows() + 1]},
-            colno_mem{new int[V.rows()]}
-    {
-        std::copy_n(other.conv_comb, V.rows() + 1, conv_comb);
-        std::copy_n(other.conv_comb2, V.rows() + 1, conv_comb2);
-        std::copy_n(other.conv_mem, V.rows(), conv_mem);
-        std::copy_n(other.row, V.rows() + 1, row);
-        std::copy_n(other.colno, V.rows() + 1, colno);
-        std::copy_n(other.colno_mem, V.rows(), colno_mem);
-    }
-
-    VPolytope(VPolytope&& other) :
-            _d{other._d}, V{other.V}, b{other.b},
-            conv_comb{nullptr}, conv_comb2{nullptr}, conv_mem{nullptr}, row{nullptr},
-            colno{nullptr}, colno_mem{nullptr}
-    {
-        conv_comb = other.conv_comb;  other.conv_comb = nullptr;
-        conv_comb2 = other.conv_comb2;  other.conv_comb2 = nullptr;
-        conv_mem = other.conv_mem;  other.conv_mem = nullptr;
-        row = other.row; other.row = nullptr;
-        colno = other.colno; colno = nullptr;
-        colno_mem = other.colno_mem; colno_mem = nullptr;
-    }
-
-    ~VPolytope() {
-        delete [] conv_comb;
-        delete [] conv_comb2;
-        delete [] colno;
-        delete [] colno_mem;
-        delete [] row;
-        delete [] conv_mem;
+        conv_comb.resize(Pin.size());
+        conv_comb2.resize(Pin.size());
+        conv_mem.resize(V.rows());
+        row.resize(V.rows() + 1);
+        colno.resize(V.rows() + 1);
+        colno_mem.resize(V.rows());
     }
 
     std::pair<Point,NT> InnerBall() const
@@ -395,7 +315,7 @@ public:
         for (unsigned int i = 0; i < _d; ++i) {
             v.set_to_origin();
             v.set_coord(i, 1.0);
-            res = intersect_double_line_Vpoly<NT>(V, center, v, row, colno);
+            res = intersect_double_line_Vpoly<NT>(V, center, v, row.data(), colno.data());
             min_plus = std::min(res.first, -1.0*res.second);
             if (min_plus < radius) radius = min_plus;
         }
@@ -408,7 +328,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(const Point &p, NT tol=NT(0)) const {
-        if (memLP_Vpoly(V, p, conv_mem, colno_mem)){
+        if (memLP_Vpoly(V, p, conv_mem.data(), colno_mem.data())){
             return -1;
         }
         return 0;
@@ -419,7 +339,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v) const {
 
-        return intersect_double_line_Vpoly<NT>(V, r, v, row, colno);
+        return intersect_double_line_Vpoly<NT>(V, r, v, row.data(), colno.data());
     }
 
 
@@ -427,7 +347,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
             const VT &Av) const {
-        return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
+        return intersect_double_line_Vpoly<NT>(V, r, v, row.data(), colno.data());
     }
 
     // compute intersection point of ray starting from r and pointing to v
@@ -435,12 +355,12 @@ public:
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
                                     const VT &Av, const NT &lambda_prev) const {
 
-        return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
+        return intersect_double_line_Vpoly<NT>(V, r, v, row.data(), colno.data());
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v) const {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb.data(), row.data(), colno.data(), false, false), 1);
     }
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
@@ -497,7 +417,7 @@ public:
                                           const VT &lamdas) const {
         Point v(_d);
         v.set_coord(rand_coord, 1.0);
-        return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
+        return intersect_double_line_Vpoly<NT>(V, r, v, row.data(), colno.data());
     }
 
 
@@ -595,7 +515,7 @@ public:
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
-            if (*(conv_comb + j) > 0.0) {
+            if (conv_comb[j] > 0.0) {
                 Fmat2.row(count) = V.row(j);
                 count++;
             } else {
@@ -618,7 +538,7 @@ public:
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
-            if (*(conv_comb + j) > 0.0) {
+            if (conv_comb[j] > 0.0) {
                 Fmat2.row(count) = V.row(j);
                 count++;
             } else {

@@ -258,6 +258,9 @@ add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS
 add_test(NAME boundary_oracles_test_h_poly_oracles
   COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
+add_executable (vpolytope_test vpolytope_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME vpolytope_copy_move COMMAND vpolytope_test)
+
 add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
 add_test(NAME volume_sob_hpolytope_cross COMMAND volume_sob_hpolytope -tc=cross)
@@ -460,6 +463,7 @@ set_target_properties(crhmc_sampling_test
 
 TARGET_LINK_LIBRARIES(new_volume_example lp_solve ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(new_volume_example lp_solve coverage_config)
+TARGET_LINK_LIBRARIES(vpolytope_test lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_sob_hpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_sob_vpolytope lp_solve coverage_config)
 TARGET_LINK_LIBRARIES(volume_cg_hpolytope lp_solve coverage_config)
