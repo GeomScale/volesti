@@ -66,19 +66,19 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
 
-# Find lpsolve library
-set(LP_SOLVE lp_solve)  # use lp_solve CMake target from GetLPSolve()
+# Find HiGHS library
+set(HIGHS highs::highs)  # use HiGHS CMake target from GetHighs()
 
-if (NOT LP_SOLVE)
-  message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
+if (NOT HIGHS)
+  message(FATAL_ERROR "This program requires the HiGHS library, and will not be compiled.")
 else ()
-  message(STATUS "Library lp_solve found: ${LP_SOLVE}")
+  message(STATUS "Library HiGHS found: ${HIGHS}")
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
@@ -100,6 +100,6 @@ else ()
 
 
   add_executable (billiardshakeandbake billiardshakeandbake.cpp)
-  TARGET_LINK_LIBRARIES(billiardshakeandbake ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(billiardshakeandbake ${HIGHS})
 
 endif()
