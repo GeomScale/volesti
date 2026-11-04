@@ -41,6 +41,9 @@ private:
     // Weights of the last line intersection.
     mutable std::vector<double> conv_comb;
 
+    // HiGHS model of the line intersection LP, reused across oracle calls.
+    mutable LineIntersectionSolver li_solver;
+
 public:
     VPolytope() {}
 
@@ -134,6 +137,7 @@ public:
     // change the matrix V
     void set_mat(const MT &V2) {
         V = V2;
+        li_solver.reset();
     }
 
     // change the vector b
@@ -300,7 +304,7 @@ public:
         for (unsigned int i = 0; i < _d; ++i) {
             v.set_to_origin();
             v.set_coord(i, 1.0);
-            auto res = intersect_double_line_Vpoly<NT>(V, center, v);
+            auto res = intersect_double_line_Vpoly<NT>(li_solver, V, center, v);
 
             if (!res.solved) {
                 _inner_ball = std::pair<Point, NT>(Point(_d), NT(-1));
@@ -330,7 +334,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v) const {
-        auto res = intersect_double_line_Vpoly<NT>(V, r, v);
+        auto res = intersect_double_line_Vpoly<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -339,7 +343,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
             const VT &Av) const {
-        auto res = intersect_double_line_Vpoly<NT>(V, r, v);
+        auto res = intersect_double_line_Vpoly<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -347,13 +351,13 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
                                     const VT &Av, const NT &lambda_prev) const {
-        auto res = intersect_double_line_Vpoly<NT>(V, r, v);
+        auto res = intersect_double_line_Vpoly<NT>(li_solver, V, r, v);
         return res.value;
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v) const {
-        auto res = intersect_line_Vpoly<NT>(V, r, v, conv_comb.data(), false, false);
+        auto res = intersect_line_Vpoly<NT>(li_solver, V, r, v, conv_comb.data(), false, false);
         return {res.solved ? res.value : NT(-1), 1};
     }
 
@@ -411,7 +415,7 @@ public:
                                           const VT &lamdas) const {
         Point v(_d);
         v.set_coord(rand_coord, 1.0);
-        auto res = intersect_double_line_Vpoly<NT>(V, r, v);
+        auto res = intersect_double_line_Vpoly<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -467,6 +471,7 @@ public:
     void shift(const VT &c) {
         MT V2 = V.transpose().colwise() - c;
         V = V2.transpose();
+        li_solver.reset();
     }
 
 
@@ -474,6 +479,7 @@ public:
     void linear_transformIt(const MT &T) {
         MT V2 = T.inverse() * V.transpose();
         V = V2.transpose();
+        li_solver.reset();
     }
 
 

@@ -14,6 +14,7 @@
 #include <vector>
 #include <utility>
 #include <cmath>
+#include <memory>
 #include "Highs.h"
 #include "lp_oracle_options.hpp"
 
@@ -77,6 +78,85 @@ HighsLp line_intersection_lp(MT const& V, Point const& p, Point const& v, bool z
 
     return lp;
 }
+
+// Keeps one HiGHS model of the line intersection LP across calls.
+//
+// Between calls only the line changes, so the first load builds the model and
+// later loads only update p (the row bounds) and v (the column of l). HiGHS then
+// re-solves from the previous basis, which is close to optimal for nearby points.
+// A copy starts empty and builds its own model, reset must be called when V changes.
+class LineIntersectionSolver {
+    private:
+        LPOracleOptions _opts;
+        std::unique_ptr<Highs> _highs;
+
+    public:
+        // Creates an empty solver, the model is built on the first load.
+        // @param opts optional callback to configure highs, see LPOracleOptions
+        explicit LineIntersectionSolver(LPOracleOptions opts = nullptr) : _opts(std::move(opts)) {}
+
+        // Copies only the options, the copy builds its own model on the first load.
+        // @param solver the solver to copy the options from
+        LineIntersectionSolver(LineIntersectionSolver const& solver) : _opts(solver._opts) {}
+
+        // Copies only the options and drops the current model.
+        // @param solver the solver to copy options from
+        // @return this solver
+        LineIntersectionSolver& operator=(LineIntersectionSolver const& solver)
+        {
+            _opts = solver._opts;
+            reset();
+            return *this;
+        }
+
+        // Drops the model, so the next load builds it again from V.
+        void reset() { _highs.reset(); }
+
+        // Loads the line p + l v, building the model on the first call.
+        //
+        // V and zonotope are only read when the model is built, later calls
+        // change the d row bounds to p and the column of l to v.
+        // @tparam MT the matrix type of V
+        // @tparam Point the point type
+        // @param V the vertex matrix, one vertex (or generator) per row
+        // @param p the line origin
+        // @param v the line direction
+        // @param zonotope true if V holds the generators of a zonotope
+        template <typename MT, typename Point>
+        void load(MT const& V, Point const& p, Point const& v, bool zonotope)
+        {
+            if (!_highs) {
+                _highs.reset(new Highs());
+                lp_oracles_configure_highs(*_highs, _opts);
+                _highs->passModel(line_intersection_lp(V, p, v, zonotope));
+                return;
+            }
+            HighsInt const l = (HighsInt)V.rows();
+            for (unsigned i = 0; i < v.dimension(); ++i) {
+                _highs->changeRowBounds((HighsInt)i, (double)p[i], (double)p[i]);
+                _highs->changeCoeff((HighsInt)i, l, (double)v[i]);
+            }
+        }
+
+        // Solves the loaded model from the previous basis.
+        //
+        // A failed solve drops the model, so a bad basis is never reused.
+        // @param maxi if true l is maximized, otherwise minimized
+        // @return the HiGHS model status, kOptimal when the solve succeeded
+        HighsModelStatus run(bool maxi)
+        {
+            _highs->changeObjectiveSense(maxi ? ObjSense::kMaximize : ObjSense::kMinimize);
+            _highs->run();
+
+            HighsModelStatus const status = _highs->getModelStatus();
+            if (status != HighsModelStatus::kOptimal)
+                reset();
+            return status;
+        }
+
+        // @return the model, for reading the solution after a successful run
+        Highs const& highs() const { return *_highs; }
+};
 
 // Decides whether q belongs in the V-Polytope given by the vertex matrix V.
 //
@@ -154,43 +234,85 @@ LPOracleResult<bool> memLP_Vpoly(const MT& V, const Point& q,
 // @tparam NT the number type
 // @tparam MT the matrix type of V
 // @tparam Point the point type
+// @param solver the model of the polytope, reused across calls, see LineIntersectionSolver
 // @param V the vertex matrix, one vertex per row
 // @param p the line origin
 // @param v the line direction
 // @param conv_comb set to the combination of weight of the intersection point
 // @param maxi if true the largest lambda is computed, otherwise the smallest
 // @param zonotope true when V describes a zonotope
+// @return lambda, and whether the LP was solved successfully
+template <typename NT, typename MT, typename Point>
+LPOracleResult<NT> intersect_line_Vpoly(LineIntersectionSolver& solver,
+                                        MT const& V, Point const& p, Point const& v,
+                                        double *conv_comb, bool maxi, bool zonotope)
+{   
+    unsigned const m = V.rows();
+
+    solver.load(V, p, v, zonotope);
+    HighsModelStatus const status = solver.run(maxi);
+
+    if (status != HighsModelStatus::kOptimal) {
+        #ifdef VOLESTI_DEBUG
+            std::cout << "Could not solve the Linear Program for V-polytope line intersection"
+                      << ", highs returned status code "
+                      << (int)status
+                      << std::endl;
+        #endif
+        return {NT(0), false};
+    }
+
+    const auto& sol = solver.highs().getSolution().col_value;
+    for (unsigned i = 0; i < m; ++i) {
+        conv_comb[i] = (std::abs(sol[i]) < LPOracleZeroTol) ? 0.0 : sol[i];
+    }
+
+    return {NT(-solver.highs().getObjectiveValue()), true};
+}
+
+// Computes the intersection of the ray p + l v with a V-polytope or zonotope,
+// with a new model for this call only, see the overload above.
 // @param opts optional callback to configure highs, see LPOracleOptions
 // @return lambda, and whether the LP was solved successfully
 template <typename NT, typename MT, typename Point>
 LPOracleResult<NT> intersect_line_Vpoly(MT const& V, Point const& p, Point const& v,
                                         double *conv_comb, bool maxi, bool zonotope,
                                         LPOracleOptions const& opts = nullptr)
-{   
-    unsigned const m = V.rows();
+{
+    LineIntersectionSolver solver(opts);
+    return intersect_line_Vpoly<NT>(solver, V, p, v, conv_comb, maxi, zonotope);
+}
 
-    Highs highs;
-    lp_oracles_configure_highs(highs, opts);
-    highs.passModel(line_intersection_lp(V, p, v, zonotope));
-    highs.changeObjectiveSense(maxi ? ObjSense::kMaximize : ObjSense::kMinimize);
-    highs.run();
+// Computes both intersections of the line p + l v with a V-polytope or zonotope.
+//
+// The model is built once, it is solved minimizing, then the objective sense is
+// flipped and it is re-solved from the previous basis.
+// @tparam NT the number type
+// @tparam MT the matrix type of V
+// @tparam Point the point type
+// @param solver the model of the polytope, reused across calls, see LineIntersectionSolver
+// @param V the vertex matrix, one vertex per row
+// @param p the line origin
+// @param v the line direction
+// @param zonotope true if V represents a zonotope
+// @return the pair (first, second): first from minimizing l, second from maximizing l,
+// both as -l, and whether both solves succeeded.
+template <typename NT, typename MT, typename Point>
+LPOracleResult<std::pair<NT, NT>> intersect_double_line(LineIntersectionSolver& solver,
+                                                        MT const& V, Point const& p, Point const& v,
+                                                        bool zonotope)
+{
+    solver.load(V, p, v, zonotope);
 
-    if (highs.getModelStatus() != HighsModelStatus::kOptimal) {
-        #ifdef VOLESTI_DEBUG
-            std::cout << "Could not solve the Linear Program for V-polytope line intersection"
-                      << ", highs returned status code "
-                      << (int)highs.getModelStatus()
-                      << std::endl;
-        #endif
-        return {NT(0), false};
-    }
+    if (solver.run(false) != HighsModelStatus::kOptimal)
+        return {{NT(0), NT(0)}, false};
+    NT const first = NT(-solver.highs().getObjectiveValue());
 
-    const auto& sol = highs.getSolution().col_value;
-    for (unsigned i = 0; i < m; ++i) {
-        conv_comb[i] = (std::abs(sol[i]) < LPOracleZeroTol) ? 0.0 : sol[i];
-    }
+    if (solver.run(true) != HighsModelStatus::kOptimal)
+        return {{NT(0), NT(0)}, false};
+    NT const second = NT(-solver.highs().getObjectiveValue());
 
-    return {NT(-highs.getObjectiveValue()), true};
+    return {{first, second}, true};
 }
 
 // Computes both intersections of the line p + l v with a V-polytope or zonotope.
@@ -212,23 +334,8 @@ LPOracleResult<std::pair<NT, NT>> intersect_double_line(MT const& V, Point const
                                                         bool zonotope,
                                                         LPOracleOptions const& opts = nullptr)
 {
-    Highs highs;
-    lp_oracles_configure_highs(highs, opts);
-    highs.passModel(line_intersection_lp(V, p, v, zonotope));
-
-    highs.changeObjectiveSense(ObjSense::kMinimize);
-    highs.run();
-    if (highs.getModelStatus() != HighsModelStatus::kOptimal)
-        return {{NT(0), NT(0)}, false};
-    NT const first = NT(-highs.getObjectiveValue());
-
-    highs.changeObjectiveSense(ObjSense::kMaximize);
-    highs.run();
-    if (highs.getModelStatus() != HighsModelStatus::kOptimal)
-        return {{NT(0), NT(0)}, false};
-    NT const second = NT(-highs.getObjectiveValue());
-
-    return {{first, second}, true};
+    LineIntersectionSolver solver(opts);
+    return intersect_double_line<NT>(solver, V, p, v, zonotope);
 }
 
 // Computes both intersections of the line p + l v with a V-Polytope.
@@ -246,5 +353,22 @@ LPOracleResult<std::pair<NT, NT>> intersect_double_line_Vpoly(MT const& V, Point
                                                               LPOracleOptions const& opts = nullptr)
 {
     return intersect_double_line<NT>(V, p, v, false, opts);
+}
+
+// Computes both intersections of the line p + l v with a V-Polytope.
+//
+// The model is built once and solved twice, see intersect_double_line.
+// @tparam MT the matrix type of V
+// @tparam Point the point type
+// @param solver the model of the polytope, reused across calls, see LineIntersectionSolver
+// @param V the vertex matrix, one vertex per row
+// @param p the line origin
+// @param v the line direction
+// @return the pair (lambda_min, lambda_max), and whether the LP was solved successfully
+template <typename NT, typename MT, typename Point>
+LPOracleResult<std::pair<NT, NT>> intersect_double_line_Vpoly(LineIntersectionSolver& solver,
+                                                              MT const& V, Point const& p, Point const& v)
+{
+    return intersect_double_line<NT>(solver, V, p, v, false);
 }
 #endif

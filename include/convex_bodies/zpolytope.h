@@ -42,6 +42,9 @@ private:
     // Weights of the last line intersection.
     mutable std::vector<double> conv_comb;
 
+    // HiGHS model of the line intersection LP, reused across oracle calls.
+    mutable LineIntersectionSolver li_solver;
+
     MT  sigma;
     MT Q0;
 
@@ -209,6 +212,7 @@ public:
     void set_mat(MT const& V2)
     {
         V = V2;
+        li_solver.reset();
     }
 
     // change the vector b
@@ -270,7 +274,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            auto res = intersect_line_Vpoly<NT>(V, center, v, conv_comb.data(), false, true);
+            auto res = intersect_line_Vpoly<NT>(li_solver, V, center, v, conv_comb.data(), false, true);
             min_plus = res.solved ? res.value : NT(-1);
             if (min_plus < radius) radius = min_plus;
         }
@@ -284,7 +288,7 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
     {
-        auto res = intersect_line_zono<NT>(V, r, v);
+        auto res = intersect_line_zono<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -296,7 +300,7 @@ public:
                                     VT const& Ar,
                                     VT const& Av) const
     {
-        auto res = intersect_line_zono<NT>(V, r, v);
+        auto res = intersect_line_zono<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -308,7 +312,7 @@ public:
                                     VT const& Av,
                                     NT const& lambda_prev) const
     {
-        auto res = intersect_line_zono<NT>(V, r, v);
+        auto res = intersect_line_zono<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -317,7 +321,7 @@ public:
                                                VT const& Ar,
                                                VT const& Av) const
     {
-        auto res = intersect_line_Vpoly<NT>(V, r, v, conv_comb.data(), false, true);
+        auto res = intersect_line_Vpoly<NT>(li_solver, V, r, v, conv_comb.data(), false, true);
         return {res.solved ? res.value : NT(-1), 1};
     }
 
@@ -377,7 +381,7 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        auto res = intersect_line_zono<NT>(V, r, v);
+        auto res = intersect_line_zono<NT>(li_solver, V, r, v);
         return res.value;
     }
 
@@ -451,6 +455,7 @@ public:
     {
         MT V2 = T.inverse() * V.transpose();
         V = V2.transpose();
+        li_solver.reset();
     }
 
     // return false to the rounding function

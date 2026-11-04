@@ -92,4 +92,22 @@ LPOracleResult<std::pair<NT, NT>> intersect_line_zono(MT const& V, Point const& 
 {
     return intersect_double_line<NT>(V, p, v, true, opts);
 }
+
+// Computes the intersection of the ray p + l v with a Z-Polytope.
+//
+// The model is built once and solved twice, see intersect_double_line.
+// @tparam NT the number type
+// @tparam MT the matrix type of V
+// @tparam Point the point type
+// @param solver the model of the zonotope, reused across calls, see LineIntersectionSolver
+// @param V the generator matrix
+// @param p the line origin
+// @param v the line direction
+// @return the pair (lambda_min, lambda_max), and whether the LP was solved successfully
+template <typename NT, typename MT, typename Point>
+LPOracleResult<std::pair<NT, NT>> intersect_line_zono(LineIntersectionSolver& solver,
+                                                      MT const& V, Point const& p, Point const& v)
+{
+    return intersect_double_line<NT>(solver, V, p, v, true);
+}
 #endif
