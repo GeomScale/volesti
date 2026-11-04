@@ -14,6 +14,7 @@
 #include <unsupported/Eigen/SparseExtra>
 #include "PackedCSparse/SparseMatrix.h"
 #include <algorithm>
+#include <cassert>
 #include <vector>
 
 template <typename Func>

@@ -37,6 +37,20 @@ using std::ios_base;
 using std::string;
 using std::setw;
 
+namespace {
+inline double qd_internal_uniform01() {
+  static unsigned long long state = 88172645463393265ull;
+  state ^= (state << 7);
+  state ^= (state >> 9);
+  state ^= (state << 8);
+  return static_cast<double>(state & 0x7fffffffULL) * 4.6566128730773926e-10;
+}
+
+inline int qd_internal_rand_mod(int mod) {
+  return static_cast<int>(qd_internal_uniform01() * mod);
+}
+} // namespace
+
 using namespace qd;
 
 void qd_real::error(const char *msg) {
@@ -2540,7 +2554,7 @@ QD_API qd_real qdrand() {
      7 times. */
 
   for (int i = 0; i < 7; i++, m *= m_const) {
-    d = std::rand() * m;
+    d = qd_internal_uniform01() * m;
     r += d;
   }
 
@@ -2608,16 +2622,16 @@ QD_API qd_real polyroot(const qd_real *c, int n,
 }
 
 qd_real qd_real::debug_rand() {
-  if (std::rand() % 2 == 0)
+  if (qd_internal_rand_mod(2) == 0)
     return qdrand();
 
   int expn = 0;
   qd_real a = 0.0;
   double d;
   for (int i = 0; i < 4; i++) {
-    d = std::ldexp(std::rand() / static_cast<double>(RAND_MAX), -expn);
+    d = std::ldexp(qd_internal_uniform01(), -expn);
     a += d;
-    expn = expn + 54 + std::rand() % 200;
+    expn = expn + 54 + qd_internal_rand_mod(200);
   }
   return a;
 }

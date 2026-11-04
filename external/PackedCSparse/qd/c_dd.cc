@@ -263,7 +263,7 @@ void c_dd_swrite(const double *a, int precision, char *s, int len) {
 }
 
 void c_dd_write(const double *a) {
-  std::cout << dd_real(a).to_string(dd_real::_ndigits) << std::endl;
+  (void)a;
 }
 
 void c_dd_neg(const double *a, double *b) {

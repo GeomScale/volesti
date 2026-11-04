@@ -37,6 +37,20 @@ using std::ios_base;
 using std::string;
 using std::setw;
 
+namespace {
+inline double qd_internal_uniform01() {
+  static unsigned long long state = 88172645463393265ull;
+  state ^= (state << 7);
+  state ^= (state >> 9);
+  state ^= (state << 8);
+  return static_cast<double>(state & 0x7fffffffULL) * 4.6566128730773926e-10;
+}
+
+inline int qd_internal_rand_mod(int mod) {
+  return static_cast<int>(qd_internal_uniform01() * mod);
+}
+} // namespace
+
 /* This routine is called whenever a fatal error occurs. */
 void dd_real::error(const char *msg) { 
   //if (msg) { cerr << "ERROR " << msg << endl; }
@@ -801,7 +815,7 @@ QD_API dd_real ddrand() {
 
   for (int i = 0; i < 4; i++, m *= m_const) {
 //    d = lrand48() * m;
-    d = std::rand() * m;
+    d = qd_internal_uniform01() * m;
     r += d;
   }
 
@@ -1288,16 +1302,16 @@ void dd_real::dump_bits(const string &name, std::ostream &os) const {
 
 dd_real dd_real::debug_rand() { 
 
-  if (std::rand() % 2 == 0)
+  if (qd_internal_rand_mod(2) == 0)
     return ddrand();
 
   int expn = 0;
   dd_real a = 0.0;
   double d;
   for (int i = 0; i < 2; i++) {
-    d = std::ldexp(static_cast<double>(std::rand()) / RAND_MAX, -expn);
+    d = std::ldexp(qd_internal_uniform01(), -expn);
     a += d;
-    expn = expn + 54 + std::rand() % 200;
+    expn = expn + 54 + qd_internal_rand_mod(200);
   }
   return a;
 }
