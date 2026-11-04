@@ -299,6 +299,7 @@ and the same distribution (with the R API) truncated to the set $K = [-1, 2]$.
 <center>
     <img src="https://github.com/papachristoumarios/papachristoumarios.github.io/raw/master/_posts/figures/simple_hmc_R.png">
 </center>
+
 ### Bonus: ODE solvers API (C++ and R)
 
 We also provide the standalone ode solvers for solving an ODE of the form $\frac {d^n x} {dt^n} = F(x, t)$ where each temporal derivative of $x$ is restricted to a domain (H-polytopes supported only). Examples for C++ and R can be found [here](https://github.com/papachristoumarios/volume_approximation/tree/log-concave-samplers-temp/examples/logconcave).
