@@ -24,8 +24,8 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
@@ -36,7 +36,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 add_executable(sparse_billiard_benchmark sparse_billiard_walk_benchmark.cpp)
 
 target_link_libraries(sparse_billiard_benchmark 
-    lp_solve
+    highs::highs
     ${Boost_LIBRARIES}
 )
 

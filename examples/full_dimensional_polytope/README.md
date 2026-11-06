@@ -71,7 +71,7 @@ Any point `y` in `P'` maps to a feasible point in `P` via: `x = shift + N*y`
 - Eigen3 (matrix operations)
 - SuiteSparse (SPQR for QR factorization, CHOLMOD for linear systems)
 - Boost (for polytope generators)
-- lp_solve (for polytope operations)
+- HiGHS (for linear programs in polytope operations)
 
 ## See Also
 

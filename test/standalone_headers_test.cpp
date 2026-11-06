@@ -5,7 +5,7 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // Headers used on their own, without random_walks/random_walks.hpp, as the
-// bindings do to keep their include set small. Built with DISABLE_LPSOLVE,
+// bindings do to keep their include set small. Built with DISABLE_HIGHS,
 // as the Octave binding is.
 
 #include "doctest.h"

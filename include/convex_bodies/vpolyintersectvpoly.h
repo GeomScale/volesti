@@ -15,6 +15,7 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
+#include <tuple>
 #include "sampling/sphere.hpp"
 
 /// This class represents the intersection of two V-polytopes
@@ -127,13 +128,12 @@ public:
     }
 
     bool is_feasible() {
-        bool empty;
         int k = P1.get_mat().rows() + P2.get_mat().rows();
         RNGType rng(k);
         rng.set_seed(seed);
-        PointInIntersection<VT>(P1.get_mat(), P2.get_mat(),
-                                GetDirection<Point>::apply(k, rng), empty);
-        return !empty;
+        auto res = point_in_intersection<VT>(P1.get_mat(), P2.get_mat(),
+                                             GetDirection<Point>::apply(k, rng));
+        return res.solved && !res.value.second;
     }
 
     std::pair<Point,NT> ComputeInnerBall() {
@@ -148,12 +148,21 @@ public:
         std::vector<Point> vertices;
         typename std::vector<Point>::iterator rvert;
         bool same;
+        unsigned attempts = 0;
+        unsigned max_attempts = 100*d;
 
         while(num<d+1){
 
-            direction = GetDirection<Point>::apply(k, rng);
-            p = PointInIntersection<VT>(V1, V2, direction, same);
+            if (++attempts > max_attempts) {
+                _inner_ball = std::pair<Point, NT>(Point(d), NT(-1));
+                return _inner_ball;
+            }
 
+            direction = GetDirection<Point>::apply(k, rng);
+            auto res = point_in_intersection<VT>(V1, V2, direction);
+            if (!res.solved) continue;
+
+            p = res.value.first;
             same = false;
             rvert = vertices.begin();
             for ( ;  rvert!=vertices.end(); ++rvert) {

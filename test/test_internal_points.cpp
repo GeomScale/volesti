@@ -39,7 +39,7 @@ void call_test_max_ball() {
     P = skinny_random_hpoly<Hpolytope, NT, PolyRNGType>(4, 180, pre_rounding, max_min_eig_ratio, 127);
     P.normalize();
     std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
-    // Verify that ComputeInnerBall (with lp_solve fallback) produced a valid inner ball
+    // Verify that ComputeInnerBall (with HiGHS fallback) produced a valid inner ball
     CHECK(P.is_in(InnerBall.first) == -1);
     CHECK(InnerBall.second > 0);
 

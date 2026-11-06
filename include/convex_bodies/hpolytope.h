@@ -9,6 +9,7 @@
 //Contributed and/or modified by Luca Perju, as part of Google Summer of Code 2024 program.
 //Contributed and/or modified by Iva Janković, as part of Google Summer of Code 2025 program.
 //Contributed and/or modified by Vladimir Necula, as part of Google Summer of Code 2025 program.
+//Contributed and/or modified by Dimitrios Pavlou, as part of Google Summer of Code 2026 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -22,8 +23,8 @@
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
 #include "root_finders/quadratic_polynomial_solvers.hpp"
-#ifndef DISABLE_LPSOLVE
-    #include "lp_oracles/solve_lp.h"
+#ifndef DISABLE_HIGHS
+    #include "lp_oracles/solve_lp.hpp"
 #endif
 
 
@@ -145,7 +146,7 @@ public:
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //First try using max_inscribed_ball
-    //Use LpSolve library if it fails
+    //Use HiGHS library if it fails
     //On failure the returned radius is negative (callers check second < 0)
     std::pair<Point, NT> ComputeInnerBall()
     {
@@ -188,11 +189,17 @@ public:
                 std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
                 is_inner_point_nan_inf(std::get<0>(inner_ball))) {
                 
-                std::cerr << "Failed to compute max inscribed ball, trying to use lpsolve" << std::endl;
-                #ifndef DISABLE_LPSOLVE
-                    _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+                std::cerr << "Failed to compute max inscribed ball, trying to use HiGHS" << std::endl;
+                #ifndef DISABLE_HIGHS
+                    auto ball = compute_chebychev_ball<NT, Point>(A, b); // use highs library
+                    if (ball.solved) {
+                        _inner_ball = ball.value;
+                    } else {
+                        _inner_ball = std::pair<Point, NT>(Point(_d), NT(-1));
+                        std::cerr << "Failed to compute the chebychev ball" << std::endl;
+                    }
                 #else
-                    std::cerr << "lpsolve is disabled, unable to compute inner ball" << std::endl;
+                    std::cerr << "HiGHS is disabled, unable to compute inner ball" << std::endl;
                     _inner_ball = std::pair<Point, NT>(Point(_d), NT(-1));
                 #endif
             } else {

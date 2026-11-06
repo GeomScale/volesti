@@ -57,8 +57,8 @@ endif ()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
@@ -66,7 +66,7 @@ include_directories (BEFORE ../../external)
 include_directories (BEFORE ../../include)
 
 add_executable (volume_example volume_example.cpp)
-target_link_libraries(volume_example PUBLIC lp_solve)
+target_link_libraries(volume_example PUBLIC highs::highs)
 ```
 
 We will use `cmake` to build the makefile and compile our example.
