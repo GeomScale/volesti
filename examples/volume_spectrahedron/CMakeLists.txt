@@ -110,6 +110,7 @@ else ()
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
   add_executable (volume_cb_spectrahedra volume_cb_spectrahedra.cpp)
+  target_link_libraries(volume_cb_spectrahedra ${HIGHS})
 
 
 endif()
