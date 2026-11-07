@@ -24,6 +24,12 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     steps:
       - uses: actions/checkout@v4
+      # OpenBLAS 0.3.20 (ubuntu-22.04) runs its Cooperlake kernels on CPUs with AVX512-BF16 (e.g. Sapphire Rapids
+      # runners) and its DGEMM gives wrong results there (CHOLMOD supernodal tests fail); use the SkylakeX kernels.
+      - name: Select OpenBLAS kernel
+        run: |
+          lscpu | grep 'Model name'
+          if grep -q avx512_bf16 /proc/cpuinfo; then echo "OPENBLAS_CORETYPE=SkylakeX" >> "$GITHUB_ENV"; fi
       - run: sudo apt-get update || true;
              sudo apt-get install ${{ matrix.config.compiler_pkg }} lp-solve libopenblas-dev liblapack-dev;
              rm -rf build;
