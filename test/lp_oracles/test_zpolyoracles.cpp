@@ -11,6 +11,7 @@
 #include "doctest.h"
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/zpolytope.h"
 #include "lp_oracles/zpolyoracles.hpp"
 #include <vector>
 #include <tuple>
@@ -85,6 +86,28 @@ void test_line_intersection_zpoly() {
     CHECK(res2.value == doctest::Approx(2.0));
 }
 
+void test_float_zonotope() {
+    typedef Cartesian<float> KF;
+    typedef typename KF::Point PointF;
+    typedef Zonotope<PointF> Zono;
+
+    Zono::MT G(3, 2);
+
+    G << 1, 0,
+         0, 1,
+         1, 1;
+
+    Zono Z(2, G, Zono::VT::Ones(3));
+
+    PointF r(2);
+    PointF v(2, {1.0f, 0.0f});
+    Zono::VT Ar, Av;
+
+    auto res = Z.line_positive_intersect(r, v, Ar, Av);
+
+    CHECK(res.first == doctest::Approx(2.0f));
+}
+
 TEST_CASE("test_membership") {
     test_membership();
 }
@@ -92,4 +115,8 @@ TEST_CASE("test_membership") {
 TEST_CASE("test_line_intersection") {
     test_line_intersection_vpoly();
     test_line_intersection_zpoly();
+}
+
+TEST_CASE("test_float_zonotope") {
+    test_float_zonotope();
 }

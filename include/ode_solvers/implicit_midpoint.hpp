@@ -114,6 +114,7 @@ struct ImplicitMidpointODESolver {
     xs = xs + partialDerivatives * (eta / 2);
     xs_prev = xs;
     done = false;
+    num_steps = options.maxODEStep;
     nu = MT::Zero(P.equations(), simdLen);
     for (int i = 0; i < options.maxODEStep; i++) {
       pts xs_old = xs;
@@ -133,15 +134,19 @@ struct ImplicitMidpointODESolver {
       //If the estimate does not change terminate
       if (maxdist < options.implicitTol) {
         done = true;
-        num_steps = i;
+        num_steps = i + 1;
         break;
       //If the estimate is very bad, sample another velocity
     } else if (maxdist > options.convergence_bound) {
-        xs = xs * std::nan("1");
-        done = true;
-        num_steps = i;
+        num_steps = i + 1;
         break;
       }
+    }
+    // As in PolytopeSamplerMatlab, a step that did not converge returns NaN,
+    // so that the proposal is rejected and counted as a bad step
+    if (!done) {
+      xs = xs * std::nan("1");
+      return;
     }
 #ifdef TIME_KEEPING
     start = std::chrono::high_resolution_clock::now();

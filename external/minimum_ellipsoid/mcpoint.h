@@ -258,7 +258,7 @@
     {
       for (size_t j=0; j<n; ++j)
       {
-	res[j]+= pow(i->p[j]-m1[j], 2);
+	res[j]+= std::pow(i->p[j]-m1[j], 2);
       }
       ++N;
     }

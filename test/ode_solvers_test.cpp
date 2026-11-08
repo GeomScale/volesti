@@ -192,6 +192,66 @@ template <typename NT> void test_implicit_midpoint() {
   std::istream_iterator<NT> start(is), end;
   std::vector<NT> target_norms(start, end);
   check_norm_progress(implicit_midpoint_solver, 1, target_norms);
+
+  // A converged step counts its fixed-point iterations from 1
+  CHECK(implicit_midpoint_solver.done);
+  CHECK(implicit_midpoint_solver.num_steps >= 1);
+  CHECK(implicit_midpoint_solver.num_steps < opts.maxODEStep);
+}
+
+// A step whose fixed-point iteration does not converge must return NaN, so that
+// the CRHMC walk rejects the proposal (as in PolytopeSamplerMatlab)
+template <typename NT> void test_implicit_midpoint_no_convergence() {
+  typedef Cartesian<NT> Kernel;
+  typedef typename Kernel::Point Point;
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  typedef std::vector<MT> pts;
+  typedef GaussianFunctor::GradientFunctor<Point> grad;
+  typedef GaussianFunctor::FunctionFunctor<Point> func;
+  typedef GaussianFunctor::parameters<NT, Point> func_params;
+  typedef opts<NT> Opts;
+  typedef crhmc_input<MT, Point, func, grad> Input;
+  typedef crhmc_problem<Point, Input> CrhmcProblem;
+  unsigned d = 1;
+  Opts opts;
+  Point mean = Point(d);
+  func_params params = func_params(mean, 0.5, 1);
+  grad F(params);
+  func f(params);
+  Input input = Input(d, f, F);
+  input.lb = -VT::Ones(d);
+  input.ub = VT::Ones(d);
+  opts.EnableReordering = false;
+  opts.DynamicWeight = false;
+  CrhmcProblem P = CrhmcProblem(input, opts);
+  d = P.dimension();
+  MT x0 = MT::Zero(d, 1);
+  MT v0 = 100 * MT::Ones(d, 1);
+  pts q{x0, v0};
+  ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>
+      implicit_midpoint_solver =
+          ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>(0, 10, q,
+                                                                   F, P, opts);
+  // The iteration diverges
+  implicit_midpoint_solver.step(0, true);
+  CHECK(!implicit_midpoint_solver.done);
+  CHECK(implicit_midpoint_solver.num_steps >= 1);
+  CHECK(implicit_midpoint_solver.num_steps <= opts.maxODEStep);
+  CHECK(std::isnan(implicit_midpoint_solver.get_state(0)(0, 0)));
+  CHECK(std::isnan(implicit_midpoint_solver.get_state(1)(0, 0)));
+
+  // Without the divergence test the iteration runs out of steps
+  opts.convergence_bound = std::numeric_limits<NT>::infinity();
+  ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>
+      no_convergence_solver =
+          ImplicitMidpointODESolver<Point, NT, CrhmcProblem, grad>(
+              0, 2, pts{x0, MT::Ones(d, 1)}, F, P, opts);
+  no_convergence_solver.step(0, true);
+  CHECK(!no_convergence_solver.done);
+  CHECK(no_convergence_solver.num_steps == opts.maxODEStep);
+  CHECK(std::isnan(no_convergence_solver.get_state(0)(0, 0)));
+  CHECK(std::isnan(no_convergence_solver.get_state(1)(0, 0)));
 }
 
 template <typename NT> void test_richardson() {
@@ -381,6 +441,7 @@ template <typename NT> void call_test_first_order() {
   std::cout << "--- Testing hamiltonian solution to f(x)=-x^2/2 in [-1, 1]"
             << std::endl;
   test_implicit_midpoint<NT>();
+  test_implicit_midpoint_no_convergence<NT>();
 }
 
 template <typename NT> void call_test_second_order() {

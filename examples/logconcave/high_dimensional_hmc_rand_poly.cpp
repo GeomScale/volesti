@@ -20,7 +20,6 @@
 
 #include "misc/misc.h"
 #include "misc/linear_extensions.h"
-#include "lp_oracles/solve_lp.h"
 #include "ode_solvers/ode_solvers.hpp"
 #include "diagnostics/geweke.hpp"
 #include "diagnostics/multivariate_psrf.hpp"

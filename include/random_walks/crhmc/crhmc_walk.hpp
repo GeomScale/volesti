@@ -174,6 +174,11 @@ struct CRHMCWalk {
       num_runs++;
       //  Pick a random velocity with momentum
       v = get_direction_with_momentum(dim, rng, x, v, params.momentum, false);
+      // As in PolytopeSamplerMatlab (Sampler.m), H at the current point is computed before the ODE step,
+      // while the factorization at x is still cached; the step's first DU(x) reuses it
+      if (metropolis_filter) {
+        H = solver->ham.hamiltonian(x, v);
+      }
       solver->set_state(0, x);
       solver->set_state(1, v);
       // Get proposals
@@ -184,9 +189,6 @@ struct CRHMCWalk {
 #ifdef TIME_KEEPING
         start = std::chrono::high_resolution_clock::now();
 #endif
-        // Calculate initial Hamiltonian
-        H = solver->ham.hamiltonian(x, v);
-
         // Calculate new Hamiltonian
         H_tilde = solver->ham.hamiltonian(x_tilde, -v_tilde);
 

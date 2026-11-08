@@ -90,7 +90,7 @@ public:
     int shrink = 0;
     NT shiftedIter = iterSinceShrink + 20 / (1 - momentum);
 
-    NT targetProbability = std::pow((1.0 - momentum), (2 / 3)) / 4;
+    NT targetProbability = std::pow((1.0 - momentum), NT(2) / NT(3)) / 4;
     if (rejectSinceShrink.maxCoeff() > targetProbability * shiftedIter||
         consecutiveBadStep.maxCoeff() > options.maxConsecutiveBadStep ||
         ODEStepSinceShrink > options.targetODEStep * shiftedIter) {

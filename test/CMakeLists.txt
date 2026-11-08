@@ -199,6 +199,7 @@ add_executable (new_volume_example new_volume_example.cpp)
 add_executable (benchmarks_sob benchmarks_sob.cpp)
 add_executable (benchmarks_cg benchmarks_cg.cpp)
 add_executable (benchmarks_cb benchmarks_cb.cpp)
+add_executable (benchmark_lporacles benchmark_lporacles.cpp)
 
 add_library(test_main OBJECT test_main.cpp)
 
@@ -465,6 +466,7 @@ add_executable(test_zpolyoracles lp_oracles/test_zpolyoracles.cpp $<TARGET_OBJEC
 target_include_directories(test_zpolyoracles PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_z_membership COMMAND test_zpolyoracles -tc=test_membership)
 add_test(NAME test_z_line_intersection COMMAND test_zpolyoracles -tc=test_line_intersection)
+add_test(NAME test_z_float_zonotope COMMAND test_zpolyoracles -tc=test_float_zonotope)
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
@@ -497,6 +499,7 @@ TARGET_LINK_LIBRARIES(mmcs_test highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(benchmarks_sob highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(benchmarks_cg highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(benchmarks_cb highs::highs ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(benchmark_lporacles highs::highs ${MKL_LINK} coverage_config)
 #TARGET_LINK_LIBRARIES(benchmarks_crhmc_sampling highs::highs ${MKL_LINK} QD_LIB coverage_config)
 #TARGET_LINK_LIBRARIES(benchmarks_crhmc highs::highs ${MKL_LINK} QD_LIB  coverage_config)
 TARGET_LINK_LIBRARIES(simple_mc_integration highs::highs ${MKL_LINK} coverage_config)
