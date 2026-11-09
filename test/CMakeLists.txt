@@ -444,6 +444,8 @@ add_test(NAME full_dimensional_polytope_orthogonality
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_orthogonality)
 add_test(NAME full_dimensional_polytope_infeasible
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_infeasible)
+add_test(NAME full_dimensional_polytope_badly_scaled_rows
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_badly_scaled_rows)
 
           
 
