@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <exception>
+#include <vector>
 #undef Realloc
 #undef Free
 #include "lp_lib.h"
@@ -36,65 +37,47 @@
 template <typename NT, typename Point, typename MT, typename VT>
 std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
 
-    lprec *lp;
     int d = A.cols();
-    int Ncol=d+1, j, m=A.rows(), i;
-    int *colno = NULL;
+    int Ncol = d + 1, j, m = A.rows(), i;
+    std::pair<Point,NT> exception_pair(Point(d), -1.0);
 
-    REAL *row = NULL;
-    std::pair<Point,NT> exception_pair(Point(d),-1.0);
-
-    try
-    {
-        lp = make_lp(m, Ncol);
-        if(lp == NULL) throw false;
-    }
-    catch (bool e) {
-        #ifdef VOLESTI_DEBUG
-        std::cout<<"Could not construct Linear Program for chebychev center "<<e<<std::endl;
-        #endif
+    lprec *lp = make_lp(m, Ncol);
+    if (lp == NULL) {
+#ifdef VOLESTI_DEBUG
+        std::cout << "Could not construct Linear Program for chebychev center" << std::endl;
+#endif
         return exception_pair;
     }
-    
+
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
-    /* create space large enough for one row */
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
-        #ifdef VOLESTI_DEBUG
-        std::cout<<"Linear Program for chebychev center failed "<<e.what()<<std::endl;
-        #endif
-        return exception_pair;
-    }
+    std::vector<int> colno(Ncol);
+    std::vector<REAL> row(Ncol);
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
     NT sum;
     for (i = 0; i < m; ++i) {
         /* construct all rows */
-        sum=NT(0);
-        for(j=0; j<d; j++){
-            colno[j] = j+1;
-            row[j] = A.coeff(i,j);
-            sum+=A.coeff(i,j)*A.coeff(i,j);
+        sum = NT(0);
+        for (j = 0; j < d; j++) {
+            colno[j] = j + 1;
+            row[j] = A.coeff(i, j);
+            sum += A.coeff(i, j) * A.coeff(i, j);
         }
-        colno[d] = d+1; /* last column */
+        colno[d] = d + 1; /* last column */
         row[d] = std::sqrt(sum);
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, d+1, row, colno, LE, b(i))) throw false;
+            if (!add_constraintex(lp, d + 1, row.data(), colno.data(), LE, b(i))) throw false;
         }
         catch (bool e)
         {
-            #ifdef VOLESTI_DEBUG
-            std::cout<<"Could not define constriants for the Linear Program for chebychev center "<<e<<std::endl;
-            #endif
+#ifdef VOLESTI_DEBUG
+            std::cout << "Could not define constriants for the Linear Program for chebychev center " << e << std::endl;
+#endif
+            delete_lp(lp);
             return exception_pair;
         }
     }
@@ -109,16 +92,17 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
     row[d] = 1.0;
     set_bounds(lp, d + 1, 0.0, infinite);
 
-	// set the objective function
+    // set the objective function
     try
     {
-        if (!set_obj_fnex(lp, d + 1, row, colno)) throw false;
+        if (!set_obj_fnex(lp, d + 1, row.data(), colno.data())) throw false;
     }
     catch (bool e)
     {
-        #ifdef VOLESTI_DEBUG
-        std::cout<<"Could not define objective function for the Linear Program for chebychev center "<<e<<std::endl;
-        #endif
+#ifdef VOLESTI_DEBUG
+        std::cout << "Could not define objective function for the Linear Program for chebychev center " << e << std::endl;
+#endif
+        delete_lp(lp);
         return exception_pair;
     }
 
@@ -135,22 +119,23 @@ std::pair<Point,NT> ComputeChebychevBall(const MT &A, const VT &b){
     }
     catch (bool e)
     {
-        #ifdef VOLESTI_DEBUG
-        std::cout<<"Could not solve the Linear Program for chebychev center "<<e<<std::endl;
-        #endif
+#ifdef VOLESTI_DEBUG
+        std::cout << "Could not solve the Linear Program for chebychev center " << e << std::endl;
+#endif
+        delete_lp(lp);
         return exception_pair;
     }
 
     std::pair<Point,NT> res;
 
-    std::vector<NT> temp_p(d,0);
-    get_variables(lp, row);
-    for(j = 0; j < d; j++){
-        temp_p[j]=NT(row[j]);
+    std::vector<NT> temp_p(d, 0);
+    get_variables(lp, row.data());
+    for (j = 0; j < d; j++) {
+        temp_p[j] = NT(row[j]);
     }
-    Point xc( d , temp_p.begin() , temp_p.end() );
+    Point xc(d, temp_p.begin(), temp_p.end());
     NT r = NT(get_objective(lp));
-    res = std::pair<Point,NT> (xc,r);
+    res = std::pair<Point,NT>(xc, r);
     delete_lp(lp);
 
     return res;
@@ -166,105 +151,89 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
     unsigned int k2 = V2.rows();
     unsigned int k = k1 + k2;
     VT cb(k1);
-    lprec *lp;
-    int Ncol=k, *colno = NULL, j, i;
-    REAL *row = NULL;
+    int Ncol = k, j, i;
     Point p(d);
 
-    try
-    {
-        lp = make_lp(d+2, Ncol);
-        if(lp == NULL) throw false;
-    }
-    catch (bool e) {
+    lprec *lp = make_lp(d + 2, Ncol);
+    if (lp == NULL) {
 #ifdef VOLESTI_DEBUG
-        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+        std::cout << "Could not construct Linear Program for membership" << std::endl;
 #endif
-        return false;
+        empty = true;
+        return p;
     }
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
-#ifdef VOLESTI_DEBUG
-        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
-#endif
-        return false;
-    }
+    std::vector<int> colno(Ncol);
+    std::vector<REAL> row(Ncol);
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
-
-    for (i = 0;  i< d+2; ++i) {
+    for (i = 0; i < d + 2; ++i) {
         /* construct all rows */
-        for(j=0; j<k1; j++){
-            colno[j] = j+1;
-            if (i==d) {
+        for (j = 0; j < k1; j++) {
+            colno[j] = j + 1;
+            if (i == d) {
                 row[j] = 1.0;
-            } else if(i==d+1){
+            } else if (i == d + 1) {
                 row[j] = 0.0;
             } else {
                 row[j] = V1(j, i);
             }
         }
-        for(j=0; j<k2; j++){
-            colno[k1+j] = k1+j+1;
-            if (i==d) {
-                row[k1+j] = 0.0;
-            } else if(i==d+1){
-                row[k1+j] = 1.0;
+        for (j = 0; j < k2; j++) {
+            colno[k1 + j] = k1 + j + 1;
+            if (i == d) {
+                row[k1 + j] = 0.0;
+            } else if (i == d + 1) {
+                row[k1 + j] = 1.0;
             } else {
-                row[k1+j] = -V2(j, i);
+                row[k1 + j] = -V2(j, i);
             }
         }
 
         /* add the row to lpsolve */
         try {
-            if(i==d || i==d+1) {
-                if (!add_constraintex(lp, Ncol, row, colno, EQ, 1.0)) throw false;
+            if (i == d || i == d + 1) {
+                if (!add_constraintex(lp, Ncol, row.data(), colno.data(), EQ, 1.0)) throw false;
             } else {
-                if (!add_constraintex(lp, Ncol, row, colno, EQ, 0.0)) throw false;
+                if (!add_constraintex(lp, Ncol, row.data(), colno.data(), EQ, 0.0)) throw false;
             }
         }
         catch (bool e)
         {
 #ifdef VOLESTI_DEBUG
-            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+            std::cout << "Could not construct constaints for the Linear Program for membership " << e << std::endl;
 #endif
-            return false;
+            delete_lp(lp);
+            empty = true;
+            return p;
         }
     }
 
     set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
     const NT* direction_data = direction.getCoefficients().data();
-    REAL* row_temp = row;
-
-    // set the bounds
-    for(j=0; j<Ncol; ++j){
-        colno[j] = j+1; /* j_th column */
-        *row_temp = *direction_data;
-        row_temp++;
+    for (j = 0; j < Ncol; ++j) {
+        colno[j] = j + 1; /* j_th column */
+        row[j] = *direction_data;
         direction_data++;
-        set_bounds(lp, j+1, 0.0, infinite);
+        set_bounds(lp, j + 1, 0.0, infinite);
     }
 
     try
     {
-        if(!set_obj_fnex(lp, Ncol, row, colno)) throw false;
+        if (!set_obj_fnex(lp, Ncol, row.data(), colno.data())) throw false;
     }
     catch (bool e)
     {
 #ifdef VOLESTI_DEBUG
-        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+        std::cout << "Could not construct objective function for the Linear Program for membership " << e << std::endl;
 #endif
-        return false;
+        delete_lp(lp);
+        empty = true;
+        return p;
     }
 
     /* set the object direction to maximize */
@@ -274,22 +243,21 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
     set_verbose(lp, NEUTRAL);
 
     /* Now let lpsolve calculate a solution */
-    if (solve(lp) != OPTIMAL){
+    if (solve(lp) != OPTIMAL) {
         delete_lp(lp);
         empty = true;
         return p;
     }
-    get_variables(lp, row);
+    get_variables(lp, row.data());
     delete_lp(lp);
 
-    for ( j=0; j<k1; ++j) {
+    for (j = 0; j < k1; ++j) {
         cb(j) = row[j];
     }
 
-    p = V1.transpose()*cb;
+    p = V1.transpose() * cb;
     empty = false;
     return p;
-
 }
 
 
