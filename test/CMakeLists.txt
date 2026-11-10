@@ -445,6 +445,8 @@ add_test(NAME full_dimensional_polytope_orthogonality
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_orthogonality)
 add_test(NAME full_dimensional_polytope_infeasible
           COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_infeasible)
+add_test(NAME full_dimensional_polytope_badly_scaled_rows
+          COMMAND full_dimensional_polytope_test -tc=full_dimensional_polytope_badly_scaled_rows)
 
 add_executable(test_highs test_highs.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_small_lp COMMAND test_highs -tc=test_small_lp)          
