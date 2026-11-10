@@ -104,7 +104,6 @@ public:
             }
         }
         has_ball = false;
-        //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
 

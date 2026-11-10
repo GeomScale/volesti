@@ -572,3 +572,46 @@ TEST_CASE("full_dimensional_polytope_infeasible")
         std::cout << "Exception during transformation: " << e.what() << std::endl;
     }
 }
+
+TEST_CASE("full_dimensional_polytope_badly_scaled_rows")
+{
+    std::cout << "\n=== Test: Fixed variable next to a row of norm 1e8 ===" << std::endl;
+
+    // x1 = 0.5 is a unit row; the other row has norm 1e8 and is nearly parallel to it, so a rank tolerance relative
+    // to the largest row norm (1e8 * 20 (m + n) eps = 2.7e-6) would drop the unit row (distance 1e-7 from the span).
+    // The equalities fix x1 and x2, so the polytope is the square [-1, 1]^2 in (x3, x4).
+    int n = 4;
+    NT s = 1e8, d = 1e-7;
+
+    MT Aeq_dense(2, n);
+    Aeq_dense << s, s * d, 0, 0,
+                 1, 0, 0, 0;
+    SpMT Aeq = dense_to_sparse(Aeq_dense);
+
+    VT beq(2);
+    beq << 0.5 * s, 0.5;
+
+    MT A(2 * n, n);
+    A << MT::Identity(n, n), -MT::Identity(n, n);
+    VT b = VT::Ones(2 * n);
+
+    auto [A_full, b_full, shift, N] = compute_full_dimensional_polytope(Aeq, beq, A, b);
+
+    std::cout << "Reduced dimension: " << N.cols() << std::endl;
+    CHECK(N.cols() == 2);
+
+    // The null space must not move the fixed variable x1, nor x2
+    CHECK(N.row(0).norm() < 1e-12);
+    CHECK(N.row(1).norm() < 1e-12);
+    CHECK((N.transpose() * N - MT::Identity(N.cols(), N.cols())).norm() < 1e-10);
+    CHECK(std::abs(shift(0) - 0.5) < 1e-12);
+
+    // Samples mapped back satisfy every original constraint
+    std::vector<VT> samples = sample_from_polytope(A_full, b_full, 100);
+    for (const auto& y : samples)
+    {
+        VT x = N * y + shift;
+        CHECK(std::abs(x(0) - 0.5) < 1e-12);
+        CHECK(satisfies_inequality(A, b, x, 1e-9));
+    }
+}

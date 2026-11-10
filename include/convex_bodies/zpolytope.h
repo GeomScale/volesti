@@ -255,10 +255,10 @@ public:
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point const& p, NT tol=NT(0)) const
     {
-        if(memLP_Zonotope(V, p).value)
-        {
+        auto res = memLP_Zonotope(V, p);
+        if(res.solved && res.value)
             return -1;
-        }
+
         return 0;
     }
 

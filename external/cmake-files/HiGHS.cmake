@@ -17,7 +17,7 @@ function(GetHighs)
     FetchContent_Declare(
         highs
         GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
-        GIT_TAG v1.10.0
+        GIT_TAG v1.15.1
         GIT_SHALLOW TRUE
     )
     message(STATUS "Fetching HiGHS")

@@ -1,10 +1,14 @@
 #ifndef FULL_DIMENSIONAL_POLYTOPE_HPP
 #define FULL_DIMENSIONAL_POLYTOPE_HPP
 
-#include <Eigen/Eigen>
-#include <tuple>
-#include <stdexcept>
+#include <algorithm>
+#include <cmath>
 #include <cstring>
+#include <limits>
+#include <stdexcept>
+#include <tuple>
+
+#include <Eigen/Eigen>
 
 #include "SuiteSparseQR_C.h"
 #include "SuiteSparseQR.hpp"
@@ -12,7 +16,12 @@
 
 /**
  * Compute the full dimensional polytope P' = {x | A'x <= b'} from the polytope P = {x | Ax <= b & Aeq*x = beq}
- * 
+ *
+ * The rows of Aeq (and beq) are scaled to unit norm before the factorizations. This leaves the solution set and the
+ * null space unchanged, but makes the rank decision of SuiteSparseQR, whose tolerance is relative to the largest row
+ * norm, independent of the row scaling: otherwise a unit row such as x_j = v next to rows of norm 1e8 can be declared
+ * dependent and the null space gets one direction too many.
+ *
  * @tparam NT Number type (default: double)
  * @tparam SpMT Sparse matrix type (default: Eigen::SparseMatrix<NT, Eigen::ColMajor>)
  * @tparam MT Dense matrix type (default: Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>)
@@ -27,17 +36,35 @@
  *   - b_full: Transformed inequality vector (p x 1)  
  *   - shift: Translation vector (n x 1)
  *   - N: Nullspace transformation matrix (n x (n-rank))
+ *
+ * @throws std::runtime_error if a factorization fails or if the computed null space does not satisfy Aeq*N = 0
  */
 template<typename NT = double,
          typename SpMT = Eigen::SparseMatrix<NT, Eigen::ColMajor>,
          typename MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>, 
          typename VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>>
 std::tuple<MT, VT, VT, MT> compute_full_dimensional_polytope(
-    const SpMT& Aeq,
-    const VT& beq,
+    const SpMT& Aeq_in,
+    const VT& beq_in,
     const MT& A,
     const VT& b)
 {
+    // Scale the equality rows to unit norm; zero rows are left as they are
+    VT row_scale = VT::Zero(Aeq_in.rows());
+    for (int k = 0; k < Aeq_in.outerSize(); ++k)
+    {
+        for (typename SpMT::InnerIterator it(Aeq_in, k); it; ++it)
+        {
+            row_scale(it.row()) += it.value() * it.value();
+        }
+    }
+    for (int j = 0; j < row_scale.size(); j++)
+    {
+        row_scale(j) = row_scale(j) > NT(0) ? NT(1) / std::sqrt(row_scale(j)) : NT(1);
+    }
+    SpMT Aeq = row_scale.asDiagonal() * Aeq_in;
+    VT beq = row_scale.cwiseProduct(beq_in);
+
     cholmod_common c;
     memset(&c, 0, sizeof(cholmod_common));  // Zero-initialize the structure
 
@@ -167,6 +194,20 @@ std::tuple<MT, VT, VT, MT> compute_full_dimensional_polytope(
     Eigen::Map<MT> QQ(Q_data, Q_rows, Q_cols);
     // Take the last n-r columns of Q to derive the right nullspace of Aeq.transpose()
     MT N = QQ.block(0, rank, QQ.rows(), QQ.cols() - rank);
+    // SuiteSparseQR does not report a wrong rank decision: check the null space against the scaled rows. A row that
+    // was dropped as dependent leaves a residual up to about the rank tolerance, 20 (m + n) eps for unit rows.
+    NT null_tol = std::max(NT(1e-09), NT(100) * NT(Aeq.rows() + Aeq.cols()) * std::numeric_limits<NT>::epsilon());
+    NT null_residual = (N.cols() > 0 && Aeq.rows() > 0) ? NT((Aeq * N).cwiseAbs().maxCoeff()) : NT(0);
+    if (null_residual > null_tol)
+    {
+        cholmod_free_sparse(&Aeq_tr, &c);
+        cholmod_free_dense(&Q, &c);
+        cholmod_free_dense(&I, &c);
+        cholmod_free_triplet(&T, &c);
+        SuiteSparseQR_C_free(&QR, &c);
+        cholmod_finish(&c);
+        throw std::runtime_error("The computed null space of Aeq is inaccurate.");
+    }
     // Project the polytope to the null space
     MT A_full = A * N;
 
