@@ -64,8 +64,8 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
@@ -91,13 +91,13 @@ else()
   set(MKL_LINK "")
 endif(USE_MKL)
 
-# Find lpsolve library
-set(LP_SOLVE lp_solve)  # use lp_solve CMake target from GetLPSolve()
+# Find HiGHS library
+set(HIGHS highs::highs)  # use HiGHS CMake target from GetHighs()
 
-if (NOT LP_SOLVE)
-  message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
+if (NOT HIGHS)
+  message(FATAL_ERROR "This program requires the HiGHS library, and will not be compiled.")
 else ()
-  message(STATUS "Library lp_solve found: ${LP_SOLVE} ${BLAS}")
+  message(STATUS "Library HiGHS found: ${HIGHS} ${BLAS}")
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
@@ -146,15 +146,15 @@ else ()
 
   #add_executable (adaptive_step_size adaptive_step_size.cpp)
 
-  TARGET_LINK_LIBRARIES(high_dimensional_hmc_rand_poly ${LP_SOLVE} ${BLAS} ${MKL_LINK} )
-  TARGET_LINK_LIBRARIES(high_dimensional_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
-  #TARGET_LINK_LIBRARIES(adaptive_step_size ${LP_SOLVE} ${BLAS}  ${MKL_LINK}  )
-  TARGET_LINK_LIBRARIES(simple_ode ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
-  TARGET_LINK_LIBRARIES(simple_sde ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
-  TARGET_LINK_LIBRARIES(simple_uld ${LP_SOLVE} ${BLAS} ${MKL_LINK}   )
-  TARGET_LINK_LIBRARIES(simple_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK} )
-  TARGET_LINK_LIBRARIES(exponential_exact_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
-  TARGET_LINK_LIBRARIES(gaussian_exact_hmc ${LP_SOLVE} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(high_dimensional_hmc_rand_poly ${HIGHS} ${BLAS} ${MKL_LINK} )
+  TARGET_LINK_LIBRARIES(high_dimensional_hmc ${HIGHS} ${BLAS} ${MKL_LINK}  )
+  #TARGET_LINK_LIBRARIES(adaptive_step_size ${HIGHS} ${BLAS}  ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(simple_ode ${HIGHS} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(simple_sde ${HIGHS} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(simple_uld ${HIGHS} ${BLAS} ${MKL_LINK}   )
+  TARGET_LINK_LIBRARIES(simple_hmc ${HIGHS} ${BLAS} ${MKL_LINK} )
+  TARGET_LINK_LIBRARIES(exponential_exact_hmc ${HIGHS} ${BLAS} ${MKL_LINK}  )
+  TARGET_LINK_LIBRARIES(gaussian_exact_hmc ${HIGHS} ${BLAS} ${MKL_LINK}  )
 
 
 endif()

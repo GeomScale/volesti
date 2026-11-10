@@ -78,8 +78,8 @@ GetEigen()
 include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("../../external/cmake-files/LPSolve.cmake")
-GetLPSolve()
+include("../../external/cmake-files/HiGHS.cmake")
+GetHighs()
 
 include("../../external/cmake-files/Spectra.cmake")
 GetSpectra()
@@ -104,13 +104,13 @@ if (USE_MKL)
   set(MKL_LINK "-L${MKLROOT}/lib/intel64 -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lgomp  -lpthread -llapack -lblas")
 endif(USE_MKL)
 
-# Find lpsolve library
-set(LP_SOLVE lp_solve)  # use lp_solve CMake target from GetLPSolve()
+# Find HiGHS library
+set(HIGHS highs::highs)  # use HiGHS CMake target from GetHighs()
 
-if (NOT LP_SOLVE)
-  message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
+if (NOT HIGHS)
+  message(FATAL_ERROR "This program requires the HiGHS library, and will not be compiled.")
 else ()
-  message(STATUS "lp_solve library found: ${LP_SOLVE}")
+  message(STATUS "HiGHS library found: ${HIGHS}")
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
@@ -145,6 +145,6 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
 
   add_executable (sampler sampler.cpp)
-  TARGET_LINK_LIBRARIES(sampler ${LP_SOLVE} ${BLAS} ${MKL_LINK})
+  TARGET_LINK_LIBRARIES(sampler ${HIGHS} ${BLAS} ${MKL_LINK})
 
 endif()
