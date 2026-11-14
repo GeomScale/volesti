@@ -204,6 +204,37 @@ TEST_CASE("cross") {
     call_test_cross<double>();
 }
 
+template <typename NT>
+void call_test_vpolytope_copy() {
+    typedef Cartesian<NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef VPolytope<Point> Vpolytope;
+
+    std::cout << "\n--- Testing VPolytope copy assignment (dangling pointer fix)" 
+              << std::endl;
+
+    // Create a simple triangle in 2D (3 vertices)
+    Vpolytope P1 = generate_cross<Vpolytope>(2, false);
+
+    // Copy assign — this triggered the dangling pointer bug before fix
+    Vpolytope P2;
+    P2 = P1;  // calls operator= which calls copy_array
+
+    // Both should have same dimension
+    CHECK(P1.dimension() == P2.dimension());
+
+    // Both should have same number of vertices
+    CHECK(P1.num_of_vertices() == P2.num_of_vertices());
+
+    // P2 should be usable after copy — not pointing to freed memory
+    Point center(P2.dimension());
+    CHECK(P2.is_in(center) == -1);  // origin should be inside cross polytope
+}
+
+TEST_CASE("vpolytope_copy_assignment") {
+    call_test_vpolytope_copy<double>();
+}
+
 TEST_CASE("simplex") {
     call_test_simplex<double>();
 }
