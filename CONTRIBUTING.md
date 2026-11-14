@@ -39,7 +39,7 @@ Other helpful links:
 
 Clone the repository,
 
-    git clone git@github.com:GeomScale/volume_approximation.git volesti
+    git clone git@github.com:GeomScale/volesti.git volesti
     cd volesti
     git branch -vv
 
@@ -73,7 +73,7 @@ repository.
 ![fork](https://user-images.githubusercontent.com/3660366/72348562-57fe9680-36e3-11ea-9746-385ff61c752a.png)
 
 1. login on `GitHub`
-2. go to [volesti repository](https://github.com/GeomScale/volume_approximation)
+2. go to [volesti repository](https://github.com/GeomScale/volesti)
 3. click the 'Fork' button
 4. choose your profile
 5. wait
@@ -89,7 +89,7 @@ Go out of `volesti` directory
 
 clone your repository and checkout develop branch
 
-    git clone git@github.com:vissarion/volume_approximation.git volesti_fork
+    git clone git@github.com:vissarion/volesti.git volesti_fork
     cd volesti_fork
     git remote add upstream git@github.com:GeomScale/volesti.git
     git fetch upstream
@@ -216,4 +216,4 @@ Those changes will automatically be a part of the same pull request. This proced
 is ready for merging.
 
 If you're curious how it looks like you may see one of the open or closed
-[pull requests](https://github.com/GeomScale/volume_approximation/pulls).
+[pull requests](https://github.com/GeomScale/volesti/pulls).
