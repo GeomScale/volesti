@@ -13,6 +13,7 @@
 #include "misc/interrupt.hpp"
 
 #include "sampling/sphere.hpp"
+#include "random_walks/compute_diameter.hpp"
 
 
 
@@ -66,7 +67,7 @@ struct Walk
                 ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
         _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
-        initialize(P, p, a_i, rng);
+        initialize(P, p, rng);
     }
 
     template <typename GenericPolytope>
@@ -78,7 +79,7 @@ struct Walk
                             ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
         _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
-        initialize(P, p, a_i, rng);
+        initialize(P, p, rng);
     }
 
     template
@@ -88,6 +89,18 @@ struct Walk
     inline void apply(GenericPolytope const& P,
                       Point& p,
                       NT const& a_i,
+                      unsigned int const& walk_length,
+                      RandomNumberGenerator &rng)
+    {
+        apply(P, p, walk_length, rng);
+    }
+
+    template
+    <
+        typename GenericPolytope
+    >
+    inline void apply(GenericPolytope const& P,
+                      Point& p,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
@@ -203,7 +216,6 @@ private :
     >
     inline void initialize(GenericPolytope const& P,
                            Point const& p,
-                           NT const& a_i,
                            RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();

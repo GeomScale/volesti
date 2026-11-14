@@ -155,7 +155,7 @@ struct GaussianRandomPointGenerator
         Walk walk(P, p, a_i, rng);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.apply(P, p, a_i, walk_length, rng);
+            walk.apply(P, p, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -184,7 +184,7 @@ struct GaussianRandomPointGenerator
 
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.apply(P, p, a_i, walk_length, rng);
+            walk.apply(P, p, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
