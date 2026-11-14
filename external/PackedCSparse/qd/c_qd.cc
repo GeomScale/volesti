@@ -397,7 +397,7 @@ void c_qd_swrite(const double *a, int precision, char *s, int len) {
 }
 
 void c_qd_write(const double *a) {
-  std::cout << qd_real(a).to_string(qd_real::_ndigits) << std::endl;
+  (void)a;
 }
 
 void c_qd_neg(const double *a, double *b) {
