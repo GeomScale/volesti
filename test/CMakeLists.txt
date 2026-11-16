@@ -223,6 +223,13 @@ add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
 add_test(NAME test_gabw COMMAND sampling_test -tc=gabw)
 add_test(NAME test_sparse COMMAND sampling_test -tc=sparse)
 
+add_executable (ks_test ks_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_kolmogorov_prob COMMAND ks_test -tc=kolmogorov_prob)
+add_test(NAME test_ks_uniform_simplex COMMAND ks_test -tc=ks_uniform_simplex)
+add_test(NAME test_ks_nonuniform COMMAND ks_test -tc=ks_nonuniform)
+add_test(NAME test_ks_edge_cases COMMAND ks_test -tc=ks_edge_cases)
+add_test(NAME test_ks_cube_top_half COMMAND ks_test -tc=ks_cube_top_half)
+
 add_executable (shake_and_bake_test shake_and_bake_test.cpp $<TARGET_OBJECTS:test_main>)
 add_test(NAME test_shake_and_bake COMMAND shake_and_bake_test -tc=shake_and_bake)
 
@@ -495,6 +502,7 @@ TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly highs::highs ${MKL_LINK
 TARGET_LINK_LIBRARIES(rounding_test highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mcmc_diagnostics_test highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(sampling_test highs::highs ${MKL_LINK} coverage_config)
+TARGET_LINK_LIBRARIES(ks_test highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(billiard_shake_and_bake_test highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(shake_and_bake_test highs::highs ${MKL_LINK} coverage_config)
 TARGET_LINK_LIBRARIES(mmcs_test highs::highs ${MKL_LINK} coverage_config)

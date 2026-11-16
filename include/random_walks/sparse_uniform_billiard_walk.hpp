@@ -20,6 +20,7 @@
 #include "convex_bodies/hpolytope.h"
 #include "sampling/sphere.hpp"
 #include "generators/boost_random_number_generator.hpp"
+#include "preprocess/barrier_center_ellipsoid.hpp"
 
 struct SparseBilliardWalk {
 
@@ -56,6 +57,31 @@ struct Walk
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     SparseRowMT _A_original;
+
+    // Custom Constructor with 3 parameters
+    template <typename GenericPolytope>
+    Walk(GenericPolytope& P, const Point& p, RandomNumberGenerator& rng,
+         parameters const& user_params = parameters())
+    {
+        const unsigned int n = P.dimension();
+        _Len = user_params.set_L ? user_params.m_L
+                                 : NT(6.0) * std::sqrt(static_cast<NT>(n));
+
+        _b = P.get_vec();
+        _A_original = to_sparse_row(P.get_mat());
+
+        MT A_dense = MT(P.get_mat());
+        auto result = barrier_center_ellipsoid_linear_ineq<MT, EllipsoidType::LOG_BARRIER, NT>(
+            A_dense, _b);
+        SparseMT H = std::get<0>(result).sparseView();
+
+        compute_cholesky_and_transformations(H);
+        _oracle_params.emplace(_L_inv, _A_original, _b);
+
+        VT p_rounded = _L_inv.transpose().template triangularView<Eigen::Lower>() * p.getCoefficients();
+        initialize(P, Point(p_rounded), rng);
+    }
+    // End of custom constructor
     
     template <typename GenericPolytope>
     Walk(GenericPolytope& P, const Point& p, RandomNumberGenerator& rng,
@@ -136,7 +162,18 @@ private:
     void compute_cholesky_and_transformations(const SparseMT &H)
     {
         Eigen::SimplicialLLT<SparseMT, Eigen::Lower> Chol(H);
+        if (Chol.info() != Eigen::Success)
+            throw std::runtime_error("SparseBilliardWalk: Cholesky factorization of the Hessian failed.");
         _L_inv = Chol.matrixL().transpose();
+    }
+
+    template <typename M>
+    static SparseRowMT to_sparse_row(const M& A)
+    {
+        if constexpr (std::is_base_of_v<Eigen::SparseMatrixBase<M>, M>)
+            return SparseRowMT(A);
+        else
+            return SparseRowMT(A.sparseView());
     }
 
     template <typename GenericPolytope>
