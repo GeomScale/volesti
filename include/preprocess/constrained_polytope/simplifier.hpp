@@ -55,8 +55,7 @@ enum class SimplifierStatus {
     PRESOLVE_FAILED,
     REMOVE_DEPENDENT_ROWS_FAILED,
     INFEASIBLE,
-    NO_INTERIOR_POINT,
-    CLARKSON_FAILED
+    NO_INTERIOR_POINT
 };
 
 // Returns the name of a simplifier status.
@@ -67,7 +66,6 @@ inline std::string status_to_string(SimplifierStatus s) {
         case SimplifierStatus::REMOVE_DEPENDENT_ROWS_FAILED: return "REMOVE_DEPENDENT_ROWS_FAILED";
         case SimplifierStatus::INFEASIBLE: return "INFEASIBLE";
         case SimplifierStatus::NO_INTERIOR_POINT: return "NO_INTERIOR_POINT";
-        case SimplifierStatus::CLARKSON_FAILED: return "CLARKSON_FAILED";
     }
     return "UNKNOWN";
 }
@@ -127,7 +125,8 @@ struct ClarksonStats {
     // The number of LPs retried.
     unsigned retried_lps = 0;
 
-    // The number of rows kept untested after repeated failures.
+    // The number of rows kept without a redundancy test after repeated LP failures.
+    // If > 0 the polytope is still correct but may keep redundant rows.
     unsigned untested_rows = 0;
 };
 
@@ -162,7 +161,7 @@ struct SimplifierResult {
    ClarksonStats clarkson;
 };
 
-// Simplifies a ConstrainedPolytope by running reducing it, finding an interior point
+// Simplifies a ConstrainedPolytope by reducing it, finding an interior point
 // and removing redundant inequality rows using Clarkson's algorithm.
 //
 // Pipeline:
@@ -171,6 +170,9 @@ struct SimplifierResult {
 //      3. remove_dependent_rows, removes dependent rows
 //      4. find_interior_point, finds a strictly interior point
 //      5. redundancy_removal_clarkson, removes redundant rows from A_in
+//
+// If Clarkson keeps rows untested after repeated LP failures, the status stays OK
+// and res.clarkson.untested_rows counts them. The polytope is still correct.
 // @tparam Point the point type
 // @param P the input polytope
 // @param config the simplification configuration
@@ -205,9 +207,11 @@ SimplifierResult<Point> simplify(ConstrainedPolytope<Point> const& P,
         Ps = pres.polytope;
     }
 
-    for (unsigned pass = 1; pass <= config.max_reduction_passes; ++pass) {
+    // Runs stages 2-4 until an interior point is found. Stage 2 runs at most
+    // max_reduction_passes times, so with 0 passes stages 3 and 4 still run once.
+    while (true) {
         // Stage 2: fix degenerate dimensions
-        if (config.fix_dimensions) {
+        if (config.fix_dimensions && res.reduce.passes < config.max_reduction_passes) {
             std::clock_t c0 = std::clock();
             auto rres = reduce_polytope(Ps, config.reduce);
             res.times.reduce += elapsed(c0);
@@ -241,14 +245,11 @@ SimplifierResult<Point> simplify(ConstrainedPolytope<Point> const& P,
         res.times.interior_point += elapsed(c0);
         res.solved_lps += 1;
 
-        if (!res.interior_point.valid) {
-            if (config.fix_dimensions && pass < config.max_reduction_passes) {
-                continue; // try reducing the polytope again
-            }
-            return fail(SimplifierStatus::NO_INTERIOR_POINT);
-        }
+        if (res.interior_point.valid) break; // interior point found
 
-        break; // interior point found
+        // Terminates if no reduction pass is left to try
+        if (!config.fix_dimensions || res.reduce.passes >= config.max_reduction_passes)
+            return fail(SimplifierStatus::NO_INTERIOR_POINT);
     }
 
     // Stage 5: Clarkson redundancy removal
@@ -260,9 +261,6 @@ SimplifierResult<Point> simplify(ConstrainedPolytope<Point> const& P,
     res.clarkson.retried_lps += cres.retried_lps;
     res.clarkson.untested_rows += cres.untested_rows;
     res.solved_lps += cres.solved_lps;
-
-    if (!cres.valid) return fail(SimplifierStatus::CLARKSON_FAILED);
-
     res.polytope = cres.polytope;
     return res;
 }

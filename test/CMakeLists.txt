@@ -131,6 +131,9 @@ GetSuiteSparse()
 include("../external/cmake-files/HiGHS.cmake")
 GetHighs()
 
+include("../external/cmake-files/JSON.cmake")
+GetJSON()
+
 # Code Coverage Configuration
 add_library(coverage_config INTERFACE)
 
@@ -470,6 +473,14 @@ add_test(NAME test_z_membership COMMAND test_zpolyoracles -tc=test_membership)
 add_test(NAME test_z_line_intersection COMMAND test_zpolyoracles -tc=test_line_intersection)
 add_test(NAME test_z_float_zonotope COMMAND test_zpolyoracles -tc=test_float_zonotope)
 
+add_executable(simplification_test simplification_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME simplification_simplex COMMAND simplification_test -tc=simplex)
+add_test(NAME simplification_redundant_cube COMMAND simplification_test -tc=redundant_cube)
+add_test(NAME simplification_pinned_variables COMMAND simplification_test -tc=pinned_variables)
+add_test(NAME simplification_keep_facets COMMAND simplification_test -tc=keep_facets)
+add_test(NAME simplification_dependent_equalities COMMAND simplification_test -tc=dependent_equalities)
+add_test(NAME simplification_zero_reduction_passes COMMAND simplification_test -tc=zero_reduction_passes)
+
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
 #set_target_properties(benchmarks_crhmc
@@ -526,3 +537,4 @@ TARGET_LINK_LIBRARIES(test_highs highs::highs coverage_config)
 TARGET_LINK_LIBRARIES(test_solve_lp highs::highs coverage_config)
 TARGET_LINK_LIBRARIES(test_vpolyoracles highs::highs coverage_config)
 TARGET_LINK_LIBRARIES(test_zpolyoracles highs::highs coverage_config)
+TARGET_LINK_LIBRARIES(simplification_test highs::highs nlohmann_json::nlohmann_json QD_LIB ${SUITESPARSE_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${MKL_LINK} coverage_config)

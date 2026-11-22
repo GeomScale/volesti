@@ -52,11 +52,9 @@ struct ClarksonResult {
     // The number of LPs retried.
     unsigned retried_lps = 0;
 
-    // The number of rows kept untested after repeated failures.
+    // The number of rows kept without a redundancy test after repeated LP failures.
+    // If > 0 the polytope is still correct but may keep redundant rows.
     unsigned untested_rows = 0;
-
-    // True if the algorithm ran successfully.
-    bool valid = false;
 };
 
 // Tests whether row k of A_in is redundant given the current essential set already
@@ -130,7 +128,9 @@ test_redundancy(Highs& highs,
     highs.run();
     ++solved_lps;
 
-    if (highs.getModelStatus() != HighsModelStatus::kOptimal) {
+    auto const s = highs.getModelStatus();
+    if (s != HighsModelStatus::kOptimal && s != HighsModelStatus::kUnbounded
+        && s != HighsModelStatus::kInfeasible) {
         highs.clearSolver();
         highs.run();
         ++solved_lps;
@@ -221,7 +221,8 @@ void build_clarkson_lp(ConstrainedPolytope<Point> const& P, Highs& highs)
 //
 // @tparam Point the point type
 // @param P the polytope whose inequalities are to be simplified
-// @param z a strictly interior point of P
+// @param z a point strictly inside P, the rays are shot from it. It must have
+//          P.getDimension() entries, simplify only calls Clarkson with such a point
 // @param config the algorithm configuration
 // @return the result
 template <typename Point>
@@ -343,10 +344,12 @@ ClarksonResult<Point> redundancy_removal_clarkson(ConstrainedPolytope<Point> con
             solved);
 
         if (!solved) {
+            // After repeated failures the row is kept untested.
             if (++fail_count[k] > config.failed_iter_count) {
-                res.untested_rows = (unsigned)J.size();
-                for (unsigned i : J) I.push_back(i);
-                break;
+                ++res.untested_rows;
+                I.push_back(k);
+                enforce(k);
+                J_erase(k);
             }
             continue;
         }
@@ -400,7 +403,6 @@ ClarksonResult<Point> redundancy_removal_clarkson(ConstrainedPolytope<Point> con
     }
 
     res.polytope = ConstrainedPolytope<Point>(d, A_eq, b_eq, A_in_new, b_in_new, lb_new, ub_new);
-    res.valid = true;
     return res;
 }
 #endif
