@@ -51,7 +51,7 @@ To compile the `C++` code, run the following from the repository root. The LP so
     cmake ..
     make
 
-You can check [here](/docs/getting_started/install.md) to see more installation guide.
+You can check [here](docs/getting_started/install.md) to see more installation guide.
 
 Run the tests,
 
