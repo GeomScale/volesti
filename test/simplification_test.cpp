@@ -192,6 +192,25 @@ Polytope make_dependent_cube(unsigned d)
     return make_poly(d, A_eq, b_eq, {}, {}, std::vector<NT>(d, 0.0), std::vector<NT>(d, 1.0));
 }
 
+// The cube [0,1]^d with the rows x_j <= 0 for the first p = d/2 variables. With the
+// bounds x_j >= 0 these rows hold with equality, so x_j = 0 and the result is a
+// (d-p)-dimensional cube. Neither the row nor the bound alone is an equality.
+Polytope make_implicit_cube(unsigned d)
+{
+    unsigned const p = d/2;
+    std::vector<std::vector<NT>> A_in;
+    std::vector<NT> b_in;
+
+    for (unsigned j = 0; j < p; ++j) {
+        std::vector<NT> row(d, 0.0);
+        row[j] = 1.0;
+        A_in.push_back(row);
+        b_in.push_back(0.0);
+    }
+
+    return make_poly(d, {}, {}, A_in, b_in, std::vector<NT>(d, 0.0), std::vector<NT>(d, 1.0));
+}
+
 TEST_CASE("simplex") {
     for (unsigned d : DIMS) {
         CAPTURE(d);
@@ -329,3 +348,38 @@ TEST_CASE("nan_bound_rejected") {
     CHECK_THROWS_AS(make_poly(2, {}, {}, {{1, 1}}, {NaN}, {0, 0}, {1, 1}), std::invalid_argument);
 }
 
+TEST_CASE("implicit_equality_rows") {
+    for (unsigned d : DIMS) {
+        CAPTURE(d);
+        unsigned const p = d/2;
+        auto res = simplify(make_implicit_cube(d));
+        REQUIRE(res.status == SimplifierStatus::OK);
+
+        // Every row x_j <= 0 and every bound x_j >= 0 is tight, both become x_j = 0
+        CHECK(res.reduce.implicit_rows == p);
+        CHECK(res.reduce.fixed_vars == p);
+
+        // The two copies of x_j = 0 are dependent, one of each pair is removed
+        CHECK(res.dependent_rows.removed_rows == p);
+        CHECK(res.polytope.getNumEqualities() == p);
+        CHECK(res.polytope.getNumInequalities() == 0);
+
+        // The fixed variables lose their bounds, the free ones keep both
+        auto const& lb = res.polytope.getLowerBounds();
+        auto const& ub = res.polytope.getUpperBounds();
+        for (unsigned j = 0; j < d; ++j) {
+            CAPTURE(j);
+            CHECK(std::isfinite(lb(j)) == (j >= p));
+            CHECK(std::isfinite(ub(j)) == (j >= p));
+        }
+
+        REQUIRE(res.interior_point.valid);
+        for (unsigned j = 0; j < p; ++j)
+            CHECK(res.interior_point.point(j) == doctest::Approx(0.0));
+
+        // A (d-p)-dimensional cube
+        auto [HP, shift, N] = transform(res.polytope);
+        CHECK(HP.dimension() == d-p);
+        CHECK(HP.num_of_hyperplanes() == 2*(d-p));
+    }
+}

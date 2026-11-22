@@ -98,8 +98,14 @@ struct ReduceStats {
     // The number of passes.
     unsigned passes = 0;
 
+    // The number of A_in rows found to be implicit equalities.
+    unsigned implicit_rows = 0;
+
     // The number of variables fixed.
     unsigned fixed_vars = 0;
+
+    // The number of LPs retried.
+    unsigned retried_lps = 0;
 
     // The number of LPs solved.
     unsigned solved_lps = 0;
@@ -166,7 +172,7 @@ struct SimplifierResult {
 //
 // Pipeline:
 //      1. presolve_pinned_vars, frees bounds of variables pinned by A_eq x = b_eq
-//      2. reduce_polytope, fixes degenerate dimensions
+//      2. reduce_polytope, moves rows and bounds that hold with equality into A_eq
 //      3. remove_dependent_rows, removes dependent rows
 //      4. find_interior_point, finds a strictly interior point
 //      5. redundancy_removal_clarkson, removes redundant rows from A_in
@@ -210,14 +216,16 @@ SimplifierResult<Point> simplify(ConstrainedPolytope<Point> const& P,
     // Runs stages 2-4 until an interior point is found. Stage 2 runs at most
     // max_reduction_passes times, so with 0 passes stages 3 and 4 still run once.
     while (true) {
-        // Stage 2: fix degenerate dimensions
+        // Stage 2: reduce to the affine hull
         if (config.fix_dimensions && res.reduce.passes < config.max_reduction_passes) {
             std::clock_t c0 = std::clock();
             auto rres = reduce_polytope(Ps, config.reduce);
             res.times.reduce += elapsed(c0);
 
             res.reduce.passes += 1;
+            res.reduce.implicit_rows += rres.implicit_rows;
             res.reduce.fixed_vars += rres.fixed_vars;
+            res.reduce.retried_lps += rres.retried_lps;
             res.reduce.solved_lps += rres.solved_lps;
             res.solved_lps += rres.solved_lps;
 

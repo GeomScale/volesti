@@ -481,6 +481,7 @@ add_test(NAME simplification_keep_facets COMMAND simplification_test -tc=keep_fa
 add_test(NAME simplification_dependent_equalities COMMAND simplification_test -tc=dependent_equalities)
 add_test(NAME simplification_zero_reduction_passes COMMAND simplification_test -tc=zero_reduction_passes)
 add_test(NAME simplification_nan_bound_rejected COMMAND simplification_test -tc=nan_bound_rejected)
+add_test(NAME simplification_implicit_equality_rows COMMAND simplification_test -tc=implicit_equality_rows)
 
 set(ADDITIONAL_FLAGS "-march=native -DSIMD_LEN=0 -DTIME_KEEPING")
 
