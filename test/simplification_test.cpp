@@ -321,3 +321,11 @@ TEST_CASE("zero_reduction_passes") {
     CHECK(bad.status == SimplifierStatus::NO_INTERIOR_POINT);
 }
 
+TEST_CASE("nan_bound_rejected") {
+    NT const NaN = std::numeric_limits<NT>::quiet_NaN();
+    CHECK_THROWS_AS(make_poly(2, {}, {}, {}, {}, {NaN, 0}, {1, 1}), std::invalid_argument);
+    CHECK_THROWS_AS(make_poly(2, {}, {}, {}, {}, {0, 0}, {1, NaN}), std::invalid_argument);
+    CHECK_THROWS_AS(make_poly(2, {}, {}, {{NaN, 1}}, {1}, {0, 0}, {1, 1}), std::invalid_argument);
+    CHECK_THROWS_AS(make_poly(2, {}, {}, {{1, 1}}, {NaN}, {0, 0}, {1, 1}), std::invalid_argument);
+}
+

@@ -60,12 +60,12 @@ transform(ConstrainedPolytope<Point> const& P) {
     // Adds the finite bounds
     unsigned l = m_in;
     for (unsigned k = 0; k < d; ++k) {
-        if (!std::isinf(b_l(k))) {
+        if (std::isfinite(b_l(k))) {
             A(l, k) = NT(-1.0);
             b(l) = -b_l(k);
             ++l;
         }
-        if (!std::isinf(b_u(k))) {
+        if (std::isfinite(b_u(k))) {
             A(l, k) = NT(1.0);
             b(l) = b_u(k);
             ++l;

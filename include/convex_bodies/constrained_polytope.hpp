@@ -56,13 +56,25 @@ class ConstrainedPolytope {
         // @param b_in_ the inequality rhs
         // @param lb_ the lower bounds on x
         // @param ub_ the upper bounds on x
+        // @throws std::invalid_argument if a coefficient, right-hand side or bound is NaN
         ConstrainedPolytope(unsigned d_, 
                           MT const& A_eq_, VT const& b_eq_, 
                           MT const& A_in_,  VT const& b_in_,
                           VT const& lb_, VT const& ub_
         ) : 
             d{d_}, A_eq{A_eq_}, b_eq{b_eq_}, A_in{A_in_}, b_in{b_in_}, lb{lb_}, ub{ub_}
-        {}
+        {
+            auto has_nan = [](VT const& v) { return v.array().isNaN().any(); };
+
+            // Only the stored entries of a sparse matrix can be NaN
+            auto has_nan_mat = [](MT const& A) {
+                return Eigen::Map<VT const>(A.valuePtr(), A.nonZeros()).array().isNaN().any();
+            };
+
+            if (has_nan(lb) || has_nan(ub) || has_nan(b_eq) || has_nan(b_in) || has_nan_mat(A_eq) || has_nan_mat(A_in)) {
+                throw std::invalid_argument("ConstrainedPolytope: NaN present in the constraints or bounds");
+            }
+        }
 
         // Builds a polytope with equalities, general inequalities and no box bounds.
         // @param d_ the ambient dimension
@@ -70,6 +82,7 @@ class ConstrainedPolytope {
         // @param b_eq_ the equality rhs
         // @param A_in_ the inequality matrix
         // @param b_in_ the inequality rhs
+        // @throws std::invalid_argument if a coefficient, right-hand side or bound is NaN
         ConstrainedPolytope(unsigned d_, 
                           MT const& A_eq_, VT const& b_eq_, 
                           MT const& A_in_,  VT const& b_in_
