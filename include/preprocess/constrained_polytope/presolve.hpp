@@ -41,6 +41,10 @@ struct PinnedPresolveResult {
 };
 
 // Frees the bounds of every variable that A_eq x = b_eq pins alone.
+//
+// A variable is pinned if its row of the null space basis of A_eq is below tol and its
+// value lies within its bounds. Not pinning a variable never changes the polytope, its
+// bounds just stay, so a doubtful variable is left alone.
 // @tparam Point the point type
 // @param P the polytope
 // @param tol the rank zero tolerance
@@ -106,7 +110,9 @@ PinnedPresolveResult<Point> presolve_pinned_vars(ConstrainedPolytope<Point> cons
     for (unsigned j = 0; j < d; ++j) {
         if (N.cols() > 0 && N.row(j).cwiseAbs().maxCoeff() >= tol) continue;
 
-        if (x0(j) < (double)lb(j)-tol || x0(j) > (double)ub(j)+tol) return res;
+        // A pinned value outside the bounds means the null space test was wrong (or the
+        // polytope is infeasible, which the reduce LP detects), so x_j is not pinned
+        if (x0(j) < (double)lb(j)-tol || x0(j) > (double)ub(j)+tol) continue;
 
         res.pinned.push_back(j);
         lb(j) = -INF;

@@ -179,6 +179,10 @@ struct SimplifierResult {
 //
 // If Clarkson keeps rows untested after repeated LP failures, the status stays OK
 // and res.clarkson.untested_rows counts them. The polytope is still correct.
+//
+// The polytope is assumed to be bounded. An unbounded polytope is still simplified
+// correctly, but volume and sampling need a bounded body, so the caller must ensure
+// that, e.g. by giving finite bounds to every variable.
 // @tparam Point the point type
 // @param P the input polytope
 // @param config the simplification configuration

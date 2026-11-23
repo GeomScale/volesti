@@ -383,3 +383,9 @@ TEST_CASE("implicit_equality_rows") {
         CHECK(HP.num_of_hyperplanes() == 2*(d-p));
     }
 }
+
+TEST_CASE("infeasible_pinned_variable") {
+    // x_0 = 2 but 0 <= x_0 <= 1: infeasible, not a presolve failure
+    auto res = simplify(make_poly(2, {{1, 0}}, {2}, {}, {}, {0, 0}, {1, 1}));
+    CHECK(res.status == SimplifierStatus::INFEASIBLE);
+}
